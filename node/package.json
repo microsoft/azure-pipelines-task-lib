@@ -29,7 +29,6 @@
   "devDependencies": {
     "del": "^1.2.0",
     "gulp": "^3.9.0",
-    "gulp-exec": "^2.1.1",
     "gulp-mocha": "2.0.0",
     "gulp-tsc": "^0.10.1",
     "minimatch": "^2.0.8",

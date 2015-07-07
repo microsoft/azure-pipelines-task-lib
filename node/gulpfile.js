@@ -4,7 +4,6 @@ var gulp = require('gulp');
 var del = require('del');
 var mocha = require('gulp-mocha');
 var typescript = require('gulp-tsc');
-var exec = require('gulp-exec');
 
 gulp.task('compile', function(){
   gulp.src(['src/**/*.ts'])
