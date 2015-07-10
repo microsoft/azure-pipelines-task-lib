@@ -92,7 +92,10 @@ export class ToolRunner extends events.EventEmitter {
         if (argString) {
             cmdString += (' ' + argString);
         }
-        ops.outStream.write('[command]' + cmdString + os.EOL);
+
+        if (!ops.silent) {
+            ops.outStream.write('[command]' + cmdString + os.EOL);    
+        }
 
         // TODO: filter process.env
 
