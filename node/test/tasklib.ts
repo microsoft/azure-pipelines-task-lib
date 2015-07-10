@@ -98,7 +98,7 @@ describe('Test vso-task-lib', function() {
 	});	
 
 	describe('ToolRunner', function() {
-		it('Execs', function(done) {
+		it('Execs with stdout', function(done) {
 			this.timeout(1000);
 
 			tl.pushd(__dirname);
@@ -107,9 +107,15 @@ describe('Test vso-task-lib', function() {
 			ls.arg('-l');
 			ls.arg('-a');
 
+			var output = '';
+			ls.on('stdout', (data) => {
+				output = data.toString();
+			});
+
 			ls.exec({outStream:_nullTestStream, errStream:_nullTestStream})
 				.then(function(code) {
 					assert(code === 0, 'return code of ls should be 0');
+					assert(output && output.length > 0, 'should have emitted stdout');
 				})
 				.fail(function(err) {
 					assert.fail('ls failed to run: ' + err.message);
@@ -119,7 +125,7 @@ describe('Test vso-task-lib', function() {
 					done();
 				})
 		})
-		it ('Fails on return code 1', function(done) {
+		it ('Fails on return code 1 with stderr', function(done) {
 			this.timeout(1000);
 
 			var failed = false;
@@ -127,9 +133,15 @@ describe('Test vso-task-lib', function() {
 			var ls = new tl.ToolRunner(tl.which('ls', true));
 			ls.arg('-j');
 
+			var output = '';
+			ls.on('stderr', (data) => {
+				output = data.toString();
+			});						
+
 			ls.exec({outStream:_nullTestStream, errStream:_nullTestStream})
 				.then(function(code) {
 					assert(code === 1, 'return code of ls -j should be 1');
+					assert(output && output.length > 0, 'should have emitted stderr');
 				})
 				.fail(function(err) {
 					failed = true;

@@ -1,8 +1,13 @@
-# vso-task-lib
-Libraries for writing VSO and TFS build tasks
+# VSO DevOps Task SDK
+
+Libraries for writing VSO and TFS build and deployment tasks
 
 ## Node Task Lib
 Library for writing tasks with the node handler
+
+## Contributing
+
+### Node
 
 Once:
 ```bash
@@ -17,5 +22,6 @@ $ cd node
 $ gulp
 ```
 
-## Powershell Task Lib
-TODO: Pending
+### Powershell
+
+Coming soon

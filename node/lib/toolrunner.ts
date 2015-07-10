@@ -5,8 +5,19 @@
 import Q = require('q');
 import os = require('os');
 import events = require('events');
+import child = require('child_process');
 
-var shell = require('shelljs');
+var run = function(cmd, callback) {
+    console.log('running: ' + cmd);
+    var output = '';
+    try {
+      
+    }
+    catch(err) {
+        console.log(err.message);
+    }
+
+}
 
 export interface IExecOptions {
     cwd: string;
@@ -83,7 +94,33 @@ export class ToolRunner extends events.EventEmitter {
         }
         ops.outStream.write('[command]' + cmdString + os.EOL);
 
-        var runCP = shell.exec(cmdString, {async: true, silent: true}, function(code, output) {
+        // TODO: filter process.env
+
+        var cp = child.spawn(this.toolPath, this.args, {env: process.env});
+
+        cp.stdout.on('data', (data) => {
+            this.emit('stdout', data);
+
+            if (!ops.silent) {
+                ops.outStream.write(data);    
+            }
+        });
+
+        cp.stderr.on('data', (data) => {
+            this.emit('stderr', data);
+
+            success = !ops.failOnStdErr;
+            if (!ops.silent) {
+                var s = ops.failOnStdErr ? ops.errStream : ops.outStream;
+                s.write(data);
+            }
+        });
+
+        cp.on('error', (err) => {
+            defer.reject(new Error(this.toolPath + ' failed. ' + err.message));
+        });
+
+        cp.on('exit', (code, signal) => {
             exports.debug('rc:' + code);
 
             if (code != 0 && !ops.ignoreReturnCode) {
@@ -98,24 +135,6 @@ export class ToolRunner extends events.EventEmitter {
                 defer.reject(new Error(this.toolPath + ' failed with return code: ' + code));
             }
         });
-
-        runCP.stdout.on('data', function(data) {
-            this.emit('stdout', data);
-
-            if (!ops.silent) {
-                ops.outStream.write(data);    
-            }
-        });
-
-        runCP.stderr.on('data', function(data) {
-            this.emit('stderr', data);
-
-            success = !ops.failOnStdErr;
-            if (!ops.silent) {
-                var s = ops.failOnStdErr ? ops.errStream : ops.outStream;
-                s.write(data);
-            }
-        })
 
         return defer.promise;
     }

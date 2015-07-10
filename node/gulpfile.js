@@ -18,7 +18,7 @@ var testDest = path.join(buildRoot, 'test');
 //var testRoot = path.join(buildRoot, 'test');
 
 gulp.task('copy', ['clean'], function () {
-	return gulp.src(['package.json'])
+	return gulp.src(['package.json', '../README.md'])
 		.pipe(gulp.dest(buildRoot));
 });
 
