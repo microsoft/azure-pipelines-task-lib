@@ -42,15 +42,24 @@ export class ToolRunner extends events.EventEmitter {
         }
         this.toolPath = toolPath;
         this.args = [];
+        this.silent = false;
         super();
     }
 
     public toolPath: string;
     public args: string[];
+    public silent: boolean;
+
+    private _debug(message) {
+        if (!this.silent) {
+            debug(message);
+        }
+        this.emit('debug', message);
+    }
 
     public arg(arguments, raw) {
         if (arguments instanceof Array) {
-            exports.debug(this.toolPath + ' arg: ' + JSON.stringify(arguments));
+            this._debug(this.toolPath + ' arg: ' + JSON.stringify(arguments));
             this.args = this.args.concat(arguments);
         }
         else if (typeof(arguments) === 'string') {
@@ -60,7 +69,7 @@ export class ToolRunner extends events.EventEmitter {
                 arguments = '\'' + arguments + '\'';
             }
 
-            exports.debug(this.toolPath + ' arg: ' + arguments);
+            this._debug(this.toolPath + ' arg: ' + arguments);
             this.args.push(arguments);
         }
     }
@@ -68,10 +77,10 @@ export class ToolRunner extends events.EventEmitter {
     public exec(options: IExecOptions) {
         var defer = Q.defer();
 
-        exports.debug('exec tool: ' + this.toolPath);
-        exports.debug('Arguments:');
-        this.args.forEach(function(arg) {
-            exports.debug('   ' + arg);
+        this._debug('exec tool: ' + this.toolPath);
+        this._debug('Arguments:');
+        this.args.forEach((arg) => {
+            this._debug('   ' + arg);
         });
 
         var success = true;
@@ -124,13 +133,13 @@ export class ToolRunner extends events.EventEmitter {
         });
 
         cp.on('exit', (code, signal) => {
-            exports.debug('rc:' + code);
+            this._debug('rc:' + code);
 
             if (code != 0 && !ops.ignoreReturnCode) {
                 success = false;
             }
             
-            exports.debug('success:' + success);
+            this._debug('success:' + success);
             if (success) {
                 defer.resolve(code);
             }
