@@ -196,6 +196,46 @@ describe('Test vso-task-lib', function() {
 					done();
 				})
 		})
+		it ('handles single args', function(done) {
+			this.timeout(1000);
+
+			var node = new tl.ToolRunner(tl.which('node', true));
+			node.arg('one');
+			node.arg('two');
+			assert(node.args.length === 2, 'should have 2 args');
+			assert(node.args.toString() === 'one,two', 'should be one,two');
+			done();
+		})
+		it ('handles basic arg line with spaces', function(done) {
+			this.timeout(1000);
+
+			var node = new tl.ToolRunner(tl.which('node', true));
+			node.arg('one two');
+			node.arg('three');
+			assert(node.args.length === 3, 'should have 3 args');
+			assert(node.args.toString() === 'one,two,three', 'should be one,two,three');
+			done();
+		})
+		it ('handles equals and switches', function(done) {
+			this.timeout(1000);
+
+			var node = new tl.ToolRunner(tl.which('node', true));
+			node.arg('foo=bar -x');
+			node.arg('-y');
+			assert(node.args.length === 3, 'should have 3 args');
+			assert(node.args.toString() === 'foo=bar,-x,-y', 'should be foo=bar,-x,-y');
+			done();
+		})
+		it ('handles double quotes', function(done) {
+			this.timeout(1000);
+
+			var node = new tl.ToolRunner(tl.which('node', true));
+			node.arg('foo="bar baz" -x');
+			node.arg('-y');
+			assert(node.args.length === 3, 'should have 3 args');
+			assert(node.args.toString() === 'foo=bar baz,-x,-y', 'should be foo=bar baz,-x,-y');
+			done();
+		})
 	});	
 
 });
