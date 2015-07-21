@@ -67,6 +67,10 @@ export class ToolRunner extends events.EventEmitter {
     }
 
     public arg(arguments, raw) {
+        if (!arguments) {
+            return;
+        }
+
         if (arguments instanceof Array) {
             this._debug(this.toolPath + ' arg: ' + JSON.stringify(arguments));
             this.args = this.args.concat(arguments);
