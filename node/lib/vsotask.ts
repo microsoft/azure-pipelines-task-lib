@@ -39,12 +39,12 @@ export function exit(code) {
     var result = code == 0 ? 'Succeeded' : 'Failed';
 
     debug('task result: ' + result);
-    writeCommand('task.complete', {'result': result}, '');
+    writeCommand('task.complete', {'result': result}, 'return code: ' + code);
 }
 
-export function setResult(result: TaskResult) {
+export function setResult(result: TaskResult, message) {
     debug('task result: ' + TaskResult[result]);
-    writeCommand('task.complete', {'result': TaskResult[result]}, '');
+    writeCommand('task.complete', {'result': TaskResult[result]}, message);
 }
 
 //-----------------------------------------------------

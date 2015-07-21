@@ -132,11 +132,11 @@ describe('Test vso-task-lib', function() {
 
 			var stdStream = new StringStream();
 			tl.setStdStream(stdStream);
-			tl.setResult(tl.TaskResult.Succeeded);
+			tl.setResult(tl.TaskResult.Succeeded, 'success msg');
 
 			var expected = _buildOutput(
 				['##vso[task.debug]task result: Succeeded',
-				 '##vso[task.complete result=Succeeded;]']);
+				 '##vso[task.complete result=Succeeded;]success msg']);
 
 			var output = stdStream.getContents();
 
@@ -149,11 +149,11 @@ describe('Test vso-task-lib', function() {
 
 			var stdStream = new StringStream();
 			tl.setStdStream(stdStream);
-			tl.setResult(tl.TaskResult.Failed);
+			tl.setResult(tl.TaskResult.Failed, 'failed msg');
 
 			var expected = _buildOutput(
 				['##vso[task.debug]task result: Failed',
-				 '##vso[task.complete result=Failed;]']);
+				 '##vso[task.complete result=Failed;]failed msg']);
 
 			var output = stdStream.getContents();
 
@@ -171,7 +171,7 @@ describe('Test vso-task-lib', function() {
 
 			var expected = _buildOutput(
 				['##vso[task.debug]task result: Succeeded',
-				 '##vso[task.complete result=Succeeded;]']);
+				 '##vso[task.complete result=Succeeded;]return code: 0']);
 
 			var output = stdStream.getContents();
 
@@ -188,7 +188,7 @@ describe('Test vso-task-lib', function() {
 
 			var expected = _buildOutput(
 				['##vso[task.debug]task result: Failed',
-				 '##vso[task.complete result=Failed;]']);
+				 '##vso[task.complete result=Failed;]return code: 1']);
 
 			var output = stdStream.getContents();
 
