@@ -10,6 +10,7 @@ import fs = require('fs');
 import util = require('util');
 import stream = require('stream');
 var shell = require('shelljs');
+var os = require('os');
 
 var tl;
 
@@ -21,7 +22,35 @@ var NullStream = function() {
 }
 util.inherits(NullStream, stream.Writable);
 
+var StringStream = function() {
+	var contents = '';
+
+	stream.Writable.call(this);
+	this._write = function(data, encoding, next) {
+		contents += data;
+		next();
+	}
+
+	this.getContents = function() {
+		return contents.toString();
+	}
+}
+util.inherits(StringStream, stream.Writable);
+
 var _nullTestStream = new NullStream();
+
+var _mismatch = function(expected, output) {
+	return 'expected' + os.EOL + '"' + expected + '"' + os.EOL + 'returned' + os.EOL + '"' + output + '"';
+}
+
+var _buildOutput = function(lines) {
+	var output = '';
+	lines.forEach(function(line) {
+		output += line + os.EOL;
+	});
+
+	return output;
+}
 
 describe('Test vso-task-lib', function() {
 
@@ -96,6 +125,78 @@ describe('Test vso-task-lib', function() {
 			done();
 		})	
 	});	
+
+	describe('TaskLibCommands', function() {
+		it('setResult success outputs', function(done) {
+			this.timeout(1000);
+
+			var stdStream = new StringStream();
+			tl.setStdStream(stdStream);
+			tl.setResult(tl.TaskResult.Succeeded);
+
+			var expected = _buildOutput(
+				['##vso[task.debug]task result: Succeeded',
+				 '##vso[task.complete result=Succeeded;]']);
+
+			var output = stdStream.getContents();
+
+			assert(output === expected, _mismatch(expected, output));
+
+			done();
+		})
+		it('setResult failed outputs', function(done) {
+			this.timeout(1000);
+
+			var stdStream = new StringStream();
+			tl.setStdStream(stdStream);
+			tl.setResult(tl.TaskResult.Failed);
+
+			var expected = _buildOutput(
+				['##vso[task.debug]task result: Failed',
+				 '##vso[task.complete result=Failed;]']);
+
+			var output = stdStream.getContents();
+
+			assert(output === expected, _mismatch(expected, output));
+
+			done();
+		})
+		// compat
+		it('exit 0 success outputs', function(done) {
+			this.timeout(1000);
+
+			var stdStream = new StringStream();
+			tl.setStdStream(stdStream);
+			tl.exit(0);
+
+			var expected = _buildOutput(
+				['##vso[task.debug]task result: Succeeded',
+				 '##vso[task.complete result=Succeeded;]']);
+
+			var output = stdStream.getContents();
+
+			assert(output === expected, _mismatch(expected, output));
+
+			done();
+		})
+		it('exit 1 failed outputs', function(done) {
+			this.timeout(1000);
+
+			var stdStream = new StringStream();
+			tl.setStdStream(stdStream);
+			tl.exit(1);
+
+			var expected = _buildOutput(
+				['##vso[task.debug]task result: Failed',
+				 '##vso[task.complete result=Failed;]']);
+
+			var output = stdStream.getContents();
+
+			assert(output === expected, _mismatch(expected, output));
+
+			done();
+		})			
+	});
 
 	describe('ToolRunner', function() {
 		it('Execs with stdout', function(done) {

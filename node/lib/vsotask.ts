@@ -7,6 +7,11 @@ var minimatch = require('minimatch');
 var tcm = require('./taskcommand');
 var trm = require('./toolrunner');
 
+export enum TaskResult {
+    Succeeded = 0,
+    Failed = 1
+}
+
 //-----------------------------------------------------
 // General Helpers
 //-----------------------------------------------------
@@ -29,9 +34,17 @@ export function setErrStream(errStream) {
     _errStream = errStream;
 }
 
+// back compat: should use setResult
 export function exit(code) {
-    debug('task exit: ' + code);
-    shell.exit(code);
+    var result = code == 0 ? 'Succeeded' : 'Failed';
+
+    debug('task result: ' + result);
+    writeCommand('task.complete', {'result': result}, '');
+}
+
+export function setResult(result: TaskResult) {
+    debug('task result: ' + TaskResult[result]);
+    writeCommand('task.complete', {'result': TaskResult[result]}, '');
 }
 
 //-----------------------------------------------------
