@@ -37,9 +37,6 @@ export class ToolRunner extends events.EventEmitter {
     constructor(toolPath) {
         debug('toolRunner toolPath: ' + toolPath);
 
-        if(toolPath.indexOf(' ') > 0) {
-            toolPath = '\'' + toolPath + '\'';
-        }
         this.toolPath = toolPath;
         this.args = [];
         this.silent = false;
