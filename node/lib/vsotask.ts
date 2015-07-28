@@ -39,12 +39,12 @@ export function exit(code) {
     var result = code == 0 ? 'Succeeded' : 'Failed';
 
     debug('task result: ' + result);
-    writeCommand('task.complete', {'result': result}, 'return code: ' + code);
+    command('task.complete', {'result': result}, 'return code: ' + code);
 }
 
 export function setResult(result: TaskResult, message) {
     debug('task result: ' + TaskResult[result]);
-    writeCommand('task.complete', {'result': TaskResult[result]}, message);
+    command('task.complete', {'result': TaskResult[result]}, message);
 }
 
 //-----------------------------------------------------
@@ -95,21 +95,21 @@ export function getPathInput(name, required, check) {
 //-----------------------------------------------------
 // Cmd Helpers
 //-----------------------------------------------------
-export function writeCommand(command, properties, message) {
+export function command(command, properties, message) {
     var taskCmd = new tcm.TaskCommand(command, properties, message);
     _writeLine(taskCmd.toString());
 }
 
 export function warning(message) {
-    writeCommand('task.issue', {'type': 'warning'}, message);
+    command('task.issue', {'type': 'warning'}, message);
 }
 
 export function error(message) {
-    writeCommand('task.issue', {'type': 'error'}, message);
+    command('task.issue', {'type': 'error'}, message);
 }
 
 export function debug(message) {
-    writeCommand('task.debug', null, message);
+    command('task.debug', null, message);
 }
 
 var _argStringToArray = function(argString) {
@@ -219,7 +219,7 @@ export class TestPublisher {
         }
 
         for(var i = 0; i < resultFiles.length; i ++) {            
-            writeCommand('results.publish',  properties, resultFiles[i]);
+            command('results.publish',  properties, resultFiles[i]);
         }
     }
 }
