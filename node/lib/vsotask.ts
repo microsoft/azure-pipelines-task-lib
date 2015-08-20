@@ -88,6 +88,11 @@ export function getPathInput(name, required, check) {
         checkPath(inval, name);
     }
 
+    if(inval.indexOf(' ') > 0) {
+        //add double quotes around path if it contains spaces
+        inval = '\"' + inval + '\"'; 
+    }
+
     debug(name + '=' + inval);
     return inval;
 }
