@@ -116,7 +116,26 @@ describe('Test vso-task-lib', function() {
 			assert(varVal === 'test var value', 'variable should match after set and get');
 
 			done();
-		})		
+		})
+		it('gets an endpoint url', function(done) {
+			this.timeout(1000);
+			
+			process.env['ENDPOINT_URL_id1'] = 'http://url';
+			var url = tl.getEndpointUrl('id1');
+			assert(url === 'http://url', 'url should match');
+
+			done();
+		})
+		it('gets an endpoint auth', function(done) {
+			this.timeout(1000);
+			
+			process.env['ENDPOINT_AUTH_id1'] = '{ "param1": "val1", "param2": "val2"}';
+			var auth = tl.getEndpointAuthorization('id1');
+			assert(auth, 'should return an auth obj');
+			assert(auth.param1 === 'val1', 'should be correct object');
+
+			done();
+		})						
 	});
 
 	describe('TaskCommands', function() {
@@ -194,7 +213,6 @@ describe('Test vso-task-lib', function() {
 			this.timeout(1000);
 
 			var tc = new tl.TaskCommand('some.cmd', {}, 'a message');
-			console.log(tc.toString());
 			assert(tc.toString() === '##vso[some.cmd]a message');
 			done();
 		})	
