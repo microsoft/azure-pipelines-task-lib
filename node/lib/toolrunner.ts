@@ -63,18 +63,18 @@ export class ToolRunner extends events.EventEmitter {
         return args;
     }
 
-    public arg(arguments, raw) {
-        if (!arguments) {
+    public arg(val: any, raw) {
+        if (!val) {
             return;
         }
 
-        if (arguments instanceof Array) {
-            this._debug(this.toolPath + ' arg: ' + JSON.stringify(arguments));
-            this.args = this.args.concat(arguments);
+        if (val instanceof Array) {
+            this._debug(this.toolPath + ' arg: ' + JSON.stringify(val));
+            this.args = this.args.concat(val);
         }
-        else if (typeof(arguments) === 'string') {
-            this._debug(this.toolPath + ' arg: ' + arguments);
-            this.args = this.args.concat(this._argStringToArray(arguments));
+        else if (typeof(val) === 'string') {
+            this._debug(this.toolPath + ' arg: ' + val);
+            this.args = this.args.concat(this._argStringToArray(val));
         }
     }
 

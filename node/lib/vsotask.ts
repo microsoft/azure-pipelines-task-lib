@@ -56,6 +56,18 @@ export function getVariable(name) {
     return varval;
 }
 
+export function setVariable(name, val) {
+    if (!name) {
+        _writeError('name required: ' + name);
+        exit(1);
+    }
+
+    var varValue = val || '';
+    process.env[name.replace('.', '_').toUpperCase()] = varValue;
+    debug('set ' + name + '=' + varValue);
+    command('task.setvariable', {'variable': name || ''}, varValue);
+}
+
 export function getInput(name, required) {
 	var inval = process.env['INPUT_' + name.replace(' ', '_').toUpperCase()];
 
@@ -90,6 +102,52 @@ export function getPathInput(name, required, check) {
 
     debug(name + '=' + inval);
     return inval;
+}
+
+//-----------------------------------------------------
+// Endpoint Helpers
+//-----------------------------------------------------
+
+export function getEndpointUrl(id: string, optional: boolean): string {
+    var urlval = process.env['ENDPOINT_URL_' + id];
+
+    if (!optional && !urlval) {
+        _writeError('Endpoint not present: ' + id);
+        exit(1);
+    }
+
+    debug(id + '=' + urlval);
+    return urlval;    
+}
+
+// TODO: should go away when task lib 
+export interface EndpointAuthorization {
+    parameters: {
+        [key: string]: string;
+    };
+    scheme: string;
+}
+
+export function getEndpointAuthorization(id: string, optional: boolean): EndpointAuthorization {
+    var aval = process.env['ENDPOINT_AUTH_' + id];
+
+    if (!optional && !aval) {
+        _writeError('Endpoint not present: ' + id);
+        exit(1);
+    }
+
+    debug(id + '=' + aval);
+
+    var auth: EndpointAuthorization;
+    try {
+        auth = <EndpointAuthorization>JSON.parse(aval);
+    }
+    catch (err) {
+        _writeError('Invalid endpoint auth: ' + aval);
+        exit(1);
+    }
+
+    return auth;
 }
 
 //-----------------------------------------------------

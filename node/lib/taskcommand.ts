@@ -51,11 +51,16 @@ export function commandFromString(commandLine) {
         throw new Error('Invalid command brackets');
     }
     var cmdInfo = commandLine.substring(lbPos + 1, rbPos);
-    var cmdParts = cmdInfo.trim().split(' ');
-    var command = cmdParts[0];
+    var spaceIdx = cmdInfo.indexOf(' ');
+
+    var command = cmdInfo;
     var properties = {};
-    if (cmdParts.length == 2) {
-        var propLines = cmdParts[1].split(';');
+
+    if (spaceIdx > 0) {
+        command = cmdInfo.trim().substring(0, spaceIdx);
+        var propSection = cmdInfo.trim().substring(spaceIdx+1);
+
+        var propLines = propSection.split(';');
         propLines.forEach(function (propLine) {
             propLine = propLine.trim();
             if (propLine.length > 0) {
@@ -67,6 +72,7 @@ export function commandFromString(commandLine) {
             }
         });
     }
+
     var msg = commandLine.substring(rbPos + 1);
     var cmd = new TaskCommand(command, properties, msg);
     return cmd;

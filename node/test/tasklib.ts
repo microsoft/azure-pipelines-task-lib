@@ -90,6 +90,35 @@ describe('Test vso-task-lib', function() {
 		});
 	});
 
+	describe('TaskInputsVariables', function() {
+		it('gets input value', function(done) {
+			this.timeout(1000);
+			
+			process.env['INPUT_UNITTESTINPUT'] = 'test value';
+			var inval = tl.getInput('UnitTestInput', true);
+			assert(inval === 'test value', 'reading an input should work');
+
+			done();
+		})
+		it('invalid input is null', function(done) {
+			this.timeout(1000);
+			
+			var inval = tl.getInput('SomeInvalidInput', true);
+			assert(!inval, 'a non existant input should return null');
+
+			done();
+		})
+		it('sets and gets a variable', function(done) {
+			this.timeout(1000);
+			
+			tl.setVariable('UnitTestVariable', 'test var value');
+			var varVal = tl.getVariable('UnitTestVariable');
+			assert(varVal === 'test var value', 'variable should match after set and get');
+
+			done();
+		})		
+	});
+
 	describe('TaskCommands', function() {
 		it('constructs', function(done) {
 			this.timeout(1000);
@@ -114,6 +143,51 @@ describe('Test vso-task-lib', function() {
 
 			var tc = new tl.TaskCommand('some.cmd', null, 'a message');
 			assert(tc.toString() === '##vso[some.cmd]a message');
+			done();
+		})
+		it('parses cmd with no properties', function(done) {
+			var cmdStr = '##vso[basic.command]messageVal';
+
+			var tc = tl.commandFromString(cmdStr);
+
+			assert(tc.command === 'basic.command', 'cmd should be correct');
+			assert(Object.keys(tc.properties).length == 0, 'should have no properties.');
+			assert(tc.message === 'messageVal', 'message is correct');
+			done();
+		})		
+		it('parses basic cmd with values', function(done) {
+			var cmdStr = '##vso[basic.command prop1=val1;]messageVal';
+
+			var tc = tl.commandFromString(cmdStr);
+
+			assert(tc.command === 'basic.command', 'cmd should be correct');
+			assert(tc.properties['prop1'], 'should be a property names prop1');
+			assert(Object.keys(tc.properties).length == 1, 'should have one property.');
+			assert(tc.properties['prop1'] === 'val1', 'property value is correct');
+			assert(tc.message === 'messageVal', 'message is correct');
+			done();
+		})
+		it('parses basic cmd with multiple properties no trailing semi', function(done) {
+			var cmdStr = '##vso[basic.command prop1=val1;prop2=val2]messageVal';
+
+			var tc = tl.commandFromString(cmdStr);
+
+			assert(tc.command === 'basic.command', 'cmd should be correct');
+			assert(tc.properties['prop1'], 'should be a property names prop1');
+			assert(Object.keys(tc.properties).length == 2, 'should have one property.');
+			assert(tc.properties['prop1'] === 'val1', 'property value is correct');
+			assert(tc.properties['prop2'] === 'val2', 'property value is correct');
+			assert(tc.message === 'messageVal', 'message is correct');
+			done();
+		})				
+		it('parses values with spaces in them', function(done) {
+			var cmdStr = '##vso[task.setvariable variable=task variable;]task variable set value';
+
+			var tc = tl.commandFromString(cmdStr);
+			assert(tc.command === 'task.setvariable', 'cmd should be task.setvariable');
+			assert(tc.properties['variable'], 'should be a property names variable');
+			assert(tc.properties['variable'] === 'task variable', 'property variable is correct');
+			assert(tc.message === 'task variable set value');
 			done();
 		})
 		it('handles empty properties', function(done) {
