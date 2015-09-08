@@ -90,19 +90,18 @@ export function getDelimitedInput(name, delim, required) {
 
 export function getPathInput(name, required, check) {
     var inval = process.env['INPUT_' + name.replace(' ', '_').toUpperCase()];
-
-    if (required && !inval) {
+    if (inval) {
+        if (check) {
+            checkPath(inval, name);
+        }
+    
+        if (inval.indexOf(' ') > 0) {
+            //add double quotes around path if it contains spaces
+            inval = '\"' + inval + '\"'; 
+        }
+    } else if (required) {
         _writeError('Input required: ' + name);
         exit(1);
-    }
-
-    if (check) {
-        checkPath(inval, name);
-    }
-
-    if(inval.indexOf(' ') > 0) {
-        //add double quotes around path if it contains spaces
-        inval = '\"' + inval + '\"'; 
     }
 
     debug(name + '=' + inval);
@@ -202,9 +201,9 @@ export function popd() {
 export function checkPath(p, name) {
     debug('check path : ' + p);
     if (!p || !fs.existsSync(p)) {
-        console.error('invalid ' + name + ': ' + p);
+        _writeError('invalid ' + name + ': ' + p);
         exit(1);
-    }    
+    }
 }
 
 //-----------------------------------------------------
