@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/Microsoft/vso-agent",
   "dependencies": {
+    "minimatch": "^2.0.8",
     "q": "^1.1.2",
     "shelljs": "^0.3.0"
   },
@@ -31,7 +32,6 @@
     "gulp": "^3.9.0",
     "gulp-mocha": "2.0.0",
     "gulp-tsc": "^0.10.1",
-    "minimatch": "^2.0.8",
     "mocha": "^2.2.5"
   }
 }
