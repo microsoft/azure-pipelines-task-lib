@@ -51,7 +51,7 @@ export function setResult(result: TaskResult, message) {
 // Input Helpers
 //-----------------------------------------------------
 export function getVariable(name) {
-    var varval = process.env[name.replace('.', '_').toUpperCase()];
+    var varval = process.env[name.replace(/\./g, '_').toUpperCase()];
     debug(name + '=' + varval);
     return varval;
 }
@@ -63,7 +63,7 @@ export function setVariable(name, val) {
     }
 
     var varValue = val || '';
-    process.env[name.replace('.', '_').toUpperCase()] = varValue;
+    process.env[name.replace(/\./g, '_').toUpperCase()] = varValue;
     debug('set ' + name + '=' + varValue);
     command('task.setvariable', {'variable': name || ''}, varValue);
 }

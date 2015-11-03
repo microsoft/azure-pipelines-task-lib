@@ -108,6 +108,24 @@ describe('Test vso-task-lib', function() {
 
 			done();
 		})
+		it('gets a variable', function (done) {
+			this.timeout(1000);
+
+			process.env['BUILD_REPOSITORY_NAME'] = 'Test Repository';
+			var varVal = tl.getVariable('Build.Repository.Name');
+			assert(varVal === 'Test Repository', 'reading a variable should work');
+
+			done();
+		})
+		it('sets a variable', function (done) {
+			this.timeout(1000);
+
+			tl.setVariable('Build.Repository.Uri', 'test value');
+			var varVal = process.env['BUILD_REPOSITORY_URI'];
+			assert(varVal === 'test value', 'setting a variable should work');
+
+			done();
+		})
 		it('sets and gets a variable', function(done) {
 			this.timeout(1000);
 			
