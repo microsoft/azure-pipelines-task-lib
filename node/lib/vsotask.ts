@@ -51,7 +51,7 @@ export function setResult(result: TaskResult, message) {
 // Input Helpers
 //-----------------------------------------------------
 export function getVariable(name) {
-    var varval = process.env[name.replace('.', '_').toUpperCase()];
+    var varval = process.env[name.replace(/\./g, '_').toUpperCase()];
     debug(name + '=' + varval);
     return varval;
 }
@@ -63,7 +63,7 @@ export function setVariable(name, val) {
     }
 
     var varValue = val || '';
-    process.env[name.replace('.', '_').toUpperCase()] = varValue;
+    process.env[name.replace(/\./g, '_').toUpperCase()] = varValue;
     debug('set ' + name + '=' + varValue);
     command('task.setvariable', {'variable': name || ''}, varValue);
 }
@@ -90,14 +90,18 @@ export function getDelimitedInput(name, delim, required) {
 
 export function getPathInput(name, required, check) {
     var inval = process.env['INPUT_' + name.replace(' ', '_').toUpperCase()];
-
-    if (required && !inval) {
+    if (inval) {
+        if (check) {
+            checkPath(inval, name);
+        }
+    
+        if (inval.indexOf(' ') > 0) {
+            //add double quotes around path if it contains spaces
+            inval = '\"' + inval + '\"'; 
+        }
+    } else if (required) {
         _writeError('Input required: ' + name);
         exit(1);
-    }
-
-    if (check) {
-        checkPath(inval, name);
     }
 
     debug(name + '=' + inval);
@@ -197,9 +201,9 @@ export function popd() {
 export function checkPath(p, name) {
     debug('check path : ' + p);
     if (!p || !fs.existsSync(p)) {
-        console.error('invalid ' + name + ': ' + p);
+        _writeError('invalid ' + name + ': ' + p);
         exit(1);
-    }    
+    }
 }
 
 //-----------------------------------------------------

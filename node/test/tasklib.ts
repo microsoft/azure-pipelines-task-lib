@@ -108,6 +108,24 @@ describe('Test vso-task-lib', function() {
 
 			done();
 		})
+		it('gets a variable', function (done) {
+			this.timeout(1000);
+
+			process.env['BUILD_REPOSITORY_NAME'] = 'Test Repository';
+			var varVal = tl.getVariable('Build.Repository.Name');
+			assert(varVal === 'Test Repository', 'reading a variable should work');
+
+			done();
+		})
+		it('sets a variable', function (done) {
+			this.timeout(1000);
+
+			tl.setVariable('Build.Repository.Uri', 'test value');
+			var varVal = process.env['BUILD_REPOSITORY_URI'];
+			assert(varVal === 'test value', 'setting a variable should work');
+
+			done();
+		})
 		it('sets and gets a variable', function(done) {
 			this.timeout(1000);
 			
@@ -135,7 +153,92 @@ describe('Test vso-task-lib', function() {
 			assert(auth.param1 === 'val1', 'should be correct object');
 
 			done();
-		})						
+		})
+		it('gets path input value', function(done) {
+			this.timeout(1000);
+
+			var inputValue = 'test.txt'
+			process.env['INPUT_PATH1'] = inputValue;
+			var path = tl.getPathInput('path1', /*required=*/true, /*check=*/false);
+			assert(path, 'should return a path');
+			assert(path === inputValue, 'test path value');
+
+			done();
+		})
+		it('gets path invalid value required', function(done) {
+			this.timeout(1000);
+
+			var errStream = new StringStream();
+			tl.setErrStream(errStream);
+			
+			var path = tl.getPathInput('some_missing_path', /*required=*/true, /*check=*/false);
+			assert(!path, 'should not return a path');
+			
+			var errMsg = errStream.getContents();
+			assert(errMsg.indexOf("Input required:") === 0, "testing err for the required field")
+
+			done();
+		})
+		it('gets path invalid value not required', function(done) {
+			this.timeout(1000);
+
+			var errStream = new StringStream();
+			tl.setErrStream(errStream);
+
+			var path = tl.getPathInput('some_missing_path', /*required=*/false, /*check=*/false);
+			assert(!path, 'should not return a path');
+
+			var errMsg = errStream.getContents();
+			assert(errMsg === "", "no err")
+
+			done();
+		})
+		it('gets path input value with space', function(done) {
+			this.timeout(1000);
+
+			var inputValue = 'file name.txt';
+			var expectedValue = '"file name.txt"';
+			process.env['INPUT_PATH1'] = inputValue;
+			var path = tl.getPathInput('path1', /*required=*/true, /*check=*/false);
+			assert(path, 'should return a path');
+			assert(path === expectedValue, 'test path value');
+
+			done();
+		})
+		it('gets path value with check and exist', function(done) {
+			this.timeout(1000);
+
+			var errStream = new StringStream();
+			tl.setErrStream(errStream);
+
+			var inputValue = __filename;
+			process.env['INPUT_PATH1'] = inputValue;
+			var path = tl.getPathInput('path1', /*required=*/true, /*check=*/true);
+			assert(path, 'should return a path');
+			assert(path === inputValue, 'test path value');
+
+			var errMsg = errStream.getContents();
+			assert(errMsg === "", "no err")
+
+			done();
+		})
+		it('gets path value with check and not exist', function(done) {
+			this.timeout(1000);
+
+			var errStream = new StringStream();
+			tl.setErrStream(errStream);
+
+			var inputValue = "someRandomFile.txt";
+			process.env['INPUT_PATH1'] = inputValue;
+			var path = tl.getPathInput('path1', /*required=*/true, /*check=*/true);
+			assert(path, 'should return a path');
+			assert(path === inputValue, 'test path value');
+
+			var errMsg = errStream.getContents();
+			assert(errMsg.indexOf("invalid") === 0, "testing error path not exist")
+
+			done();
+		})
 	});
 
 	describe('TaskCommands', function() {
@@ -329,7 +432,7 @@ describe('Test vso-task-lib', function() {
 			var output = '';
 			ls.on('stderr', (data) => {
 				output = data.toString();
-			});						
+			});
 
 			ls.exec({outStream:_nullTestStream, errStream:_nullTestStream})
 				.then(function(code) {
