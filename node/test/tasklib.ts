@@ -109,6 +109,15 @@ describe('Test vso-task-lib', function() {
 
 			done();
 		})
+		it('gets input value with whitespace', function(done) {
+			this.timeout(1000);
+			
+			process.env['INPUT_UNITTESTINPUT'] = '   test value   ';
+			var inval = tl.getInput('UnitTestInput', true);
+			assert(inval === 'test value', 'reading an input should work');
+
+			done();
+		})
 		it('gets a variable', function (done) {
 			this.timeout(1000);
 

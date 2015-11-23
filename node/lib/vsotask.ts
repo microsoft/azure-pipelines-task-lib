@@ -98,6 +98,9 @@ export function setVariable(name: string, val: string): void {
 
 export function getInput(name: string, required?: boolean): string {
 	var inval = process.env['INPUT_' + name.replace(' ', '_').toUpperCase()];
+    if(inval){
+        inval = inval.trim();
+    }
 
     if (required && !inval) {
         setResult(TaskResult.Failed, 'Input required: ' + name, true);
@@ -140,7 +143,7 @@ export function filePathSupplied(name: string): boolean {
 }
 
 export function getPathInput(name: string, required?: boolean, check?: boolean): string {
-    var inval = process.env['INPUT_' + name.replace(' ', '_').toUpperCase()];
+    var inval = getInput(name, required);
     if (inval) {
         if (check) {
             checkPath(inval, name);
@@ -151,8 +154,6 @@ export function getPathInput(name: string, required?: boolean, check?: boolean):
             // TODO: only add in front and back if it doesn't already exist in front and/or back
             inval = '\"' + inval + '\"'; 
         }
-    } else if (required) {
-        setResult(TaskResult.Failed, 'Input required: ' + name, true); // exit
     }
 
     debug(name + '=' + inval);
@@ -234,7 +235,7 @@ var _argStringToArray = function(argString: string): string[] {
 
 export function cd(path: string): void {
     if (path) {
-        shell.cd(path);    
+        shell.cd(path);
     }
 }
 
