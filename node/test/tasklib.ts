@@ -14,6 +14,8 @@ var os = require('os');
 
 var tl;
 
+process.env['TASKLIB_INPROC_UNITS'] = 1;
+
 var NullStream = function() {
 	stream.Writable.call(this);
 	this._write = function(data, encoding, next) {
@@ -205,6 +207,24 @@ describe('Test vso-task-lib', function() {
 
 			done();
 		})
+        it('filePathSupplied checks not supplied', function (done) {
+            this.timeout(1000);
+            var repoRoot = '/repo/root/dir';
+            process.env['INPUT_PATH1'] = repoRoot;
+            process.env['BUILD_SOURCESDIRECTORY'] = repoRoot;
+            var supplied = tl.filePathSupplied('path1');
+            assert(!supplied, 'path1 should not be supplied');
+            done();
+        })
+        it('filePathSupplied checks supplied', function (done) {
+            this.timeout(1000);
+            var repoRoot = '/repo/root/dir';
+            process.env['INPUT_PATH1'] = repoRoot + '/some/path';
+            process.env['BUILD_SOURCESDIRECTORY'] = repoRoot;
+            var supplied = tl.filePathSupplied('path1');
+            assert(supplied, 'path1 should be supplied');
+            done();
+        })		
 		it('gets path value with check and exist', function(done) {
 			this.timeout(1000);
 

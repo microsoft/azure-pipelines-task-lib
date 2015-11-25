@@ -63,7 +63,7 @@ export class ToolRunner extends events.EventEmitter {
         return args;
     }
 
-    public arg(val: any, raw) {
+    public arg(val: any) {
         if (!val) {
             return;
         }

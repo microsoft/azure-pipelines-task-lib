@@ -4,6 +4,7 @@ var gulp = require('gulp');
 var del = require('del');
 var mocha = require('gulp-mocha');
 var typescript = require('gulp-tsc');
+var dtsgen = require('dts-generator');
 
 gulp.task('compile', function(){
   gulp.src(['src/**/*.ts'])
@@ -22,9 +23,19 @@ gulp.task('copy', ['clean'], function () {
 		.pipe(gulp.dest(buildRoot));
 });
 
+gulp.task('definitions', ['clean', 'compileLib'], function () {
+    return dtsgen.generate({
+        name: 'vso-task-lib',
+        baseDir: 'lib',
+        files: [ 'vsotask.ts' ],
+        externs: ['../definitions/node.d.ts', '../definitions/Q.d.ts'],
+        out: '_build/d.ts/vso-task-api.d.ts'
+    });
+});
+
 gulp.task('compileLib', ['clean'], function () {
 	return gulp.src(['lib/*.ts'])
-		.pipe(typescript({ declaration: true }))
+		.pipe(typescript({ declaration: false }))
 		.pipe(gulp.dest(libDest));
 });
 
@@ -34,7 +45,7 @@ gulp.task('compileTests', ['clean'], function () {
 		.pipe(gulp.dest(testDest));
 });
 
-gulp.task('build', ['clean', 'compileLib', 'compileTests', 'copy']);
+gulp.task('build', ['clean', 'compileLib', 'compileTests', 'copy', 'definitions']);
 
 gulp.task('testprep', ['clean'], function () {
 	return gulp.src(['test/scripts/*.js'])
