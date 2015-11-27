@@ -37,6 +37,7 @@
     "gulp-typescript": "^2.9.0",
     "merge2": "^0.3.6",
     "mocha": "^2.2.5",
+    "semver": "^5.1.0",
     "typescript": "next"
   }
 }

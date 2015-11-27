@@ -7,6 +7,7 @@ var mocha = require('gulp-mocha');
 var gts = require('gulp-typescript')
 var typescript = require('typescript');
 var dtsgen = require('dts-generator');
+var semver = require('semver');
 
 var proj = gts.createProject('./tsconfig.json', { typescript: typescript });
 var ts = gts(proj);
@@ -15,8 +16,21 @@ var buildRoot = path.join(__dirname, '_build');
 var libDest = path.join(buildRoot, 'lib');
 var testDest = path.join(buildRoot, 'test');
 
+var MIN_NODE_VER = '4.0.0';
+if (semver.lt(process.versions.node, MIN_NODE_VER)) {
+    console.error('requires node >= ' + MIN_NODE_VER + '.  installed: ' + process.versions.node);
+    process.exit(1);
+}
+
+function errorHandler(err) {
+    process.exit(1);
+}
+
+//---------------------------------------------------------------
+// gulp build
+//---------------------------------------------------------------
 gulp.task('clean', function (done) {
-	del([buildRoot], done);
+	return del([buildRoot], done);
 });
 
 gulp.task('copy', ['clean'], function () {
@@ -34,17 +48,26 @@ gulp.task('definitions', ['copy'], function () {
     });
 });
 
-gulp.task('build', ['definitions'], function () {
-	var c = gulp.src(['./lib/*.ts', './test/*.ts'], { base: '.'})
+gulp.task('build:lib', ['definitions'], function () {
+	return gulp.src(['./lib/*.ts'], { base: '.'})
 		.pipe(ts)
-		.pipe(gulp.dest(buildRoot));
-
-	return c.dts;
+        .on('error', errorHandler)
+		.pipe(gulp.dest(buildRoot))
 });
 
-gulp.task('default', ['build']);
+gulp.task('default', ['build:lib']);
 
-gulp.task('testprep', function () {
+//---------------------------------------------------------------
+// gulp test
+//---------------------------------------------------------------
+gulp.task('build:test', function () {
+    return gulp.src(['./test/*.ts'], { base: '.'})
+        .pipe(ts)
+        .on('error', errorHandler)
+        .pipe(gulp.dest(buildRoot));
+});
+
+gulp.task('testprep', ['build:test'], function () {
 	return gulp.src(['test/scripts/*.js'])
 		.pipe(gulp.dest(path.join(testDest, 'scripts')));
 });
