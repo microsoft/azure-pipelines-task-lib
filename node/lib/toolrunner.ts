@@ -29,6 +29,13 @@ export interface IExecOptions {
     errStream: NodeJS.WritableStream;
 };
 
+export interface IExecResult {
+    stdout: string;
+    stderr: string;
+    code: number;
+    error: Error;
+}
+
 export function debug(message) {
     // do nothing, overridden
 };
@@ -78,6 +85,16 @@ export class ToolRunner extends events.EventEmitter {
         }
     }
 
+    public argIf(condition: any, val: any) {
+        if (condition) {
+            this.arg(val);
+        }
+    }
+
+    //
+    // Exec - use for long running tools where you need to stream live output as it runs
+    //        returns a promise with return code.
+    //
     public exec(options: IExecOptions) {
         var defer = Q.defer();
 
@@ -112,7 +129,7 @@ export class ToolRunner extends events.EventEmitter {
 
         // TODO: filter process.env
 
-        var cp = child.spawn(this.toolPath, this.args, {env: process.env});
+        var cp = child.spawn(this.toolPath, this.args, { cwd: ops.cwd, env: ops.env });
 
         cp.stdout.on('data', (data) => {
             this.emit('stdout', data);
@@ -154,4 +171,34 @@ export class ToolRunner extends events.EventEmitter {
 
         return defer.promise;
     }
+
+    //
+    // ExecSync - use for short running simple commands.  Simple and convenient (synchronous)
+    //            but also has limits.  For example, no live output and limited to max buffer
+    //
+    public execSync(options: IExecOptions): IExecResult {
+        var defer = Q.defer();
+
+        this._debug('exec tool: ' + this.toolPath);
+        this._debug('Arguments:');
+        this.args.forEach((arg) => {
+            this._debug('   ' + arg);
+        });
+
+        var success = true;
+        options = options || <IExecOptions>{};
+
+        var ops: IExecOptions = {
+            cwd: options.cwd || process.cwd(),
+            env: options.env || process.env,
+            silent: options.silent || false,
+            outStream: options.outStream || process.stdout,
+            errStream: options.errStream || process.stderr,
+            failOnStdErr: options.failOnStdErr || false,
+            ignoreReturnCode: options.ignoreReturnCode || false
+        }; 
+
+        var r = child.spawnSync(this.toolPath, this.args, { cwd: ops.cwd, env: ops.env });
+        return <IExecResult>{ code: r.status, stdout: r.stdout, stderr: r.stderr, error: r.error };
+    }   
 }

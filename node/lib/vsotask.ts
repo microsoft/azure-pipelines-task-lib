@@ -4,9 +4,8 @@ var fs = require('fs');
 var path = require('path');
 var os = require('os');
 var minimatch = require('minimatch');
-var tcm = require('./taskcommand');
 var globm = require('glob');
-
+import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
 
 export enum TaskResult {
@@ -57,18 +56,24 @@ export function setResult(result: TaskResult, message: string, exit?: boolean): 
 }
 
 //
-// back compat: should use setResult
-//
-export function exit(code: number): void {
-    setResult(code, 'return code: ' + code, true);
-}
-
-//
 // Catching all exceptions
 //
 process.on('uncaughtException', (err) => {
     setResult(TaskResult.Failed, 'Unhandled: ' + err.message);
 });
+
+export function exitOnCodeIf(code, condition: boolean) {
+    if (condition) {
+        setResult(TaskResult.Failed, 'failure return code: ' + code, true);
+    }
+}
+
+//
+// back compat: should use setResult
+//
+export function exit(code: number): void {
+    setResult(code, 'return code: ' + code, true);
+}
 
 //-----------------------------------------------------
 // Input Helpers
@@ -100,6 +105,12 @@ export function getInput(name: string, required?: boolean): string {
 
     debug(name + '=' + inval);
     return inval;    
+}
+
+export function setEnvVar(name: string, val: string): void {
+    if (val) {
+        process.env[name] = val;
+    }
 }
 
 //
@@ -218,7 +229,9 @@ var _argStringToArray = function(argString: string): string[] {
 }
 
 export function cd(path: string): void {
-    shell.cd(path);
+    if (path) {
+        shell.cd(path);    
+    }
 }
 
 export function pushd(path: string): void {
@@ -288,7 +301,24 @@ export function rmRF(path: string): void {
 }
 
 export function glob(pattern: string): string[] {
-    return globm.sync(pattern);
+    debug('glob ' + pattern);
+    var matches: string[] = globm.sync(pattern);
+    debug('found ' + matches.length + ' matches');
+
+    return matches;
+}
+
+export function globFirst(pattern: string): string {
+    debug('globFirst ' + pattern);
+    var matches = glob(pattern);
+
+    if (matches.length > 1) {
+        warning('multiple workspace matches.  using first.');
+    }
+
+    debug('found ' + matches.length + ' matches');
+
+    return matches[0];
 }
 
 //-----------------------------------------------------

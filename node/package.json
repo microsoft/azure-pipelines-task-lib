@@ -31,10 +31,12 @@
   },
   "devDependencies": {
     "del": "^1.2.0",
+    "dts-generator": "1.5.0",
     "gulp": "^3.9.0",
     "gulp-mocha": "2.0.0",
-    "gulp-tsc": "^0.10.1",
-    "dts-generator": "1.5.0",
-    "mocha": "^2.2.5"
+    "gulp-typescript": "^2.9.0",
+    "merge2": "^0.3.6",
+    "mocha": "^2.2.5",
+    "typescript": "next"
   }
 }
