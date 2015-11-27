@@ -1,55 +1,81 @@
 var fs = require('fs');
 var path = require('path');
 var gulp = require('gulp');
+var merge = require('merge2');
 var del = require('del');
 var mocha = require('gulp-mocha');
-var typescript = require('gulp-tsc');
+var gts = require('gulp-typescript')
+var typescript = require('typescript');
+var dtsgen = require('dts-generator');
+var semver = require('semver');
 
-gulp.task('compile', function(){
-  gulp.src(['src/**/*.ts'])
-    .pipe(typescript())
-    .pipe(gulp.dest('dest/'))
-});
+var proj = gts.createProject('./tsconfig.json', { typescript: typescript });
+var ts = gts(proj);
 
 var buildRoot = path.join(__dirname, '_build');
 var libDest = path.join(buildRoot, 'lib');
 var testDest = path.join(buildRoot, 'test');
 
-//var testRoot = path.join(buildRoot, 'test');
+var MIN_NODE_VER = '4.0.0';
+if (semver.lt(process.versions.node, MIN_NODE_VER)) {
+    console.error('requires node >= ' + MIN_NODE_VER + '.  installed: ' + process.versions.node);
+    process.exit(1);
+}
+
+function errorHandler(err) {
+    process.exit(1);
+}
+
+//---------------------------------------------------------------
+// gulp build
+//---------------------------------------------------------------
+gulp.task('clean', function (done) {
+	return del([buildRoot], done);
+});
 
 gulp.task('copy', ['clean'], function () {
 	return gulp.src(['package.json', '../README.md'])
 		.pipe(gulp.dest(buildRoot));
 });
 
-gulp.task('compileLib', ['clean'], function () {
-	return gulp.src(['lib/*.ts'])
-		.pipe(typescript({ declaration: true }))
-		.pipe(gulp.dest(libDest));
+gulp.task('definitions', ['copy'], function () {
+    return dtsgen.generate({
+        name: 'vso-task-lib',
+        baseDir: 'lib',
+        files: [ 'vsotask.ts', 'taskcommand.ts', 'toolrunner.ts' ],
+        externs: ['../definitions/node.d.ts', '../definitions/Q.d.ts'],
+        out: '_build/d.ts/vso-task-lib.d.ts'
+    });
 });
 
-gulp.task('compileTests', ['clean'], function () {
-	return gulp.src(['test/*.ts'])
-		.pipe(typescript({ declaration: false }))
-		.pipe(gulp.dest(testDest));
+gulp.task('build:lib', ['definitions'], function () {
+	return gulp.src(['./lib/*.ts'], { base: '.'})
+		.pipe(ts)
+        .on('error', errorHandler)
+		.pipe(gulp.dest(buildRoot))
 });
 
-gulp.task('build', ['clean', 'compileLib', 'compileTests', 'copy']);
+gulp.task('default', ['build:lib']);
 
-gulp.task('testprep', ['clean'], function () {
+//---------------------------------------------------------------
+// gulp test
+//---------------------------------------------------------------
+gulp.task('build:test', function () {
+    return gulp.src(['./test/*.ts'], { base: '.'})
+        .pipe(ts)
+        .on('error', errorHandler)
+        .pipe(gulp.dest(buildRoot));
+});
+
+gulp.task('testprep', ['build:test'], function () {
 	return gulp.src(['test/scripts/*.js'])
 		.pipe(gulp.dest(path.join(testDest, 'scripts')));
 });
 
-gulp.task('test', ['build', 'testprep'], function () {
+gulp.task('test', ['testprep'], function () {
 	var suitePath = path.join(testDest, 'tasklib.js');
 
 	return gulp.src([suitePath])
 		.pipe(mocha({ reporter: 'spec', ui: 'bdd'}));
 });
 
-gulp.task('clean', function (done) {
-	del([buildRoot], done);
-});
-
-gulp.task('default', ['test']);

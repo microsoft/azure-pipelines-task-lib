@@ -60,6 +60,7 @@ describe('Test vso-task-lib', function() {
 			tl = require('..');
 			tl.setStdStream(_nullTestStream);
 			tl.setErrStream(_nullTestStream);
+			tl.setEnvVar('TASKLIB_INPROC_UNITS', '1');
 		}
 		catch (err) {
 			assert.fail('Failed to load task lib: ' + err.message);
@@ -205,6 +206,24 @@ describe('Test vso-task-lib', function() {
 
 			done();
 		})
+        it('filePathSupplied checks not supplied', function (done) {
+            this.timeout(1000);
+            var repoRoot = '/repo/root/dir';
+            process.env['INPUT_PATH1'] = repoRoot;
+            process.env['BUILD_SOURCESDIRECTORY'] = repoRoot;
+            var supplied = tl.filePathSupplied('path1');
+            assert(!supplied, 'path1 should not be supplied');
+            done();
+        })
+        it('filePathSupplied checks supplied', function (done) {
+            this.timeout(1000);
+            var repoRoot = '/repo/root/dir';
+            process.env['INPUT_PATH1'] = repoRoot + '/some/path';
+            process.env['BUILD_SOURCESDIRECTORY'] = repoRoot;
+            var supplied = tl.filePathSupplied('path1');
+            assert(supplied, 'path1 should be supplied');
+            done();
+        })		
 		it('gets path value with check and exist', function(done) {
 			this.timeout(1000);
 
@@ -394,6 +413,35 @@ describe('Test vso-task-lib', function() {
 	});
 
 	describe('ToolRunner', function() {
+		it('ExecSync with stdout', function(done) {
+			this.timeout(1000);
+
+			tl.pushd(__dirname);
+
+			var ls = new tl.ToolRunner(tl.which('ls', true));
+			ls.arg('-l');
+			ls.arg('-a');
+
+			var ret = ls.execSync();
+			assert(ret.code === 0, 'return code of ls should be 0');
+			assert(ret.stdout && ret.stdout.length > 0, 'should have emitted stdout');
+			tl.popd();
+			done();
+		})	
+		it('ExecSync fails with rc 1 and stderr', function(done) {
+			this.timeout(1000);
+
+			tl.pushd(__dirname);
+
+			var ls = new tl.ToolRunner(tl.which('ls', true));
+			ls.arg('-j');
+
+			var ret = ls.execSync();
+			assert(ret.code === 1, 'return code of ls should be 1 on failure');
+			assert(ret.stderr && ret.stderr.length > 0, 'should have emitted stderr');
+			tl.popd();
+			done();
+		})				
 		it('Execs with stdout', function(done) {
 			this.timeout(1000);
 

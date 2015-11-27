@@ -16,10 +16,16 @@ $ npm install
 $ sudo npm install gulp -g
 ```
 
-Build and test:
+Build:
 ```bash
 $ cd node
 $ gulp
+```
+
+Test:
+```bash
+$ cd node
+$ gulp test
 ```
 
 ### Powershell
