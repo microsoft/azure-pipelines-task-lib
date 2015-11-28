@@ -107,6 +107,10 @@ export function getInput(name: string, required?: boolean): string {
     return inval;    
 }
 
+export function getBoolInput(name: string, required?:boolean): boolean {
+    return getInput(name, required) == "true";
+}
+
 export function setEnvVar(name: string, val: string): void {
     if (val) {
         process.env[name] = val;

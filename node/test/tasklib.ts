@@ -155,6 +155,26 @@ describe('Test vso-task-lib', function() {
 
 			done();
 		})
+		it('gets true bool input value', function(done) {
+			this.timeout(1000);
+
+			var inputValue = 'true';
+			process.env['INPUT_ABOOL'] = inputValue;
+			var outVal = tl.getBoolInput('abool', /*required=*/true);
+			assert(outVal, 'should return true');
+
+			done();
+		})
+		it('gets false bool input value', function(done) {
+			this.timeout(1000);
+
+			var inputValue = 'false';
+			process.env['INPUT_ABOOL'] = inputValue;
+			var outVal = tl.getBoolInput('abool', /*required=*/true);
+			assert(!outVal, 'should return false');
+
+			done();
+		})		
 		it('gets path input value', function(done) {
 			this.timeout(1000);
 
