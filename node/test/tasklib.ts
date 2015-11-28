@@ -442,7 +442,7 @@ describe('Test vso-task-lib', function() {
 			ls.arg('-l');
 			ls.arg('-a');
 
-			var ret = ls.execSync();
+			var ret = ls.execSync({outStream:_nullTestStream, errStream:_nullTestStream});
 			assert(ret.code === 0, 'return code of ls should be 0');
 			assert(ret.stdout && ret.stdout.length > 0, 'should have emitted stdout');
 			tl.popd();
@@ -456,7 +456,7 @@ describe('Test vso-task-lib', function() {
 			var ls = new tl.ToolRunner(tl.which('ls', true));
 			ls.arg('-j');
 
-			var ret = ls.execSync();
+			var ret = ls.execSync({outStream:_nullTestStream, errStream:_nullTestStream});
 			assert(ret.code === 1, 'return code of ls should be 1 on failure');
 			assert(ret.stderr && ret.stderr.length > 0, 'should have emitted stderr');
 			tl.popd();

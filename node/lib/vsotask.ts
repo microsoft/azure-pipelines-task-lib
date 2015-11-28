@@ -309,6 +309,18 @@ export function glob(pattern: string): string[] {
     var matches: string[] = globm.sync(pattern);
     debug('found ' + matches.length + ' matches');
 
+    if (matches.length > 0) {
+        var m = Math.min(matches.length, 10);
+        debug('matches:');
+        if (m == 10) {
+            debug('listing first 10 matches as samples');    
+        }
+        
+        for (var i = 0; i < m; i++) {
+            debug(matches[i]);
+        }
+    }
+
     return matches;
 }
 

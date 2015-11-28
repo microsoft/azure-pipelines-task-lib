@@ -196,9 +196,17 @@ export class ToolRunner extends events.EventEmitter {
             errStream: options.errStream || process.stderr,
             failOnStdErr: options.failOnStdErr || false,
             ignoreReturnCode: options.ignoreReturnCode || false
-        }; 
+        };
 
         var r = child.spawnSync(this.toolPath, this.args, { cwd: ops.cwd, env: ops.env });
+        if (r.stdout.length > 0) {
+            ops.outStream.write(r.stdout);
+        }
+
+        if (r.stderr.length > 0) {
+            ops.errStream.write(r.stderr);
+        }
+
         return <IExecResult>{ code: r.status, stdout: r.stdout, stderr: r.stderr, error: r.error };
     }   
 }
