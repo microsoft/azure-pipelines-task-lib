@@ -338,6 +338,28 @@ export function globFirst(pattern: string): string {
 }
 
 //-----------------------------------------------------
+// Exec convenience wrapper
+//-----------------------------------------------------
+export function exec(tool: string, args:string, options?:trm.IExecOptions): Q.Promise<number> {
+    var toolPath = which(tool, true);
+    var tr: trm.ToolRunner = new trm.ToolRunner(toolPath);
+    if (args) {
+        tr.arg(args);
+    }
+    return tr.exec(options);    
+}
+
+export function execSync(tool: string, args:string, options?:trm.IExecOptions): trm.IExecResult {
+    var toolPath = which(tool, true);
+    var tr: trm.ToolRunner = new trm.ToolRunner(toolPath);
+    if (args) {
+        tr.arg(args);
+    }
+        
+    return tr.execSync(options);    
+}
+
+//-----------------------------------------------------
 // Matching helpers
 //-----------------------------------------------------
 export function match(list, pattern, options): string[] {

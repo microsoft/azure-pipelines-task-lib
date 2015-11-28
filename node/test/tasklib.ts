@@ -433,6 +433,17 @@ describe('Test vso-task-lib', function() {
 	});
 
 	describe('ToolRunner', function() {
+		it('execSync convenience with stdout', function(done) {
+			this.timeout(1000);
+
+			tl.pushd(__dirname);
+
+			var ret = tl.execSync('ls', '-l -a', {outStream:_nullTestStream, errStream:_nullTestStream});
+			assert(ret.code === 0, 'return code of ls should be 0');
+			assert(ret.stdout && ret.stdout.length > 0, 'should have emitted stdout');
+			tl.popd();
+			done();
+		})		
 		it('ExecSync with stdout', function(done) {
 			this.timeout(1000);
 
@@ -461,7 +472,24 @@ describe('Test vso-task-lib', function() {
 			assert(ret.stderr && ret.stderr.length > 0, 'should have emitted stderr');
 			tl.popd();
 			done();
-		})				
+		})
+		it('Exec convenience with stdout', function(done) {
+			this.timeout(1000);
+
+			tl.pushd(__dirname);
+
+			tl.exec('ls', '-l -a', {outStream:_nullTestStream, errStream:_nullTestStream})
+				.then(function(code) {
+					assert(code === 0, 'return code of ls should be 0');
+				})
+				.fail(function(err) {
+					assert.fail('ls failed to run: ' + err.message);
+				})
+				.fin(function() {
+					tl.popd();
+					done();
+				})
+		})						
 		it('Execs with stdout', function(done) {
 			this.timeout(1000);
 

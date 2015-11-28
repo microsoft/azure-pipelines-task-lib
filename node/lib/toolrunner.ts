@@ -95,8 +95,8 @@ export class ToolRunner extends events.EventEmitter {
     // Exec - use for long running tools where you need to stream live output as it runs
     //        returns a promise with return code.
     //
-    public exec(options: IExecOptions) {
-        var defer = Q.defer();
+    public exec(options: IExecOptions): Q.Promise<number> {
+        var defer = Q.defer<number>();
 
         this._debug('exec tool: ' + this.toolPath);
         this._debug('Arguments:');
@@ -169,7 +169,7 @@ export class ToolRunner extends events.EventEmitter {
             }
         });
 
-        return defer.promise;
+        return <Q.Promise<number>>defer.promise;
     }
 
     //
