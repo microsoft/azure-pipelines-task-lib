@@ -89,6 +89,40 @@ describe('Test vso-task-lib', function() {
 
 			done();
 		});
+		
+		it('rmRF', function(done) {
+			this.timeout(1000);
+
+			var testFolder = 'testDir';
+			var start = __dirname;
+			var testPath = path.join(__dirname, testFolder);
+			tl.cd(start);
+			assert(process.cwd() == start, 'starting in right directory');
+			
+			// remove empty folder
+			tl.mkdirP(testPath);
+			assert(shell.test('-d', testPath), 'directory created');
+			assert(shell.test('-e', testPath), 'directory exists');
+			
+			tl.rmRF(testPath);
+			assert(!shell.test('-e', testPath), 'directory removed');
+
+			// remove nonempty folder
+			var testFolder2 = 'testDir2';
+			var testPath2 = path.join(testPath, testFolder2);
+			tl.mkdirP(testPath);
+			tl.mkdirP(testPath2);
+			assert(shell.test('-d', testPath), 'directory created');
+			assert(shell.test('-e', testPath), 'directory exists');
+			assert(shell.test('-d', testPath2), 'directory created');
+			assert(shell.test('-e', testPath2), 'directory exists');
+			
+			tl.rmRF(testPath);
+			assert(!shell.test('-e', testPath), 'directory removed');
+			assert(!shell.test('-e', testPath2), 'directory removed');
+			
+			done();
+		});
 	});
 
 	describe('TaskInputsVariables', function() {
