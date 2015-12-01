@@ -305,6 +305,11 @@ export function which(tool: string, check?: boolean): string {
 
 export function cp(options, source: string, dest: string): void {
     shell.cp(options, source, dest);
+    
+    if (shell.error()) {
+        console.error(shell.error())
+        exit(1);
+    }
 }
 
 export function find(findPath: string): string[] {
@@ -317,6 +322,11 @@ export function find(findPath: string): string[] {
 export function rmRF(path: string): void {
     debug('rm -rf ' + path);
     shell.rm('-rf', path);
+    
+    if (shell.error()) {
+        console.error(shell.error())
+        exit(1);
+    }
 }
 
 export function glob(pattern: string): string[] {
