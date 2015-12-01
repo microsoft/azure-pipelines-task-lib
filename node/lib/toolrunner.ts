@@ -198,6 +198,16 @@ export class ToolRunner extends events.EventEmitter {
             ignoreReturnCode: options.ignoreReturnCode || false
         };
 
+        var argString = this.args.join(' ') || '';
+        var cmdString = this.toolPath;
+        if (argString) {
+            cmdString += (' ' + argString);
+        }
+
+        if (!ops.silent) {
+            ops.outStream.write('[command]' + cmdString + os.EOL);    
+        }
+        
         var r = child.spawnSync(this.toolPath, this.args, { cwd: ops.cwd, env: ops.env });
         if (r.stdout.length > 0) {
             ops.outStream.write(r.stdout);

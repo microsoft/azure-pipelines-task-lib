@@ -14,6 +14,18 @@ export enum TaskResult {
 }
 
 //-----------------------------------------------------
+// String convenience
+//-----------------------------------------------------
+
+function startsWith(str: string, start: string): boolean {
+    return str.slice(0, start.length) == start;
+}
+
+function endsWith(str: string, end: string): boolean {
+    return str.slice(-str.length) == end;
+}
+
+//-----------------------------------------------------
 // General Helpers
 //-----------------------------------------------------
 export var _outStream = process.stdout;
@@ -49,17 +61,15 @@ export function setResult(result: TaskResult, message: string, exit?: boolean): 
     }
 
     if (exit  && !process.env['TASKLIB_INPROC_UNITS']) {
-        process.nextTick(() => {
-            process.exit(result);
-        })
-    }
+        process.exit(0);
+    }    
 }
 
 //
 // Catching all exceptions
 //
 process.on('uncaughtException', (err) => {
-    setResult(TaskResult.Failed, 'Unhandled: ' + err.message);
+    setResult(TaskResult.Failed, 'Unhandled:' + err.message, true);
 });
 
 export function exitOnCodeIf(code, condition: boolean) {
@@ -147,9 +157,13 @@ export function getPathInput(name: string, required?: boolean, check?: boolean):
         }
     
         if (inval.indexOf(' ') > 0) {
-            //add double quotes around path if it contains spaces
-            // TODO: only add in front and back if it doesn't already exist in front and/or back
-            inval = '\"' + inval + '\"'; 
+            if (!startsWith(inval, '"')) {
+                inval = '"' + inval;
+            }
+            
+            if (!endsWith(inval, '"')) {
+                inval += '"';
+            } 
         }
     } else if (required) {
         setResult(TaskResult.Failed, 'Input required: ' + name, true); // exit
@@ -253,7 +267,7 @@ export function checkPath(p: string, name: string): void {
     debug('check path : ' + p);
     if (!p || !fs.existsSync(p)) {
 
-        setResult(TaskResult.Failed, 'invalid ' + name + ': ' + p, true);  // exit
+        setResult(TaskResult.Failed, 'not found ' + name + ': ' + p, true);  // exit
     }
 }
 
@@ -340,7 +354,7 @@ export function globFirst(pattern: string): string {
 //-----------------------------------------------------
 // Exec convenience wrapper
 //-----------------------------------------------------
-export function exec(tool: string, args:string, options?:trm.IExecOptions): Q.Promise<number> {
+export function exec(tool: string, args:any, options?:trm.IExecOptions): Q.Promise<number> {
     var toolPath = which(tool, true);
     var tr: trm.ToolRunner = new trm.ToolRunner(toolPath);
     if (args) {
@@ -349,7 +363,7 @@ export function exec(tool: string, args:string, options?:trm.IExecOptions): Q.Pr
     return tr.exec(options);    
 }
 
-export function execSync(tool: string, args:string, options?:trm.IExecOptions): trm.IExecResult {
+export function execSync(tool: string, args:any, options?:trm.IExecOptions): trm.IExecResult {
     var toolPath = which(tool, true);
     var tr: trm.ToolRunner = new trm.ToolRunner(toolPath);
     if (args) {
@@ -357,6 +371,15 @@ export function execSync(tool: string, args:string, options?:trm.IExecOptions): 
     }
         
     return tr.execSync(options);    
+}
+
+export function createToolRunner(tool: string) {
+    var tr: trm.ToolRunner = new trm.ToolRunner(tool);
+    tr.on('debug', (message: string) => {
+        debug(message);
+    })
+
+    return tr;
 }
 
 //-----------------------------------------------------

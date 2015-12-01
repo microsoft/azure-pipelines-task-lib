@@ -222,7 +222,7 @@ describe('Test vso-task-lib', function() {
 			process.env['INPUT_PATH1'] = inputValue;
 			var path = tl.getPathInput('path1', /*required=*/true, /*check=*/false);
 			assert(path, 'should return a path');
-			assert(path === expectedValue, 'test path value');
+			assert(path === expectedValue, 'returned ' + path + ', expected: ' + expectedValue);
 
 			done();
 		})
@@ -271,10 +271,10 @@ describe('Test vso-task-lib', function() {
 			process.env['INPUT_PATH1'] = inputValue;
 			var path = tl.getPathInput('path1', /*required=*/true, /*check=*/true);
 			assert(path, 'should return a path');
-			assert(path === inputValue, 'test path value');
+			assert(path === inputValue, 'returned ' + path +', expected ' + inputValue);
 
 			var errMsg = errStream.getContents();
-			assert(errMsg.indexOf("invalid") === 0, "testing error path not exist")
+			assert(errMsg.indexOf("not found") === 0, "testing error path not exist")
 
 			done();
 		})
@@ -432,7 +432,7 @@ describe('Test vso-task-lib', function() {
 		})			
 	});
 
-	describe('ToolRunner', function() {
+	describe('ToolRunner', function() {	
 		it('execSync convenience with stdout', function(done) {
 			this.timeout(1000);
 
@@ -489,7 +489,32 @@ describe('Test vso-task-lib', function() {
 					tl.popd();
 					done();
 				})
-		})						
+		})
+		it('ToolRunner writes debug', function(done) {
+			this.timeout(1000);
+
+			tl.pushd(__dirname);
+
+			var ls = new tl.createToolRunner(tl.which('ls', true));
+			ls.arg('-l');
+			ls.arg('-a');
+
+			var stdStream = new StringStream();
+			tl.setStdStream(stdStream);
+			ls.exec({outStream:_nullTestStream, errStream:_nullTestStream})
+				.then(function(code) {
+					var contents = stdStream.getContents();
+					assert(contents.indexOf('exec tool: /bin/ls') >= 0, 'should exec ls');
+					assert(code === 0, 'return code of ls should be 0');
+				})
+				.fail(function(err) {
+					assert.fail('ls failed to run: ' + err.message);
+				})
+				.fin(function() {
+					tl.popd();
+					done();
+				})
+		})		
 		it('Execs with stdout', function(done) {
 			this.timeout(1000);
 
