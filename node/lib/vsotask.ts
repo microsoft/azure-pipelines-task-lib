@@ -305,14 +305,18 @@ export function which(tool: string, check?: boolean): string {
 
 export function cp(options, source: string, dest: string): void {
     shell.cp(options, source, dest);
+    var error = shell.error();
     
-    if (shell.error()) {
-        console.error(shell.error())
+    if (error) {
+        console.error(error)
         exit(1);
     }
 }
 
 export function find(findPath: string): string[] {
+    if (!shell.test('-e', findPath)) {
+        return [];
+    }
     var matches = shell.find(findPath);
     debug('find ' + findPath);
     debug(matches.length + ' matches.');
@@ -323,8 +327,11 @@ export function rmRF(path: string): void {
     debug('rm -rf ' + path);
     shell.rm('-rf', path);
     
-    if (shell.error()) {
-        console.error(shell.error())
+    var error: string = shell.error();
+    // if you try to delete a file that doesn't exist, desired result is achieved
+    // other errors are valid
+    if (error && !(error.indexOf('ENOENT') === 0)) {        
+        console.error(error)
         exit(1);
     }
 }

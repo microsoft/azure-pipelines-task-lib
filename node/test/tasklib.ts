@@ -169,6 +169,30 @@ describe('Test vso-task-lib', function() {
 			
 			done();
 		});
+		
+		it('rmRF folder that doesnt exist', function(done) {
+			this.timeout(1000);
+
+			var testFolder = 'testDir';
+			var start = __dirname;
+			var testPath = path.join(__dirname, testFolder);
+			tl.cd(start);
+			assert(process.cwd() == start, 'starting in right directory');
+			
+			assert(!shell.test('-d', testPath), 'directory created');
+			assert(!shell.test('-e', testPath), 'directory exists');
+			
+			var errStream = new StringStream();
+			tl.setErrStream(errStream);
+			
+			tl.rmRF(testPath);
+			assert(!shell.test('-e', testPath), 'directory still doesnt exist');
+			
+			var err = errStream.getContents();
+			assert(err.indexOf("return code: 1") != 0, "removing nonexistant folder should succeed")
+
+			done();
+		});
 	});
 
 	describe('TaskInputsVariables', function() {
