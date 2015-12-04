@@ -33,12 +33,17 @@ gulp.task('clean', function (done) {
 	return del([buildRoot], done);
 });
 
-gulp.task('copy', ['clean'], function () {
+gulp.task('copy:manifest', ['clean'], function () {
 	return gulp.src(['package.json', '../README.md'])
-		.pipe(gulp.dest(buildRoot));
+		.pipe(gulp.dest(buildRoot))
 });
 
-gulp.task('definitions', ['copy'], function () {
+gulp.task('copy:d.ts', ['clean'], function () {
+	return gulp.src(['definitions/**/*'])
+		.pipe(gulp.dest(path.join(buildRoot, 'definitions')))
+});
+
+gulp.task('definitions', ['copy:d.ts'], function () {
     return dtsgen.generate({
         name: 'vso-task-lib',
         baseDir: 'lib',
@@ -72,7 +77,12 @@ gulp.task('testprep', ['build:test'], function () {
 		.pipe(gulp.dest(path.join(testDest, 'scripts')));
 });
 
-gulp.task('test', ['testprep'], function () {
+gulp.task('testprep2', ['testprep'], function () {
+	return gulp.src([(libDest + '/*.js')])
+		.pipe(gulp.dest(path.join(testDest, 'node_modules/vso-task-lib')));
+});
+
+gulp.task('test', ['testprep2'], function () {
 	var suitePath = path.join(testDest, 'tasklib.js');
 
 	return gulp.src([suitePath])
