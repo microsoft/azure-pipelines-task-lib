@@ -1,10 +1,10 @@
 var Q = require('q');
 var shell = require('shelljs');
-var fs = require('fs');
 var path = require('path');
 var os = require('os');
 var minimatch = require('minimatch');
 var globm = require('glob');
+import fs = require('fs');
 import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
 
@@ -216,6 +216,17 @@ export function getEndpointAuthorization(id: string, optional: boolean): Endpoin
     }
 
     return auth;
+}
+
+//-----------------------------------------------------
+// Fs Helpers
+//-----------------------------------------------------
+export interface FsStats extends fs.Stats {
+    
+}
+
+export function stats(path: string): FsStats {
+    return fs.statSync(path);
 }
 
 //-----------------------------------------------------
