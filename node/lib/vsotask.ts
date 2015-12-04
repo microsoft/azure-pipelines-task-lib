@@ -1,10 +1,16 @@
-var Q = require('q');
-var shell = require('shelljs');
-var fs = require('fs');
-var path = require('path');
-var os = require('os');
-var minimatch = require('minimatch');
-var globm = require('glob');
+/// <reference path="../definitions/node.d.ts" />
+/// <reference path="../definitions/Q.d.ts" />
+/// <reference path="../definitions/shelljs.d.ts" />
+/// <reference path="../definitions/minimatch.d.ts" />
+/// <reference path="../definitions/glob.d.ts" />
+
+import Q = require('q');
+import shell = require('shelljs');
+import fs = require('fs');
+import path = require('path');
+import os = require('os');
+import minimatch = require('minimatch');
+import globm = require('glob');
 import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
 
@@ -83,6 +89,49 @@ export function exitOnCodeIf(code, condition: boolean) {
 //
 export function exit(code: number): void {
     setResult(code, 'return code: ' + code, true);
+}
+
+//-----------------------------------------------------
+// Loc Helpers
+//-----------------------------------------------------
+var locStrings = {};
+var resourceFile;
+export function setResourcePath(path: string): void {
+    checkPath(path, 'resource file path');
+    resourceFile = path;
+    debug('set resource file to: ' + resourceFile);
+
+    var resourceJson;
+    try { 
+        resourceJson= require(resourceFile);
+    }
+    catch(err) {
+        setResult(TaskResult.Failed, 'Invalid json in resource file: ' + path, true); // exit
+    }
+   
+    if(resourceJson && resourceJson.hasOwnProperty('messages')) {    
+        debug('cache loc strings') 
+        for(var key in resourceJson.messages) {
+            locStrings[key] = resourceJson.messages[key];
+        }
+    }
+    else {
+        warning('there is no messages section in resource file: ' + resourceFile);
+    }
+}
+
+export function loc(key: string, defaultStr: string): string {
+    if(!resourceFile) {
+        warning('resource file haven\'t been set, retrun default loc string.');
+        return defaultStr;
+    }
+    
+    if(locStrings.hasOwnProperty(key)) {
+        return locStrings[key];
+    }
+    else {
+        return defaultStr;
+    }
 }
 
 //-----------------------------------------------------
@@ -357,7 +406,7 @@ export function globFirst(pattern: string): string {
 //-----------------------------------------------------
 export function exec(tool: string, args:any, options?:trm.IExecOptions): Q.Promise<number> {
     var toolPath = which(tool, true);
-    var tr: trm.ToolRunner = new trm.ToolRunner(toolPath);
+    var tr = createToolRunner(toolPath);
     if (args) {
         tr.arg(args);
     }
@@ -366,7 +415,7 @@ export function exec(tool: string, args:any, options?:trm.IExecOptions): Q.Promi
 
 export function execSync(tool: string, args:any, options?:trm.IExecOptions): trm.IExecResult {
     var toolPath = which(tool, true);
-    var tr: trm.ToolRunner = new trm.ToolRunner(toolPath);
+    var tr = createToolRunner(toolPath);
     if (args) {
         tr.arg(args);
     }
@@ -390,11 +439,7 @@ export function match(list, pattern, options): string[] {
     return minimatch.match(list, pattern, options);
 }
 
-export function matchFile(list, pattern, options): string[] {
-    return minimatch(list, pattern, options);
-}
-
-export function filter(pattern, options): string[] {
+export function filter(pattern, options): (element: string, indexed: number, array: string[]) => boolean {
     return minimatch.filter(pattern, options);
 }    
 
