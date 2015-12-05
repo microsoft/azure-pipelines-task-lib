@@ -89,6 +89,110 @@ describe('Test vso-task-lib', function() {
 
 			done();
 		});
+		
+		it('rmRF single folder', function(done) {
+			this.timeout(1000);
+
+			var testFolder = 'testDir';
+			var start = __dirname;
+			var testPath = path.join(__dirname, testFolder);
+			tl.cd(start);
+			assert(process.cwd() == start, 'starting in right directory');
+			
+			// remove empty folder
+			tl.mkdirP(testPath);
+			assert(shell.test('-d', testPath), 'directory created');
+			assert(shell.test('-e', testPath), 'directory exists');
+			
+			tl.rmRF(testPath);
+			assert(!shell.test('-e', testPath), 'directory removed');
+
+			done();
+		});
+		
+		it('rmRF recursive folders', function(done) {
+			this.timeout(1000);
+
+			var testFolder = 'testDir';
+			var start = __dirname;
+			var testPath = path.join(__dirname, testFolder);
+			tl.cd(start);
+			assert(process.cwd() == start, 'starting in right directory');
+			
+			// remove nonempty folder
+			var testFolder2 = 'testDir2';
+			var testPath2 = path.join(testPath, testFolder2);
+			tl.mkdirP(testPath2);
+			
+			assert(shell.test('-d', testPath), 'directory created');
+			assert(shell.test('-e', testPath), 'directory exists');
+			assert(shell.test('-d', testPath2), 'directory created');
+			assert(shell.test('-e', testPath2), 'directory exists');
+			
+			tl.rmRF(testPath);
+			assert(!shell.test('-e', testPath), 'directory removed');
+			assert(!shell.test('-e', testPath2), 'directory removed');
+			
+			done();
+		});
+		
+		it('rmRF folder with locked file', function(done) {
+			this.timeout(1000);
+			
+			var testFolder = 'testDir';
+			var start = __dirname;
+			var testPath = path.join(__dirname, testFolder);
+			tl.cd(start);
+			assert(process.cwd() == start, 'starting in right directory');
+			
+			// can't remove folder with locked file
+			var filePath = path.join(testPath, 'file.txt');
+			tl.mkdirP(testPath);
+			fs.appendFileSync(filePath, 'some data');
+					
+			assert(shell.test('-d', testPath), 'directory created');
+			assert(shell.test('-e', filePath), 'file exists');
+			
+			var errStream = new StringStream();
+			tl.setErrStream(errStream);
+			
+			var fd = fs.openSync(filePath, 'r');
+			tl.rmRF(testPath);
+			assert(shell.test('-e', testPath), 'directory still exists');
+			
+			var err = errStream.getContents();
+			assert(err.indexOf("return code: 1") === 0, "correct error for trying to remove locked file")
+			
+			fs.closeSync(fd);
+			tl.rmRF(testPath);
+			assert(!shell.test('-e', testPath), 'directory removed');
+			
+			done();
+		});
+		
+		it('rmRF folder that doesnt exist', function(done) {
+			this.timeout(1000);
+
+			var testFolder = 'testDir';
+			var start = __dirname;
+			var testPath = path.join(__dirname, testFolder);
+			tl.cd(start);
+			assert(process.cwd() == start, 'starting in right directory');
+			
+			assert(!shell.test('-d', testPath), 'directory created');
+			assert(!shell.test('-e', testPath), 'directory exists');
+			
+			var errStream = new StringStream();
+			tl.setErrStream(errStream);
+			
+			tl.rmRF(testPath);
+			assert(!shell.test('-e', testPath), 'directory still doesnt exist');
+			
+			var err = errStream.getContents();
+			assert(err.indexOf("return code: 1") != 0, "removing nonexistant folder should succeed")
+
+			done();
+		});
 	});
 
 	describe('TaskInputsVariables', function() {

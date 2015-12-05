@@ -1,10 +1,10 @@
 var Q = require('q');
 var shell = require('shelljs');
-var fs = require('fs');
 var path = require('path');
 var os = require('os');
 var minimatch = require('minimatch');
 var globm = require('glob');
+import fs = require('fs');
 import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
 
@@ -219,6 +219,17 @@ export function getEndpointAuthorization(id: string, optional: boolean): Endpoin
 }
 
 //-----------------------------------------------------
+// Fs Helpers
+//-----------------------------------------------------
+export interface FsStats extends fs.Stats {
+    
+}
+
+export function stats(path: string): FsStats {
+    return fs.statSync(path);
+}
+
+//-----------------------------------------------------
 // Cmd Helpers
 //-----------------------------------------------------
 export function command(command: string, properties, message: string) {
@@ -305,9 +316,18 @@ export function which(tool: string, check?: boolean): string {
 
 export function cp(options, source: string, dest: string): void {
     shell.cp(options, source, dest);
+    var error = shell.error();
+    
+    if (error) {
+        console.error(error)
+        exit(1);
+    }
 }
 
 export function find(findPath: string): string[] {
+    if (!shell.test('-e', findPath)) {
+        return [];
+    }
     var matches = shell.find(findPath);
     debug('find ' + findPath);
     debug(matches.length + ' matches.');
@@ -317,6 +337,14 @@ export function find(findPath: string): string[] {
 export function rmRF(path: string): void {
     debug('rm -rf ' + path);
     shell.rm('-rf', path);
+    
+    var error: string = shell.error();
+    // if you try to delete a file that doesn't exist, desired result is achieved
+    // other errors are valid
+    if (error && !(error.indexOf('ENOENT') === 0)) {        
+        console.error(error)
+        exit(1);
+    }
 }
 
 export function glob(pattern: string): string[] {
