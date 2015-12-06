@@ -60,7 +60,7 @@ export function setResult(result: TaskResult, message: string): void {
         _writeError(message);
     }
 
-    if (!process.env['TASKLIB_INPROC_UNITS']) {
+    if (result == TaskResult.Failed && !process.env['TASKLIB_INPROC_UNITS']) {
         process.exit(0);
     }    
 }
