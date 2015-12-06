@@ -52,7 +52,7 @@ export function setErrStream(errStream): void {
 // Results and Exiting
 //-----------------------------------------------------
 
-export function setResult(result: TaskResult, message: string, exit?: boolean): void {
+export function setResult(result: TaskResult, message: string): void {
     debug('task result: ' + TaskResult[result]);
     command('task.complete', {'result': TaskResult[result]}, message);
 
@@ -60,8 +60,17 @@ export function setResult(result: TaskResult, message: string, exit?: boolean): 
         _writeError(message);
     }
 
-    if (exit  && !process.env['TASKLIB_INPROC_UNITS']) {
+    if (!process.env['TASKLIB_INPROC_UNITS']) {
         process.exit(0);
+    }    
+}
+
+export function handlerError(errMsg: string, continueOnError: boolean) {
+    if (continueOnError) {
+        error(errMsg);    
+    }
+    else {
+        setResult(TaskResult.Failed, errMsg);    
     }    
 }
 
@@ -69,12 +78,12 @@ export function setResult(result: TaskResult, message: string, exit?: boolean): 
 // Catching all exceptions
 //
 process.on('uncaughtException', (err) => {
-    setResult(TaskResult.Failed, 'Unhandled:' + err.message, true);
+    setResult(TaskResult.Failed, 'Unhandled:' + err.message);
 });
 
 export function exitOnCodeIf(code, condition: boolean) {
     if (condition) {
-        setResult(TaskResult.Failed, 'failure return code: ' + code, true);
+        setResult(TaskResult.Failed, 'failure return code: ' + code);
     }
 }
 
@@ -82,7 +91,7 @@ export function exitOnCodeIf(code, condition: boolean) {
 // back compat: should use setResult
 //
 export function exit(code: number): void {
-    setResult(code, 'return code: ' + code, true);
+    setResult(code, 'return code: ' + code);
 }
 
 //-----------------------------------------------------
@@ -113,7 +122,7 @@ export function getInput(name: string, required?: boolean): string {
     }
 
     if (required && !inval) {
-        setResult(TaskResult.Failed, 'Input required: ' + name, true);
+        setResult(TaskResult.Failed, 'Input required: ' + name);
     }
 
     debug(name + '=' + inval);
@@ -202,7 +211,7 @@ export function getEndpointAuthorization(id: string, optional: boolean): Endpoin
     var aval = process.env['ENDPOINT_AUTH_' + id];
 
     if (!optional && !aval) {
-        setResult(TaskResult.Failed, 'Endpoint not present: ' + id, true);
+        setResult(TaskResult.Failed, 'Endpoint not present: ' + id);
     }
 
     debug(id + '=' + aval);
@@ -212,7 +221,7 @@ export function getEndpointAuthorization(id: string, optional: boolean): Endpoin
         auth = <EndpointAuthorization>JSON.parse(aval);
     }
     catch (err) {
-        setResult(TaskResult.Failed, 'Invalid endpoint auth: ' + aval, true); // exit
+        setResult(TaskResult.Failed, 'Invalid endpoint auth: ' + aval); // exit
     }
 
     return auth;
@@ -279,7 +288,7 @@ export function checkPath(p: string, name: string): void {
     debug('check path : ' + p);
     if (!p || !fs.existsSync(p)) {
 
-        setResult(TaskResult.Failed, 'not found ' + name + ': ' + p, true);  // exit
+        setResult(TaskResult.Failed, 'not found ' + name + ': ' + p);  // exit
     }
 }
 
@@ -290,61 +299,113 @@ export function checkPath(p: string, name: string): void {
 // - inject system.debug info
 // - have option to switch internal impl (shelljs now)
 //-----------------------------------------------------
-export function mkdirP(p): void {
-    if (!shell.test('-d', p)) {
-        debug('creating path: ' + p);
-        shell.mkdir('-p', p);
-        if (shell.error()) {
-            console.error(shell.error())
-            exit(1);
+export function mkdirP(p): boolean {
+    var success = true;
+   
+    try {
+        if (!p) {
+            throw new Error('path not supplied');
         }
+        
+        // certain chars like \0 will cause shelljs and fs
+        // to blow up without exception or error
+        if (p.indexOf('\0') >= 0) {
+            throw new Error('path cannot contain null bytes');
+        }
+                
+        if (!shell.test('-d', p)) {
+            debug('creating path: ' + p);
+            shell.mkdir('-p', p);
+            var errMsg = shell.error();
+            if (errMsg) {
+                handlerError(errMsg, false);
+                success = false;
+            }
+        }
+        else {
+            debug('path exists: ' + p);
+        }        
     }
-    else {
-        debug('path exists: ' + p);
+    catch (err) {
+        success = false;
+        handlerError('Failed mkdirP: ' + err.message, false);
     }
+
+    return success;
 }
 
 export function which(tool: string, check?: boolean): string {
-    var toolPath = shell.which(tool);
-    if (check) {
-        checkPath(toolPath, tool);
+    try {
+        var toolPath = shell.which(tool);
+        if (check) {
+            checkPath(toolPath, tool);
+        }
+    
+        debug(tool + '=' + toolPath);
+        return toolPath;
     }
-
-    debug(tool + '=' + toolPath);
-    return toolPath;
+    catch (err) {
+        handlerError('Failed which: ' + err.message, false);
+    }    
 }
 
-export function cp(options, source: string, dest: string): void {
-    shell.cp(options, source, dest);
-    var error = shell.error();
-    
-    if (error) {
-        console.error(error)
-        exit(1);
+export function cp(options, source: string, dest: string, continueOnError?:boolean): boolean {
+    var success = true;
+
+    try {    
+        shell.cp(options, source, dest);
+        var errMsg = shell.error();
+        
+        if (errMsg) {
+            handlerError(errMsg, continueOnError);
+            success = false;
+        }
     }
+    catch (err) {
+        success = false;
+        handlerError('Failed cp: ' + err.message, false);
+    }    
+    
+    return success;
 }
 
 export function find(findPath: string): string[] {
-    if (!shell.test('-e', findPath)) {
-        return [];
+    try {
+        if (!shell.test('-e', findPath)) {
+            return [];
+        }
+        var matches = shell.find(findPath);
+        debug('find ' + findPath);
+        debug(matches.length + ' matches.');
+        return matches;
     }
-    var matches = shell.find(findPath);
-    debug('find ' + findPath);
-    debug(matches.length + ' matches.');
-    return matches;
+    catch (err) {
+        handlerError('Failed find: ' + err.message, false);
+    }    
 }
 
-export function rmRF(path: string): void {
-    debug('rm -rf ' + path);
-    shell.rm('-rf', path);
+export function rmRF(path: string, continueOnError?:boolean): boolean {
+    var success = true;
     
-    var error: string = shell.error();
-    // if you try to delete a file that doesn't exist, desired result is achieved
-    // other errors are valid
-    if (error && !(error.indexOf('ENOENT') === 0)) {        
-        console.error(error)
-        exit(1);
+    try {
+        debug('rm -rf ' + path);
+        shell.rm('-rf', path);
+        
+        var errMsg: string = shell.error();
+        
+        // if you try to delete a file that doesn't exist, desired result is achieved
+        // other errors are valid
+        if (errMsg && !(errMsg.indexOf('ENOENT') === 0)) {
+            handlerError(errMsg, continueOnError);
+            success = false;
+        }
     }
+    catch (err) {
+        success = false;
+        handlerError('Failed rmRF: ' + err.message, false);
+    }
+        
+    return success;    
 }
 
 export function glob(pattern: string): string[] {

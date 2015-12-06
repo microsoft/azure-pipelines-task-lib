@@ -14,6 +14,8 @@ var os = require('os');
 
 var tl;
 
+var _testTemp = path.join(__dirname, '_temp');
+
 var NullStream = function() {
 	stream.Writable.call(this);
 	this._write = function(data, encoding, next) {
@@ -61,6 +63,9 @@ describe('Test vso-task-lib', function() {
 			tl.setStdStream(_nullTestStream);
 			tl.setErrStream(_nullTestStream);
 			tl.setEnvVar('TASKLIB_INPROC_UNITS', '1');
+			
+			var success = tl.mkdirP(_testTemp);
+			assert(success, 'should have created test temp');
 		}
 		catch (err) {
 			assert.fail('Failed to load task lib: ' + err.message);
@@ -73,95 +78,115 @@ describe('Test vso-task-lib', function() {
 	});
 
 	describe('Dir Operations', function() {
-		it('mkdirs', function(done) {
+		it('creates folder with mkdirP', function(done) {
 			this.timeout(1000);
 
-			var testFolder = 'testDir';
-			var start = __dirname;
-			var testPath = path.join(__dirname, testFolder);
-			tl.cd(start);
-			assert(process.cwd() == start, 'starting in right directory');
-			tl.mkdirP(testPath);
+			var testPath = path.join(_testTemp, 'mkdirTest');
+			var success = tl.mkdirP(testPath);
+			assert(success, 'should created a path');	
 			assert(shell.test('-d', testPath), 'directory created');
-			tl.pushd(testFolder);
-			assert(process.cwd() == testPath, 'cwd is created directory');
-			tl.popd(testFolder);
 
 			done();
 		});
 		
-		it('rmRF single folder', function(done) {
+		it('creates nested folders with mkdirP', function(done) {
 			this.timeout(1000);
 
-			var testFolder = 'testDir';
-			var start = __dirname;
-			var testPath = path.join(__dirname, testFolder);
-			tl.cd(start);
-			assert(process.cwd() == start, 'starting in right directory');
+			var testPath = path.join(_testTemp, 'mkdir1', 'mkdir2');
+			var success = tl.mkdirP(testPath);
+			assert(success, 'should created a path');	
+			assert(shell.test('-d', testPath), 'directory created');
+
+			done();
+		});
+		
+		it('fails if mkdirP with illegal chars', function(done) {
+			this.timeout(1000);
+
+			var testPath = path.join(_testTemp, 'mkdir\0');
+			var success = tl.mkdirP(testPath);
+			assert(!success, 'should have failed');	
+			assert(!shell.test('-d', testPath), 'directory created');
+
+			done();
+		});	
+		
+		it('fails if mkdirP with null path', function(done) {
+			this.timeout(1000);
+
+			var success = tl.mkdirP(null);
+			assert(!success, 'should have failed');
+
+			done();
+		});	
+		
+		it('fails if mkdirP with empty path', function(done) {
+			this.timeout(1000);
+
+			var success = tl.mkdirP('');
+			assert(!success, 'should have failed');
+
+			done();
+		});						
+				
+		it('removes single folder with rmRF', function(done) {
+			this.timeout(1000);
+
+			var testPath = path.join(_testTemp, 'testFolder');
 			
-			// remove empty folder
 			tl.mkdirP(testPath);
 			assert(shell.test('-d', testPath), 'directory created');
 			assert(shell.test('-e', testPath), 'directory exists');
 			
-			tl.rmRF(testPath);
+			var success = tl.rmRF(testPath);
+			assert(success, 'should have deleted a single folder');
 			assert(!shell.test('-e', testPath), 'directory removed');
 
 			done();
 		});
-		
-		it('rmRF recursive folders', function(done) {
+				
+		it('removes recursive folders with rmRF', function(done) {
 			this.timeout(1000);
 
-			var testFolder = 'testDir';
-			var start = __dirname;
-			var testPath = path.join(__dirname, testFolder);
-			tl.cd(start);
-			assert(process.cwd() == start, 'starting in right directory');
-			
-			// remove nonempty folder
-			var testFolder2 = 'testDir2';
-			var testPath2 = path.join(testPath, testFolder2);
+			var testPath = path.join(_testTemp, 'testDir1');
+			var testPath2 = path.join(testPath, 'testDir2');
 			tl.mkdirP(testPath2);
 			
-			assert(shell.test('-d', testPath), 'directory created');
-			assert(shell.test('-e', testPath), 'directory exists');
-			assert(shell.test('-d', testPath2), 'directory created');
-			assert(shell.test('-e', testPath2), 'directory exists');
+			assert(shell.test('-d', testPath), '1 directory created');
+			assert(shell.test('-d', testPath2), '2 directory created');
 			
-			tl.rmRF(testPath);
-			assert(!shell.test('-e', testPath), 'directory removed');
-			assert(!shell.test('-e', testPath2), 'directory removed');
+			var success = tl.rmRF(testPath);
+			assert(success, 'should have removed recursive folders');
+			assert(!shell.test('-e', testPath), '1 directory removed');
+			assert(!shell.test('-e', testPath2), '2 directory removed');
 			
 			done();
 		});
 		
-		it('rmRF folder with locked file', function(done) {
+		it('removes folder with locked file with rmRF', function(done) {
 			this.timeout(1000);
-			
-			var testFolder = 'testDir';
-			var start = __dirname;
-			var testPath = path.join(__dirname, testFolder);
-			tl.cd(start);
-			assert(process.cwd() == start, 'starting in right directory');
-			
-			// can't remove folder with locked file
-			var filePath = path.join(testPath, 'file.txt');
+
+			var testPath = path.join(_testTemp, 'testFolder');
 			tl.mkdirP(testPath);
-			fs.appendFileSync(filePath, 'some data');
-					
 			assert(shell.test('-d', testPath), 'directory created');
+			
+			// can't remove folder with locked file on windows
+			var filePath = path.join(testPath, 'file.txt');
+			fs.appendFileSync(filePath, 'some data');
 			assert(shell.test('-e', filePath), 'file exists');
 			
-			var errStream = new StringStream();
-			tl.setErrStream(errStream);
-			
 			var fd = fs.openSync(filePath, 'r');
-			tl.rmRF(testPath);
-			assert(shell.test('-e', testPath), 'directory still exists');
+			var success = tl.rmRF(testPath);
 			
-			var err = errStream.getContents();
-			assert(err.indexOf("return code: 1") === 0, "correct error for trying to remove locked file")
+			var plat = os.platform();
+			if (plat === 'win32') {
+				assert(shell.test('-e', testPath), 'directory still exists');
+				assert(success, 'should not be able to remove folder with locked file');	
+			}
+			else {
+				assert(!shell.test('-e', testPath), 'directory removed');
+				assert(success, 'should not be able to remove folder with locked file');				
+			}
 			
 			fs.closeSync(fd);
 			tl.rmRF(testPath);
@@ -170,7 +195,7 @@ describe('Test vso-task-lib', function() {
 			done();
 		});
 		
-		it('rmRF folder that doesnt exist', function(done) {
+		it('removes folder that doesnt exist with rmRF', function(done) {
 			this.timeout(1000);
 
 			var testFolder = 'testDir';
@@ -185,11 +210,9 @@ describe('Test vso-task-lib', function() {
 			var errStream = new StringStream();
 			tl.setErrStream(errStream);
 			
-			tl.rmRF(testPath);
+			var success = tl.rmRF(testPath);
+			assert(success, 'should have succeeded removing path that does not exist');
 			assert(!shell.test('-e', testPath), 'directory still doesnt exist');
-			
-			var err = errStream.getContents();
-			assert(err.indexOf("return code: 1") != 0, "removing nonexistant folder should succeed")
 
 			done();
 		});
