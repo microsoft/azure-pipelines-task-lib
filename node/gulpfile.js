@@ -13,7 +13,6 @@ var proj = gts.createProject('./tsconfig.json', { typescript: typescript });
 var ts = gts(proj);
 
 var buildRoot = path.join(__dirname, '_build');
-var libDest = path.join(buildRoot, 'lib');
 var testDest = path.join(buildRoot, 'test');
 
 var MIN_NODE_VER = '4.0.0';
@@ -55,7 +54,7 @@ gulp.task('definitions', ['copy:d.ts'], function () {
 });
 
 gulp.task('build:lib', ['definitions'], function () {
-	return gulp.src(['./lib/*.ts'], { base: '.'})
+	return gulp.src(['./lib/*.ts'], { base: './lib'})
 		.pipe(ts)
         .on('error', errorHandler)
 		.pipe(gulp.dest(buildRoot))
@@ -79,8 +78,8 @@ gulp.task('testprep:testsuite', ['build:test'], function () {
 });
 
 gulp.task('testprep:node_modules', ['testprep:testsuite'], function () {
-	return gulp.src([(libDest + '/*.js')])
-		.pipe(gulp.dest(path.join(testDest, 'node_modules/vso-task-lib/lib')));
+	return gulp.src([(buildRoot + '/*.js')])
+		.pipe(gulp.dest(path.join(testDest, 'node_modules/vso-task-lib/')));
 });
 
 gulp.task('test', ['testprep:node_modules'], function () {

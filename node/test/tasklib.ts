@@ -12,9 +12,9 @@ import util = require('util');
 import stream = require('stream');
 import shell = require('shelljs');
 import os = require('os');
-import tl = require('vso-task-lib/lib/vsotask');
-import tcm = require('vso-task-lib/lib/taskcommand');
-import trm = require('vso-task-lib/lib/toolrunner');
+import tl = require('vso-task-lib/vsotask');
+import tcm = require('vso-task-lib/taskcommand');
+import trm = require('vso-task-lib/toolrunner');
 
 var _testTemp = path.join(__dirname, '_temp');
 
