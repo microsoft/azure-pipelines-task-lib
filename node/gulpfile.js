@@ -13,7 +13,6 @@ var proj = gts.createProject('./tsconfig.json', { typescript: typescript });
 var ts = gts(proj);
 
 var buildRoot = path.join(__dirname, '_build');
-var libDest = path.join(buildRoot, 'lib');
 var testDest = path.join(buildRoot, 'test');
 
 var MIN_NODE_VER = '4.0.0';
@@ -33,23 +32,29 @@ gulp.task('clean', function (done) {
 	return del([buildRoot], done);
 });
 
-gulp.task('copy', ['clean'], function () {
+gulp.task('copy:manifest', ['clean'], function () {
 	return gulp.src(['package.json', '../README.md'])
-		.pipe(gulp.dest(buildRoot));
+		.pipe(gulp.dest(buildRoot))
 });
 
-gulp.task('definitions', ['copy'], function () {
+gulp.task('copy:d.ts', ['clean'], function () {
+	return gulp.src(['definitions/**/*'])
+		.pipe(gulp.dest(path.join(buildRoot, 'definitions')))
+});
+
+gulp.task('definitions', ['copy:d.ts'], function () {
     return dtsgen.generate({
         name: 'vso-task-lib',
         baseDir: 'lib',
         files: [ 'vsotask.ts', 'taskcommand.ts', 'toolrunner.ts' ],
+		excludes: ['node_modules/**/*.d.ts', 'definitions/**/*.d.ts'],
         externs: ['../definitions/node.d.ts', '../definitions/Q.d.ts'],
         out: '_build/d.ts/vso-task-lib.d.ts'
     });
 });
 
 gulp.task('build:lib', ['definitions'], function () {
-	return gulp.src(['./lib/*.ts'], { base: '.'})
+	return gulp.src(['./lib/*.ts'], { base: './lib'})
 		.pipe(ts)
         .on('error', errorHandler)
 		.pipe(gulp.dest(buildRoot))
@@ -67,12 +72,17 @@ gulp.task('build:test', function () {
         .pipe(gulp.dest(buildRoot));
 });
 
-gulp.task('testprep', ['build:test'], function () {
+gulp.task('testprep:testsuite', ['build:test'], function () {
 	return gulp.src(['test/scripts/*.js'])
 		.pipe(gulp.dest(path.join(testDest, 'scripts')));
 });
 
-gulp.task('test', ['testprep'], function () {
+gulp.task('testprep:node_modules', ['testprep:testsuite'], function () {
+	return gulp.src([(buildRoot + '/*.js')])
+		.pipe(gulp.dest(path.join(testDest, 'node_modules/vso-task-lib/')));
+});
+
+gulp.task('test', ['testprep:node_modules'], function () {
 	var suitePath = path.join(testDest, 'tasklib.js');
 
 	return gulp.src([suitePath])

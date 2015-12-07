@@ -209,11 +209,11 @@ export class ToolRunner extends events.EventEmitter {
         }
         
         var r = child.spawnSync(this.toolPath, this.args, { cwd: ops.cwd, env: ops.env });
-        if (r.stdout.length > 0) {
+        if (r.stdout && r.stdout.length > 0) {
             ops.outStream.write(r.stdout);
         }
 
-        if (r.stderr.length > 0) {
+        if (r.stderr && r.stderr.length > 0) {
             ops.errStream.write(r.stderr);
         }
 
