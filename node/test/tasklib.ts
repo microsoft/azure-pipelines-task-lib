@@ -215,7 +215,73 @@ describe('Test vso-task-lib', function() {
 			assert(!shell.test('-e', testPath), 'directory still doesnt exist');
 
 			done();
-		});
+        });
+
+        it('move to non existant destination', function(done) {
+            this.timeout(1000);
+
+            var sourceFile = 'sourceFile';
+            var destFile = 'destFile';
+            var start = __dirname;
+            var testPath = path.join(__dirname, sourceFile);
+            var destPath = path.join(__dirname, destFile);
+            tl.cd(start);
+            assert(process.cwd() == start, 'did not start in right directory');
+            
+            shell.rm('-f', sourceFile);
+            shell.rm('-f', destFile);
+                        
+            assert(!shell.test('-e', destFile), 'destination file exists');
+            
+            fs.writeFileSync(sourceFile, "test move");
+            assert(shell.test('-e', sourceFile), 'source file does not exist');
+            
+            var errStream = new StringStream();
+            tl.setErrStream(errStream);
+            
+            var success = tl.mv(sourceFile, destFile, false);
+            assert(success, 'should have succeeded moving to path that does not exist');
+            assert(!shell.test('-e', sourceFile), 'source file still exist');
+            assert(shell.test('-e', destFile), 'dest file still does not exist');
+
+            done();
+        });
+        
+        it('move to existing destination should fail unless forced', function(done) {
+            this.timeout(1000);
+
+            var sourceFile = 'sourceFile';
+            var destFile = 'destFile';
+            var start = __dirname;
+            var testPath = path.join(__dirname, sourceFile);
+            var destPath = path.join(__dirname, destFile);
+            tl.cd(start);
+            assert(process.cwd() == start, 'did not start in right directory');
+            
+            shell.rm('-f', sourceFile);
+            shell.rm('-f', destFile);
+
+            fs.writeFileSync(sourceFile, "test move");
+            fs.writeFileSync(destFile, "test move destination");
+            
+            assert(shell.test('-e', sourceFile), 'source file does not exist');
+            assert(shell.test('-e', destFile), 'destination does not file exists');
+                        
+            var errStream = new StringStream();
+            tl.setErrStream(errStream);
+            
+            var success = tl.mv(sourceFile, destFile, false);
+            assert(!success, 'should not have succeeded moving to path that exists without force option');
+            assert(shell.test('-e', sourceFile), 'source file does not exist');
+            assert(shell.test('-e', destFile), 'dest file does not exist');
+
+            success = tl.mv(sourceFile, destFile, true);
+            assert(success, 'should have succeeded moving to path that exist with force option');
+            assert(!shell.test('-e', sourceFile), 'source file should not exist');
+            assert(shell.test('-e', destFile), 'dest file does not exist after mv -f');
+
+            done();
+        });
 	});
 
 	describe('TaskInputsVariables', function() {
