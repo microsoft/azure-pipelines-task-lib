@@ -18,6 +18,8 @@ import trm = require('vso-task-lib/lib/toolrunner');
 
 var _testTemp = path.join(__dirname, '_temp');
 
+var plat = os.platform();
+
 var NullStream = function() {
 	stream.Writable.call(this);
 	this._write = function(data, encoding, next) {
@@ -55,16 +57,6 @@ var _buildOutput = function(lines) {
 
 	return output;
 }
-
-// export interface IExecOptions {
-//     cwd: string;
-//     env: { [key: string]: string };
-//     silent: boolean;
-//     failOnStdErr: boolean;
-//     ignoreReturnCode: boolean;
-//     outStream: NodeJS.WritableStream;
-//     errStream: NodeJS.WritableStream;
-// };
 
 describe('Test vso-task-lib', function() {
 
@@ -188,8 +180,7 @@ describe('Test vso-task-lib', function() {
 			
 			var fd = fs.openSync(filePath, 'r');
 			var success = tl.rmRF(testPath);
-			
-			var plat = os.platform();
+
 			if (plat === 'win32') {
 				assert(shell.test('-e', testPath), 'directory still exists');
 				assert(!success, 'should not be able to remove folder with locked file');	
@@ -582,11 +573,11 @@ describe('Test vso-task-lib', function() {
 	});
 
 	describe('ToolRunner', function() {	
-		it('execSync convenience with stdout', function(done) {
+		it('ExecSync convenience with stdout', function(done) {
 			this.timeout(1000);
 
-			tl.pushd(__dirname);
-
+			tl.pushd(__dirname);	
+					
 			var _testExecOptions: trm.IExecOptions = {
 				cwd: __dirname,
 				env: {},
@@ -596,8 +587,16 @@ describe('Test vso-task-lib', function() {
 				outStream: _nullTestStream,
 				errStream: _nullTestStream
 			}
-			var ret = tl.execSync('ls', '-l -a', _testExecOptions);
-			assert(ret.code === 0, 'return code of ls should be 0');
+
+			if (plat === 'win32') {
+				var ret = tl.execSync('cmd', '/c echo \'vso-task-lib\'', _testExecOptions);
+				assert(ret.code === 0, 'return code of cmd should be 0');
+			}
+			else {
+				var ret = tl.execSync('ls', '-l -a', _testExecOptions);
+				assert(ret.code === 0, 'return code of ls should be 0');			
+			}
+			
 			assert(ret.stdout && ret.stdout.length > 0, 'should have emitted stdout');
 			tl.popd();
 			done();
@@ -606,11 +605,7 @@ describe('Test vso-task-lib', function() {
 			this.timeout(1000);
 
 			tl.pushd(__dirname);
-
-			var ls = tl.createToolRunner(tl.which('ls', true));
-			ls.arg('-l');
-			ls.arg('-a');
-
+			
 			var _testExecOptions: trm.IExecOptions = {
 				cwd: __dirname,
 				env: {},
@@ -620,8 +615,23 @@ describe('Test vso-task-lib', function() {
 				outStream: _nullTestStream,
 				errStream: _nullTestStream
 			}
-			var ret = ls.execSync(_testExecOptions);
-			assert(ret.code === 0, 'return code of ls should be 0');
+			
+			if (plat === 'win32') {
+				var cmd = tl.createToolRunner(tl.which('cmd', true));
+				cmd.arg('/c echo \'vso-task-lib\'');
+
+				var ret = cmd.execSync(_testExecOptions);
+				assert(ret.code === 0, 'return code of cmd should be 0');
+			}
+			else {
+				var ls = tl.createToolRunner(tl.which('ls', true));
+				ls.arg('-l');
+				ls.arg('-a');
+
+				var ret = ls.execSync(_testExecOptions);
+				assert(ret.code === 0, 'return code of ls should be 0');			
+			}
+			
 			assert(ret.stdout && ret.stdout.length > 0, 'should have emitted stdout');
 			tl.popd();
 			done();
@@ -629,11 +639,8 @@ describe('Test vso-task-lib', function() {
 		it('ExecSync fails with rc 1 and stderr', function(done) {
 			this.timeout(1000);
 
-			tl.pushd(__dirname);
-
-			var ls = tl.createToolRunner(tl.which('ls', true));
-			ls.arg('-j');
-
+			tl.pushd(__dirname);	
+					
 			var _testExecOptions: trm.IExecOptions = {
 				cwd: __dirname,
 				env: {},
@@ -643,8 +650,22 @@ describe('Test vso-task-lib', function() {
 				outStream: _nullTestStream,
 				errStream: _nullTestStream
 			}
-			var ret = ls.execSync(_testExecOptions);
-			assert(ret.code === 1, 'return code of ls should be 1 on failure');
+			
+			if (plat === 'win32') {
+				var cmd = tl.createToolRunner(tl.which('cmd', true));
+				cmd.arg('/c notExist');
+
+				var ret = cmd.execSync(_testExecOptions);
+				assert(ret.code === 1, 'return code of cmd should be 1 on failure');
+			}
+			else {
+				var ls = tl.createToolRunner(tl.which('ls', true));
+				ls.arg('-j');
+				
+				var ret = ls.execSync(_testExecOptions);
+				assert(ret.code === 1, 'return code of ls should be 1 on failure');	
+			}
+
 			assert(ret.stderr && ret.stderr.length > 0, 'should have emitted stderr');
 			tl.popd();
 			done();
@@ -663,7 +684,22 @@ describe('Test vso-task-lib', function() {
 				outStream: _nullTestStream,
 				errStream: _nullTestStream
 			}
-			tl.exec('ls', '-l -a', _testExecOptions)
+			
+			if (plat === 'win32') {
+				tl.exec('cmd', '/c echo \'vso-task-lib\'', _testExecOptions)
+				.then(function(code) {
+					assert(code === 0, 'return code of cmd should be 0');
+				})
+				.fail(function(err) {
+					assert.fail('cmd failed to run: ' + err.message);
+				})
+				.fin(function() {
+					tl.popd();
+					done();
+				})
+			}
+			else {
+				tl.exec('ls', '-l -a', _testExecOptions)
 				.then(function(code) {
 					assert(code === 0, 'return code of ls should be 0');
 				})
@@ -673,16 +709,13 @@ describe('Test vso-task-lib', function() {
 				.fin(function() {
 					tl.popd();
 					done();
-				})
+				})		
+			}
 		})
 		it('ToolRunner writes debug', function(done) {
 			this.timeout(1000);
 
 			tl.pushd(__dirname);
-
-			var ls = tl.createToolRunner(tl.which('ls', true));
-			ls.arg('-l');
-			ls.arg('-a');
 
 			var stdStream = new StringStream();
 			tl.setStdStream(stdStream);
@@ -696,7 +729,32 @@ describe('Test vso-task-lib', function() {
 				outStream: _nullTestStream,
 				errStream: _nullTestStream
 			}
-			ls.exec(_testExecOptions)
+			
+			if(plat === 'win32') {
+				var cmdPath =tl.which('cmd', true);
+				var cmd = tl.createToolRunner(cmdPath);
+				cmd.arg('/c echo \'vso-task-lib\'');
+
+				cmd.exec(_testExecOptions)
+				.then(function(code) {
+					var contents = stdStream.getContents();					
+					assert(contents.indexOf('exec tool: ' + cmdPath) >= 0, 'should exec cmd');
+					assert(code === 0, 'return code of cmd should be 0');
+				})
+				.fail(function(err) {
+					assert.fail('ls failed to run: ' + err.message);
+				})
+				.fin(function() {
+					tl.popd();
+					done();
+				})
+			}
+			else {
+				var ls = tl.createToolRunner(tl.which('ls', true));
+				ls.arg('-l');
+				ls.arg('-a');
+
+				ls.exec(_testExecOptions)
 				.then(function(code) {
 					var contents = stdStream.getContents();
 					assert(contents.indexOf('exec tool: /bin/ls') >= 0, 'should exec ls');
@@ -709,20 +767,12 @@ describe('Test vso-task-lib', function() {
 					tl.popd();
 					done();
 				})
+			}			
 		})		
 		it('Execs with stdout', function(done) {
 			this.timeout(1000);
 
 			tl.pushd(__dirname);
-
-			var ls = tl.createToolRunner(tl.which('ls', true));
-			ls.arg('-l');
-			ls.arg('-a');
-
-			var output = '';
-			ls.on('stdout', (data) => {
-				output = data.toString();
-			});
 
 			var _testExecOptions: trm.IExecOptions = {
 				cwd: __dirname,
@@ -733,7 +783,39 @@ describe('Test vso-task-lib', function() {
 				outStream: _nullTestStream,
 				errStream: _nullTestStream
 			}
-			ls.exec(_testExecOptions)
+			
+			var output = '';
+			if(plat === 'win32') {
+				var cmd = tl.createToolRunner(tl.which('cmd', true));
+				cmd.arg('/c  echo \'vso-task-lib\'');
+					
+				cmd.on('stdout', (data) => {
+					output = data.toString();
+				});
+				
+				cmd.exec(_testExecOptions)
+				.then(function(code) {
+					assert(code === 0, 'return code of cmd should be 0');
+					assert(output && output.length > 0, 'should have emitted stdout');
+				})
+				.fail(function(err) {
+					assert.fail('cmd failed to run: ' + err.message);
+				})
+				.fin(function() {
+					tl.popd();
+					done();
+				})
+			}
+			else {
+				var ls = tl.createToolRunner(tl.which('ls', true));
+				ls.arg('-l');
+				ls.arg('-a');
+					
+				ls.on('stdout', (data) => {
+					output = data.toString();
+				});
+				
+				ls.exec(_testExecOptions)
 				.then(function(code) {
 					assert(code === 0, 'return code of ls should be 0');
 					assert(output && output.length > 0, 'should have emitted stdout');
@@ -745,19 +827,12 @@ describe('Test vso-task-lib', function() {
 					tl.popd();
 					done();
 				})
+			}
 		})
 		it ('Fails on return code 1 with stderr', function(done) {
 			this.timeout(1000);
 
 			var failed = false;
-
-			var ls = tl.createToolRunner(tl.which('ls', true));
-			ls.arg('-j');
-
-			var output = '';
-			ls.on('stderr', (data) => {
-				output = data.toString();
-			});
 
 			var _testExecOptions: trm.IExecOptions = {
 				cwd: __dirname,
@@ -768,7 +843,42 @@ describe('Test vso-task-lib', function() {
 				outStream: _nullTestStream,
 				errStream: _nullTestStream
 			}
-			ls.exec(_testExecOptions)
+			
+			var output = '';
+			if(plat === 'win32') {				
+				var cmd = tl.createToolRunner(tl.which('cmd', true));
+				cmd.arg('/c notExist');
+					
+				cmd.on('stderr', (data) => {
+					output = data.toString();
+				});
+				
+				cmd.exec(_testExecOptions)
+				.then(function(code) {
+					assert(code === 1, 'return code of cmd should be 1');
+					assert(output && output.length > 0, 'should have emitted stderr');
+				})
+				.fail(function(err) {
+					failed = true;
+				})
+				.fin(function() {
+					if (!failed) {
+						done(new Error('cmd should have failed'));
+						return;
+					}
+
+					done();
+				})
+			}
+			else {
+				var ls = tl.createToolRunner(tl.which('ls', true));
+				ls.arg('-j');
+			
+				ls.on('stderr', (data) => {
+					output = data.toString();
+				});
+				
+				ls.exec(_testExecOptions)
 				.then(function(code) {
 					assert(code === 1, 'return code of ls -j should be 1');
 					assert(output && output.length > 0, 'should have emitted stderr');
@@ -784,6 +894,7 @@ describe('Test vso-task-lib', function() {
 
 					done();
 				})
+			}
 		})
 		it ('Succeeds on stderr by default', function(done) {
 			this.timeout(1000);

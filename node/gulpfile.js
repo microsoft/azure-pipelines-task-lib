@@ -45,7 +45,7 @@ gulp.task('copy:d.ts', ['clean'], function () {
 
 gulp.task('definitions', ['copy:d.ts'], function () {
     return dtsgen.generate({
-        name: 'vso-task-lib/lib',
+        name: 'vso-task-lib',
         baseDir: 'lib',
         files: [ 'vsotask.ts', 'taskcommand.ts', 'toolrunner.ts' ],
 		excludes: ['node_modules/**/*.d.ts', 'definitions/**/*.d.ts'],
