@@ -181,7 +181,7 @@ describe('Test vso-task-lib', function() {
 			var plat = os.platform();
 			if (plat === 'win32') {
 				assert(shell.test('-e', testPath), 'directory still exists');
-				assert(success, 'should not be able to remove folder with locked file');	
+				assert(!success, 'should not be able to remove folder with locked file');	
 			}
 			else {
 				assert(!shell.test('-e', testPath), 'directory removed');
