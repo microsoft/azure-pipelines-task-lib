@@ -369,6 +369,30 @@ export function cp(options, source: string, dest: string, continueOnError?:boole
     return success;
 }
 
+export function mv(source: string, dest: string, force: boolean, continueOnError?: boolean): boolean {
+    var success = true;
+    
+    try {
+        if (force) {    
+            shell.mv('-f', source, dest);
+        } else {
+            shell.mv(source, dest);
+        }
+        var errMsg = shell.error();
+        
+        if (errMsg) {
+            handlerError(errMsg, continueOnError);
+            success = false;
+        }
+    }
+    catch (err) {
+        success = false;
+        handlerError('Failed mv: ' + err.message, false);
+    }    
+    
+    return success;
+}
+
 export function find(findPath: string): string[] {
     try {
         if (!shell.test('-e', findPath)) {
