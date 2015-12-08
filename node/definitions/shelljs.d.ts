@@ -2,6 +2,7 @@
 // Project: http://shelljs.org
 // Definitions by: Niklas Mollenhauer <https://github.com/nikeee>
 // Definitions: https://github.com/borisyankov/DefinitelyTyped
+// Ting updated mv(options, source, dest) 12/7/2015
 
 declare module "shelljs"
 {
@@ -128,10 +129,27 @@ declare module "shelljs"
     
     /**
      * Moves files. The wildcard * is accepted.
+     * @param {string} options  Available options: -f (force)
+     * @param {string} source The source.
+     * @param {string} dest   The destination.
+     */
+    export function mv(options: string, source: string, dest: string): void;
+    
+    
+    /**
+     * Moves files. The wildcard * is accepted.
      * @param {string[]} source The source.
      * @param {string}   dest   The destination.
      */
     export function mv(source: string[], dest: string): void;
+
+    /**
+     * Moves files. The wildcard * is accepted.
+     * @param {string}   options  Available options: -f (force)
+     * @param {string[]} source The source.
+     * @param {string}   dest   The destination.
+     */
+    export function mv(options: string, source: string[], dest: string): void;
 
     /**
      * Creates directories.
