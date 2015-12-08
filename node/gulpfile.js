@@ -8,6 +8,8 @@ var gts = require('gulp-typescript')
 var typescript = require('typescript');
 var dtsgen = require('dts-generator');
 var semver = require('semver');
+var spawn = require('child_process').spawn;
+var shell = require('shelljs');
 
 var proj = gts.createProject('./tsconfig.json', { typescript: typescript });
 var ts = gts(proj);
@@ -33,7 +35,7 @@ gulp.task('clean', function (done) {
 });
 
 gulp.task('copy:manifest', ['clean'], function () {
-	return gulp.src(['package.json', '../README.md'])
+	return gulp.src(['package.json', '../LICENSE', '../README.md'])
 		.pipe(gulp.dest(buildRoot))
 });
 
@@ -42,7 +44,7 @@ gulp.task('copy:d.ts', ['clean'], function () {
 		.pipe(gulp.dest(path.join(buildRoot, 'definitions')))
 });
 
-gulp.task('definitions', ['copy:d.ts'], function () {
+gulp.task('definitions', ['copy:d.ts', 'copy:manifest'], function () {
     return dtsgen.generate({
         name: 'vso-task-lib',
         baseDir: 'lib',
@@ -87,5 +89,24 @@ gulp.task('test', ['testprep:node_modules'], function () {
 
 	return gulp.src([suitePath])
 		.pipe(mocha({ reporter: 'spec', ui: 'bdd'}));
+});
+
+//---------------------------------------------------------------
+// gulp publish (to npm)
+// You need npm user and creds configure on your box to run this
+//---------------------------------------------------------------
+
+gulp.task('prepublish', function (done) {
+	return del([
+		path.join(buildRoot, 'definitions'), 
+		path.join(buildRoot, 'test'),
+		path.join(buildRoot, 'd.ts')], 
+		done);
+});
+
+gulp.task('publish', ['prepublish'], function (done) {
+	shell.pushd(buildRoot);
+	spawn('npm', ['publish'], { stdio: 'inherit' }).on('close', done);
+	shell.popd();
 });
 
