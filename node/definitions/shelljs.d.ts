@@ -2,7 +2,7 @@
 // Project: http://shelljs.org
 // Definitions by: Niklas Mollenhauer <https://github.com/nikeee>
 // Definitions: https://github.com/borisyankov/DefinitelyTyped
-// Ting updated mv(options, source, dest) 12/7/2015
+// Ting update to match shelljs v0.5.3 12/7/2015
 
 declare module "shelljs"
 {
@@ -165,14 +165,14 @@ declare module "shelljs"
 
     /**
      * Creates directories.
-     * @param {string}   options Available options: p (full paths, will create intermediate dirs if necessary)
+     * @param {string}   options Available options: -p (full paths, will create intermediate dirs if necessary)
      * @param {string[]} ...dir  The directories to create.
      */
     export function mkdir(options: string, ...dir: string[]): void;
 
     /**
      * Creates directories.
-     * @param {string}   options Available options: p (full paths, will create intermediate dirs if necessary)
+     * @param {string}   options Available options: -p (full paths, will create intermediate dirs if necessary)
      * @param {string[]} dir     The directories to create.
      */
     export function mkdir(options: string, dir: string[]): void;
@@ -349,82 +349,88 @@ declare module "shelljs"
 
     /**
      * When no arguments are given, popd removes the top directory from the stack and performs a cd to the new top directory. The elements are numbered from 0 starting at the first directory listed with dirs; i.e., popd is equivalent to popd +0. Returns an array of paths in the stack.
-     * @param  {"+N"}     dir Removes the Nth directory (counting from the left of the list printed by dirs), starting with zero.
-     * @return {string[]}     Returns an array of paths in the stack.
-     */
-    export function popd(dir: "+N"): string[];
-
-    /**
-     * When no arguments are given, popd removes the top directory from the stack and performs a cd to the new top directory. The elements are numbered from 0 starting at the first directory listed with dirs; i.e., popd is equivalent to popd +0. Returns an array of paths in the stack.
      * @return {string[]}     Returns an array of paths in the stack.
      */
     export function popd(): string[];
 
     /**
      * When no arguments are given, popd removes the top directory from the stack and performs a cd to the new top directory. The elements are numbered from 0 starting at the first directory listed with dirs; i.e., popd is equivalent to popd +0. Returns an array of paths in the stack.
-     * @param  {"-N"}     dir Removes the Nth directory (counting from the right of the list printed by dirs), starting with zero.
-     * @return {string[]}     Returns an array of paths in the stack.
+     * @param  {"+N"}     index  Removes the Nth directory (counting from the left of the list printed by dirs), starting with zero.
+     * @return {string[]}        Returns an array of paths in the stack.
      */
-    export function popd(dir: "-N"): string[];
+    export function popd(index: "+N"): string[];
 
     /**
      * When no arguments are given, popd removes the top directory from the stack and performs a cd to the new top directory. The elements are numbered from 0 starting at the first directory listed with dirs; i.e., popd is equivalent to popd +0. Returns an array of paths in the stack.
-     * @param  {string}     dir You can only use -N and +N.
+     * @param  {"-N"}     index  Removes the Nth directory (counting from the right of the list printed by dirs), starting with zero.
+     * @return {string[]}        Returns an array of paths in the stack.
+     */
+    export function popd(index: "-N"): string[];
+
+    /**
+     * When no arguments are given, popd removes the top directory from the stack and performs a cd to the new top directory. The elements are numbered from 0 starting at the first directory listed with dirs; i.e., popd is equivalent to popd +0. Returns an array of paths in the stack.
+     * @param  {string}     index  You can only use -N and +N.
+     * @return {string[]}          Returns an array of paths in the stack.
+     */
+    export function popd(index: string): string[];
+
+    /**
+     * When no arguments are given, popd removes the top directory from the stack and performs a cd to the new top directory. The elements are numbered from 0 starting at the first directory listed with dirs; i.e., popd is equivalent to popd +0. Returns an array of paths in the stack.
+     * @param  {string}   options Available options: -n (Suppresses the normal change of directory when removing directories from the stack, so that only the stack is manipulated)
+     * @param  {"+N"}     index   Removes the Nth directory (counting from the left of the list printed by dirs), starting with zero.
+     * @return {string[]}         Returns an array of paths in the stack.
+     */
+    export function popd(options: string, index: "+N"): string[];
+
+    /**
+     * When no arguments are given, popd removes the top directory from the stack and performs a cd to the new top directory. The elements are numbered from 0 starting at the first directory listed with dirs; i.e., popd is equivalent to popd +0. Returns an array of paths in the stack.
+     * @param  {string}   options Available options: -n (Suppresses the normal change of directory when removing directories from the stack, so that only the stack is manipulated)
+     * @param  {"-N"}     index   Removes the Nth directory (counting from the right of the list printed by dirs), starting with zero.
+     * @return {string[]}         Returns an array of paths in the stack.
+     */
+    export function popd(options: string, index: "-N"): string[];
+
+    /**
+     * When no arguments are given, popd removes the top directory from the stack and performs a cd to the new top directory. The elements are numbered from 0 starting at the first directory listed with dirs; i.e., popd is equivalent to popd +0. Returns an array of paths in the stack.
+     * @param  {string}   options Available options: -n (Suppresses the normal change of directory when removing directories from the stack, so that only the stack is manipulated)
+     * @param  {string}   index   You can only use -N and +N.
+     * @return {string[]}         Returns an array of paths in the stack.
+     */
+    export function popd(options: string, index: string): string[];
+
+    /**
+     * Display the list of currently remembered directories. Returns an array of paths in the stack.
      * @return {string[]}       Returns an array of paths in the stack.
      */
-    export function popd(dir: string): string[];
-
-    /**
-     * When no arguments are given, popd removes the top directory from the stack and performs a cd to the new top directory. The elements are numbered from 0 starting at the first directory listed with dirs; i.e., popd is equivalent to popd +0. Returns an array of paths in the stack.
-     * @param  {string}   options Available options: -n (Suppresses the normal change of directory when removing directories from the stack, so that only the stack is manipulated)
-     * @param  {"+N"}     dir     Removes the Nth directory (counting from the left of the list printed by dirs), starting with zero.
-     * @return {string[]}         Returns an array of paths in the stack.
-     */
-    export function popd(options: string, dir: "+N"): string[];
-
-    /**
-     * When no arguments are given, popd removes the top directory from the stack and performs a cd to the new top directory. The elements are numbered from 0 starting at the first directory listed with dirs; i.e., popd is equivalent to popd +0. Returns an array of paths in the stack.
-     * @param  {string}   options Available options: -n (Suppresses the normal change of directory when removing directories from the stack, so that only the stack is manipulated)
-     * @param  {"-N"}     dir     Removes the Nth directory (counting from the right of the list printed by dirs), starting with zero.
-     * @return {string[]}         Returns an array of paths in the stack.
-     */
-    export function popd(options: string, dir: "-N"): string[];
-
-    /**
-     * When no arguments are given, popd removes the top directory from the stack and performs a cd to the new top directory. The elements are numbered from 0 starting at the first directory listed with dirs; i.e., popd is equivalent to popd +0. Returns an array of paths in the stack.
-     * @param  {string}   options Available options: -n (Suppresses the normal change of directory when removing directories from the stack, so that only the stack is manipulated)
-     * @param  {string}   dir     You can only use -N and +N.
-     * @return {string[]}         Returns an array of paths in the stack.
-     */
-    export function popd(options: string, dir: string): string[];
+    export function dirs(): string[];
 
     /**
      * Clears the directory stack by deleting all of the elements.
-     * @param  {"-c"}     options Clears the directory stack by deleting all of the elements.
+     * @param  {string}     options Available options: -c (Clears the directory stack by deleting all of the elements).
      * @return {string[]}         Returns an array of paths in the stack, or a single path if +N or -N was specified.
      */
-    export function dirs(options: "-c"): string[];
+    export function dirs(options: string): string[];
 
     /**
      * Display the list of currently remembered directories. Returns an array of paths in the stack, or a single path if +N or -N was specified.
-     * @param  {"+N"}   options Displays the Nth directory (counting from the left of the list printed by dirs when invoked without options), starting with zero.
-     * @return {string[]}       Returns an array of paths in the stack, or a single path if +N or -N was specified.
+     * @param  {string} Displays the Nth directory (counting from the left of the list printed by dirs when invoked without options), starting with zero.
+     * @return {any}    Returns an array of paths in the stack, or a single path if +N or -N was specified.
      */
-    export function dirs(options: "+N"): string;
+    export function dirs(index: "+N"): string;
 
     /**
      * Display the list of currently remembered directories. Returns an array of paths in the stack, or a single path if +N or -N was specified.
-     * @param  {"-N"}   options Displays the Nth directory (counting from the right of the list printed by dirs when invoked without options), starting with zero.
-     * @return {string[]}       Returns an array of paths in the stack, or a single path if +N or -N was specified.
+     * @param  {string} Displays the Nth directory (counting from the right of the list if -N printed by dirs when invoked without options), starting with zero.
+     * @return {any}    Returns an array of paths in the stack, or a single path if +N or -N was specified.
      */
-    export function dirs(options: "-N"): string;
+    export function dirs(index: "-N"): string;
 
     /**
      * Display the list of currently remembered directories. Returns an array of paths in the stack, or a single path if +N or -N was specified.
-     * @param  {string} options Available options: -c, -N, +N. You can only use those.
-     * @return {any}            Returns an array of paths in the stack, or a single path if +N or -N was specified.
+     * @param  {string} Displays the Nth directory (counting from the left of the list if +N or counting from the right of the list if -N printed by dirs when invoked without options), starting with zero.
+     * @return {any}    Returns an array of paths in the stack, or a single path if +N or -N was specified.
      */
-    export function dirs(options: string): any;
+    export function dirs(index: string): string;
 
     /**
      * Links source to dest. Use -f to force the link, should dest already exist.
@@ -511,6 +517,26 @@ declare module "shelljs"
      * @param {string} file      The file to use.
      */
     export function chmod(mode: string, file: string): void;
+    
+    /**
+     * Alters the permissions of a file or directory by either specifying the absolute permissions in octal form or expressing the changes in symbols. This command tries to mimic the POSIX behavior as much as possible. Notable exceptions:
+     * - In symbolic modes, 'a-r' and '-r' are identical. No consideration is given to the umask.
+     * - There is no "quiet" option since default behavior is to run silent.
+     * @param {string} options  Available options: -v (output a diagnostic for every file processed), -c (like verbose but report only when a change is made), -R (change files and directories recursively.
+     * @param {number} octalMode The access mode. Octal.
+     * @param {string} file      The file to use.
+     */
+    export function chmod(option: string, octalMode: number, file: string): void;
+
+    /**
+     * Alters the permissions of a file or directory by either specifying the absolute permissions in octal form or expressing the changes in symbols. This command tries to mimic the POSIX behavior as much as possible. Notable exceptions:
+     * - In symbolic modes, 'a-r' and '-r' are identical. No consideration is given to the umask.
+     * - There is no "quiet" option since default behavior is to run silent.
+     * @param {string} options  Available options: -v (output a diagnostic for every file processed), -c (like verbose but report only when a change is made), -R (change files and directories recursively.
+     * @param {string} mode      The access mode. Can be an octal string or a symbolic mode string.
+     * @param {string} file      The file to use.
+     */
+    export function chmod(option: string, mode: string, file: string): void;
 
     // Non-Unix commands
 
