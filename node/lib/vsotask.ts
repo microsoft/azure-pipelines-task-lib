@@ -566,7 +566,7 @@ export class TestPublisher {
 
     public testRunner: string;
 
-    public publish(resultFiles, mergeResults, platform, config) {
+    public publish(resultFiles, mergeResults, platform, config, runTitle, publishRunAttachments) {
         
         if(mergeResults == 'true') {
             _writeLine("Merging test results from multiple files to one test run is not supported on this version of build agent for OSX/Linux, each test result file will be published as a separate test run in VSO/TFS.");
@@ -582,8 +582,17 @@ export class TestPublisher {
         if(config) {
             properties['config'] = config;
         }
+		
+		if(runTitle) {
+			properties['runTitle'] = runTitle;
+		}
 
-        for(var i = 0; i < resultFiles.length; i ++) {            
+		if(publishRunAttachments) {
+			properties['publishRunAttachments'] = publishRunAttachments;
+		}			
+
+        for(var i = 0; i < resultFiles.length; i ++) {  
+			properties['fileNumber'] = i.toString();
             command('results.publish',  properties, resultFiles[i]);
         }
     }
