@@ -35,7 +35,7 @@ gulp.task('clean', function (done) {
 });
 
 gulp.task('copy:manifest', ['clean'], function () {
-	return gulp.src(['package.json', '../LICENSE', '../README.md'])
+	return gulp.src(['package.json', 'lib.json', '../LICENSE', '../README.md'])
 		.pipe(gulp.dest(buildRoot))
 });
 
@@ -80,7 +80,7 @@ gulp.task('testprep:testsuite', ['build:test'], function () {
 });
 
 gulp.task('testprep:node_modules', ['testprep:testsuite'], function () {
-	return gulp.src([(buildRoot + '/*.js')])
+	return gulp.src([(buildRoot + '/*.js'), 'lib.json'])
 		.pipe(gulp.dest(path.join(testDest, 'node_modules/vso-task-lib/')));
 });
 

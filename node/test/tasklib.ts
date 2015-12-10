@@ -1064,24 +1064,62 @@ describe('Test vso-task-lib', function() {
 	});	
 
 	describe('Localization', function() {	
+		it('validate loc string key in lib.json', function(done) {
+			this.timeout(1000);
+			
+			var jsonPath = path.join(__dirname, '../lib.json');
+			var json = require(jsonPath);
+			if(json && json.hasOwnProperty('messages')) {
+				for(var key in json.messages) {
+					assert(key.search(/\W+/gi) < 0, ('messages key: \'' + key +'\' contain non-word characters, only allows [a-zA-Z0-9_].'));
+					assert(key.index('LIB_') === 0, ('messages key: \'' + key +'\' should start with \'LIB_\'.'));
+					if(typeof(json.messages[key]) === 'object') {
+						assert(json.messages[key].loc, ('messages key: \'' + key +'\' should have a loc string.'));
+						assert(json.messages[key].loc.toString().length > 0, ('messages key: \'' + key +'\' should have a loc string.'));
+						assert(json.messages[key].fallback, ('messages key: \'' + key +'\' should have a fallback string.'));
+						assert(json.messages[key].fallback.toString().length > 0, ('messages key: \'' + key +'\' should have a fallback string.'));
+					}
+					else if(typeof(json.messages[key]) === 'string') {
+						assert(json.messages[key].toString().length > 0, ('messages key: \'' + key +'\' should have a loc string.'));
+					} 
+				}
+			}
+
+			done();
+		})
 		it('get loc string from task.json', function(done) {
 			this.timeout(1000);
 			
-			var jsonStr = "{\"messages\": {\"key1\" : \"string for key 1.\", \"key2\" : \"string for key 2.\"}}";
-			var jsonPath = path.join(__dirname, 'task.json');
+			var jsonStr = "{\"messages\": {\"key1\" : {\"loc\": \"string for key 1.\", \"fallback\": \"fallback string.\"}, \"key2\" : \"string for key %d.\", \"key3\" : \"string for key %%.\"}}";
+			var jsonPath = path.join(__dirname, (Math.floor(Math.random() * 100).toString() + 'task.json'));
 			fs.writeFileSync(jsonPath, jsonStr);
 			tl.setResourcePath(jsonPath);			
-			assert(tl.loc('key1', 'default string.') === 'string for key 1.', 'string not found for key.');
+			assert(tl.loc('key1') === 'string for key 1.', 'string not found for key.');
+			assert(tl.loc('key2', 2) === 'string for key 2.', 'string not found for key.');
+			assert(tl.loc('key3') === 'string for key %%.', 'string not found for key.');
+			
 			done();
 		})		
-		it('return default loc string if it\'s not in task.json', function(done) {
+		it('return fallback string if its loc string is not in task.json', function(done) {
 			this.timeout(1000);
 			
-			var jsonStr = "{\"messages\": {\"key1\" : \"string for key 1.\", \"key2\" : \"string for key 2.\"}}";
-			var jsonPath = path.join(__dirname, 'task.json');
+			var jsonStr = "{\"messages\": {\"key1\" : {\"loc\": \"\", \"fallback\": \"fallback string.\"}, \"key2\" : \"string for key %d.\"}}";
+			var jsonPath = path.join(__dirname, (Math.floor(Math.random() * 100).toString() + 'task.json'));
 			fs.writeFileSync(jsonPath, jsonStr);
 			tl.setResourcePath(jsonPath);						
-			assert(tl.loc('key3', 'default string.') === 'default string.', 'default string not return for non-exist key.');
+			assert(tl.loc('key1') === 'fallback string.', 'fallback string not return for key.');
+						
+			done();
+		})
+		it('return key and params if key is not in task.json', function(done) {
+			this.timeout(1000);
+			
+			var jsonStr = "{\"messages\": {\"key1\" : {\"loc\": \"\", \"fallback\": \"fallback string.\"}, \"key2\" : \"string for key %d.\"}}";
+			var jsonPath = path.join(__dirname, (Math.floor(Math.random() * 100).toString() + 'task.json'));
+			fs.writeFileSync(jsonPath, jsonStr);
+			tl.setResourcePath(jsonPath);						
+			assert(tl.loc('key3', 3) === 'key3 3', 'key and params not return for non-exist key.');
+						
 			done();
 		})
 	});	

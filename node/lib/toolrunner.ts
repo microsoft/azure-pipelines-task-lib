@@ -95,7 +95,7 @@ export class ToolRunner extends events.EventEmitter {
     // Exec - use for long running tools where you need to stream live output as it runs
     //        returns a promise with return code.
     //
-    public exec(options: IExecOptions): Q.Promise<number> {
+    public exec(options?: IExecOptions): Q.Promise<number> {
         var defer = Q.defer<number>();
 
         this._debug('exec tool: ' + this.toolPath);
@@ -176,7 +176,7 @@ export class ToolRunner extends events.EventEmitter {
     // ExecSync - use for short running simple commands.  Simple and convenient (synchronous)
     //            but also has limits.  For example, no live output and limited to max buffer
     //
-    public execSync(options: IExecOptions): IExecResult {
+    public execSync(options?: IExecOptions): IExecResult {
         var defer = Q.defer();
 
         this._debug('exec tool: ' + this.toolPath);

@@ -11,6 +11,7 @@ import path = require('path');
 import os = require('os');
 import minimatch = require('minimatch');
 import globm = require('glob');
+import util = require('util');
 import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
 
@@ -103,44 +104,103 @@ export function exit(code: number): void {
 //-----------------------------------------------------
 // Loc Helpers
 //-----------------------------------------------------
-var locStrings = {};
-var resourceFile;
-export function setResourcePath(path: string): void {
-    checkPath(path, 'resource file path');
-    resourceFile = path;
-    debug('set resource file to: ' + resourceFile);
+var locStringCache: {
+    [key:string]:string
+} = {};
+var resourceFile: string;
+var libResourceFileLoaded: boolean = false;
 
-    var resourceJson;
-    try { 
-        resourceJson= require(resourceFile);
-    }
-    catch(err) {
-        setResult(TaskResult.Failed, 'Invalid json in resource file: ' + path); // exit
-    }
-   
-    if(resourceJson && resourceJson.hasOwnProperty('messages')) {    
-        debug('cache loc strings') 
-        for(var key in resourceJson.messages) {
-            locStrings[key] = resourceJson.messages[key];
+function loadLocStrings(resourceFile: string): any {
+    var locStrings: {
+        [key:string]:string
+    } = {};
+    
+    if(exist(resourceFile)) {
+        debug('load loc strings from: ' + resourceFile);
+        var resourceJson= require(resourceFile);
+        
+        if(resourceJson && resourceJson.hasOwnProperty('messages')) {     
+            for(var key in resourceJson.messages) {
+                if(typeof(resourceJson.messages[key]) === 'object') {
+                    if(resourceJson.messages[key].loc && resourceJson.messages[key].loc.toString().length > 0) {
+                        locStrings[key] = resourceJson.messages[key].loc.toString();     
+                    }
+                    else if (resourceJson.messages[key].fallback){
+                        locStrings[key] = resourceJson.messages[key].fallback.toString();
+                    }
+                }
+                else if(typeof(resourceJson.messages[key]) === 'string') {
+                    locStrings[key] = resourceJson.messages[key];    
+                }
+            }
         }
     }
     else {
-        warning('there is no messages section in resource file: ' + resourceFile);
+        warning('resource file doesn\'t exist: ' + resourceFile);
+    }
+
+    return locStrings;
+}
+
+export function setResourcePath(path: string): void {
+    if(process.env['TASKLIB_INPROC_UNITS']) {
+        resourceFile = null;
+        libResourceFileLoaded = false;
+        locStringCache = {};
+    }
+    
+    if(!resourceFile) {
+        checkPath(path, 'resource file path');
+        resourceFile = path;
+        debug('set resource file to: ' + resourceFile);
+        
+        var locStrs = loadLocStrings(resourceFile);
+        for(var key in locStrs) {
+            debug('cache loc string: ' + key);
+            locStringCache[key] = locStrs[key];
+        }
+
+    }
+    else {
+        warning('resource file is already set to: ' + resourceFile);
     }
 }
 
-export function loc(key: string, defaultStr: string): string {
-    if(!resourceFile) {
-        warning('resource file haven\'t been set, retrun default loc string.');
-        return defaultStr;
+export function loc(key: string, ...param: any[]): string {
+    if(!libResourceFileLoaded) {
+        // merge loc strings from vso-task-lib.
+        var libResourceFile = path.join(__dirname, 'lib.json');
+        var libLocStrs = loadLocStrings(libResourceFile);
+        for(var libKey in libLocStrs) {
+            debug('cache vso-task-lib loc string: ' + libKey);
+            locStringCache[libKey] = libLocStrs[libKey];
+        }
+        
+        libResourceFileLoaded = true;
     }
-    
-    if(locStrings.hasOwnProperty(key)) {
-        return locStrings[key];
+
+    var locString;;
+    if(locStringCache.hasOwnProperty(key)) {
+        locString = locStringCache[key];
     }
     else {
-        return defaultStr;
+        if(!resourceFile) {
+            warning('resource file haven\'t been set, can\'t find loc string for key: ' + key);
+        }
+        else {
+            warning('can\'t find loc string for key: ' + key);    
+        }
+        
+        locString = key;
     }
+    
+    if(param.length > 0) {
+        return util.format.apply(this, [locString].concat(param));    
+    }
+    else {
+        return locString;
+    }
+    
 }
 
 //-----------------------------------------------------
@@ -287,6 +347,10 @@ export function stats(path: string): FsStats {
     return fs.statSync(path);
 }
 
+export function exist(path: string): boolean {
+    return path && fs.existsSync(path);
+}
+
 //-----------------------------------------------------
 // Cmd Helpers
 //-----------------------------------------------------
@@ -335,8 +399,7 @@ export function popd(): void {
 //------------------------------------------------
 export function checkPath(p: string, name: string): void {
     debug('check path : ' + p);
-    if (!p || !fs.existsSync(p)) {
-
+    if(!exist(p)) {
         setResult(TaskResult.Failed, 'not found ' + name + ': ' + p);  // exit
     }
 }
@@ -362,18 +425,18 @@ export function mkdirP(p): boolean {
             throw new Error('path cannot contain null bytes');
         }
                 
-    if (!shell.test('-d', p)) {
-        debug('creating path: ' + p);
-        shell.mkdir('-p', p);
-            var errMsg = shell.error();
-            if (errMsg) {
-                handlerError(errMsg, false);
-                success = false;
+        if (!shell.test('-d', p)) {
+            debug('creating path: ' + p);
+            shell.mkdir('-p', p);
+                var errMsg = shell.error();
+                if (errMsg) {
+                    handlerError(errMsg, false);
+                    success = false;
+                }
         }
-    }
-    else {
-        debug('path exists: ' + p);
-    }
+        else {
+            debug('path exists: ' + p);
+        }
     }
     catch (err) {
         success = false;
@@ -461,8 +524,8 @@ export function rmRF(path: string, continueOnError?:boolean): boolean {
     var success = true;
     
     try {
-    debug('rm -rf ' + path);
-    shell.rm('-rf', path);
+        debug('rm -rf ' + path);
+        shell.rm('-rf', path);
         
         var errMsg: string = shell.error();
         
