@@ -61,7 +61,7 @@ export function setErrStream(errStream): void {
 
 export function setResult(result: TaskResult, message: string): void {
     debug('task result: ' + TaskResult[result]);
-    command('task.complete', {'result': TaskResult[result]}, message);
+    command('task.complete', { 'result': TaskResult[result] }, message);
 
     if (result == TaskResult.Failed) {
         _writeError(message);
@@ -69,16 +69,16 @@ export function setResult(result: TaskResult, message: string): void {
 
     if (result == TaskResult.Failed && !process.env['TASKLIB_INPROC_UNITS']) {
         process.exit(0);
-    }    
+    }
 }
 
 export function handlerError(errMsg: string, continueOnError: boolean) {
     if (continueOnError) {
-        error(errMsg);    
+        error(errMsg);
     }
     else {
-        setResult(TaskResult.Failed, errMsg);    
-    }    
+        setResult(TaskResult.Failed, errMsg);
+    }
 }
 
 //
@@ -105,32 +105,32 @@ export function exit(code: number): void {
 // Loc Helpers
 //-----------------------------------------------------
 var locStringCache: {
-    [key:string]:string
+    [key: string]: string
 } = {};
 var resourceFile: string;
 var libResourceFileLoaded: boolean = false;
 
 function loadLocStrings(resourceFile: string): any {
     var locStrings: {
-        [key:string]:string
+        [key: string]: string
     } = {};
-    
-    if(exist(resourceFile)) {
+
+    if (exist(resourceFile)) {
         debug('load loc strings from: ' + resourceFile);
-        var resourceJson= require(resourceFile);
-        
-        if(resourceJson && resourceJson.hasOwnProperty('messages')) {     
-            for(var key in resourceJson.messages) {
-                if(typeof(resourceJson.messages[key]) === 'object') {
-                    if(resourceJson.messages[key].loc && resourceJson.messages[key].loc.toString().length > 0) {
-                        locStrings[key] = resourceJson.messages[key].loc.toString();     
+        var resourceJson = require(resourceFile);
+
+        if (resourceJson && resourceJson.hasOwnProperty('messages')) {
+            for (var key in resourceJson.messages) {
+                if (typeof (resourceJson.messages[key]) === 'object') {
+                    if (resourceJson.messages[key].loc && resourceJson.messages[key].loc.toString().length > 0) {
+                        locStrings[key] = resourceJson.messages[key].loc.toString();
                     }
-                    else if (resourceJson.messages[key].fallback){
+                    else if (resourceJson.messages[key].fallback) {
                         locStrings[key] = resourceJson.messages[key].fallback.toString();
                     }
                 }
-                else if(typeof(resourceJson.messages[key]) === 'string') {
-                    locStrings[key] = resourceJson.messages[key];    
+                else if (typeof (resourceJson.messages[key]) === 'string') {
+                    locStrings[key] = resourceJson.messages[key];
                 }
             }
         }
@@ -143,19 +143,19 @@ function loadLocStrings(resourceFile: string): any {
 }
 
 export function setResourcePath(path: string): void {
-    if(process.env['TASKLIB_INPROC_UNITS']) {
+    if (process.env['TASKLIB_INPROC_UNITS']) {
         resourceFile = null;
         libResourceFileLoaded = false;
         locStringCache = {};
     }
-    
-    if(!resourceFile) {
+
+    if (!resourceFile) {
         checkPath(path, 'resource file path');
         resourceFile = path;
         debug('set resource file to: ' + resourceFile);
-        
+
         var locStrs = loadLocStrings(resourceFile);
-        for(var key in locStrs) {
+        for (var key in locStrs) {
             debug('cache loc string: ' + key);
             locStringCache[key] = locStrs[key];
         }
@@ -167,40 +167,40 @@ export function setResourcePath(path: string): void {
 }
 
 export function loc(key: string, ...param: any[]): string {
-    if(!libResourceFileLoaded) {
+    if (!libResourceFileLoaded) {
         // merge loc strings from vso-task-lib.
         var libResourceFile = path.join(__dirname, 'lib.json');
         var libLocStrs = loadLocStrings(libResourceFile);
-        for(var libKey in libLocStrs) {
+        for (var libKey in libLocStrs) {
             debug('cache vso-task-lib loc string: ' + libKey);
             locStringCache[libKey] = libLocStrs[libKey];
         }
-        
+
         libResourceFileLoaded = true;
     }
 
     var locString;;
-    if(locStringCache.hasOwnProperty(key)) {
+    if (locStringCache.hasOwnProperty(key)) {
         locString = locStringCache[key];
     }
     else {
-        if(!resourceFile) {
+        if (!resourceFile) {
             warning('resource file haven\'t been set, can\'t find loc string for key: ' + key);
         }
         else {
-            warning('can\'t find loc string for key: ' + key);    
+            warning('can\'t find loc string for key: ' + key);
         }
-        
+
         locString = key;
     }
-    
-    if(param.length > 0) {
-        return util.format.apply(this, [locString].concat(param));    
+
+    if (param.length > 0) {
+        return util.format.apply(this, [locString].concat(param));
     }
     else {
         return locString;
     }
-    
+
 }
 
 //-----------------------------------------------------
@@ -221,12 +221,12 @@ export function setVariable(name: string, val: string): void {
     var varValue = val || '';
     process.env[name.replace(/\./g, '_').toUpperCase()] = varValue;
     debug('set ' + name + '=' + varValue);
-    command('task.setvariable', {'variable': name || ''}, varValue);
+    command('task.setvariable', { 'variable': name || '' }, varValue);
 }
 
 export function getInput(name: string, required?: boolean): string {
-	var inval = process.env['INPUT_' + name.replace(' ', '_').toUpperCase()];
-    if(inval){
+    var inval = process.env['INPUT_' + name.replace(' ', '_').toUpperCase()];
+    if (inval) {
         inval = inval.trim();
     }
 
@@ -235,10 +235,10 @@ export function getInput(name: string, required?: boolean): string {
     }
 
     debug(name + '=' + inval);
-    return inval;    
+    return inval;
 }
 
-export function getBoolInput(name: string, required?:boolean): boolean {
+export function getBoolInput(name: string, required?: boolean): boolean {
     return getInput(name, required) == "true";
 }
 
@@ -256,7 +256,7 @@ export function getDelimitedInput(name: string, delim: string, required?: boolea
     var inval = getInput(name, required);
     if (!inval) {
         return [];
-    }    
+    }
     return inval.split(delim);
 }
 
@@ -276,15 +276,15 @@ export function getPathInput(name: string, required?: boolean, check?: boolean):
         if (check) {
             checkPath(inval, name);
         }
-    
+
         if (inval.indexOf(' ') > 0) {
             if (!startsWith(inval, '"')) {
                 inval = '"' + inval;
             }
-            
+
             if (!endsWith(inval, '"')) {
                 inval += '"';
-            } 
+            }
         }
     }
 
@@ -305,7 +305,7 @@ export function getEndpointUrl(id: string, optional: boolean): string {
     }
 
     debug(id + '=' + urlval);
-    return urlval;    
+    return urlval;
 }
 
 // TODO: should go away when task lib 
@@ -340,7 +340,7 @@ export function getEndpointAuthorization(id: string, optional: boolean): Endpoin
 // Fs Helpers
 //-----------------------------------------------------
 export interface FsStats extends fs.Stats {
-    
+
 }
 
 export function stats(path: string): FsStats {
@@ -360,11 +360,11 @@ export function command(command: string, properties, message: string) {
 }
 
 export function warning(message: string): void {
-    command('task.issue', {'type': 'warning'}, message);
+    command('task.issue', { 'type': 'warning' }, message);
 }
 
 export function error(message: string): void {
-    command('task.issue', {'type': 'error'}, message);
+    command('task.issue', { 'type': 'error' }, message);
 }
 
 export function debug(message: string): void {
@@ -399,7 +399,7 @@ export function popd(): void {
 //------------------------------------------------
 export function checkPath(p: string, name: string): void {
     debug('check path : ' + p);
-    if(!exist(p)) {
+    if (!exist(p)) {
         setResult(TaskResult.Failed, 'not found ' + name + ': ' + p);  // exit
     }
 }
@@ -413,7 +413,7 @@ export function checkPath(p: string, name: string): void {
 //-----------------------------------------------------
 export function mkdirP(p): boolean {
     var success = true;
-   
+
     try {
         if (!p) {
             throw new Error('path not supplied');
@@ -424,15 +424,15 @@ export function mkdirP(p): boolean {
         if (p.indexOf('\0') >= 0) {
             throw new Error('path cannot contain null bytes');
         }
-                
+
         if (!shell.test('-d', p)) {
             debug('creating path: ' + p);
             shell.mkdir('-p', p);
-                var errMsg = shell.error();
-                if (errMsg) {
-                    handlerError(errMsg, false);
-                    success = false;
-                }
+            var errMsg = shell.error();
+            if (errMsg) {
+                handlerError(errMsg, false);
+                success = false;
+            }
         }
         else {
             debug('path exists: ' + p);
@@ -448,26 +448,69 @@ export function mkdirP(p): boolean {
 
 export function which(tool: string, check?: boolean): string {
     try {
-    var toolPath = shell.which(tool);
-    if (check) {
-        checkPath(toolPath, tool);
-    }
+        // we can't use shelljs.which() on windows due to https://github.com/shelljs/shelljs/issues/238
+        // shelljs.which() does not prefer file with executable extensions (.exe, .bat, .cmd).
+        // we already made a PR for Shelljs, but they haven't merge it yet. https://github.com/shelljs/shelljs/pull/239
+        if (os.type().match(/^Win/)) {
+            var pathEnv = process.env.path || process.env.Path || process.env.PATH;
+            var pathArray = pathEnv.split(';');
+            var toolPath: string = null;
 
-    debug(tool + '=' + toolPath);
-    return toolPath;
-}
+            // No relative/absolute paths provided?
+            if (tool.search(/[\/\\]/) === -1) {
+                // Search for command in PATH
+                pathArray.forEach(function(dir) {
+                    if (toolPath)
+                        return; // already found it
+
+                    var attempt = path.resolve(dir + '/' + tool);
+
+                    var baseAttempt = attempt;
+                    attempt = baseAttempt + '.exe';
+                    if (exist(attempt) && stats(attempt).isFile) {
+                        toolPath = attempt;
+                        return;
+                    }
+                    attempt = baseAttempt + '.cmd';
+                    if (exist(attempt) && stats(attempt).isFile) {
+                        toolPath = attempt;
+                        return;
+                    }
+                    attempt = baseAttempt + '.bat';
+                    if (exist(attempt) && stats(attempt).isFile) {
+                        toolPath = attempt;
+                        return;
+                    }
+                });
+            }
+
+            // Command not found in Path, but the input itself is point to a file.
+            if (!toolPath && exist(tool) && stats(tool).isFile)
+                toolPath = path.resolve(tool);
+        }
+        else {
+            var toolPath = shell.which(tool);
+        }
+
+        if (check) {
+            checkPath(toolPath, tool);
+        }
+
+        debug(tool + '=' + toolPath);
+        return toolPath;
+    }
     catch (err) {
         handlerError('Failed which: ' + err.message, false);
-    }    
+    }
 }
 
-export function cp(options, source: string, dest: string, continueOnError?:boolean): boolean {
+export function cp(options, source: string, dest: string, continueOnError?: boolean): boolean {
     var success = true;
 
-    try {    
-    shell.cp(options, source, dest);
+    try {
+        shell.cp(options, source, dest);
         var errMsg = shell.error();
-        
+
         if (errMsg) {
             handlerError(errMsg, continueOnError);
             success = false;
@@ -476,22 +519,22 @@ export function cp(options, source: string, dest: string, continueOnError?:boole
     catch (err) {
         success = false;
         handlerError('Failed cp: ' + err.message, false);
-    }    
-    
+    }
+
     return success;
 }
 
 export function mv(source: string, dest: string, force: boolean, continueOnError?: boolean): boolean {
     var success = true;
-    
+
     try {
-        if (force) {    
+        if (force) {
             shell.mv('-f', source, dest);
         } else {
             shell.mv(source, dest);
         }
         var errMsg = shell.error();
-        
+
         if (errMsg) {
             handlerError(errMsg, continueOnError);
             success = false;
@@ -500,8 +543,8 @@ export function mv(source: string, dest: string, force: boolean, continueOnError
     catch (err) {
         success = false;
         handlerError('Failed mv: ' + err.message, false);
-    }    
-    
+    }
+
     return success;
 }
 
@@ -510,23 +553,23 @@ export function find(findPath: string): string[] {
         if (!shell.test('-e', findPath)) {
             return [];
         }
-    var matches = shell.find(findPath);
-    debug('find ' + findPath);
-    debug(matches.length + ' matches.');
-    return matches;
-}
+        var matches = shell.find(findPath);
+        debug('find ' + findPath);
+        debug(matches.length + ' matches.');
+        return matches;
+    }
     catch (err) {
         handlerError('Failed find: ' + err.message, false);
-    }    
+    }
 }
 
-export function rmRF(path: string, continueOnError?:boolean): boolean {
+export function rmRF(path: string, continueOnError?: boolean): boolean {
     var success = true;
-    
+
     try {
         debug('rm -rf ' + path);
         shell.rm('-rf', path);
-        
+
         var errMsg: string = shell.error();
         
         // if you try to delete a file that doesn't exist, desired result is achieved
@@ -540,8 +583,8 @@ export function rmRF(path: string, continueOnError?:boolean): boolean {
         success = false;
         handlerError('Failed rmRF: ' + err.message, false);
     }
-        
-    return success;    
+
+    return success;
 }
 
 export function glob(pattern: string): string[] {
@@ -553,9 +596,9 @@ export function glob(pattern: string): string[] {
         var m = Math.min(matches.length, 10);
         debug('matches:');
         if (m == 10) {
-            debug('listing first 10 matches as samples');    
+            debug('listing first 10 matches as samples');
         }
-        
+
         for (var i = 0; i < m; i++) {
             debug(matches[i]);
         }
@@ -580,23 +623,23 @@ export function globFirst(pattern: string): string {
 //-----------------------------------------------------
 // Exec convenience wrapper
 //-----------------------------------------------------
-export function exec(tool: string, args:any, options?:trm.IExecOptions): Q.Promise<number> {
+export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Promise<number> {
     var toolPath = which(tool, true);
     var tr = createToolRunner(toolPath);
     if (args) {
         tr.arg(args);
     }
-    return tr.exec(options);    
+    return tr.exec(options);
 }
 
-export function execSync(tool: string, args:any, options?:trm.IExecOptions): trm.IExecResult {
+export function execSync(tool: string, args: any, options?: trm.IExecOptions): trm.IExecResult {
     var toolPath = which(tool, true);
     var tr = createToolRunner(toolPath);
     if (args) {
         tr.arg(args);
     }
-        
-    return tr.execSync(options);    
+
+    return tr.execSync(options);
 }
 
 export function createToolRunner(tool: string) {
@@ -624,39 +667,39 @@ export function filter(pattern, options): (element: string, indexed: number, arr
 //-----------------------------------------------------
 export class TestPublisher {
     constructor(testRunner) {
-        this.testRunner = testRunner;        
+        this.testRunner = testRunner;
     }
 
     public testRunner: string;
 
     public publish(resultFiles, mergeResults, platform, config, runTitle, publishRunAttachments) {
-        
-        if(mergeResults == 'true') {
+
+        if (mergeResults == 'true') {
             _writeLine("Merging test results from multiple files to one test run is not supported on this version of build agent for OSX/Linux, each test result file will be published as a separate test run in VSO/TFS.");
         }
-        
-        var properties = <{[key: string]: string}>{};
+
+        var properties = <{ [key: string]: string }>{};
         properties['type'] = this.testRunner;
-        
-        if(platform) {
+
+        if (platform) {
             properties['platform'] = platform;
         }
 
-        if(config) {
+        if (config) {
             properties['config'] = config;
         }
-		
-		if(runTitle) {
-			properties['runTitle'] = runTitle;
-		}
 
-		if(publishRunAttachments) {
-			properties['publishRunAttachments'] = publishRunAttachments;
-		}			
+        if (runTitle) {
+            properties['runTitle'] = runTitle;
+        }
 
-        for(var i = 0; i < resultFiles.length; i ++) {  
-			properties['fileNumber'] = i.toString();
-            command('results.publish',  properties, resultFiles[i]);
+        if (publishRunAttachments) {
+            properties['publishRunAttachments'] = publishRunAttachments;
+        }
+
+        for (var i = 0; i < resultFiles.length; i++) {
+            properties['fileNumber'] = i.toString();
+            command('results.publish', properties, resultFiles[i]);
         }
     }
 }
