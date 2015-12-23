@@ -507,7 +507,7 @@ describe('Test vso-task-lib', function() {
 			assert(path === inputValue, 'returned ' + path + ', expected ' + inputValue);
 
 			var errMsg = errStream.getContents();
-			assert(errMsg.indexOf("not found") === 0, "testing error path not exist")
+			assert(errMsg.indexOf("Not found") === 0, "testing error path not exist")
 
 			done();
 		})
@@ -638,7 +638,7 @@ describe('Test vso-task-lib', function() {
 
 			var expected = _buildOutput(
 				['##vso[task.debug]task result: Succeeded',
-					'##vso[task.complete result=Succeeded;]return code: 0']);
+					'##vso[task.complete result=Succeeded;]Return code: 0']);
 
 			var output = stdStream.getContents();
 
@@ -655,7 +655,7 @@ describe('Test vso-task-lib', function() {
 
 			var expected = _buildOutput(
 				['##vso[task.debug]task result: Failed',
-					'##vso[task.complete result=Failed;]return code: 1']);
+					'##vso[task.complete result=Failed;]Return code: 1']);
 
 			var output = stdStream.getContents();
 
@@ -1099,7 +1099,7 @@ describe('Test vso-task-lib', function() {
 			if (json && json.hasOwnProperty('messages')) {
 				for (var key in json.messages) {
 					assert(key.search(/\W+/gi) < 0, ('messages key: \'' + key + '\' contain non-word characters, only allows [a-zA-Z0-9_].'));
-					assert(key.index('LIB_') === 0, ('messages key: \'' + key + '\' should start with \'LIB_\'.'));
+					assert(key.search(/^LIB_/) === 0, ('messages key: \'' + key + '\' should start with \'LIB_\'.'));
 					if (typeof (json.messages[key]) === 'object') {
 						assert(json.messages[key].loc, ('messages key: \'' + key + '\' should have a loc string.'));
 						assert(json.messages[key].loc.toString().length > 0, ('messages key: \'' + key + '\' should have a loc string.'));

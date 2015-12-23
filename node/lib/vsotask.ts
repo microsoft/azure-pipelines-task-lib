@@ -85,12 +85,12 @@ export function handlerError(errMsg: string, continueOnError: boolean) {
 // Catching all exceptions
 //
 process.on('uncaughtException', (err) => {
-    setResult(TaskResult.Failed, 'Unhandled:' + err.message);
+    setResult(TaskResult.Failed, loc('LIB_UnhandledEx', err.message));
 });
 
-export function exitOnCodeIf(code, condition: boolean) {
+export function exitOnCodeIf(code: number, condition: boolean) {
     if (condition) {
-        setResult(TaskResult.Failed, 'failure return code: ' + code);
+        setResult(TaskResult.Failed, loc('LIB_FailOnCode', code));
     }
 }
 
@@ -98,7 +98,7 @@ export function exitOnCodeIf(code, condition: boolean) {
 // back compat: should use setResult
 //
 export function exit(code: number): void {
-    setResult(code, 'return code: ' + code);
+    setResult(code, loc('LIB_ReturnCode', code));
 }
 
 //-----------------------------------------------------
@@ -110,7 +110,7 @@ var locStringCache: {
 var resourceFile: string;
 var libResourceFileLoaded: boolean = false;
 
-function loadLocStrings(resourceFile: string): any {
+function loadLocStrings(resourceFile: string): { [key: string]: string; } {
     var locStrings: {
         [key: string]: string
     } = {};
@@ -136,7 +136,7 @@ function loadLocStrings(resourceFile: string): any {
         }
     }
     else {
-        warning('resource file doesn\'t exist: ' + resourceFile);
+        warning(loc('LIB_ResourceFileNotExist', resourceFile));
     }
 
     return locStrings;
@@ -162,7 +162,7 @@ export function setResourcePath(path: string): void {
 
     }
     else {
-        warning('resource file is already set to: ' + resourceFile);
+        warning(loc('LIB_ResourceFileAlreadySet', resourceFile));
     }
 }
 
@@ -185,10 +185,10 @@ export function loc(key: string, ...param: any[]): string {
     }
     else {
         if (!resourceFile) {
-            warning('resource file haven\'t been set, can\'t find loc string for key: ' + key);
+            warning(loc('LIB_ResourceFileNotSet', key));
         }
         else {
-            warning('can\'t find loc string for key: ' + key);
+            warning(loc('LIB_LocStringNotFound', key));
         }
 
         locString = key;
@@ -214,8 +214,7 @@ export function getVariable(name: string): string {
 
 export function setVariable(name: string, val: string): void {
     if (!name) {
-        _writeError('name required: ' + name);
-        exit(1);
+        setResult(TaskResult.Failed, loc('LIB_ParameterIsRequired', 'name'));
     }
 
     var varValue = val || '';
@@ -231,7 +230,7 @@ export function getInput(name: string, required?: boolean): string {
     }
 
     if (required && !inval) {
-        setResult(TaskResult.Failed, 'Input required: ' + name);
+        setResult(TaskResult.Failed, loc('LIB_InputRequired', name));
     }
 
     debug(name + '=' + inval);
@@ -300,8 +299,7 @@ export function getEndpointUrl(id: string, optional: boolean): string {
     var urlval = process.env['ENDPOINT_URL_' + id];
 
     if (!optional && !urlval) {
-        _writeError('Endpoint not present: ' + id);
-        exit(1);
+        setResult(TaskResult.Failed, loc('LIB_EndpointNotExist', id));
     }
 
     debug(id + '=' + urlval);
@@ -320,7 +318,7 @@ export function getEndpointAuthorization(id: string, optional: boolean): Endpoin
     var aval = process.env['ENDPOINT_AUTH_' + id];
 
     if (!optional && !aval) {
-        setResult(TaskResult.Failed, 'Endpoint not present: ' + id);
+        setResult(TaskResult.Failed, loc('LIB_EndpointNotExist', id));
     }
 
     debug(id + '=' + aval);
@@ -330,7 +328,7 @@ export function getEndpointAuthorization(id: string, optional: boolean): Endpoin
         auth = <EndpointAuthorization>JSON.parse(aval);
     }
     catch (err) {
-        setResult(TaskResult.Failed, 'Invalid endpoint auth: ' + aval); // exit
+        setResult(TaskResult.Failed, loc('LIB_InvalidEndpointAuth', aval)); // exit
     }
 
     return auth;
@@ -400,7 +398,7 @@ export function popd(): void {
 export function checkPath(p: string, name: string): void {
     debug('check path : ' + p);
     if (!exist(p)) {
-        setResult(TaskResult.Failed, 'not found ' + name + ': ' + p);  // exit
+        setResult(TaskResult.Failed, loc('LIB_PathNotFound', name, p));  // exit
     }
 }
 
@@ -416,13 +414,13 @@ export function mkdirP(p): boolean {
 
     try {
         if (!p) {
-            throw new Error('path not supplied');
+            throw new Error(loc('LIB_ParameterIsRequired', 'p'));
         }
         
         // certain chars like \0 will cause shelljs and fs
         // to blow up without exception or error
         if (p.indexOf('\0') >= 0) {
-            throw new Error('path cannot contain null bytes');
+            throw new Error(loc('LIB_PathHasNullByte'));
         }
 
         if (!shell.test('-d', p)) {
@@ -440,7 +438,7 @@ export function mkdirP(p): boolean {
     }
     catch (err) {
         success = false;
-        handlerError('Failed mkdirP: ' + err.message, false);
+        handlerError(loc('LIB_OperationFailed', 'mkdirP', err.message), false);
     }
 
     return success;
@@ -485,8 +483,9 @@ export function which(tool: string, check?: boolean): string {
             }
 
             // Command not found in Path, but the input itself is point to a file.
-            if (!toolPath && exist(tool) && stats(tool).isFile)
+            if (!toolPath && exist(tool) && stats(tool).isFile) {
                 toolPath = path.resolve(tool);
+            }
         }
         else {
             var toolPath = shell.which(tool);
@@ -500,7 +499,7 @@ export function which(tool: string, check?: boolean): string {
         return toolPath;
     }
     catch (err) {
-        handlerError('Failed which: ' + err.message, false);
+        handlerError(loc('LIB_OperationFailed', 'which', err.message), false);
     }
 }
 
@@ -518,7 +517,7 @@ export function cp(options, source: string, dest: string, continueOnError?: bool
     }
     catch (err) {
         success = false;
-        handlerError('Failed cp: ' + err.message, false);
+        handlerError(loc('LIB_OperationFailed', 'cp', err.message), false);
     }
 
     return success;
@@ -542,7 +541,7 @@ export function mv(source: string, dest: string, force: boolean, continueOnError
     }
     catch (err) {
         success = false;
-        handlerError('Failed mv: ' + err.message, false);
+        handlerError(loc('LIB_OperationFailed', 'mv', err.message), false);
     }
 
     return success;
@@ -559,7 +558,7 @@ export function find(findPath: string): string[] {
         return matches;
     }
     catch (err) {
-        handlerError('Failed find: ' + err.message, false);
+        handlerError(loc('LIB_OperationFailed', 'find', err.message), false);
     }
 }
 
@@ -581,7 +580,7 @@ export function rmRF(path: string, continueOnError?: boolean): boolean {
     }
     catch (err) {
         success = false;
-        handlerError('Failed rmRF: ' + err.message, false);
+        handlerError(loc('LIB_OperationFailed', 'rmRF', err.message), false);
     }
 
     return success;
@@ -612,7 +611,7 @@ export function globFirst(pattern: string): string {
     var matches = glob(pattern);
 
     if (matches.length > 1) {
-        warning('multiple workspace matches.  using first.');
+        warning(loc('LIB_UseFirstGlobMatch'));
     }
 
     debug('found ' + matches.length + ' matches');
@@ -675,7 +674,7 @@ export class TestPublisher {
     public publish(resultFiles, mergeResults, platform, config, runTitle, publishRunAttachments) {
 
         if (mergeResults == 'true') {
-            _writeLine("Merging test results from multiple files to one test run is not supported on this version of build agent for OSX/Linux, each test result file will be published as a separate test run in VSO/TFS.");
+            _writeLine(loc('LIB_MergeTestResultNotSupported'));
         }
 
         var properties = <{ [key: string]: string }>{};
