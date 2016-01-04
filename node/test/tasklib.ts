@@ -3,7 +3,7 @@
 
 /// <reference path="../definitions/mocha.d.ts"/>
 /// <reference path="../definitions/shelljs.d.ts" />
-/// <reference path="../_build/d.ts/vso-task-lib.d.ts" />
+/// <reference path="../_build/d.ts/vsts-task-lib.d.ts" />
 
 import assert = require('assert');
 import path = require('path');
@@ -12,9 +12,9 @@ import util = require('util');
 import stream = require('stream');
 import shell = require('shelljs');
 import os = require('os');
-import tl = require('vso-task-lib/vsotask');
-import tcm = require('vso-task-lib/taskcommand');
-import trm = require('vso-task-lib/toolrunner');
+import tl = require('vsts-task-lib/vsotask');
+import tcm = require('vsts-task-lib/taskcommand');
+import trm = require('vsts-task-lib/toolrunner');
 
 var _testTemp = path.join(__dirname, '_temp');
 
@@ -58,7 +58,7 @@ var _buildOutput = function(lines) {
 	return output;
 }
 
-describe('Test vso-task-lib', function() {
+describe('Test vsts-task-lib', function() {
 
 	before(function(done) {
 		try {
@@ -682,7 +682,7 @@ describe('Test vso-task-lib', function() {
 			}
 
 			if (plat === 'win32') {
-				var ret = tl.execSync('cmd', '/c echo \'vso-task-lib\'', _testExecOptions);
+				var ret = tl.execSync('cmd', '/c echo \'vsts-task-lib\'', _testExecOptions);
 				assert(ret.code === 0, 'return code of cmd should be 0');
 			}
 			else {
@@ -711,7 +711,7 @@ describe('Test vso-task-lib', function() {
 
 			if (plat === 'win32') {
 				var cmd = tl.createToolRunner(tl.which('cmd', true));
-				cmd.arg('/c echo \'vso-task-lib\'');
+				cmd.arg('/c echo \'vsts-task-lib\'');
 
 				var ret = cmd.execSync(_testExecOptions);
 				assert(ret.code === 0, 'return code of cmd should be 0');
@@ -779,7 +779,7 @@ describe('Test vso-task-lib', function() {
 			}
 
 			if (plat === 'win32') {
-				tl.exec('cmd', '/c echo \'vso-task-lib\'', _testExecOptions)
+				tl.exec('cmd', '/c echo \'vsts-task-lib\'', _testExecOptions)
 					.then(function(code) {
 						assert(code === 0, 'return code of cmd should be 0');
 					})
@@ -826,7 +826,7 @@ describe('Test vso-task-lib', function() {
 			if (plat === 'win32') {
 				var cmdPath = tl.which('cmd', true);
 				var cmd = tl.createToolRunner(cmdPath);
-				cmd.arg('/c echo \'vso-task-lib\'');
+				cmd.arg('/c echo \'vsts-task-lib\'');
 
 				cmd.exec(_testExecOptions)
 					.then(function(code) {
@@ -880,7 +880,7 @@ describe('Test vso-task-lib', function() {
 			var output = '';
 			if (plat === 'win32') {
 				var cmd = tl.createToolRunner(tl.which('cmd', true));
-				cmd.arg('/c  echo \'vso-task-lib\'');
+				cmd.arg('/c  echo \'vsts-task-lib\'');
 
 				cmd.on('stdout', (data) => {
 					output = data.toString();

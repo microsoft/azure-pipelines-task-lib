@@ -46,12 +46,12 @@ gulp.task('copy:d.ts', ['clean'], function () {
 
 gulp.task('definitions', ['copy:d.ts', 'copy:manifest'], function () {
     return dtsgen.generate({
-        name: 'vso-task-lib',
+        name: 'vsts-task-lib',
         baseDir: 'lib',
         files: [ 'vsotask.ts', 'taskcommand.ts', 'toolrunner.ts' ],
 		excludes: ['node_modules/**/*.d.ts', 'definitions/**/*.d.ts'],
         externs: ['../definitions/node.d.ts', '../definitions/Q.d.ts'],
-        out: '_build/d.ts/vso-task-lib.d.ts'
+        out: '_build/d.ts/vsts-task-lib.d.ts'
     });
 });
 
@@ -81,7 +81,7 @@ gulp.task('testprep:testsuite', ['build:test'], function () {
 
 gulp.task('testprep:node_modules', ['testprep:testsuite'], function () {
 	return gulp.src([(buildRoot + '/*.js'), 'lib.json'])
-		.pipe(gulp.dest(path.join(testDest, 'node_modules/vso-task-lib/')));
+		.pipe(gulp.dest(path.join(testDest, 'node_modules/vsts-task-lib/')));
 });
 
 gulp.task('test', ['testprep:node_modules'], function () {
