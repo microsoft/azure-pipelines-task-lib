@@ -1,5 +1,5 @@
 /// <reference path="../definitions/vsts-task-lib.d.ts" />
-import tl = require('vsts-task-lib/vsotask');
+import tl = require('vsts-task-lib/task');
 
 var toolPath = tl.which('atool');
 var tool = tl.createToolRunner(toolPath);

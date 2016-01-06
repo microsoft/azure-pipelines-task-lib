@@ -48,7 +48,7 @@ gulp.task('definitions', ['copy:d.ts', 'copy:manifest'], function () {
     return dtsgen.generate({
         name: 'vsts-task-lib',
         baseDir: 'lib',
-        files: [ 'vsotask.ts', 'taskcommand.ts', 'toolrunner.ts' ],
+        files: [ 'task.ts', 'taskcommand.ts', 'toolrunner.ts' ],
 		excludes: ['node_modules/**/*.d.ts', 'definitions/**/*.d.ts'],
         externs: ['../definitions/node.d.ts', '../definitions/Q.d.ts'],
         out: '_build/d.ts/vsts-task-lib.d.ts'
