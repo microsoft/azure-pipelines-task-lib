@@ -8,8 +8,13 @@ Library for writing tasks with the node handler
 
 ## Documentation
 
+### Typescript
+
 Cross platform tasks are written in Typescript.  It is the preferred way to write tasks once.
+
 [Typescript API](node/docs/vsts-task-lib.md)
+
+### Powershell
 
 A task which automates Powershell technologies can be written with our Powershell SDK.  These only run on windows.
 (Powershell API documentation coming soon)

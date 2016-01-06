@@ -8,7 +8,7 @@
     },
     "Execution": {
         "Summary": "Tasks typically execute a series of tools (cli) and set the result of the task based on the outcome of those",
-        "Sample": "samples/toolrunner.js",
+        "Sample": "samples/toolrunner.ts",
         "Document": [
             "task.createToolRunner",
             "toolrunner.ToolRunner.arg",
@@ -25,5 +25,13 @@
             "task.cd",
             "task.cp"
         ]
-    }
+    },
+    "Localization": {
+        "Summary": "Localization is optional but is supported using these functions at runtime",
+        "Sample": "samples/loc.ts",
+        "Document": [
+            "task.setResourcePath",
+            "task.loc"
+        ]
+    }    
 }

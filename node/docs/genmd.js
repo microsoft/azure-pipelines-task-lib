@@ -110,11 +110,11 @@ var obj = function(o) {
 }
 
 var anchorName = function(name) {
-    return name.replace(/\./g, '');
+    return name.replace(/\./g, '').replace(/ /g, '');
 }
 
 var writeFunction = function(name, item) {
-
+    writeLine("<br/>");
     writeLine('<div id="' + anchorName(name) + '">');
     writeLine('### ' + name + ' <a href="#index">(^)</a>');
 
@@ -131,6 +131,8 @@ var writeFunction = function(name, item) {
             writeLine(comment.shortText);
         }            
     }
+
+    // signature
 
     var sigLine = item.name + '(';
 
@@ -157,16 +159,30 @@ var writeFunction = function(name, item) {
     writeLine(sigLine);
     writeLine('```');
 
+    // params table
+
+    if (sig.parameters) {
+        writeLine();
+        writeLine('Param | Type | Description');
+        writeLine('--- | --- | ---');
+        for (var i = 0; i < sig.parameters.length; i++) {
+            var param = sig.parameters[i];
+
+            var pc = param.comment ? param.comment.text || ' - ' : ' - ';
+            writeLine(param.name + ' | ' + param.type.name + ' | ' + pc);
+        }
+        writeLine();
+    }
 }
 
 //
 // Index
 //
+writeLine('<div id="index">');
 writeLine('## Index');
 for (var secName in ds) {
     writeLine();
-    writeLine('<div id="index">');
-    writeLine('### ' + secName);
+    writeLine('### ' + secName + ' <a href="#' + anchorName(secName) + '">(v)</a>');
     writeLine();
 
     var sec = ds[secName];
@@ -221,7 +237,11 @@ for (var secName in ds) {
 //
 for (var secName in ds) {
     writeLine();
+    writeLine();
+    writeLine('<div id="' + anchorName(secName) + '">');
     writeLine('## ' + secName);
+    writeLine();
+    writeLine('---');
     writeLine();
 
     var sec = ds[secName];

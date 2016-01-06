@@ -60,10 +60,11 @@ export function setErrStream(errStream): void {
 //-----------------------------------------------------
 
 /**
- * setResult sets the result of the task.
+ * Sets the result of the task.
+ * If the result is Failed (1), then execution will halt.  
  * 
  * @param result    TaskResult enum of Success or Failed.  If the result is Failed (1), then execution will halt.
- * @param messages  A message which will be added as an issue   
+ * @param messages  A message which will be logged and added as an issue if an failed
  * @returns         void
  */
 export function setResult(result: TaskResult, message: string): void {
@@ -79,6 +80,7 @@ export function setResult(result: TaskResult, message: string): void {
     }
 }
 
+// deprecated
 export function handlerError(errMsg: string, continueOnError: boolean) {
     if (continueOnError) {
         error(errMsg);
@@ -95,6 +97,7 @@ process.on('uncaughtException', (err) => {
     setResult(TaskResult.Failed, loc('LIB_UnhandledEx', err.message));
 });
 
+// deprecating
 export function exitOnCodeIf(code: number, condition: boolean) {
     if (condition) {
         setResult(TaskResult.Failed, loc('LIB_FailOnCode', code));
@@ -149,6 +152,13 @@ function loadLocStrings(resourceFile: string): { [key: string]: string; } {
     return locStrings;
 }
 
+/**
+ * Sets the location of the resources json.  This is typically the task.json file.
+ * Call once at the beginning of the script before any calls to loc.
+ * 
+ * @param path      Full path to the json.
+ * @returns         void
+ */
 export function setResourcePath(path: string): void {
     if (process.env['TASKLIB_INPROC_UNITS']) {
         resourceFile = null;
@@ -173,6 +183,13 @@ export function setResourcePath(path: string): void {
     }
 }
 
+/**
+ * Gets the localized string from the json resource file.  Optionally formats with additional params.
+ * 
+ * @param     key      key of the resources string in the resource file
+ * @param     param    additional params for formatting the string
+ * @returns   string
+ */
 export function loc(key: string, ...param: any[]): string {
     if (!libResourceFileLoaded) {
         // merge loc strings from vsts-task-lib.
