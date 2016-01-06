@@ -3,7 +3,12 @@
         "Summary": "Functions for retrieving inputs for the task",
         "Document": [
             "task.getInput",
-            "task.getPathInput"
+            "task.getBoolInput",
+            "task.getPathInput",
+            "task.filePathSupplied",
+            "task.getDelimitedInput",
+            "task.getVariable",
+            "task.setVariable"
         ]
     },
     "Execution": {
@@ -15,8 +20,7 @@
             "toolrunner.ToolRunner.argIf",
             "toolrunner.ToolRunner.exec",
             "toolrunner.ToolRunner.execSync",
-            "task.setResult",
-            "task.setVariable"
+            "task.setResult"
         ]
     }, 
     "Disk Functions": {

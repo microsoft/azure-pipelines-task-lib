@@ -230,12 +230,25 @@ export function loc(key: string, ...param: any[]): string {
 //-----------------------------------------------------
 // Input Helpers
 //-----------------------------------------------------
+/**
+ * Gets a variables value which is defined on the build definition or set at runtime.
+ * 
+ * @param     name     name of the variable to get
+ * @returns   string
+ */
 export function getVariable(name: string): string {
     var varval = process.env[name.replace(/\./g, '_').toUpperCase()];
     debug(name + '=' + varval);
     return varval;
 }
 
+/**
+ * Sets a variables which will be available to subsequent tasks as well.
+ * 
+ * @param     name     name of the variable to set
+ * @param     val     value to set
+ * @returns   void
+ */
 export function setVariable(name: string, val: string): void {
     if (!name) {
         setResult(TaskResult.Failed, loc('LIB_ParameterIsRequired', 'name'));
@@ -247,6 +260,14 @@ export function setVariable(name: string, val: string): void {
     command('task.setvariable', { 'variable': name || '' }, varValue);
 }
 
+/**
+ * Gets the value of an input.  The value is also trimmed.
+ * If required is true and the value is not set, the task will fail with an error.  Execution halts.
+ * 
+ * @param     name     name of the input to get
+ * @param     required whether input is required.  optional, defaults to false
+ * @returns   string
+ */
 export function getInput(name: string, required?: boolean): string {
     var inval = process.env['INPUT_' + name.replace(' ', '_').toUpperCase()];
     if (inval) {
@@ -261,20 +282,36 @@ export function getInput(name: string, required?: boolean): string {
     return inval;
 }
 
+/**
+ * Gets the value of an input and converts to a bool.  Convenience.
+ * If required is true and the value is not set, the task will fail with an error.  Execution halts.
+ * 
+ * @param     name     name of the bool input to get
+ * @param     required whether input is required.  optional, defaults to false
+ * @returns   string
+ */
 export function getBoolInput(name: string, required?: boolean): boolean {
     return getInput(name, required) == "true";
 }
 
+// deprecated - use  setVariable
 export function setEnvVar(name: string, val: string): void {
     if (val) {
         process.env[name] = val;
     }
 }
 
-//
-// Split - do not use for splitting args!  Instead use arg() - it will split and handle
-//         this is for splitting a simple list of items like targets
-//
+/**
+ * Gets the value of an input and splits the values by a delimiter (space, comma, etc...)
+ * Useful for splitting an input with simple list of items like targets
+ * IMPORTANT: Do not use for splitting additional args!  Instead use arg() - it will split and handle
+ * If required is true and the value is not set, the task will fail with an error.  Execution halts.
+ * 
+ * @param     name     name of the input to get
+ * @param     delim     delimiter to split on
+ * @param     required whether input is required.  optional, defaults to false
+ * @returns   string[]
+ */
 export function getDelimitedInput(name: string, delim: string, required?: boolean): string[] {
     var inval = getInput(name, required);
     if (!inval) {
@@ -283,6 +320,14 @@ export function getDelimitedInput(name: string, delim: string, required?: boolea
     return inval.split(delim);
 }
 
+/**
+ * Checks whether a path inputs value was supplied by the user
+ * File paths are relative with a picker, so an empty path is the root of the repo.
+ * Useful if you need to condition work (like append an arg) if a value was supplied
+ * 
+ * @param     name      name of the path input to check
+ * @returns   boolean
+ */
 export function filePathSupplied(name: string): boolean {
     // normalize paths
     var pathValue = path.resolve(this.getPathInput(name) || '');
@@ -293,6 +338,17 @@ export function filePathSupplied(name: string): boolean {
     return supplied;
 }
 
+/**
+ * Gets the value of a path input
+ * It will be quoted for you if it isn't already and contains spaces
+ * If required is true and the value is not set, the task will fail with an error.  Execution halts.
+ * If check is true and the path does not exist, the task will fail with an error.  Execution halts.
+ * 
+ * @param     name      name of the input to get
+ * @param     required  whether input is required.  optional, defaults to false
+ * @param     check     whether path is checked.  optional, defaults to false 
+ * @returns   string
+ */
 export function getPathInput(name: string, required?: boolean, check?: boolean): string {
     var inval = getInput(name, required);
     if (inval) {

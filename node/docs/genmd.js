@@ -247,11 +247,11 @@ for (var secName in ds) {
     var sec = ds[secName];
     if (sec.Summary) {
         writeLine(sec.Summary);
-        writeLine();
     }
 
     if (sec.Sample) {
         try {
+            writeLine();
             var contents = fs.readFileSync(path.join(__dirname, sec.Sample));    
             writeLine("```javascript");
             if (!contents || contents.length == 0) {

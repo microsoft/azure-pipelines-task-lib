@@ -1623,6 +1623,10 @@
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
+							"comment": {
+								"shortText": "Checks whether a path inputs value was supplied by the user\nFile paths are relative with a picker, so an empty path is the root of the repo.\nUseful if you need to condition work (like append an arg) if a value was supplied",
+								"returns": "boolean\n"
+							},
 							"parameters": [
 								{
 									"id": 237,
@@ -1630,6 +1634,9 @@
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "name of the path input to check"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "string"
@@ -1795,6 +1802,10 @@
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
+							"comment": {
+								"shortText": "Gets the value of an input and converts to a bool.  Convenience.\nIf required is true and the value is not set, the task will fail with an error.  Execution halts.",
+								"returns": "string\n"
+							},
 							"parameters": [
 								{
 									"id": 224,
@@ -1802,6 +1813,9 @@
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "name of the bool input to get"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "string"
@@ -1814,6 +1828,9 @@
 									"kindString": "Parameter",
 									"flags": {
 										"isOptional": true
+									},
+									"comment": {
+										"text": "whether input is required.  optional, defaults to false"
 									},
 									"type": {
 										"type": "instrinct",
@@ -1843,6 +1860,10 @@
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
+							"comment": {
+								"shortText": "Gets the value of an input and splits the values by a delimiter (space, comma, etc...)\nUseful for splitting an input with simple list of items like targets\nIMPORTANT: Do not use for splitting additional args!  Instead use arg() - it will split and handle\nIf required is true and the value is not set, the task will fail with an error.  Execution halts.",
+								"returns": "string[]\n"
+							},
 							"parameters": [
 								{
 									"id": 232,
@@ -1850,6 +1871,9 @@
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "name of the input to get"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "string"
@@ -1861,6 +1885,9 @@
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "delimiter to split on"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "string"
@@ -1873,6 +1900,9 @@
 									"kindString": "Parameter",
 									"flags": {
 										"isOptional": true
+									},
+									"comment": {
+										"text": "whether input is required.  optional, defaults to false"
 									},
 									"type": {
 										"type": "instrinct",
@@ -1996,6 +2026,10 @@
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
+							"comment": {
+								"shortText": "Gets the value of an input.  The value is also trimmed.\nIf required is true and the value is not set, the task will fail with an error.  Execution halts.",
+								"returns": "string\n"
+							},
 							"parameters": [
 								{
 									"id": 220,
@@ -2003,6 +2037,9 @@
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "name of the input to get"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "string"
@@ -2015,6 +2052,9 @@
 									"kindString": "Parameter",
 									"flags": {
 										"isOptional": true
+									},
+									"comment": {
+										"text": "whether input is required.  optional, defaults to false"
 									},
 									"type": {
 										"type": "instrinct",
@@ -2044,6 +2084,10 @@
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
+							"comment": {
+								"shortText": "Gets the value of a path input\nIt will be quoted for you if it isn't already and contains spaces\nIf required is true and the value is not set, the task will fail with an error.  Execution halts.\nIf check is true and the path does not exist, the task will fail with an error.  Execution halts.",
+								"returns": "string\n"
+							},
 							"parameters": [
 								{
 									"id": 240,
@@ -2051,6 +2095,9 @@
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "name of the input to get"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "string"
@@ -2064,6 +2111,9 @@
 									"flags": {
 										"isOptional": true
 									},
+									"comment": {
+										"text": "whether input is required.  optional, defaults to false"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "boolean"
@@ -2076,6 +2126,9 @@
 									"kindString": "Parameter",
 									"flags": {
 										"isOptional": true
+									},
+									"comment": {
+										"text": "whether path is checked.  optional, defaults to false"
 									},
 									"type": {
 										"type": "instrinct",
@@ -2105,6 +2158,10 @@
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
+							"comment": {
+								"shortText": "Gets a variables value which is defined on the build definition or set at runtime.",
+								"returns": "string\n"
+							},
 							"parameters": [
 								{
 									"id": 213,
@@ -2112,6 +2169,9 @@
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "name of the variable to get"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "string"
@@ -2861,6 +2921,10 @@
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
+							"comment": {
+								"shortText": "Sets a variables which will be available to subsequent tasks as well.",
+								"returns": "void\n"
+							},
 							"parameters": [
 								{
 									"id": 216,
@@ -2868,6 +2932,9 @@
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "name of the variable to set"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "string"
@@ -2879,6 +2946,9 @@
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "value to set"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "string"

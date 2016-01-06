@@ -17,7 +17,12 @@ import tl = require('vsts-task-lib/task')
 ### Input Functions <a href="#InputFunctions">(v)</a>
  
 <a href="#taskgetInput">getInput</a> <br/>
+<a href="#taskgetBoolInput">getBoolInput</a> <br/>
 <a href="#taskgetPathInput">getPathInput</a> <br/>
+<a href="#taskfilePathSupplied">filePathSupplied</a> <br/>
+<a href="#taskgetDelimitedInput">getDelimitedInput</a> <br/>
+<a href="#taskgetVariable">getVariable</a> <br/>
+<a href="#tasksetVariable">setVariable</a> <br/>
  
 ### Execution <a href="#Execution">(v)</a>
  
@@ -27,7 +32,6 @@ import tl = require('vsts-task-lib/task')
 <a href="#toolrunnerToolRunnerexec">ToolRunner.exec</a> <br/>
 <a href="#toolrunnerToolRunnerexecSync">ToolRunner.execSync</a> <br/>
 <a href="#tasksetResult">setResult</a> <br/>
-<a href="#tasksetVariable">setVariable</a> <br/>
  
 ### Disk Functions <a href="#DiskFunctions">(v)</a>
  
@@ -46,31 +50,106 @@ import tl = require('vsts-task-lib/task')
 ---
  
 Functions for retrieving inputs for the task
- 
 <br/>
 <div id="taskgetInput">
 ### task.getInput <a href="#index">(^)</a>
+Gets the value of an input.  The value is also trimmed.
+If required is true and the value is not set, the task will fail with an error.  Execution halts.
 ```javascript
 getInput(name:string, required?:boolean):string
 ```
  
 Param | Type | Description
 --- | --- | ---
-name | string |  - 
-required | boolean |  - 
+name | string | name of the input to get
+required | boolean | whether input is required.  optional, defaults to false
+ 
+<br/>
+<div id="taskgetBoolInput">
+### task.getBoolInput <a href="#index">(^)</a>
+Gets the value of an input and converts to a bool.  Convenience.
+If required is true and the value is not set, the task will fail with an error.  Execution halts.
+```javascript
+getBoolInput(name:string, required?:boolean):boolean
+```
+ 
+Param | Type | Description
+--- | --- | ---
+name | string | name of the bool input to get
+required | boolean | whether input is required.  optional, defaults to false
  
 <br/>
 <div id="taskgetPathInput">
 ### task.getPathInput <a href="#index">(^)</a>
+Gets the value of a path input
+It will be quoted for you if it isn't already and contains spaces
+If required is true and the value is not set, the task will fail with an error.  Execution halts.
+If check is true and the path does not exist, the task will fail with an error.  Execution halts.
 ```javascript
 getPathInput(name:string, required?:boolean, check?:boolean):string
 ```
  
 Param | Type | Description
 --- | --- | ---
-name | string |  - 
-required | boolean |  - 
-check | boolean |  - 
+name | string | name of the input to get
+required | boolean | whether input is required.  optional, defaults to false
+check | boolean | whether path is checked.  optional, defaults to false
+ 
+<br/>
+<div id="taskfilePathSupplied">
+### task.filePathSupplied <a href="#index">(^)</a>
+Checks whether a path inputs value was supplied by the user
+File paths are relative with a picker, so an empty path is the root of the repo.
+Useful if you need to condition work (like append an arg) if a value was supplied
+```javascript
+filePathSupplied(name:string):boolean
+```
+ 
+Param | Type | Description
+--- | --- | ---
+name | string | name of the path input to check
+ 
+<br/>
+<div id="taskgetDelimitedInput">
+### task.getDelimitedInput <a href="#index">(^)</a>
+Gets the value of an input and splits the values by a delimiter (space, comma, etc...)
+Useful for splitting an input with simple list of items like targets
+IMPORTANT: Do not use for splitting additional args!  Instead use arg() - it will split and handle
+If required is true and the value is not set, the task will fail with an error.  Execution halts.
+```javascript
+getDelimitedInput(name:string, delim:string, required?:boolean):string
+```
+ 
+Param | Type | Description
+--- | --- | ---
+name | string | name of the input to get
+delim | string | delimiter to split on
+required | boolean | whether input is required.  optional, defaults to false
+ 
+<br/>
+<div id="taskgetVariable">
+### task.getVariable <a href="#index">(^)</a>
+Gets a variables value which is defined on the build definition or set at runtime.
+```javascript
+getVariable(name:string):string
+```
+ 
+Param | Type | Description
+--- | --- | ---
+name | string | name of the variable to get
+ 
+<br/>
+<div id="tasksetVariable">
+### task.setVariable <a href="#index">(^)</a>
+Sets a variables which will be available to subsequent tasks as well.
+```javascript
+setVariable(name:string, val:string):void
+```
+ 
+Param | Type | Description
+--- | --- | ---
+name | string | name of the variable to set
+val | string | value to set
  
  
  
@@ -175,18 +254,6 @@ Param | Type | Description
 result | TaskResult | TaskResult enum of Success or Failed.  If the result is Failed (1), then execution will halt.
 message | string |  - 
  
-<br/>
-<div id="tasksetVariable">
-### task.setVariable <a href="#index">(^)</a>
-```javascript
-setVariable(name:string, val:string):void
-```
- 
-Param | Type | Description
---- | --- | ---
-name | string |  - 
-val | string |  - 
- 
  
  
 <div id="DiskFunctions">
@@ -195,7 +262,6 @@ val | string |  -
 ---
  
 Functions for disk operations
- 
 <br/>
 <div id="taskcd">
 ### task.cd <a href="#index">(^)</a>
