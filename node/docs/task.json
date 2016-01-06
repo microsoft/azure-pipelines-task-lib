@@ -1462,13 +1462,13 @@
 		},
 		{
 			"id": 103,
-			"name": "\"vsotask\"",
+			"name": "\"task\"",
 			"kind": 1,
 			"kindString": "External module",
 			"flags": {
 				"isExported": true
 			},
-			"originalName": "/Users/bryanmac/Projects/vsts-task-lib/node/lib/vsotask.ts",
+			"originalName": "/Users/bryanmac/Projects/vsts-task-lib/node/lib/task.ts",
 			"children": [
 				{
 					"id": 104,

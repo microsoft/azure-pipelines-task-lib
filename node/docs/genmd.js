@@ -4,7 +4,7 @@ var fs = require('fs');
 var os = require('os');
 
 var mdpath = path.join(__dirname, 'vsts-task-lib.md');
-var jsonpath = path.join(__dirname, 'vsotask.json');
+var jsonpath = path.join(__dirname, 'task.json');
 var libpath = path.join(__dirname, '..', 'lib');
 
 //--------------------------------------------------------------
@@ -101,7 +101,7 @@ writeLine('In the example below, it is in a folder named definitions above the t
 writeLine();
 writeLine('```');
 writeLine('/// <reference path="../definitions/vsts-task-lib.d.ts" />');
-writeLine("import tl = require('vsts-task-lib/vsotask')");
+writeLine("import tl = require('vsts-task-lib/task')");
 writeLine('```');
 writeLine();
 

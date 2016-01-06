@@ -12,7 +12,7 @@ import util = require('util');
 import stream = require('stream');
 import shell = require('shelljs');
 import os = require('os');
-import tl = require('vsts-task-lib/vsotask');
+import tl = require('vsts-task-lib/task');
 import tcm = require('vsts-task-lib/taskcommand');
 import trm = require('vsts-task-lib/toolrunner');
 
