@@ -206,7 +206,7 @@ for (var secName in ds) {
                     }
                     */
 
-                    writeLine('<a href="#' + anchorName(doc) + '">' + idxTitle + '</a> ' + comment);
+                    writeLine('<a href="#' + anchorName(doc) + '">' + idxTitle + '</a> ' + comment + '<br/>');
                     break;
 
                 default:

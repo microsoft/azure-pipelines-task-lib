@@ -16,25 +16,25 @@ import tl = require('vsts-task-lib/vsotask')
 <div id="index">
 ### Input Functions
  
-<a href="#vsotaskgetInput">getInput</a> 
-<a href="#vsotaskgetPathInput">getPathInput</a> 
+<a href="#vsotaskgetInput">getInput</a> <br/>
+<a href="#vsotaskgetPathInput">getPathInput</a> <br/>
  
 <div id="index">
 ### Execution
  
-<a href="#vsotaskcreateToolRunner">createToolRunner</a> 
-<a href="#toolrunnerToolRunnerarg">ToolRunner.arg</a> 
-<a href="#toolrunnerToolRunnerargIf">ToolRunner.argIf</a> 
-<a href="#toolrunnerToolRunnerexec">ToolRunner.exec</a> 
-<a href="#toolrunnerToolRunnerexecSync">ToolRunner.execSync</a> 
-<a href="#vsotasksetResult">setResult</a> 
-<a href="#vsotasksetVariable">setVariable</a> 
+<a href="#vsotaskcreateToolRunner">createToolRunner</a> <br/>
+<a href="#toolrunnerToolRunnerarg">ToolRunner.arg</a> <br/>
+<a href="#toolrunnerToolRunnerargIf">ToolRunner.argIf</a> <br/>
+<a href="#toolrunnerToolRunnerexec">ToolRunner.exec</a> <br/>
+<a href="#toolrunnerToolRunnerexecSync">ToolRunner.execSync</a> <br/>
+<a href="#vsotasksetResult">setResult</a> <br/>
+<a href="#vsotasksetVariable">setVariable</a> <br/>
  
 <div id="index">
 ### Disk Functions
  
-<a href="#vsotaskcd">cd</a> 
-<a href="#vsotaskcp">cp</a> 
+<a href="#vsotaskcd">cd</a> <br/>
+<a href="#vsotaskcp">cp</a> <br/>
  
 ## Input Functions
  
