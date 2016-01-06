@@ -59,6 +59,13 @@ export function setErrStream(errStream): void {
 // Results and Exiting
 //-----------------------------------------------------
 
+/**
+ * setResult sets the result of the task.
+ * 
+ * @param result    TaskResult enum of Success or Failed.  If the result is Failed (1), then execution will halt.
+ * @param messages  A message which will be added as an issue   
+ * @returns         void
+ */
 export function setResult(result: TaskResult, message: string): void {
     debug('task result: ' + TaskResult[result]);
     command('task.complete', { 'result': TaskResult[result] }, message);

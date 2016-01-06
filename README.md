@@ -6,6 +6,10 @@ Libraries for writing Visual Studio Team Services build and deployment tasks
 ## Node Task Lib
 Library for writing tasks with the node handler
 
+## Documentation
+
+[Typescript API](node/docs/vsts-task-lib.md)
+
 ## Contributing
 
 ### Node

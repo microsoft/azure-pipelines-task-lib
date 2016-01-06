@@ -1,0 +1,4599 @@
+{
+	"id": 0,
+	"name": "vsts-task-lib",
+	"kind": 0,
+	"flags": {},
+	"children": [
+		{
+			"id": 1,
+			"name": "\"taskcommand\"",
+			"kind": 1,
+			"kindString": "External module",
+			"flags": {
+				"isExported": true
+			},
+			"originalName": "/Users/bryanmac/Projects/vsts-task-lib/node/lib/taskcommand.ts",
+			"children": [
+				{
+					"id": 2,
+					"name": "TaskCommand",
+					"kind": 128,
+					"kindString": "Class",
+					"flags": {
+						"isExported": true
+					},
+					"children": [
+						{
+							"id": 3,
+							"name": "constructor",
+							"kind": 512,
+							"kindString": "Constructor",
+							"flags": {
+								"isExported": true
+							},
+							"signatures": [
+								{
+									"id": 4,
+									"name": "new TaskCommand",
+									"kind": 16384,
+									"kindString": "Constructor signature",
+									"flags": {},
+									"parameters": [
+										{
+											"id": 5,
+											"name": "command",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "any"
+											}
+										},
+										{
+											"id": 6,
+											"name": "properties",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "any"
+											}
+										},
+										{
+											"id": 7,
+											"name": "message",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "any"
+											}
+										}
+									],
+									"type": {
+										"type": "reference",
+										"name": "TaskCommand",
+										"id": 2
+									}
+								}
+							]
+						},
+						{
+							"id": 8,
+							"name": "command",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true,
+								"isPublic": true
+							},
+							"type": {
+								"type": "instrinct",
+								"name": "string"
+							}
+						},
+						{
+							"id": 9,
+							"name": "message",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true,
+								"isPublic": true
+							},
+							"type": {
+								"type": "instrinct",
+								"name": "string"
+							}
+						},
+						{
+							"id": 10,
+							"name": "properties",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true,
+								"isPublic": true
+							},
+							"type": {
+								"type": "reflection",
+								"declaration": {
+									"id": 11,
+									"name": "__type",
+									"kind": 65536,
+									"kindString": "Type literal",
+									"flags": {},
+									"indexSignature": [
+										{
+											"id": 12,
+											"name": "__index",
+											"kind": 8192,
+											"kindString": "Index signature",
+											"flags": {},
+											"parameters": [
+												{
+													"id": 13,
+													"name": "key",
+													"kind": 32768,
+													"kindString": "Parameter",
+													"flags": {},
+													"type": {
+														"type": "instrinct",
+														"name": "string"
+													}
+												}
+											],
+											"type": {
+												"type": "instrinct",
+												"name": "string"
+											}
+										}
+									]
+								}
+							}
+						},
+						{
+							"id": 14,
+							"name": "toString",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true,
+								"isPublic": true
+							},
+							"signatures": [
+								{
+									"id": 15,
+									"name": "toString",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							]
+						}
+					],
+					"groups": [
+						{
+							"title": "Constructors",
+							"kind": 512,
+							"children": [
+								3
+							]
+						},
+						{
+							"title": "Properties",
+							"kind": 1024,
+							"children": [
+								8,
+								9,
+								10
+							]
+						},
+						{
+							"title": "Methods",
+							"kind": 2048,
+							"children": [
+								14
+							]
+						}
+					]
+				},
+				{
+					"id": 16,
+					"name": "CMD_PREFIX",
+					"kind": 32,
+					"kindString": "Variable",
+					"flags": {},
+					"type": {
+						"type": "instrinct",
+						"name": "string"
+					},
+					"defaultValue": "\"##vso[\""
+				},
+				{
+					"id": 17,
+					"name": "commandFromString",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 18,
+							"name": "commandFromString",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 19,
+									"name": "commandLine",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "any"
+									}
+								}
+							],
+							"type": {
+								"type": "reference",
+								"name": "TaskCommand",
+								"id": 2
+							}
+						}
+					]
+				}
+			],
+			"groups": [
+				{
+					"title": "Classes",
+					"kind": 128,
+					"children": [
+						2
+					]
+				},
+				{
+					"title": "Variables",
+					"kind": 32,
+					"children": [
+						16
+					]
+				},
+				{
+					"title": "Functions",
+					"kind": 64,
+					"children": [
+						17
+					]
+				}
+			]
+		},
+		{
+			"id": 20,
+			"name": "\"toolrunner\"",
+			"kind": 1,
+			"kindString": "External module",
+			"flags": {
+				"isExported": true
+			},
+			"originalName": "/Users/bryanmac/Projects/vsts-task-lib/node/lib/toolrunner.ts",
+			"children": [
+				{
+					"id": 37,
+					"name": "ToolRunner",
+					"kind": 128,
+					"kindString": "Class",
+					"flags": {
+						"isExported": true
+					},
+					"children": [
+						{
+							"id": 38,
+							"name": "constructor",
+							"kind": 512,
+							"kindString": "Constructor",
+							"flags": {
+								"isExported": true
+							},
+							"signatures": [
+								{
+									"id": 39,
+									"name": "new ToolRunner",
+									"kind": 16384,
+									"kindString": "Constructor signature",
+									"flags": {},
+									"parameters": [
+										{
+											"id": 40,
+											"name": "toolPath",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "any"
+											}
+										}
+									],
+									"type": {
+										"type": "reference",
+										"name": "ToolRunner",
+										"id": 37
+									}
+								}
+							]
+						},
+						{
+							"id": 42,
+							"name": "args",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true,
+								"isPublic": true
+							},
+							"type": {
+								"type": "instrinct",
+								"isArray": true,
+								"name": "string"
+							}
+						},
+						{
+							"id": 43,
+							"name": "silent",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true,
+								"isPublic": true
+							},
+							"type": {
+								"type": "instrinct",
+								"name": "boolean"
+							}
+						},
+						{
+							"id": 41,
+							"name": "toolPath",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true,
+								"isPublic": true
+							},
+							"type": {
+								"type": "instrinct",
+								"name": "string"
+							}
+						},
+						{
+							"id": 47,
+							"name": "_argStringToArray",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isPrivate": true,
+								"isExported": true
+							},
+							"signatures": [
+								{
+									"id": 48,
+									"name": "_argStringToArray",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"parameters": [
+										{
+											"id": 49,
+											"name": "argString",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "string"
+											}
+										}
+									],
+									"type": {
+										"type": "instrinct",
+										"isArray": true,
+										"name": "string"
+									}
+								}
+							]
+						},
+						{
+							"id": 44,
+							"name": "_debug",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isPrivate": true,
+								"isExported": true
+							},
+							"signatures": [
+								{
+									"id": 45,
+									"name": "_debug",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"parameters": [
+										{
+											"id": 46,
+											"name": "message",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "any"
+											}
+										}
+									],
+									"type": {
+										"type": "instrinct",
+										"name": "void"
+									}
+								}
+							]
+						},
+						{
+							"id": 67,
+							"name": "addListener",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true
+							},
+							"signatures": [
+								{
+									"id": 68,
+									"name": "addListener",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"parameters": [
+										{
+											"id": 69,
+											"name": "event",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "string"
+											}
+										},
+										{
+											"id": 70,
+											"name": "listener",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "reference",
+												"name": "Function"
+											}
+										}
+									],
+									"type": {
+										"type": "reference",
+										"name": "EventEmitter"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"name": "EventEmitter.addListener"
+									}
+								}
+							],
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "EventEmitter.addListener"
+							}
+						},
+						{
+							"id": 50,
+							"name": "arg",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true,
+								"isPublic": true
+							},
+							"signatures": [
+								{
+									"id": 51,
+									"name": "arg",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"parameters": [
+										{
+											"id": 52,
+											"name": "val",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "any"
+											}
+										}
+									],
+									"type": {
+										"type": "instrinct",
+										"name": "void"
+									}
+								}
+							]
+						},
+						{
+							"id": 53,
+							"name": "argIf",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true,
+								"isPublic": true
+							},
+							"signatures": [
+								{
+									"id": 54,
+									"name": "argIf",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"parameters": [
+										{
+											"id": 55,
+											"name": "condition",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "any"
+											}
+										},
+										{
+											"id": 56,
+											"name": "val",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "any"
+											}
+										}
+									],
+									"type": {
+										"type": "instrinct",
+										"name": "void"
+									}
+								}
+							]
+						},
+						{
+							"id": 92,
+							"name": "emit",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true
+							},
+							"signatures": [
+								{
+									"id": 93,
+									"name": "emit",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"parameters": [
+										{
+											"id": 94,
+											"name": "event",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "string"
+											}
+										},
+										{
+											"id": 95,
+											"name": "args",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {
+												"isRest": true
+											},
+											"type": {
+												"type": "instrinct",
+												"isArray": true,
+												"name": "any"
+											}
+										}
+									],
+									"type": {
+										"type": "instrinct",
+										"name": "boolean"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"name": "EventEmitter.emit"
+									}
+								}
+							],
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "EventEmitter.emit"
+							}
+						},
+						{
+							"id": 57,
+							"name": "exec",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true,
+								"isPublic": true
+							},
+							"signatures": [
+								{
+									"id": 58,
+									"name": "exec",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"parameters": [
+										{
+											"id": 59,
+											"name": "options",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {
+												"isOptional": true
+											},
+											"type": {
+												"type": "reference",
+												"name": "IExecOptions",
+												"id": 21
+											}
+										}
+									],
+									"type": {
+										"type": "reference",
+										"name": "Promise",
+										"typeArguments": [
+											{
+												"type": "instrinct",
+												"name": "number"
+											}
+										]
+									}
+								}
+							]
+						},
+						{
+							"id": 60,
+							"name": "execSync",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true,
+								"isPublic": true
+							},
+							"signatures": [
+								{
+									"id": 61,
+									"name": "execSync",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"parameters": [
+										{
+											"id": 62,
+											"name": "options",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {
+												"isOptional": true
+											},
+											"type": {
+												"type": "reference",
+												"name": "IExecOptions",
+												"id": 21
+											}
+										}
+									],
+									"type": {
+										"type": "reference",
+										"name": "IExecResult",
+										"id": 32
+									}
+								}
+							]
+						},
+						{
+							"id": 89,
+							"name": "listeners",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true
+							},
+							"signatures": [
+								{
+									"id": 90,
+									"name": "listeners",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"parameters": [
+										{
+											"id": 91,
+											"name": "event",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "string"
+											}
+										}
+									],
+									"type": {
+										"type": "reference",
+										"isArray": true,
+										"name": "Function"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"name": "EventEmitter.listeners"
+									}
+								}
+							],
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "EventEmitter.listeners"
+							}
+						},
+						{
+							"id": 71,
+							"name": "on",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true
+							},
+							"signatures": [
+								{
+									"id": 72,
+									"name": "on",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"parameters": [
+										{
+											"id": 73,
+											"name": "event",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "string"
+											}
+										},
+										{
+											"id": 74,
+											"name": "listener",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "reference",
+												"name": "Function"
+											}
+										}
+									],
+									"type": {
+										"type": "reference",
+										"name": "EventEmitter"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"name": "EventEmitter.on"
+									}
+								}
+							],
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "EventEmitter.on"
+							}
+						},
+						{
+							"id": 75,
+							"name": "once",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true
+							},
+							"signatures": [
+								{
+									"id": 76,
+									"name": "once",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"parameters": [
+										{
+											"id": 77,
+											"name": "event",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "string"
+											}
+										},
+										{
+											"id": 78,
+											"name": "listener",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "reference",
+												"name": "Function"
+											}
+										}
+									],
+									"type": {
+										"type": "reference",
+										"name": "EventEmitter"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"name": "EventEmitter.once"
+									}
+								}
+							],
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "EventEmitter.once"
+							}
+						},
+						{
+							"id": 83,
+							"name": "removeAllListeners",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true
+							},
+							"signatures": [
+								{
+									"id": 84,
+									"name": "removeAllListeners",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"parameters": [
+										{
+											"id": 85,
+											"name": "event",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {
+												"isOptional": true
+											},
+											"type": {
+												"type": "instrinct",
+												"name": "string"
+											}
+										}
+									],
+									"type": {
+										"type": "reference",
+										"name": "EventEmitter"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"name": "EventEmitter.removeAllListeners"
+									}
+								}
+							],
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "EventEmitter.removeAllListeners"
+							}
+						},
+						{
+							"id": 79,
+							"name": "removeListener",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true
+							},
+							"signatures": [
+								{
+									"id": 80,
+									"name": "removeListener",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"parameters": [
+										{
+											"id": 81,
+											"name": "event",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "string"
+											}
+										},
+										{
+											"id": 82,
+											"name": "listener",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "reference",
+												"name": "Function"
+											}
+										}
+									],
+									"type": {
+										"type": "reference",
+										"name": "EventEmitter"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"name": "EventEmitter.removeListener"
+									}
+								}
+							],
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "EventEmitter.removeListener"
+							}
+						},
+						{
+							"id": 86,
+							"name": "setMaxListeners",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true
+							},
+							"signatures": [
+								{
+									"id": 87,
+									"name": "setMaxListeners",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"parameters": [
+										{
+											"id": 88,
+											"name": "n",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "number"
+											}
+										}
+									],
+									"type": {
+										"type": "instrinct",
+										"name": "void"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"name": "EventEmitter.setMaxListeners"
+									}
+								}
+							],
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "EventEmitter.setMaxListeners"
+							}
+						},
+						{
+							"id": 63,
+							"name": "listenerCount",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isStatic": true,
+								"isExported": true
+							},
+							"signatures": [
+								{
+									"id": 64,
+									"name": "listenerCount",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"parameters": [
+										{
+											"id": 65,
+											"name": "emitter",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "reference",
+												"name": "EventEmitter"
+											}
+										},
+										{
+											"id": 66,
+											"name": "event",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "string"
+											}
+										}
+									],
+									"type": {
+										"type": "instrinct",
+										"name": "number"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"name": "EventEmitter.listenerCount"
+									}
+								}
+							],
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "EventEmitter.listenerCount"
+							}
+						}
+					],
+					"groups": [
+						{
+							"title": "Constructors",
+							"kind": 512,
+							"children": [
+								38
+							]
+						},
+						{
+							"title": "Properties",
+							"kind": 1024,
+							"children": [
+								42,
+								43,
+								41
+							]
+						},
+						{
+							"title": "Methods",
+							"kind": 2048,
+							"children": [
+								47,
+								44,
+								67,
+								50,
+								53,
+								92,
+								57,
+								60,
+								89,
+								71,
+								75,
+								83,
+								79,
+								86,
+								63
+							]
+						}
+					],
+					"extendedTypes": [
+						{
+							"type": "reference",
+							"name": "EventEmitter"
+						}
+					],
+					"implementedTypes": [
+						{
+							"type": "reference",
+							"name": "EventEmitter"
+						}
+					]
+				},
+				{
+					"id": 21,
+					"name": "IExecOptions",
+					"kind": 256,
+					"kindString": "Interface",
+					"flags": {
+						"isExported": true
+					},
+					"children": [
+						{
+							"id": 22,
+							"name": "cwd",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "instrinct",
+								"name": "string"
+							}
+						},
+						{
+							"id": 23,
+							"name": "env",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "reflection",
+								"declaration": {
+									"id": 24,
+									"name": "__type",
+									"kind": 65536,
+									"kindString": "Type literal",
+									"flags": {},
+									"indexSignature": [
+										{
+											"id": 25,
+											"name": "__index",
+											"kind": 8192,
+											"kindString": "Index signature",
+											"flags": {},
+											"parameters": [
+												{
+													"id": 26,
+													"name": "key",
+													"kind": 32768,
+													"kindString": "Parameter",
+													"flags": {},
+													"type": {
+														"type": "instrinct",
+														"name": "string"
+													}
+												}
+											],
+											"type": {
+												"type": "instrinct",
+												"name": "string"
+											}
+										}
+									]
+								}
+							}
+						},
+						{
+							"id": 31,
+							"name": "errStream",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "reference",
+								"name": "WritableStream"
+							}
+						},
+						{
+							"id": 28,
+							"name": "failOnStdErr",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "instrinct",
+								"name": "boolean"
+							}
+						},
+						{
+							"id": 29,
+							"name": "ignoreReturnCode",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "instrinct",
+								"name": "boolean"
+							}
+						},
+						{
+							"id": 30,
+							"name": "outStream",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "reference",
+								"name": "WritableStream"
+							}
+						},
+						{
+							"id": 27,
+							"name": "silent",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "instrinct",
+								"name": "boolean"
+							}
+						}
+					],
+					"groups": [
+						{
+							"title": "Properties",
+							"kind": 1024,
+							"children": [
+								22,
+								23,
+								31,
+								28,
+								29,
+								30,
+								27
+							]
+						}
+					]
+				},
+				{
+					"id": 32,
+					"name": "IExecResult",
+					"kind": 256,
+					"kindString": "Interface",
+					"flags": {
+						"isExported": true
+					},
+					"children": [
+						{
+							"id": 35,
+							"name": "code",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "instrinct",
+								"name": "number"
+							}
+						},
+						{
+							"id": 36,
+							"name": "error",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "reference",
+								"name": "Error"
+							}
+						},
+						{
+							"id": 34,
+							"name": "stderr",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "instrinct",
+								"name": "string"
+							}
+						},
+						{
+							"id": 33,
+							"name": "stdout",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "instrinct",
+								"name": "string"
+							}
+						}
+					],
+					"groups": [
+						{
+							"title": "Properties",
+							"kind": 1024,
+							"children": [
+								35,
+								36,
+								34,
+								33
+							]
+						}
+					]
+				},
+				{
+					"id": 100,
+					"name": "debug",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 101,
+							"name": "debug",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 102,
+									"name": "message",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "any"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "void"
+							}
+						}
+					]
+				},
+				{
+					"id": 96,
+					"name": "run",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {},
+					"signatures": [
+						{
+							"id": 97,
+							"name": "run",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 98,
+									"name": "cmd",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "any"
+									}
+								},
+								{
+									"id": 99,
+									"name": "callback",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "any"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "void"
+							}
+						}
+					]
+				}
+			],
+			"groups": [
+				{
+					"title": "Classes",
+					"kind": 128,
+					"children": [
+						37
+					]
+				},
+				{
+					"title": "Interfaces",
+					"kind": 256,
+					"children": [
+						21,
+						32
+					]
+				},
+				{
+					"title": "Functions",
+					"kind": 64,
+					"children": [
+						100,
+						96
+					]
+				}
+			]
+		},
+		{
+			"id": 103,
+			"name": "\"vsotask\"",
+			"kind": 1,
+			"kindString": "External module",
+			"flags": {
+				"isExported": true
+			},
+			"originalName": "/Users/bryanmac/Projects/vsts-task-lib/node/lib/vsotask.ts",
+			"children": [
+				{
+					"id": 104,
+					"name": "TaskResult",
+					"kind": 4,
+					"kindString": "Enumeration",
+					"flags": {
+						"isExported": true
+					},
+					"children": [
+						{
+							"id": 106,
+							"name": "Failed",
+							"kind": 16,
+							"kindString": "Enumeration member",
+							"flags": {
+								"isExported": true
+							},
+							"defaultValue": "1"
+						},
+						{
+							"id": 105,
+							"name": "Succeeded",
+							"kind": 16,
+							"kindString": "Enumeration member",
+							"flags": {
+								"isExported": true
+							},
+							"defaultValue": "0"
+						}
+					],
+					"groups": [
+						{
+							"title": "Enumeration members",
+							"kind": 16,
+							"children": [
+								106,
+								105
+							]
+						}
+					]
+				},
+				{
+					"id": 142,
+					"name": "TestPublisher",
+					"kind": 128,
+					"kindString": "Class",
+					"flags": {
+						"isExported": true
+					},
+					"children": [
+						{
+							"id": 143,
+							"name": "constructor",
+							"kind": 512,
+							"kindString": "Constructor",
+							"flags": {
+								"isExported": true
+							},
+							"signatures": [
+								{
+									"id": 144,
+									"name": "new TestPublisher",
+									"kind": 16384,
+									"kindString": "Constructor signature",
+									"flags": {},
+									"parameters": [
+										{
+											"id": 145,
+											"name": "testRunner",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "any"
+											}
+										}
+									],
+									"type": {
+										"type": "reference",
+										"name": "TestPublisher",
+										"id": 142
+									}
+								}
+							]
+						},
+						{
+							"id": 146,
+							"name": "testRunner",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true,
+								"isPublic": true
+							},
+							"type": {
+								"type": "instrinct",
+								"name": "string"
+							}
+						},
+						{
+							"id": 147,
+							"name": "publish",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true,
+								"isPublic": true
+							},
+							"signatures": [
+								{
+									"id": 148,
+									"name": "publish",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"parameters": [
+										{
+											"id": 149,
+											"name": "resultFiles",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "any"
+											}
+										},
+										{
+											"id": 150,
+											"name": "mergeResults",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "any"
+											}
+										},
+										{
+											"id": 151,
+											"name": "platform",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "any"
+											}
+										},
+										{
+											"id": 152,
+											"name": "config",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "any"
+											}
+										},
+										{
+											"id": 153,
+											"name": "runTitle",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "any"
+											}
+										},
+										{
+											"id": 154,
+											"name": "publishRunAttachments",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "any"
+											}
+										}
+									],
+									"type": {
+										"type": "instrinct",
+										"name": "void"
+									}
+								}
+							]
+						}
+					],
+					"groups": [
+						{
+							"title": "Constructors",
+							"kind": 512,
+							"children": [
+								143
+							]
+						},
+						{
+							"title": "Properties",
+							"kind": 1024,
+							"children": [
+								146
+							]
+						},
+						{
+							"title": "Methods",
+							"kind": 2048,
+							"children": [
+								147
+							]
+						}
+					]
+				},
+				{
+					"id": 107,
+					"name": "EndpointAuthorization",
+					"kind": 256,
+					"kindString": "Interface",
+					"flags": {
+						"isExported": true
+					},
+					"children": [
+						{
+							"id": 108,
+							"name": "parameters",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "reflection",
+								"declaration": {
+									"id": 109,
+									"name": "__type",
+									"kind": 65536,
+									"kindString": "Type literal",
+									"flags": {},
+									"indexSignature": [
+										{
+											"id": 110,
+											"name": "__index",
+											"kind": 8192,
+											"kindString": "Index signature",
+											"flags": {},
+											"parameters": [
+												{
+													"id": 111,
+													"name": "key",
+													"kind": 32768,
+													"kindString": "Parameter",
+													"flags": {},
+													"type": {
+														"type": "instrinct",
+														"name": "string"
+													}
+												}
+											],
+											"type": {
+												"type": "instrinct",
+												"name": "string"
+											}
+										}
+									]
+								}
+							}
+						},
+						{
+							"id": 112,
+							"name": "scheme",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "instrinct",
+								"name": "string"
+							}
+						}
+					],
+					"groups": [
+						{
+							"title": "Properties",
+							"kind": 1024,
+							"children": [
+								108,
+								112
+							]
+						}
+					]
+				},
+				{
+					"id": 113,
+					"name": "FsStats",
+					"kind": 256,
+					"kindString": "Interface",
+					"flags": {
+						"isExported": true
+					},
+					"children": [
+						{
+							"id": 138,
+							"name": "atime",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "reference",
+								"name": "Date"
+							},
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "Stats.atime"
+							}
+						},
+						{
+							"id": 141,
+							"name": "birthtime",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "reference",
+								"name": "Date"
+							},
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "Stats.birthtime"
+							}
+						},
+						{
+							"id": 136,
+							"name": "blksize",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "instrinct",
+								"name": "number"
+							},
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "Stats.blksize"
+							}
+						},
+						{
+							"id": 137,
+							"name": "blocks",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "instrinct",
+								"name": "number"
+							},
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "Stats.blocks"
+							}
+						},
+						{
+							"id": 140,
+							"name": "ctime",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "reference",
+								"name": "Date"
+							},
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "Stats.ctime"
+							}
+						},
+						{
+							"id": 128,
+							"name": "dev",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "instrinct",
+								"name": "number"
+							},
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "Stats.dev"
+							}
+						},
+						{
+							"id": 133,
+							"name": "gid",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "instrinct",
+								"name": "number"
+							},
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "Stats.gid"
+							}
+						},
+						{
+							"id": 129,
+							"name": "ino",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "instrinct",
+								"name": "number"
+							},
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "Stats.ino"
+							}
+						},
+						{
+							"id": 130,
+							"name": "mode",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "instrinct",
+								"name": "number"
+							},
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "Stats.mode"
+							}
+						},
+						{
+							"id": 139,
+							"name": "mtime",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "reference",
+								"name": "Date"
+							},
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "Stats.mtime"
+							}
+						},
+						{
+							"id": 131,
+							"name": "nlink",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "instrinct",
+								"name": "number"
+							},
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "Stats.nlink"
+							}
+						},
+						{
+							"id": 134,
+							"name": "rdev",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "instrinct",
+								"name": "number"
+							},
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "Stats.rdev"
+							}
+						},
+						{
+							"id": 135,
+							"name": "size",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "instrinct",
+								"name": "number"
+							},
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "Stats.size"
+							}
+						},
+						{
+							"id": 132,
+							"name": "uid",
+							"kind": 1024,
+							"kindString": "Property",
+							"flags": {
+								"isExported": true
+							},
+							"type": {
+								"type": "instrinct",
+								"name": "number"
+							},
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "Stats.uid"
+							}
+						},
+						{
+							"id": 118,
+							"name": "isBlockDevice",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true
+							},
+							"signatures": [
+								{
+									"id": 119,
+									"name": "isBlockDevice",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "boolean"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"name": "Stats.isBlockDevice"
+									}
+								}
+							],
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "Stats.isBlockDevice"
+							}
+						},
+						{
+							"id": 120,
+							"name": "isCharacterDevice",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true
+							},
+							"signatures": [
+								{
+									"id": 121,
+									"name": "isCharacterDevice",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "boolean"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"name": "Stats.isCharacterDevice"
+									}
+								}
+							],
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "Stats.isCharacterDevice"
+							}
+						},
+						{
+							"id": 116,
+							"name": "isDirectory",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true
+							},
+							"signatures": [
+								{
+									"id": 117,
+									"name": "isDirectory",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "boolean"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"name": "Stats.isDirectory"
+									}
+								}
+							],
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "Stats.isDirectory"
+							}
+						},
+						{
+							"id": 124,
+							"name": "isFIFO",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true
+							},
+							"signatures": [
+								{
+									"id": 125,
+									"name": "isFIFO",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "boolean"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"name": "Stats.isFIFO"
+									}
+								}
+							],
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "Stats.isFIFO"
+							}
+						},
+						{
+							"id": 114,
+							"name": "isFile",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true
+							},
+							"signatures": [
+								{
+									"id": 115,
+									"name": "isFile",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "boolean"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"name": "Stats.isFile"
+									}
+								}
+							],
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "Stats.isFile"
+							}
+						},
+						{
+							"id": 126,
+							"name": "isSocket",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true
+							},
+							"signatures": [
+								{
+									"id": 127,
+									"name": "isSocket",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "boolean"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"name": "Stats.isSocket"
+									}
+								}
+							],
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "Stats.isSocket"
+							}
+						},
+						{
+							"id": 122,
+							"name": "isSymbolicLink",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true
+							},
+							"signatures": [
+								{
+									"id": 123,
+									"name": "isSymbolicLink",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "boolean"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"name": "Stats.isSymbolicLink"
+									}
+								}
+							],
+							"inheritedFrom": {
+								"type": "reference",
+								"name": "Stats.isSymbolicLink"
+							}
+						}
+					],
+					"groups": [
+						{
+							"title": "Properties",
+							"kind": 1024,
+							"children": [
+								138,
+								141,
+								136,
+								137,
+								140,
+								128,
+								133,
+								129,
+								130,
+								139,
+								131,
+								134,
+								135,
+								132
+							]
+						},
+						{
+							"title": "Methods",
+							"kind": 2048,
+							"children": [
+								118,
+								120,
+								116,
+								124,
+								114,
+								126,
+								122
+							]
+						}
+					],
+					"extendedTypes": [
+						{
+							"type": "reference",
+							"name": "Stats"
+						}
+					]
+				},
+				{
+					"id": 164,
+					"name": "_errStream",
+					"kind": 32,
+					"kindString": "Variable",
+					"flags": {
+						"isExported": true
+					},
+					"type": {
+						"type": "reference",
+						"name": "WritableStream"
+					},
+					"defaultValue": " process.stderr"
+				},
+				{
+					"id": 163,
+					"name": "_outStream",
+					"kind": 32,
+					"kindString": "Variable",
+					"flags": {
+						"isExported": true
+					},
+					"type": {
+						"type": "reference",
+						"name": "WritableStream"
+					},
+					"defaultValue": " process.stdout"
+				},
+				{
+					"id": 197,
+					"name": "libResourceFileLoaded",
+					"kind": 32,
+					"kindString": "Variable",
+					"flags": {},
+					"type": {
+						"type": "instrinct",
+						"name": "boolean"
+					},
+					"defaultValue": "false"
+				},
+				{
+					"id": 192,
+					"name": "locStringCache",
+					"kind": 32,
+					"kindString": "Variable",
+					"flags": {},
+					"type": {
+						"type": "reflection",
+						"declaration": {
+							"id": 193,
+							"name": "__type",
+							"kind": 65536,
+							"kindString": "Type literal",
+							"flags": {},
+							"indexSignature": [
+								{
+									"id": 194,
+									"name": "__index",
+									"kind": 8192,
+									"kindString": "Index signature",
+									"flags": {},
+									"parameters": [
+										{
+											"id": 195,
+											"name": "key",
+											"kind": 32768,
+											"kindString": "Parameter",
+											"flags": {},
+											"type": {
+												"type": "instrinct",
+												"name": "string"
+											}
+										}
+									],
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							]
+						}
+					}
+				},
+				{
+					"id": 196,
+					"name": "resourceFile",
+					"kind": 32,
+					"kindString": "Variable",
+					"flags": {},
+					"type": {
+						"type": "instrinct",
+						"name": "string"
+					}
+				},
+				{
+					"id": 271,
+					"name": "_argStringToArray",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {},
+					"signatures": [
+						{
+							"id": 272,
+							"name": "_argStringToArray",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 273,
+									"name": "argString",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"isArray": true,
+								"name": "string"
+							}
+						}
+					]
+				},
+				{
+					"id": 165,
+					"name": "_writeError",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 166,
+							"name": "_writeError",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 167,
+									"name": "str",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "void"
+							}
+						}
+					]
+				},
+				{
+					"id": 168,
+					"name": "_writeLine",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 169,
+							"name": "_writeLine",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 170,
+									"name": "str",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "void"
+							}
+						}
+					]
+				},
+				{
+					"id": 274,
+					"name": "cd",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 275,
+							"name": "cd",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 276,
+									"name": "path",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "void"
+							}
+						}
+					]
+				},
+				{
+					"id": 282,
+					"name": "checkPath",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 283,
+							"name": "checkPath",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 284,
+									"name": "p",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								},
+								{
+									"id": 285,
+									"name": "name",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "void"
+							}
+						}
+					]
+				},
+				{
+					"id": 257,
+					"name": "command",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 258,
+							"name": "command",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 259,
+									"name": "command",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								},
+								{
+									"id": 260,
+									"name": "properties",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "any"
+									}
+								},
+								{
+									"id": 261,
+									"name": "message",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "void"
+							}
+						}
+					]
+				},
+				{
+					"id": 293,
+					"name": "cp",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 294,
+							"name": "cp",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 295,
+									"name": "options",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "any"
+									}
+								},
+								{
+									"id": 296,
+									"name": "source",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								},
+								{
+									"id": 297,
+									"name": "dest",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								},
+								{
+									"id": 298,
+									"name": "continueOnError",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {
+										"isOptional": true
+									},
+									"type": {
+										"type": "instrinct",
+										"name": "boolean"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "boolean"
+							}
+						}
+					]
+				},
+				{
+					"id": 328,
+					"name": "createToolRunner",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 329,
+							"name": "createToolRunner",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 330,
+									"name": "tool",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "reference",
+								"name": "ToolRunner",
+								"id": 37
+							}
+						}
+					]
+				},
+				{
+					"id": 268,
+					"name": "debug",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 269,
+							"name": "debug",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 270,
+									"name": "message",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "void"
+							}
+						}
+					]
+				},
+				{
+					"id": 159,
+					"name": "endsWith",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {},
+					"signatures": [
+						{
+							"id": 160,
+							"name": "endsWith",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 161,
+									"name": "str",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								},
+								{
+									"id": 162,
+									"name": "end",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "boolean"
+							}
+						}
+					]
+				},
+				{
+					"id": 265,
+					"name": "error",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 266,
+							"name": "error",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 267,
+									"name": "message",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "void"
+							}
+						}
+					]
+				},
+				{
+					"id": 318,
+					"name": "exec",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 319,
+							"name": "exec",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 320,
+									"name": "tool",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								},
+								{
+									"id": 321,
+									"name": "args",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "any"
+									}
+								},
+								{
+									"id": 322,
+									"name": "options",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {
+										"isOptional": true
+									},
+									"type": {
+										"type": "reference",
+										"name": "IExecOptions",
+										"id": 21
+									}
+								}
+							],
+							"type": {
+								"type": "reference",
+								"name": "Promise",
+								"typeArguments": [
+									{
+										"type": "instrinct",
+										"name": "number"
+									}
+								]
+							}
+						}
+					]
+				},
+				{
+					"id": 323,
+					"name": "execSync",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 324,
+							"name": "execSync",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 325,
+									"name": "tool",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								},
+								{
+									"id": 326,
+									"name": "args",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "any"
+									}
+								},
+								{
+									"id": 327,
+									"name": "options",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {
+										"isOptional": true
+									},
+									"type": {
+										"type": "reference",
+										"name": "IExecOptions",
+										"id": 21
+									}
+								}
+							],
+							"type": {
+								"type": "reference",
+								"name": "IExecResult",
+								"id": 32
+							}
+						}
+					]
+				},
+				{
+					"id": 254,
+					"name": "exist",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 255,
+							"name": "exist",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 256,
+									"name": "path",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "boolean"
+							}
+						}
+					]
+				},
+				{
+					"id": 189,
+					"name": "exit",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 190,
+							"name": "exit",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 191,
+									"name": "code",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "number"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "void"
+							}
+						}
+					]
+				},
+				{
+					"id": 185,
+					"name": "exitOnCodeIf",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 186,
+							"name": "exitOnCodeIf",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 187,
+									"name": "code",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "number"
+									}
+								},
+								{
+									"id": 188,
+									"name": "condition",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "boolean"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "void"
+							}
+						}
+					]
+				},
+				{
+					"id": 235,
+					"name": "filePathSupplied",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 236,
+							"name": "filePathSupplied",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 237,
+									"name": "name",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "boolean"
+							}
+						}
+					]
+				},
+				{
+					"id": 336,
+					"name": "filter",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 337,
+							"name": "filter",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 338,
+									"name": "pattern",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "any"
+									}
+								},
+								{
+									"id": 339,
+									"name": "options",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "any"
+									}
+								}
+							],
+							"type": {
+								"type": "reflection",
+								"declaration": {
+									"id": 340,
+									"name": "__type",
+									"kind": 65536,
+									"kindString": "Type literal",
+									"flags": {},
+									"signatures": [
+										{
+											"id": 341,
+											"name": "__call",
+											"kind": 4096,
+											"kindString": "Call signature",
+											"flags": {},
+											"parameters": [
+												{
+													"id": 342,
+													"name": "element",
+													"kind": 32768,
+													"kindString": "Parameter",
+													"flags": {},
+													"type": {
+														"type": "instrinct",
+														"name": "string"
+													}
+												},
+												{
+													"id": 343,
+													"name": "indexed",
+													"kind": 32768,
+													"kindString": "Parameter",
+													"flags": {},
+													"type": {
+														"type": "instrinct",
+														"name": "number"
+													}
+												},
+												{
+													"id": 344,
+													"name": "array",
+													"kind": 32768,
+													"kindString": "Parameter",
+													"flags": {},
+													"type": {
+														"type": "instrinct",
+														"isArray": true,
+														"name": "string"
+													}
+												}
+											],
+											"type": {
+												"type": "instrinct",
+												"name": "boolean"
+											}
+										}
+									]
+								}
+							}
+						}
+					]
+				},
+				{
+					"id": 305,
+					"name": "find",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 306,
+							"name": "find",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 307,
+									"name": "findPath",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"isArray": true,
+								"name": "string"
+							}
+						}
+					]
+				},
+				{
+					"id": 222,
+					"name": "getBoolInput",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 223,
+							"name": "getBoolInput",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 224,
+									"name": "name",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								},
+								{
+									"id": 225,
+									"name": "required",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {
+										"isOptional": true
+									},
+									"type": {
+										"type": "instrinct",
+										"name": "boolean"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "boolean"
+							}
+						}
+					]
+				},
+				{
+					"id": 230,
+					"name": "getDelimitedInput",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 231,
+							"name": "getDelimitedInput",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 232,
+									"name": "name",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								},
+								{
+									"id": 233,
+									"name": "delim",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								},
+								{
+									"id": 234,
+									"name": "required",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {
+										"isOptional": true
+									},
+									"type": {
+										"type": "instrinct",
+										"name": "boolean"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"isArray": true,
+								"name": "string"
+							}
+						}
+					]
+				},
+				{
+					"id": 247,
+					"name": "getEndpointAuthorization",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 248,
+							"name": "getEndpointAuthorization",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 249,
+									"name": "id",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								},
+								{
+									"id": 250,
+									"name": "optional",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "boolean"
+									}
+								}
+							],
+							"type": {
+								"type": "reference",
+								"name": "EndpointAuthorization",
+								"id": 107
+							}
+						}
+					]
+				},
+				{
+					"id": 243,
+					"name": "getEndpointUrl",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 244,
+							"name": "getEndpointUrl",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 245,
+									"name": "id",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								},
+								{
+									"id": 246,
+									"name": "optional",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "boolean"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "string"
+							}
+						}
+					]
+				},
+				{
+					"id": 218,
+					"name": "getInput",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 219,
+							"name": "getInput",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 220,
+									"name": "name",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								},
+								{
+									"id": 221,
+									"name": "required",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {
+										"isOptional": true
+									},
+									"type": {
+										"type": "instrinct",
+										"name": "boolean"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "string"
+							}
+						}
+					]
+				},
+				{
+					"id": 238,
+					"name": "getPathInput",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 239,
+							"name": "getPathInput",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 240,
+									"name": "name",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								},
+								{
+									"id": 241,
+									"name": "required",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {
+										"isOptional": true
+									},
+									"type": {
+										"type": "instrinct",
+										"name": "boolean"
+									}
+								},
+								{
+									"id": 242,
+									"name": "check",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {
+										"isOptional": true
+									},
+									"type": {
+										"type": "instrinct",
+										"name": "boolean"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "string"
+							}
+						}
+					]
+				},
+				{
+					"id": 211,
+					"name": "getVariable",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 212,
+							"name": "getVariable",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 213,
+									"name": "name",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "string"
+							}
+						}
+					]
+				},
+				{
+					"id": 312,
+					"name": "glob",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 313,
+							"name": "glob",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 314,
+									"name": "pattern",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"isArray": true,
+								"name": "string"
+							}
+						}
+					]
+				},
+				{
+					"id": 315,
+					"name": "globFirst",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 316,
+							"name": "globFirst",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 317,
+									"name": "pattern",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "string"
+							}
+						}
+					]
+				},
+				{
+					"id": 181,
+					"name": "handlerError",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 182,
+							"name": "handlerError",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 183,
+									"name": "errMsg",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								},
+								{
+									"id": 184,
+									"name": "continueOnError",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "boolean"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "void"
+							}
+						}
+					]
+				},
+				{
+					"id": 198,
+					"name": "loadLocStrings",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {},
+					"signatures": [
+						{
+							"id": 199,
+							"name": "loadLocStrings",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 200,
+									"name": "resourceFile",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "reflection",
+								"declaration": {
+									"id": 201,
+									"name": "__type",
+									"kind": 65536,
+									"kindString": "Type literal",
+									"flags": {},
+									"indexSignature": [
+										{
+											"id": 202,
+											"name": "__index",
+											"kind": 8192,
+											"kindString": "Index signature",
+											"flags": {},
+											"parameters": [
+												{
+													"id": 203,
+													"name": "key",
+													"kind": 32768,
+													"kindString": "Parameter",
+													"flags": {},
+													"type": {
+														"type": "instrinct",
+														"name": "string"
+													}
+												}
+											],
+											"type": {
+												"type": "instrinct",
+												"name": "string"
+											}
+										}
+									]
+								}
+							}
+						}
+					]
+				},
+				{
+					"id": 207,
+					"name": "loc",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 208,
+							"name": "loc",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 209,
+									"name": "key",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								},
+								{
+									"id": 210,
+									"name": "param",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {
+										"isRest": true
+									},
+									"type": {
+										"type": "instrinct",
+										"isArray": true,
+										"name": "any"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "string"
+							}
+						}
+					]
+				},
+				{
+					"id": 331,
+					"name": "match",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 332,
+							"name": "match",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 333,
+									"name": "list",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "any"
+									}
+								},
+								{
+									"id": 334,
+									"name": "pattern",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "any"
+									}
+								},
+								{
+									"id": 335,
+									"name": "options",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "any"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"isArray": true,
+								"name": "string"
+							}
+						}
+					]
+				},
+				{
+					"id": 286,
+					"name": "mkdirP",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 287,
+							"name": "mkdirP",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 288,
+									"name": "p",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "any"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "boolean"
+							}
+						}
+					]
+				},
+				{
+					"id": 299,
+					"name": "mv",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 300,
+							"name": "mv",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 301,
+									"name": "source",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								},
+								{
+									"id": 302,
+									"name": "dest",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								},
+								{
+									"id": 303,
+									"name": "force",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "boolean"
+									}
+								},
+								{
+									"id": 304,
+									"name": "continueOnError",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {
+										"isOptional": true
+									},
+									"type": {
+										"type": "instrinct",
+										"name": "boolean"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "boolean"
+							}
+						}
+					]
+				},
+				{
+					"id": 280,
+					"name": "popd",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 281,
+							"name": "popd",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"type": {
+								"type": "instrinct",
+								"name": "void"
+							}
+						}
+					]
+				},
+				{
+					"id": 277,
+					"name": "pushd",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 278,
+							"name": "pushd",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 279,
+									"name": "path",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "void"
+							}
+						}
+					]
+				},
+				{
+					"id": 308,
+					"name": "rmRF",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 309,
+							"name": "rmRF",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 310,
+									"name": "path",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								},
+								{
+									"id": 311,
+									"name": "continueOnError",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {
+										"isOptional": true
+									},
+									"type": {
+										"type": "instrinct",
+										"name": "boolean"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "boolean"
+							}
+						}
+					]
+				},
+				{
+					"id": 226,
+					"name": "setEnvVar",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 227,
+							"name": "setEnvVar",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 228,
+									"name": "name",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								},
+								{
+									"id": 229,
+									"name": "val",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "void"
+							}
+						}
+					]
+				},
+				{
+					"id": 174,
+					"name": "setErrStream",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 175,
+							"name": "setErrStream",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 176,
+									"name": "errStream",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "any"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "void"
+							}
+						}
+					]
+				},
+				{
+					"id": 204,
+					"name": "setResourcePath",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 205,
+							"name": "setResourcePath",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 206,
+									"name": "path",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "void"
+							}
+						}
+					]
+				},
+				{
+					"id": 177,
+					"name": "setResult",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 178,
+							"name": "setResult",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"comment": {
+								"shortText": "setResult sets the result of the task.",
+								"returns": "void\n"
+							},
+							"parameters": [
+								{
+									"id": 179,
+									"name": "result",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"comment": {
+										"text": "TaskResult enum of Success or Failed.  If the result is Failed (1), then execution will halt."
+									},
+									"type": {
+										"type": "reference",
+										"name": "TaskResult",
+										"id": 104
+									}
+								},
+								{
+									"id": 180,
+									"name": "message",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "void"
+							}
+						}
+					]
+				},
+				{
+					"id": 171,
+					"name": "setStdStream",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 172,
+							"name": "setStdStream",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 173,
+									"name": "stdStream",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "any"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "void"
+							}
+						}
+					]
+				},
+				{
+					"id": 214,
+					"name": "setVariable",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 215,
+							"name": "setVariable",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 216,
+									"name": "name",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								},
+								{
+									"id": 217,
+									"name": "val",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "void"
+							}
+						}
+					]
+				},
+				{
+					"id": 155,
+					"name": "startsWith",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {},
+					"signatures": [
+						{
+							"id": 156,
+							"name": "startsWith",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 157,
+									"name": "str",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								},
+								{
+									"id": 158,
+									"name": "start",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "boolean"
+							}
+						}
+					]
+				},
+				{
+					"id": 251,
+					"name": "stats",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 252,
+							"name": "stats",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 253,
+									"name": "path",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "reference",
+								"name": "FsStats",
+								"id": 113
+							}
+						}
+					]
+				},
+				{
+					"id": 262,
+					"name": "warning",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 263,
+							"name": "warning",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 264,
+									"name": "message",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "void"
+							}
+						}
+					]
+				},
+				{
+					"id": 289,
+					"name": "which",
+					"kind": 64,
+					"kindString": "Function",
+					"flags": {
+						"isExported": true
+					},
+					"signatures": [
+						{
+							"id": 290,
+							"name": "which",
+							"kind": 4096,
+							"kindString": "Call signature",
+							"flags": {},
+							"parameters": [
+								{
+									"id": 291,
+									"name": "tool",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "instrinct",
+										"name": "string"
+									}
+								},
+								{
+									"id": 292,
+									"name": "check",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {
+										"isOptional": true
+									},
+									"type": {
+										"type": "instrinct",
+										"name": "boolean"
+									}
+								}
+							],
+							"type": {
+								"type": "instrinct",
+								"name": "string"
+							}
+						}
+					]
+				}
+			],
+			"groups": [
+				{
+					"title": "Enumerations",
+					"kind": 4,
+					"children": [
+						104
+					]
+				},
+				{
+					"title": "Classes",
+					"kind": 128,
+					"children": [
+						142
+					]
+				},
+				{
+					"title": "Interfaces",
+					"kind": 256,
+					"children": [
+						107,
+						113
+					]
+				},
+				{
+					"title": "Variables",
+					"kind": 32,
+					"children": [
+						164,
+						163,
+						197,
+						192,
+						196
+					]
+				},
+				{
+					"title": "Functions",
+					"kind": 64,
+					"children": [
+						271,
+						165,
+						168,
+						274,
+						282,
+						257,
+						293,
+						328,
+						268,
+						159,
+						265,
+						318,
+						323,
+						254,
+						189,
+						185,
+						235,
+						336,
+						305,
+						222,
+						230,
+						247,
+						243,
+						218,
+						238,
+						211,
+						312,
+						315,
+						181,
+						198,
+						207,
+						331,
+						286,
+						299,
+						280,
+						277,
+						308,
+						226,
+						174,
+						204,
+						177,
+						171,
+						214,
+						155,
+						251,
+						262,
+						289
+					]
+				}
+			]
+		}
+	],
+	"groups": [
+		{
+			"title": "External modules",
+			"kind": 1,
+			"children": [
+				1,
+				20,
+				103
+			]
+		}
+	]
+}

@@ -1,0 +1,29 @@
+{
+    "Input Functions": {
+        "Summary": "Functions for retrieving inputs for the task",
+        "Document": [
+            "vsotask.getInput",
+            "vsotask.getPathInput"
+        ]
+    },
+    "Execution": {
+        "Summary": "Tasks typically execute a series of tools (cli) and set the result of the task based on the outcome of those",
+        "Sample": "samples/toolrunner.js",
+        "Document": [
+            "vsotask.createToolRunner",
+            "toolrunner.ToolRunner.arg",
+            "toolrunner.ToolRunner.argIf",
+            "toolrunner.ToolRunner.exec",
+            "toolrunner.ToolRunner.execSync",
+            "vsotask.setResult",
+            "vsotask.setVariable"
+        ]
+    }, 
+    "Disk Functions": {
+        "Summary": "Functions for disk operations",
+        "Document": [
+            "vsotask.cd",
+            "vsotask.cp"
+        ]
+    }
+}
