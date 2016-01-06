@@ -38,6 +38,12 @@ import tl = require('vsts-task-lib/task')
 <a href="#taskcd">cd</a> <br/>
 <a href="#taskcp">cp</a> <br/>
  
+### Service Endpoints <a href="#ServiceEndpoints">(v)</a>
+ 
+<a href="#taskgetEndpointUrl">getEndpointUrl</a> <br/>
+<a href="#taskEndpointAuthorization">EndpointAuthorization</a> <br/>
+<a href="#taskgetEndpointAuthorization">getEndpointAuthorization</a> <br/>
+ 
 ### Localization <a href="#Localization">(v)</a>
  
 <a href="#tasksetResourcePath">setResourcePath</a> <br/>
@@ -286,6 +292,54 @@ options | any |  -
 source | string |  - 
 dest | string |  - 
 continueOnError | boolean |  - 
+ 
+ 
+ 
+<div id="ServiceEndpoints">
+## Service Endpoints
+ 
+---
+ 
+Retrieve service endpoints and authorization details
+<br/>
+<div id="taskgetEndpointUrl">
+### task.getEndpointUrl <a href="#index">(^)</a>
+Gets the url for a service endpoint
+If the url was not set and is not optional, the task will fail with an error message. Execution will halt.
+```javascript
+getEndpointUrl(id:string, optional:boolean):string
+```
+ 
+Param | Type | Description
+--- | --- | ---
+id | string | name of the service endpoint
+optional | boolean | whether the url is optional
+ 
+<br/>
+<div id="taskEndpointAuthorization">
+### task.EndpointAuthorization <a href="#index">(^)</a>
+Interface for EndpointAuthorization
+Contains a schema and a string/string dictionary of auth data
+ 
+Property | Description
+--- | ---
+parameters | string string dictionary of auth data
+scheme | auth scheme such as OAuth or username/password etc...
+
+ 
+<br/>
+<div id="taskgetEndpointAuthorization">
+### task.getEndpointAuthorization <a href="#index">(^)</a>
+Gets the authorization details for a service endpoint
+If the authorization was not set and is not optional, the task will fail with an error message. Execution will halt.
+```javascript
+getEndpointAuthorization(id:string, optional:boolean):EndpointAuthorization
+```
+ 
+Param | Type | Description
+--- | --- | ---
+id | string | name of the service endpoint
+optional | boolean | whether the url is optional
  
  
  

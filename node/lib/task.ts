@@ -375,6 +375,14 @@ export function getPathInput(name: string, required?: boolean, check?: boolean):
 // Endpoint Helpers
 //-----------------------------------------------------
 
+/**
+ * Gets the url for a service endpoint
+ * If the url was not set and is not optional, the task will fail with an error message. Execution will halt.
+ * 
+ * @param     id        name of the service endpoint
+ * @param     optional  whether the url is optional
+ * @returns   string
+ */
 export function getEndpointUrl(id: string, optional: boolean): string {
     var urlval = process.env['ENDPOINT_URL_' + id];
 
@@ -386,7 +394,13 @@ export function getEndpointUrl(id: string, optional: boolean): string {
     return urlval;
 }
 
-// TODO: should go away when task lib 
+/**
+ * Interface for EndpointAuthorization
+ * Contains a schema and a string/string dictionary of auth data
+ * 
+ * @param     parameters        string string dictionary of auth data
+ * @param     scheme            auth scheme such as OAuth or username/password etc...
+ */
 export interface EndpointAuthorization {
     parameters: {
         [key: string]: string;
@@ -394,6 +408,14 @@ export interface EndpointAuthorization {
     scheme: string;
 }
 
+/**
+ * Gets the authorization details for a service endpoint
+ * If the authorization was not set and is not optional, the task will fail with an error message. Execution will halt.
+ * 
+ * @param     id        name of the service endpoint
+ * @param     optional  whether the url is optional
+ * @returns   string
+ */
 export function getEndpointAuthorization(id: string, optional: boolean): EndpointAuthorization {
     var aval = process.env['ENDPOINT_AUTH_' + id];
 

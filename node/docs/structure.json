@@ -30,6 +30,14 @@
             "task.cp"
         ]
     },
+    "Service Endpoints": {
+        "Summary": "Retrieve service endpoints and authorization details",
+        "Document": [
+            "task.getEndpointUrl",
+            "task.EndpointAuthorization",
+            "task.getEndpointAuthorization"
+        ]
+    },    
     "Localization": {
         "Summary": "Localization is optional but is supported using these functions at runtime",
         "Sample": "samples/loc.ts",

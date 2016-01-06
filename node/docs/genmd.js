@@ -113,65 +113,95 @@ var anchorName = function(name) {
     return name.replace(/\./g, '').replace(/ /g, '');
 }
 
+var writeInterface = function(name, item) {
+    writeLine("<br/>");
+    writeLine('<div id="' + anchorName(name) + '">');
+    writeLine('### ' + name + ' <a href="#index">(^)</a>');
+
+    // comment
+    var comment = item.comment;
+    if (comment) {
+        //console.log('comment ' + comment);
+        if (comment.shortText) {
+            writeLine(comment.shortText);
+        }
+
+        // for interface - just printing the param help
+        if (comment.tags) {
+            writeLine();
+            writeLine('Property | Description');
+            writeLine('--- | ---');            
+
+            comment.tags.forEach(function(tag) {
+                writeLine(tag.param + ' | ' + tag.text );
+            })
+            
+            writeLine();
+        }         
+    }
+}
+
 var writeFunction = function(name, item) {
     writeLine("<br/>");
     writeLine('<div id="' + anchorName(name) + '">');
     writeLine('### ' + name + ' <a href="#index">(^)</a>');
 
     var sig = item['signatures'];
-    if (sig && sig.length > 0) {
-        sig = sig[0];
-    }
+    if (sig) {
+        if (sig.length > 0) {
+            sig = sig[0];
+        }
 
-    // comments
-    var comment = sig.comment;
-    if (comment) {
-        //console.log('comment ' + comment);
-        if (comment.shortText) {
-            writeLine(comment.shortText);
-        }            
-    }
+        // comments
+        var comment = sig.comment;
+        if (comment) {
+            //console.log('comment ' + comment);
+            if (comment.shortText) {
+                writeLine(comment.shortText);
+            }            
+        }
 
-    // signature
+        // signature
 
-    var sigLine = item.name + '(';
+        var sigLine = item.name + '(';
 
-    if (sig.parameters) {
-        for (var i = 0; i < sig.parameters.length; i++) {
-            var param = sig.parameters[i];
-            sigLine += param.name;
+        if (sig.parameters) {
+            for (var i = 0; i < sig.parameters.length; i++) {
+                var param = sig.parameters[i];
+                sigLine += param.name;
 
-            if (param.flags.isOptional) {
-                sigLine += '?';
-            }
+                if (param.flags.isOptional) {
+                    sigLine += '?';
+                }
 
-            sigLine += (':' + param.type.name);
+                sigLine += (':' + param.type.name);
 
-            if (i < (sig.parameters.length - 1)) {
-                sigLine += ', ';
+                if (i < (sig.parameters.length - 1)) {
+                    sigLine += ', ';
+                }
             }
         }
-    }
 
-    sigLine += '):' + sig.type.name;
+        sigLine += '):' + sig.type.name;
 
-    writeLine('```javascript');
-    writeLine(sigLine);
-    writeLine('```');
+        writeLine('```javascript');
+        writeLine(sigLine);
+        writeLine('```');
 
-    // params table
+        // params table
 
-    if (sig.parameters) {
-        writeLine();
-        writeLine('Param | Type | Description');
-        writeLine('--- | --- | ---');
-        for (var i = 0; i < sig.parameters.length; i++) {
-            var param = sig.parameters[i];
+        if (sig.parameters) {
+            writeLine();
+            writeLine('Param | Type | Description');
+            writeLine('--- | --- | ---');
+            for (var i = 0; i < sig.parameters.length; i++) {
+                var param = sig.parameters[i];
 
-            var pc = param.comment ? param.comment.text || ' - ' : ' - ';
-            writeLine(param.name + ' | ' + param.type.name + ' | ' + pc);
+                var pc = param.comment ? param.comment.text || ' - ' : ' - ';
+                writeLine(param.name + ' | ' + param.type.name + ' | ' + pc);
+            }
+            writeLine();
         }
-        writeLine();
     }
 }
 
@@ -273,10 +303,13 @@ for (var secName in ds) {
             switch (item.kindString) {
                 case "Constructor":
                 case "Method":
-                case "Interface":
                 case "Enumeration":
                 case "Function":
                     writeFunction(doc, item);
+                    break;
+
+                case "Interface":
+                    writeInterface(doc, item);
                     break;
 
                 default:
