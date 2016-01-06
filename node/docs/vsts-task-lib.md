@@ -11,18 +11,42 @@ In the example below, it is in a folder named definitions above the tasks lib
 import tl = require('vsts-task-lib/vsotask')
 ```
  
+## Index
+ 
+<div id="index">
+### Input Functions
+ 
+<a href="#vsotaskgetInput">getInput</a> 
+<a href="#vsotaskgetPathInput">getPathInput</a> 
+ 
+<div id="index">
+### Execution
+ 
+<a href="#vsotaskcreateToolRunner">createToolRunner</a> 
+<a href="#toolrunnerToolRunnerarg">ToolRunner.arg</a> 
+<a href="#toolrunnerToolRunnerargIf">ToolRunner.argIf</a> 
+<a href="#toolrunnerToolRunnerexec">ToolRunner.exec</a> 
+<a href="#toolrunnerToolRunnerexecSync">ToolRunner.execSync</a> 
+<a href="#vsotasksetResult">setResult</a> 
+<a href="#vsotasksetVariable">setVariable</a> 
+ 
+<div id="index">
+### Disk Functions
+ 
+<a href="#vsotaskcd">cd</a> 
+<a href="#vsotaskcp">cp</a> 
  
 ## Input Functions
  
 Functions for retrieving inputs for the task
  
-<div id="vsotask.getInput">
-### vsotask.getInput
+<div id="vsotaskgetInput">
+### vsotask.getInput <a href="#index">(^)</a>
 ```javascript
 getInput(name:string, required?:boolean):string
 ```
-<div id="vsotask.getPathInput">
-### vsotask.getPathInput
+<div id="vsotaskgetPathInput">
+### vsotask.getPathInput <a href="#index">(^)</a>
 ```javascript
 getPathInput(name:string, required?:boolean, check?:boolean):string
 ```
@@ -55,39 +79,39 @@ tool.exec()
     tl.setResult(tl.TaskResult.Failed, err.message);
 })
 ```
-<div id="vsotask.createToolRunner">
-### vsotask.createToolRunner
+<div id="vsotaskcreateToolRunner">
+### vsotask.createToolRunner <a href="#index">(^)</a>
 ```javascript
 createToolRunner(tool:string):ToolRunner
 ```
-<div id="toolrunner.ToolRunner.arg">
-### toolrunner.ToolRunner.arg
+<div id="toolrunnerToolRunnerarg">
+### toolrunner.ToolRunner.arg <a href="#index">(^)</a>
 ```javascript
 arg(val:any):void
 ```
-<div id="toolrunner.ToolRunner.argIf">
-### toolrunner.ToolRunner.argIf
+<div id="toolrunnerToolRunnerargIf">
+### toolrunner.ToolRunner.argIf <a href="#index">(^)</a>
 ```javascript
 argIf(condition:any, val:any):void
 ```
-<div id="toolrunner.ToolRunner.exec">
-### toolrunner.ToolRunner.exec
+<div id="toolrunnerToolRunnerexec">
+### toolrunner.ToolRunner.exec <a href="#index">(^)</a>
 ```javascript
 exec(options?:IExecOptions):Promise
 ```
-<div id="toolrunner.ToolRunner.execSync">
-### toolrunner.ToolRunner.execSync
+<div id="toolrunnerToolRunnerexecSync">
+### toolrunner.ToolRunner.execSync <a href="#index">(^)</a>
 ```javascript
 execSync(options?:IExecOptions):IExecResult
 ```
-<div id="vsotask.setResult">
-### vsotask.setResult
+<div id="vsotasksetResult">
+### vsotask.setResult <a href="#index">(^)</a>
 setResult sets the result of the task.
 ```javascript
 setResult(result:TaskResult, message:string):void
 ```
-<div id="vsotask.setVariable">
-### vsotask.setVariable
+<div id="vsotasksetVariable">
+### vsotask.setVariable <a href="#index">(^)</a>
 ```javascript
 setVariable(name:string, val:string):void
 ```
@@ -96,13 +120,13 @@ setVariable(name:string, val:string):void
  
 Functions for disk operations
  
-<div id="vsotask.cd">
-### vsotask.cd
+<div id="vsotaskcd">
+### vsotask.cd <a href="#index">(^)</a>
 ```javascript
 cd(path:string):void
 ```
-<div id="vsotask.cp">
-### vsotask.cp
+<div id="vsotaskcp">
+### vsotask.cp <a href="#index">(^)</a>
 ```javascript
 cp(options:any, source:string, dest:string, continueOnError?:boolean):boolean
 ```

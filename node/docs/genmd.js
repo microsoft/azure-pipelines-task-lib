@@ -109,9 +109,14 @@ var obj = function(o) {
     console.log(JSON.stringify(o, null, 2));
 }
 
+var anchorName = function(name) {
+    return name.replace(/\./g, '');
+}
+
 var writeFunction = function(name, item) {
-    writeLine('<div id="' + name + '">');
-    writeLine('### ' + name);
+
+    writeLine('<div id="' + anchorName(name) + '">');
+    writeLine('### ' + name + ' <a href="#index">(^)</a>');
 
     var sig = item['signatures'];
     if (sig && sig.length > 0) {
@@ -154,6 +159,66 @@ var writeFunction = function(name, item) {
 
 }
 
+//
+// Index
+//
+writeLine('## Index');
+for (var secName in ds) {
+    writeLine();
+    writeLine('<div id="index">');
+    writeLine('### ' + secName);
+    writeLine();
+
+    var sec = ds[secName];
+    var docs = sec.Document;
+    docs.forEach(function(doc) {
+        var item = get(doc);
+
+        if (item) {
+            switch (item.kindString) {
+                case "Constructor":
+                case "Method":
+                case "Interface":
+                case "Enumeration":
+                case "Function":
+                    var idxTitle = doc.substring(doc.indexOf('.') + 1); 
+                    var comment = '';
+                    /*
+                    var sig = item['signatures'];
+                    if (sig && sig.length > 0) {
+                        sig = sig[0];
+                    }
+
+                    if (sig && sig.comment) {
+                        
+                        comment = sig.comment.shortText;
+                        
+                        if (comment.indexOf('\n')) {
+                            comment = comment.substring(comment.indexOf('\n'));    
+                        }
+                        
+                        if (comment.length > 77) {
+                            comment = comment.substring(77);
+                            if (comment.length == 77) {
+                                comment += ' ...';
+                            }                            
+                        } 
+                    }
+                    */
+
+                    writeLine('<a href="#' + anchorName(doc) + '">' + idxTitle + '</a> ' + comment);
+                    break;
+
+                default:
+                    console.log('warning: skipping ' + doc);
+            }             
+        }
+    })
+}
+
+//
+// Docs
+//
 for (var secName in ds) {
     writeLine();
     writeLine('## ' + secName);
