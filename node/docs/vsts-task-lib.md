@@ -29,8 +29,12 @@ import tl = require('vsts-task-lib/task')
 <a href="#taskcreateToolRunner">createToolRunner</a> <br/>
 <a href="#toolrunnerToolRunnerarg">ToolRunner.arg</a> <br/>
 <a href="#toolrunnerToolRunnerargIf">ToolRunner.argIf</a> <br/>
+<a href="#toolrunnerIExecOptions">IExecOptions</a> <br/>
 <a href="#toolrunnerToolRunnerexec">ToolRunner.exec</a> <br/>
 <a href="#toolrunnerToolRunnerexecSync">ToolRunner.execSync</a> <br/>
+<a href="#toolrunnerIExecResult">IExecResult</a> <br/>
+<a href="#taskexec">exec</a> <br/>
+<a href="#taskexecSync">execSync</a> <br/>
 <a href="#tasksetResult">setResult</a> <br/>
  
 ### Service Endpoints <a href="#ServiceEndpoints">(v)</a>
@@ -203,58 +207,131 @@ tool.exec()
 <br/>
 <div id="taskcreateToolRunner">
 ### task.createToolRunner <a href="#index">(^)</a>
+Convenience factory to create a ToolRunner.
 ```javascript
 createToolRunner(tool:string):ToolRunner
 ```
  
 Param | Type | Description
 --- | --- | ---
-tool | string |  - 
+tool | string | path to tool to exec
  
 <br/>
 <div id="toolrunnerToolRunnerarg">
 ### toolrunner.ToolRunner.arg <a href="#index">(^)</a>
+Add arguments
+Accepts a full string command line and a string array as well
+Will handle double quoted args. E.g. '"arg one" two -z'
 ```javascript
 arg(val:any):void
 ```
  
 Param | Type | Description
 --- | --- | ---
-val | any |  - 
+val | any | string cmdline or array of strings
  
 <br/>
 <div id="toolrunnerToolRunnerargIf">
 ### toolrunner.ToolRunner.argIf <a href="#index">(^)</a>
+Add argument(s) if a condition is met
+Wraps arg().  See arg for details
 ```javascript
 argIf(condition:any, val:any):void
 ```
  
 Param | Type | Description
 --- | --- | ---
-condition | any |  - 
-val | any |  - 
+condition | any | boolean condition
+val | any | string cmdline or array of strings
+ 
+<br/>
+<div id="toolrunnerIExecOptions">
+### toolrunner.IExecOptions <a href="#index">(^)</a>
+Interface for exec options
+ 
+Property | Description
+--- | ---
+cwd | optional working directory.  defaults to current
+env | optional envvar dictionary.  defaults to current processes env
+silent | optional.  defaults to false
+failOnStdErr | optional.  whether to fail if output to stderr.  defaults to false
+ignoreReturnCode | optional.  defaults to failing on non zero.  ignore will not fail leaving it up to the caller
+
  
 <br/>
 <div id="toolrunnerToolRunnerexec">
 ### toolrunner.ToolRunner.exec <a href="#index">(^)</a>
+Exec a tool.
+Output will be streamed to the live console.
+Returns promise with return code
 ```javascript
 exec(options?:IExecOptions):Promise
 ```
  
 Param | Type | Description
 --- | --- | ---
-options | IExecOptions |  - 
+options | IExecOptions | optional exec options.  See IExecOptions
  
 <br/>
 <div id="toolrunnerToolRunnerexecSync">
 ### toolrunner.ToolRunner.execSync <a href="#index">(^)</a>
+Exec a tool synchronously.
+Output will be *not* be streamed to the live console.  It will be returned after execution is complete.
+Appropriate for short running tools
+Returns IExecResult with output and return code
 ```javascript
 execSync(options?:IExecOptions):IExecResult
 ```
  
 Param | Type | Description
 --- | --- | ---
-options | IExecOptions |  - 
+options | IExecOptions | optionalexec options.  See IExecOptions
+ 
+<br/>
+<div id="toolrunnerIExecResult">
+### toolrunner.IExecResult <a href="#index">(^)</a>
+Interface for exec results returned from synchronous exec functions
+ 
+Property | Description
+--- | ---
+stdout | standard output
+stderr | error output
+code | return code
+error | Error on failure
+
+ 
+<br/>
+<div id="taskexec">
+### task.exec <a href="#index">(^)</a>
+Exec a tool.  Convenience wrapper over ToolRunner to exec with args in one call.
+Output will be streamed to the live console.
+Returns promise with return code
+```javascript
+exec(tool:string, args:any, options?:IExecOptions):Promise
+```
+ 
+Param | Type | Description
+--- | --- | ---
+tool | string | path to tool to exec
+args | any | an arg string or array of args
+options | IExecOptions | optional exec options.  See IExecOptions
+ 
+<br/>
+<div id="taskexecSync">
+### task.execSync <a href="#index">(^)</a>
+Exec a tool synchronously.  Convenience wrapper over ToolRunner to execSync with args in one call.
+Output will be *not* be streamed to the live console.  It will be returned after execution is complete.
+Appropriate for short running tools
+Returns IExecResult with output and return code
+```javascript
+execSync(tool:string, args:any, options?:IExecOptions):IExecResult
+```
+ 
+Param | Type | Description
+--- | --- | ---
+tool | string | path to tool to exec
+args | any | an arg string or array of args
+options | IExecOptions | optionalexec options.  See IExecOptions
  
 <br/>
 <div id="tasksetResult">

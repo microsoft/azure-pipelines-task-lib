@@ -796,7 +796,6 @@ export function globFirst(pattern: string): string {
 //-----------------------------------------------------
 // Exec convenience wrapper
 //-----------------------------------------------------
-/*
 var _argStringToArray = function(argString: string): string[] {
     var args = argString.match(/([^" ]*("[^"]*")[^" ]*)|[^" ]+/g);
 
@@ -805,8 +804,17 @@ var _argStringToArray = function(argString: string): string[] {
     }
     return args;
 }
-*/
 
+/**
+ * Exec a tool.  Convenience wrapper over ToolRunner to exec with args in one call.
+ * Output will be streamed to the live console.
+ * Returns promise with return code
+ * 
+ * @param     tool     path to tool to exec
+ * @param     args     an arg string or array of args
+ * @param     options  optional exec options.  See IExecOptions
+ * @returns   number
+ */
 export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Promise<number> {
     var toolPath = which(tool, true);
     var tr = createToolRunner(toolPath);
@@ -816,6 +824,17 @@ export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Pro
     return tr.exec(options);
 }
 
+/**
+ * Exec a tool synchronously.  Convenience wrapper over ToolRunner to execSync with args in one call.
+ * Output will be *not* be streamed to the live console.  It will be returned after execution is complete.
+ * Appropriate for short running tools 
+ * Returns IExecResult with output and return code
+ * 
+ * @param     tool     path to tool to exec
+ * @param     args     an arg string or array of args
+ * @param     options  optionalexec options.  See IExecOptions
+ * @returns   IExecResult
+ */
 export function execSync(tool: string, args: any, options?: trm.IExecOptions): trm.IExecResult {
     var toolPath = which(tool, true);
     var tr = createToolRunner(toolPath);
@@ -826,6 +845,12 @@ export function execSync(tool: string, args: any, options?: trm.IExecOptions): t
     return tr.execSync(options);
 }
 
+/**
+ * Convenience factory to create a ToolRunner.
+ * 
+ * @param     tool     path to tool to exec
+ * @returns   ToolRunner
+ */
 export function createToolRunner(tool: string) {
     var tr: trm.ToolRunner = new trm.ToolRunner(tool);
     tr.on('debug', (message: string) => {

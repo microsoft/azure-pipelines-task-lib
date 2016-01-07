@@ -19,6 +19,15 @@ var run = function(cmd, callback) {
 
 }
 
+/**
+ * Interface for exec options
+ * 
+ * @param     cwd        optional working directory.  defaults to current 
+ * @param     env        optional envvar dictionary.  defaults to current processes env
+ * @param     silent     optional.  defaults to false
+ * @param     failOnStdErr     optional.  whether to fail if output to stderr.  defaults to false
+ * @param     ignoreReturnCode     optional.  defaults to failing on non zero.  ignore will not fail leaving it up to the caller
+ */
 export interface IExecOptions {
     cwd: string;
     env: { [key: string]: string };
@@ -29,6 +38,14 @@ export interface IExecOptions {
     errStream: NodeJS.WritableStream;
 };
 
+/**
+ * Interface for exec results returned from synchronous exec functions
+ * 
+ * @param     stdout      standard output
+ * @param     stderr      error output
+ * @param     code        return code
+ * @param     error       Error on failure
+ */
 export interface IExecResult {
     stdout: string;
     stderr: string;
@@ -70,6 +87,14 @@ export class ToolRunner extends events.EventEmitter {
         return args;
     }
 
+    /**
+     * Add arguments
+     * Accepts a full string command line and a string array as well
+     * Will handle double quoted args. E.g. '"arg one" two -z'
+     * 
+     * @param     val     string cmdline or array of strings
+     * @returns   void
+     */
     public arg(val: any) {
         if (!val) {
             return;
@@ -85,16 +110,29 @@ export class ToolRunner extends events.EventEmitter {
         }
     }
 
+    /**
+     * Add argument(s) if a condition is met
+     * Wraps arg().  See arg for details
+     *
+     * @param     condition     boolean condition
+     * @param     val     string cmdline or array of strings
+     * @returns   void
+     */
     public argIf(condition: any, val: any) {
         if (condition) {
             this.arg(val);
         }
     }
 
-    //
-    // Exec - use for long running tools where you need to stream live output as it runs
-    //        returns a promise with return code.
-    //
+    /**
+     * Exec a tool.
+     * Output will be streamed to the live console.
+     * Returns promise with return code
+     * 
+     * @param     tool     path to tool to exec
+     * @param     options  optional exec options.  See IExecOptions
+     * @returns   number
+     */
     public exec(options?: IExecOptions): Q.Promise<number> {
         var defer = Q.defer<number>();
 
@@ -172,10 +210,16 @@ export class ToolRunner extends events.EventEmitter {
         return <Q.Promise<number>>defer.promise;
     }
 
-    //
-    // ExecSync - use for short running simple commands.  Simple and convenient (synchronous)
-    //            but also has limits.  For example, no live output and limited to max buffer
-    //
+    /**
+     * Exec a tool synchronously. 
+     * Output will be *not* be streamed to the live console.  It will be returned after execution is complete.
+     * Appropriate for short running tools 
+     * Returns IExecResult with output and return code
+     * 
+     * @param     tool     path to tool to exec
+     * @param     options  optionalexec options.  See IExecOptions
+     * @returns   IExecResult
+     */
     public execSync(options?: IExecOptions): IExecResult {
         var defer = Q.defer();
 

@@ -18,8 +18,12 @@
             "task.createToolRunner",
             "toolrunner.ToolRunner.arg",
             "toolrunner.ToolRunner.argIf",
+            "toolrunner.IExecOptions",
             "toolrunner.ToolRunner.exec",
             "toolrunner.ToolRunner.execSync",
+            "toolrunner.IExecResult",
+            "task.exec",
+            "task.execSync",
             "task.setResult"
         ]
     }, 
