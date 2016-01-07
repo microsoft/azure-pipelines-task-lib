@@ -919,40 +919,6 @@
 					}
 				},
 				{
-					"id": 271,
-					"name": "_argStringToArray",
-					"kind": 64,
-					"kindString": "Function",
-					"flags": {},
-					"signatures": [
-						{
-							"id": 272,
-							"name": "_argStringToArray",
-							"kind": 4096,
-							"kindString": "Call signature",
-							"flags": {},
-							"parameters": [
-								{
-									"id": 273,
-									"name": "argString",
-									"kind": 32768,
-									"kindString": "Parameter",
-									"flags": {},
-									"type": {
-										"type": "instrinct",
-										"name": "string"
-									}
-								}
-							],
-							"type": {
-								"type": "instrinct",
-								"isArray": true,
-								"name": "string"
-							}
-						}
-					]
-				},
-				{
 					"id": 165,
 					"name": "_writeError",
 					"kind": 64,
@@ -1023,7 +989,7 @@
 					]
 				},
 				{
-					"id": 274,
+					"id": 275,
 					"name": "cd",
 					"kind": 64,
 					"kindString": "Function",
@@ -1032,18 +998,25 @@
 					},
 					"signatures": [
 						{
-							"id": 275,
+							"id": 276,
 							"name": "cd",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
+							"comment": {
+								"shortText": "Change working directory.",
+								"returns": "void\n"
+							},
 							"parameters": [
 								{
-									"id": 276,
+									"id": 277,
 									"name": "path",
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "new working directory path"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "string"
@@ -1058,7 +1031,7 @@
 					]
 				},
 				{
-					"id": 282,
+					"id": 271,
 					"name": "checkPath",
 					"kind": 64,
 					"kindString": "Function",
@@ -1067,29 +1040,39 @@
 					},
 					"signatures": [
 						{
-							"id": 283,
+							"id": 272,
 							"name": "checkPath",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
+							"comment": {
+								"shortText": "Checks whether a path exists.\nIf the path does not exist, the task will fail with an error message. Execution will halt.",
+								"returns": "void\n"
+							},
 							"parameters": [
 								{
-									"id": 284,
+									"id": 273,
 									"name": "p",
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "path to check"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "string"
 									}
 								},
 								{
-									"id": 285,
+									"id": 274,
 									"name": "name",
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "name only used in error message to identify the path"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "string"
@@ -1104,7 +1087,7 @@
 					]
 				},
 				{
-					"id": 257,
+					"id": 251,
 					"name": "command",
 					"kind": 64,
 					"kindString": "Function",
@@ -1113,14 +1096,14 @@
 					},
 					"signatures": [
 						{
-							"id": 258,
+							"id": 252,
 							"name": "command",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"parameters": [
 								{
-									"id": 259,
+									"id": 253,
 									"name": "command",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -1131,7 +1114,7 @@
 									}
 								},
 								{
-									"id": 260,
+									"id": 254,
 									"name": "properties",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -1142,7 +1125,7 @@
 									}
 								},
 								{
-									"id": 261,
+									"id": 255,
 									"name": "message",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -1161,7 +1144,7 @@
 					]
 				},
 				{
-					"id": 293,
+					"id": 290,
 					"name": "cp",
 					"kind": 64,
 					"kindString": "Function",
@@ -1170,52 +1153,68 @@
 					},
 					"signatures": [
 						{
-							"id": 294,
+							"id": 291,
 							"name": "cp",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
+							"comment": {
+								"shortText": "Returns path of a tool had the tool actually been invoked.  Resolves via paths.\nIf you check and the tool does not exist, the task will fail with an error message and halt execution.\nReturns whether the copy was successful",
+								"returns": "boolean\n"
+							},
 							"parameters": [
 								{
-									"id": 295,
+									"id": 292,
 									"name": "options",
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "string -r, -f or -rf for recursive and force"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "any"
 									}
 								},
 								{
-									"id": 296,
+									"id": 293,
 									"name": "source",
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "source path"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "string"
 									}
 								},
 								{
-									"id": 297,
+									"id": 294,
 									"name": "dest",
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "destination path"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "string"
 									}
 								},
 								{
-									"id": 298,
+									"id": 295,
 									"name": "continueOnError",
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {
 										"isOptional": true
+									},
+									"comment": {
+										"text": "optional. whether to continue on error"
 									},
 									"type": {
 										"type": "instrinct",
@@ -1231,7 +1230,7 @@
 					]
 				},
 				{
-					"id": 328,
+					"id": 325,
 					"name": "createToolRunner",
 					"kind": 64,
 					"kindString": "Function",
@@ -1240,14 +1239,14 @@
 					},
 					"signatures": [
 						{
-							"id": 329,
+							"id": 326,
 							"name": "createToolRunner",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"parameters": [
 								{
-									"id": 330,
+									"id": 327,
 									"name": "tool",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -1267,7 +1266,7 @@
 					]
 				},
 				{
-					"id": 268,
+					"id": 262,
 					"name": "debug",
 					"kind": 64,
 					"kindString": "Function",
@@ -1276,14 +1275,14 @@
 					},
 					"signatures": [
 						{
-							"id": 269,
+							"id": 263,
 							"name": "debug",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"parameters": [
 								{
-									"id": 270,
+									"id": 264,
 									"name": "message",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -1346,7 +1345,7 @@
 					]
 				},
 				{
-					"id": 265,
+					"id": 259,
 					"name": "error",
 					"kind": 64,
 					"kindString": "Function",
@@ -1355,14 +1354,14 @@
 					},
 					"signatures": [
 						{
-							"id": 266,
+							"id": 260,
 							"name": "error",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"parameters": [
 								{
-									"id": 267,
+									"id": 261,
 									"name": "message",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -1381,7 +1380,7 @@
 					]
 				},
 				{
-					"id": 318,
+					"id": 315,
 					"name": "exec",
 					"kind": 64,
 					"kindString": "Function",
@@ -1390,14 +1389,14 @@
 					},
 					"signatures": [
 						{
-							"id": 319,
+							"id": 316,
 							"name": "exec",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"parameters": [
 								{
-									"id": 320,
+									"id": 317,
 									"name": "tool",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -1408,7 +1407,7 @@
 									}
 								},
 								{
-									"id": 321,
+									"id": 318,
 									"name": "args",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -1419,7 +1418,7 @@
 									}
 								},
 								{
-									"id": 322,
+									"id": 319,
 									"name": "options",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -1447,7 +1446,7 @@
 					]
 				},
 				{
-					"id": 323,
+					"id": 320,
 					"name": "execSync",
 					"kind": 64,
 					"kindString": "Function",
@@ -1456,14 +1455,14 @@
 					},
 					"signatures": [
 						{
-							"id": 324,
+							"id": 321,
 							"name": "execSync",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"parameters": [
 								{
-									"id": 325,
+									"id": 322,
 									"name": "tool",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -1474,7 +1473,7 @@
 									}
 								},
 								{
-									"id": 326,
+									"id": 323,
 									"name": "args",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -1485,7 +1484,7 @@
 									}
 								},
 								{
-									"id": 327,
+									"id": 324,
 									"name": "options",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -1508,7 +1507,7 @@
 					]
 				},
 				{
-					"id": 254,
+					"id": 268,
 					"name": "exist",
 					"kind": 64,
 					"kindString": "Function",
@@ -1517,18 +1516,25 @@
 					},
 					"signatures": [
 						{
-							"id": 255,
+							"id": 269,
 							"name": "exist",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
+							"comment": {
+								"shortText": "Returns whether a path exists.",
+								"returns": "boolean\n"
+							},
 							"parameters": [
 								{
-									"id": 256,
+									"id": 270,
 									"name": "path",
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "path to check"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "string"
@@ -1666,7 +1672,7 @@
 					]
 				},
 				{
-					"id": 336,
+					"id": 333,
 					"name": "filter",
 					"kind": 64,
 					"kindString": "Function",
@@ -1675,14 +1681,14 @@
 					},
 					"signatures": [
 						{
-							"id": 337,
+							"id": 334,
 							"name": "filter",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"parameters": [
 								{
-									"id": 338,
+									"id": 335,
 									"name": "pattern",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -1693,7 +1699,7 @@
 									}
 								},
 								{
-									"id": 339,
+									"id": 336,
 									"name": "options",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -1707,21 +1713,21 @@
 							"type": {
 								"type": "reflection",
 								"declaration": {
-									"id": 340,
+									"id": 337,
 									"name": "__type",
 									"kind": 65536,
 									"kindString": "Type literal",
 									"flags": {},
 									"signatures": [
 										{
-											"id": 341,
+											"id": 338,
 											"name": "__call",
 											"kind": 4096,
 											"kindString": "Call signature",
 											"flags": {},
 											"parameters": [
 												{
-													"id": 342,
+													"id": 339,
 													"name": "element",
 													"kind": 32768,
 													"kindString": "Parameter",
@@ -1732,7 +1738,7 @@
 													}
 												},
 												{
-													"id": 343,
+													"id": 340,
 													"name": "indexed",
 													"kind": 32768,
 													"kindString": "Parameter",
@@ -1743,7 +1749,7 @@
 													}
 												},
 												{
-													"id": 344,
+													"id": 341,
 													"name": "array",
 													"kind": 32768,
 													"kindString": "Parameter",
@@ -1767,7 +1773,7 @@
 					]
 				},
 				{
-					"id": 305,
+					"id": 302,
 					"name": "find",
 					"kind": 64,
 					"kindString": "Function",
@@ -1776,18 +1782,25 @@
 					},
 					"signatures": [
 						{
-							"id": 306,
+							"id": 303,
 							"name": "find",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
+							"comment": {
+								"shortText": "Find all files under a give path\nReturns an array of full paths",
+								"returns": "string[]\n"
+							},
 							"parameters": [
 								{
-									"id": 307,
+									"id": 304,
 									"name": "findPath",
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "path to find files under"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "string"
@@ -2221,7 +2234,7 @@
 					]
 				},
 				{
-					"id": 312,
+					"id": 309,
 					"name": "glob",
 					"kind": 64,
 					"kindString": "Function",
@@ -2230,14 +2243,14 @@
 					},
 					"signatures": [
 						{
-							"id": 313,
+							"id": 310,
 							"name": "glob",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"parameters": [
 								{
-									"id": 314,
+									"id": 311,
 									"name": "pattern",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -2257,7 +2270,7 @@
 					]
 				},
 				{
-					"id": 315,
+					"id": 312,
 					"name": "globFirst",
 					"kind": 64,
 					"kindString": "Function",
@@ -2266,14 +2279,14 @@
 					},
 					"signatures": [
 						{
-							"id": 316,
+							"id": 313,
 							"name": "globFirst",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"parameters": [
 								{
-									"id": 317,
+									"id": 314,
 									"name": "pattern",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -2462,7 +2475,7 @@
 					]
 				},
 				{
-					"id": 331,
+					"id": 328,
 					"name": "match",
 					"kind": 64,
 					"kindString": "Function",
@@ -2471,14 +2484,14 @@
 					},
 					"signatures": [
 						{
-							"id": 332,
+							"id": 329,
 							"name": "match",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"parameters": [
 								{
-									"id": 333,
+									"id": 330,
 									"name": "list",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -2489,7 +2502,7 @@
 									}
 								},
 								{
-									"id": 334,
+									"id": 331,
 									"name": "pattern",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -2500,7 +2513,7 @@
 									}
 								},
 								{
-									"id": 335,
+									"id": 332,
 									"name": "options",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -2520,7 +2533,7 @@
 					]
 				},
 				{
-					"id": 286,
+					"id": 283,
 					"name": "mkdirP",
 					"kind": 64,
 					"kindString": "Function",
@@ -2529,18 +2542,25 @@
 					},
 					"signatures": [
 						{
-							"id": 287,
+							"id": 284,
 							"name": "mkdirP",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
+							"comment": {
+								"shortText": "Make a directory.  Creates the full path with folders in between\nReturns whether it was successful or not",
+								"returns": "boolean\n"
+							},
 							"parameters": [
 								{
-									"id": 288,
+									"id": 285,
 									"name": "p",
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "path to create"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "any"
@@ -2555,7 +2575,7 @@
 					]
 				},
 				{
-					"id": 299,
+					"id": 296,
 					"name": "mv",
 					"kind": 64,
 					"kindString": "Function",
@@ -2564,52 +2584,68 @@
 					},
 					"signatures": [
 						{
-							"id": 300,
+							"id": 297,
 							"name": "mv",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
+							"comment": {
+								"shortText": "Moves a path.\nReturns whether the copy was successful",
+								"returns": "boolean\n"
+							},
 							"parameters": [
 								{
-									"id": 301,
+									"id": 298,
 									"name": "source",
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "source path"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "string"
 									}
 								},
 								{
-									"id": 302,
+									"id": 299,
 									"name": "dest",
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "destination path"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "string"
 									}
 								},
 								{
-									"id": 303,
+									"id": 300,
 									"name": "force",
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "whether to force and overwrite"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "boolean"
 									}
 								},
 								{
-									"id": 304,
+									"id": 301,
 									"name": "continueOnError",
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {
 										"isOptional": true
+									},
+									"comment": {
+										"text": "optional. whether to continue on error"
 									},
 									"type": {
 										"type": "instrinct",
@@ -2625,7 +2661,7 @@
 					]
 				},
 				{
-					"id": 280,
+					"id": 281,
 					"name": "popd",
 					"kind": 64,
 					"kindString": "Function",
@@ -2634,11 +2670,15 @@
 					},
 					"signatures": [
 						{
-							"id": 281,
+							"id": 282,
 							"name": "popd",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
+							"comment": {
+								"shortText": "Change working directory back to previously pushed directory",
+								"returns": "void\n"
+							},
 							"type": {
 								"type": "instrinct",
 								"name": "void"
@@ -2647,7 +2687,7 @@
 					]
 				},
 				{
-					"id": 277,
+					"id": 278,
 					"name": "pushd",
 					"kind": 64,
 					"kindString": "Function",
@@ -2656,18 +2696,25 @@
 					},
 					"signatures": [
 						{
-							"id": 278,
+							"id": 279,
 							"name": "pushd",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
+							"comment": {
+								"shortText": "Change working directory and push it on the stack",
+								"returns": "void\n"
+							},
 							"parameters": [
 								{
-									"id": 279,
+									"id": 280,
 									"name": "path",
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "new working directory path"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "string"
@@ -2682,7 +2729,7 @@
 					]
 				},
 				{
-					"id": 308,
+					"id": 305,
 					"name": "rmRF",
 					"kind": 64,
 					"kindString": "Function",
@@ -2691,30 +2738,40 @@
 					},
 					"signatures": [
 						{
-							"id": 309,
+							"id": 306,
 							"name": "rmRF",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
+							"comment": {
+								"shortText": "Remove a path recursively with force\nReturns whether it succeeds",
+								"returns": "string[]\n"
+							},
 							"parameters": [
 								{
-									"id": 310,
+									"id": 307,
 									"name": "path",
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "path to remove"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "string"
 									}
 								},
 								{
-									"id": 311,
+									"id": 308,
 									"name": "continueOnError",
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {
 										"isOptional": true
+									},
+									"comment": {
+										"text": "optional. whether to continue on error"
 									},
 									"type": {
 										"type": "instrinct",
@@ -3042,7 +3099,7 @@
 					]
 				},
 				{
-					"id": 251,
+					"id": 265,
 					"name": "stats",
 					"kind": 64,
 					"kindString": "Function",
@@ -3051,18 +3108,25 @@
 					},
 					"signatures": [
 						{
-							"id": 252,
+							"id": 266,
 							"name": "stats",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
+							"comment": {
+								"shortText": "Get's stat on a path.\nUseful for checking whether a file or directory.  Also getting created, modified and accessed time.\nsee [fs.stat](https://nodejs.org/api/fs.html#fs_class_fs_stats)",
+								"returns": "fsStat\n"
+							},
 							"parameters": [
 								{
-									"id": 253,
+									"id": 267,
 									"name": "path",
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "path to check"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "string"
@@ -3078,7 +3142,7 @@
 					]
 				},
 				{
-					"id": 262,
+					"id": 256,
 					"name": "warning",
 					"kind": 64,
 					"kindString": "Function",
@@ -3087,14 +3151,14 @@
 					},
 					"signatures": [
 						{
-							"id": 263,
+							"id": 257,
 							"name": "warning",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"parameters": [
 								{
-									"id": 264,
+									"id": 258,
 									"name": "message",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -3113,7 +3177,7 @@
 					]
 				},
 				{
-					"id": 289,
+					"id": 286,
 					"name": "which",
 					"kind": 64,
 					"kindString": "Function",
@@ -3122,30 +3186,40 @@
 					},
 					"signatures": [
 						{
-							"id": 290,
+							"id": 287,
 							"name": "which",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
+							"comment": {
+								"shortText": "Returns path of a tool had the tool actually been invoked.  Resolves via paths.\nIf you check and the tool does not exist, the task will fail with an error message and halt execution.",
+								"returns": "string\n"
+							},
 							"parameters": [
 								{
-									"id": 291,
+									"id": 288,
 									"name": "tool",
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
+									"comment": {
+										"text": "name of the tool"
+									},
 									"type": {
 										"type": "instrinct",
 										"name": "string"
 									}
 								},
 								{
-									"id": 292,
+									"id": 289,
 									"name": "check",
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {
 										"isOptional": true
+									},
+									"comment": {
+										"text": "whether to check if tool exists"
 									},
 									"type": {
 										"type": "instrinct",
@@ -3199,25 +3273,24 @@
 					"title": "Functions",
 					"kind": 64,
 					"children": [
-						271,
 						165,
 						168,
-						274,
-						282,
-						257,
-						293,
-						328,
-						268,
+						275,
+						271,
+						251,
+						290,
+						325,
+						262,
 						159,
-						265,
-						318,
-						323,
-						254,
+						259,
+						315,
+						320,
+						268,
 						189,
 						185,
 						235,
-						336,
-						305,
+						333,
+						302,
 						222,
 						230,
 						247,
@@ -3225,17 +3298,17 @@
 						218,
 						238,
 						211,
+						309,
 						312,
-						315,
 						181,
 						198,
 						207,
-						331,
-						286,
-						299,
-						280,
-						277,
-						308,
+						328,
+						283,
+						296,
+						281,
+						278,
+						305,
 						226,
 						174,
 						204,
@@ -3243,9 +3316,9 @@
 						171,
 						214,
 						155,
-						251,
-						262,
-						289
+						265,
+						256,
+						286
 					]
 				}
 			]

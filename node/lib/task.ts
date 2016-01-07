@@ -156,8 +156,8 @@ function loadLocStrings(resourceFile: string): { [key: string]: string; } {
  * Sets the location of the resources json.  This is typically the task.json file.
  * Call once at the beginning of the script before any calls to loc.
  * 
- * @param path      Full path to the json.
- * @returns         void
+ * @param     path      Full path to the json.
+ * @returns   void
  */
 export function setResourcePath(path: string): void {
     if (process.env['TASKLIB_INPROC_UNITS']) {
@@ -436,20 +436,6 @@ export function getEndpointAuthorization(id: string, optional: boolean): Endpoin
     return auth;
 }
 
-//-----------------------------------------------------
-// Fs Helpers
-//-----------------------------------------------------
-export interface FsStats extends fs.Stats {
-
-}
-
-export function stats(path: string): FsStats {
-    return fs.statSync(path);
-}
-
-export function exist(path: string): boolean {
-    return path && fs.existsSync(path);
-}
 
 //-----------------------------------------------------
 // Cmd Helpers
@@ -471,32 +457,43 @@ export function debug(message: string): void {
     command('task.debug', null, message);
 }
 
-var _argStringToArray = function(argString: string): string[] {
-    var args = argString.match(/([^" ]*("[^"]*")[^" ]*)|[^" ]+/g);
+//-----------------------------------------------------
+// Disk Functions
+//-----------------------------------------------------
+export interface FsStats extends fs.Stats {
 
-    for (var i = 0; i < args.length; i++) {
-        args[i] = args[i].replace(/"/g, "");
-    }
-    return args;
 }
 
-export function cd(path: string): void {
-    if (path) {
-        shell.cd(path);
-    }
+/**
+ * Get's stat on a path. 
+ * Useful for checking whether a file or directory.  Also getting created, modified and accessed time.
+ * see [fs.stat](https://nodejs.org/api/fs.html#fs_class_fs_stats)
+ * 
+ * @param     path      path to check
+ * @returns   fsStat 
+ */
+export function stats(path: string): FsStats {
+    return fs.statSync(path);
 }
 
-export function pushd(path: string): void {
-    shell.pushd(path);
+/**
+ * Returns whether a path exists.
+ * 
+ * @param     path      path to check
+ * @returns   boolean 
+ */
+export function exist(path: string): boolean {
+    return path && fs.existsSync(path);
 }
 
-export function popd(): void {
-    shell.popd();
-}
-
-//------------------------------------------------
-// Validation Helpers
-//------------------------------------------------
+/**
+ * Checks whether a path exists.
+ * If the path does not exist, the task will fail with an error message. Execution will halt.
+ * 
+ * @param     p         path to check
+ * @param     name      name only used in error message to identify the path
+ * @returns   void
+ */
 export function checkPath(p: string, name: string): void {
     debug('check path : ' + p);
     if (!exist(p)) {
@@ -504,13 +501,44 @@ export function checkPath(p: string, name: string): void {
     }
 }
 
-//-----------------------------------------------------
-// Shell/File I/O Helpers
-// Abstract these away so we can
-// - default to good error handling
-// - inject system.debug info
-// - have option to switch internal impl (shelljs now)
-//-----------------------------------------------------
+/**
+ * Change working directory.
+ * 
+ * @param     path      new working directory path
+ * @returns   void 
+ */
+export function cd(path: string): void {
+    if (path) {
+        shell.cd(path);
+    }
+}
+
+/**
+ * Change working directory and push it on the stack
+ * 
+ * @param     path      new working directory path
+ * @returns   void
+ */
+export function pushd(path: string): void {
+    shell.pushd(path);
+}
+
+/**
+ * Change working directory back to previously pushed directory
+ * 
+ * @returns   void
+ */
+export function popd(): void {
+    shell.popd();
+}
+
+/**
+ * Make a directory.  Creates the full path with folders in between
+ * Returns whether it was successful or not
+ * 
+ * @param     p       path to create
+ * @returns   boolean
+ */
 export function mkdirP(p): boolean {
     var success = true;
 
@@ -546,6 +574,14 @@ export function mkdirP(p): boolean {
     return success;
 }
 
+/**
+ * Returns path of a tool had the tool actually been invoked.  Resolves via paths.
+ * If you check and the tool does not exist, the task will fail with an error message and halt execution.
+ * 
+ * @param     tool       name of the tool
+ * @param     check      whether to check if tool exists
+ * @returns   string
+ */
 export function which(tool: string, check?: boolean): string {
     try {
         // we can't use shelljs.which() on windows due to https://github.com/shelljs/shelljs/issues/238
@@ -605,6 +641,17 @@ export function which(tool: string, check?: boolean): string {
     }
 }
 
+/**
+ * Returns path of a tool had the tool actually been invoked.  Resolves via paths.
+ * If you check and the tool does not exist, the task will fail with an error message and halt execution.
+ * Returns whether the copy was successful
+ * 
+ * @param     options    string -r, -f or -rf for recursive and force
+ * @param     source     source path
+ * @param     dest       destination path
+ * @param     continueOnError optional. whether to continue on error
+ * @returns   boolean
+ */
 export function cp(options, source: string, dest: string, continueOnError?: boolean): boolean {
     var success = true;
 
@@ -625,6 +672,16 @@ export function cp(options, source: string, dest: string, continueOnError?: bool
     return success;
 }
 
+/**
+ * Moves a path.  
+ * Returns whether the copy was successful
+ * 
+ * @param     source     source path
+ * @param     dest       destination path
+ * @param     force      whether to force and overwrite
+ * @param     continueOnError optional. whether to continue on error
+ * @returns   boolean
+ */
 export function mv(source: string, dest: string, force: boolean, continueOnError?: boolean): boolean {
     var success = true;
 
@@ -649,6 +706,13 @@ export function mv(source: string, dest: string, force: boolean, continueOnError
     return success;
 }
 
+/**
+ * Find all files under a give path 
+ * Returns an array of full paths
+ * 
+ * @param     findPath     path to find files under
+ * @returns   string[]
+ */
 export function find(findPath: string): string[] {
     try {
         if (!shell.test('-e', findPath)) {
@@ -664,6 +728,14 @@ export function find(findPath: string): string[] {
     }
 }
 
+/**
+ * Remove a path recursively with force
+ * Returns whether it succeeds
+ * 
+ * @param     path     path to remove
+ * @param     continueOnError optional. whether to continue on error
+ * @returns   string[]
+ */
 export function rmRF(path: string, continueOnError?: boolean): boolean {
     var success = true;
 
@@ -724,6 +796,17 @@ export function globFirst(pattern: string): string {
 //-----------------------------------------------------
 // Exec convenience wrapper
 //-----------------------------------------------------
+/*
+var _argStringToArray = function(argString: string): string[] {
+    var args = argString.match(/([^" ]*("[^"]*")[^" ]*)|[^" ]+/g);
+
+    for (var i = 0; i < args.length; i++) {
+        args[i] = args[i].replace(/"/g, "");
+    }
+    return args;
+}
+*/
+
 export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Promise<number> {
     var toolPath = which(tool, true);
     var tr = createToolRunner(toolPath);

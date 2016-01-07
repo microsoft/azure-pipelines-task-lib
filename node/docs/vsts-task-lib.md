@@ -33,23 +33,33 @@ import tl = require('vsts-task-lib/task')
 <a href="#toolrunnerToolRunnerexecSync">ToolRunner.execSync</a> <br/>
 <a href="#tasksetResult">setResult</a> <br/>
  
-### Disk Functions <a href="#DiskFunctions">(v)</a>
- 
-<a href="#taskcd">cd</a> <br/>
-<a href="#taskcp">cp</a> <br/>
- 
 ### Service Endpoints <a href="#ServiceEndpoints">(v)</a>
  
 <a href="#taskgetEndpointUrl">getEndpointUrl</a> <br/>
 <a href="#taskEndpointAuthorization">EndpointAuthorization</a> <br/>
 <a href="#taskgetEndpointAuthorization">getEndpointAuthorization</a> <br/>
  
+### Disk Functions <a href="#DiskFunctions">(v)</a>
+ 
+<a href="#taskwhich">which</a> <br/>
+<a href="#taskcheckPath">checkPath</a> <br/>
+<a href="#taskexist">exist</a> <br/>
+<a href="#taskcd">cd</a> <br/>
+<a href="#taskcp">cp</a> <br/>
+<a href="#taskmv">mv</a> <br/>
+<a href="#taskmkdirP">mkdirP</a> <br/>
+<a href="#taskfind">find</a> <br/>
+<a href="#taskrmRF">rmRF</a> <br/>
+<a href="#taskpushd">pushd</a> <br/>
+<a href="#taskpopd">popd</a> <br/>
+<a href="#taskstats">stats</a> <br/>
+ 
 ### Localization <a href="#Localization">(v)</a>
  
 <a href="#tasksetResourcePath">setResourcePath</a> <br/>
 <a href="#taskloc">loc</a> <br/>
  
- 
+<br/>
 <div id="InputFunctions">
 ## Input Functions
  
@@ -158,7 +168,7 @@ name | string | name of the variable to set
 val | string | value to set
  
  
- 
+<br/>
 <div id="Execution">
 ## Execution
  
@@ -261,40 +271,7 @@ result | TaskResult | TaskResult enum of Success or Failed.  If the result is Fa
 message | string |  - 
  
  
- 
-<div id="DiskFunctions">
-## Disk Functions
- 
----
- 
-Functions for disk operations
 <br/>
-<div id="taskcd">
-### task.cd <a href="#index">(^)</a>
-```javascript
-cd(path:string):void
-```
- 
-Param | Type | Description
---- | --- | ---
-path | string |  - 
- 
-<br/>
-<div id="taskcp">
-### task.cp <a href="#index">(^)</a>
-```javascript
-cp(options:any, source:string, dest:string, continueOnError?:boolean):boolean
-```
- 
-Param | Type | Description
---- | --- | ---
-options | any |  - 
-source | string |  - 
-dest | string |  - 
-continueOnError | boolean |  - 
- 
- 
- 
 <div id="ServiceEndpoints">
 ## Service Endpoints
  
@@ -342,7 +319,173 @@ id | string | name of the service endpoint
 optional | boolean | whether the url is optional
  
  
+<br/>
+<div id="DiskFunctions">
+## Disk Functions
  
+---
+ 
+Functions for disk operations
+<br/>
+<div id="taskwhich">
+### task.which <a href="#index">(^)</a>
+Returns path of a tool had the tool actually been invoked.  Resolves via paths.
+If you check and the tool does not exist, the task will fail with an error message and halt execution.
+```javascript
+which(tool:string, check?:boolean):string
+```
+ 
+Param | Type | Description
+--- | --- | ---
+tool | string | name of the tool
+check | boolean | whether to check if tool exists
+ 
+<br/>
+<div id="taskcheckPath">
+### task.checkPath <a href="#index">(^)</a>
+Checks whether a path exists.
+If the path does not exist, the task will fail with an error message. Execution will halt.
+```javascript
+checkPath(p:string, name:string):void
+```
+ 
+Param | Type | Description
+--- | --- | ---
+p | string | path to check
+name | string | name only used in error message to identify the path
+ 
+<br/>
+<div id="taskexist">
+### task.exist <a href="#index">(^)</a>
+Returns whether a path exists.
+```javascript
+exist(path:string):boolean
+```
+ 
+Param | Type | Description
+--- | --- | ---
+path | string | path to check
+ 
+<br/>
+<div id="taskcd">
+### task.cd <a href="#index">(^)</a>
+Change working directory.
+```javascript
+cd(path:string):void
+```
+ 
+Param | Type | Description
+--- | --- | ---
+path | string | new working directory path
+ 
+<br/>
+<div id="taskcp">
+### task.cp <a href="#index">(^)</a>
+Returns path of a tool had the tool actually been invoked.  Resolves via paths.
+If you check and the tool does not exist, the task will fail with an error message and halt execution.
+Returns whether the copy was successful
+```javascript
+cp(options:any, source:string, dest:string, continueOnError?:boolean):boolean
+```
+ 
+Param | Type | Description
+--- | --- | ---
+options | any | string -r, -f or -rf for recursive and force
+source | string | source path
+dest | string | destination path
+continueOnError | boolean | optional. whether to continue on error
+ 
+<br/>
+<div id="taskmv">
+### task.mv <a href="#index">(^)</a>
+Moves a path.
+Returns whether the copy was successful
+```javascript
+mv(source:string, dest:string, force:boolean, continueOnError?:boolean):boolean
+```
+ 
+Param | Type | Description
+--- | --- | ---
+source | string | source path
+dest | string | destination path
+force | boolean | whether to force and overwrite
+continueOnError | boolean | optional. whether to continue on error
+ 
+<br/>
+<div id="taskmkdirP">
+### task.mkdirP <a href="#index">(^)</a>
+Make a directory.  Creates the full path with folders in between
+Returns whether it was successful or not
+```javascript
+mkdirP(p:any):boolean
+```
+ 
+Param | Type | Description
+--- | --- | ---
+p | any | path to create
+ 
+<br/>
+<div id="taskfind">
+### task.find <a href="#index">(^)</a>
+Find all files under a give path
+Returns an array of full paths
+```javascript
+find(findPath:string):string
+```
+ 
+Param | Type | Description
+--- | --- | ---
+findPath | string | path to find files under
+ 
+<br/>
+<div id="taskrmRF">
+### task.rmRF <a href="#index">(^)</a>
+Remove a path recursively with force
+Returns whether it succeeds
+```javascript
+rmRF(path:string, continueOnError?:boolean):boolean
+```
+ 
+Param | Type | Description
+--- | --- | ---
+path | string | path to remove
+continueOnError | boolean | optional. whether to continue on error
+ 
+<br/>
+<div id="taskpushd">
+### task.pushd <a href="#index">(^)</a>
+Change working directory and push it on the stack
+```javascript
+pushd(path:string):void
+```
+ 
+Param | Type | Description
+--- | --- | ---
+path | string | new working directory path
+ 
+<br/>
+<div id="taskpopd">
+### task.popd <a href="#index">(^)</a>
+Change working directory back to previously pushed directory
+```javascript
+popd():void
+```
+<br/>
+<div id="taskstats">
+### task.stats <a href="#index">(^)</a>
+Get's stat on a path.
+Useful for checking whether a file or directory.  Also getting created, modified and accessed time.
+see [fs.stat](https://nodejs.org/api/fs.html#fs_class_fs_stats)
+```javascript
+stats(path:string):FsStats
+```
+ 
+Param | Type | Description
+--- | --- | ---
+path | string | path to check
+ 
+ 
+<br/>
 <div id="Localization">
 ## Localization
  

@@ -23,13 +23,6 @@
             "task.setResult"
         ]
     }, 
-    "Disk Functions": {
-        "Summary": "Functions for disk operations",
-        "Document": [
-            "task.cd",
-            "task.cp"
-        ]
-    },
     "Service Endpoints": {
         "Summary": "Retrieve service endpoints and authorization details",
         "Document": [
@@ -37,7 +30,24 @@
             "task.EndpointAuthorization",
             "task.getEndpointAuthorization"
         ]
-    },    
+    }, 
+    "Disk Functions": {
+        "Summary": "Functions for disk operations",
+        "Document": [
+            "task.which",
+            "task.checkPath",
+            "task.exist",
+            "task.cd",
+            "task.cp",
+            "task.mv",
+            "task.mkdirP",
+            "task.find",
+            "task.rmRF",
+            "task.pushd",
+            "task.popd",
+            "task.stats"   
+        ]
+    },
     "Localization": {
         "Summary": "Localization is optional but is supported using these functions at runtime",
         "Sample": "samples/loc.ts",

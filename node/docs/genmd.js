@@ -135,7 +135,7 @@ var writeInterface = function(name, item) {
             comment.tags.forEach(function(tag) {
                 writeLine(tag.param + ' | ' + tag.text );
             })
-            
+
             writeLine();
         }         
     }
@@ -267,7 +267,7 @@ for (var secName in ds) {
 //
 for (var secName in ds) {
     writeLine();
-    writeLine();
+    writeLine("<br/>");
     writeLine('<div id="' + anchorName(secName) + '">');
     writeLine('## ' + secName);
     writeLine();
