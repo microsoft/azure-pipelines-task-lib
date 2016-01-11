@@ -1,0 +1,30 @@
+{
+  "name": "vsts-task-sdk",
+  "version": "0.5.0",
+  "description": "VSTS Task SDK",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Microsoft/vsts-task-lib.git"
+  },
+  "keywords": [
+    "vsts",
+    "xplat",
+    "agent",
+    "build"
+  ],
+  "author": "Microsoft",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Microsoft/vsts-task-lib/issues"
+  },
+  "homepage": "https://github.com/Microsoft/vsts-task-lib#readme",
+  "devDependencies": {
+    "del": "^2.2.0",
+    "gulp": "^3.9.0",
+    "semver": "^5.1.0",
+    "shelljs": "^0.5.3"
+  }
+}
