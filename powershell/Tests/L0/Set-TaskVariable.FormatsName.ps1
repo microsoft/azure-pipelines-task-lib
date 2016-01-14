@@ -2,7 +2,7 @@
 param()
 
 # Arrange.
-. $PSScriptRoot\..\..\lib\Initialize-Test.ps1
+. $PSScriptRoot\..\lib\Initialize-Test.ps1
 $variableSets = @(
     @{ Path = 'Env:Some_name' ; Name = 'Some.name' ; Expected = 'Some value' }
     @{ Path = 'Env:agent.jobstatus' ; Name = 'agent.jobstatus' ; Expected = 'Some job status' }
@@ -17,5 +17,5 @@ foreach ($variableSet in $variableSets) {
     # Assert.
     $actual = Get-Content -LiteralPath $variableSet.Path
     Assert-AreEqual $variableSet.Expected $actual
-    Assert-WasCalled Write-Host -- "##vso[task.setvariable variable=$($variableSet.Name);]$($variableSet.Expected)"
+    Assert-WasCalled Write-Host -- "##vso[task.setvariable variable=$($variableSet.Name)]$($variableSet.Expected)"
 }

@@ -2,7 +2,7 @@
 param()
 
 # Arrange.
-. $PSScriptRoot\..\..\lib\Initialize-Test.ps1
+. $PSScriptRoot\..\lib\Initialize-Test.ps1
 if (Test-Path -LiteralPath Env:INPUT_SOME_NAME) {
     Remove-Item -LiteralPath Env:INPUT_SOME_NAME
 }

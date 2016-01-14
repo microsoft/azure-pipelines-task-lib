@@ -34,8 +34,28 @@ gulp.task('clean', function (done) {
 	return del([buildRoot], done);
 });
 
-gulp.task('copy:manifest', ['clean'], function () {
-	return gulp.src(['package.json', 'lib.json', '../LICENSE', '../README.md'])
+gulp.task('loc:generate', ['clean'], function() {
+    // Build the content for the en-US resjson file.
+    var lib = require('./lib.json');
+    var strPath = path.join('Strings', 'resources.resjson', 'en-US');
+    shell.mkdir('-p', strPath);
+    var strings = { };
+    if (lib.messages) {
+        for (var key in lib.messages) {
+            var messageKey = 'loc.messages.' + key;
+            strings[messageKey] = lib.messages[key];
+        }
+    }
+
+    // Create the en-US resjson file.
+    var enPath = path.join(strPath, 'resources.resjson');
+    var enContents = JSON.stringify(strings, null, 2);
+    fs.writeFileSync(enPath, enContents)
+    return;
+});
+
+gulp.task('copy:manifest', ['loc:generate'], function () {
+	return gulp.src(['package.json', 'lib.json', path.join('**', 'resources.resjson'), path.join('..', 'LICENSE'), path.join('..', 'README.md')])
 		.pipe(gulp.dest(buildRoot))
 });
 

@@ -1,0 +1,18 @@
+{
+  "loc.messages.LIB_UnhandledEx": "Unhandled: %s",
+  "loc.messages.LIB_FailOnCode": "Failure return code: %d",
+  "loc.messages.LIB_ReturnCode": "Return code: %d",
+  "loc.messages.LIB_ResourceFileNotExist": "Resource file doesn\\'t exist: %s",
+  "loc.messages.LIB_ResourceFileAlreadySet": "Resource file has already set to: %s",
+  "loc.messages.LIB_ResourceFileNotSet": "Resource file haven\\'t set, can\\'t find loc string for key: %s",
+  "loc.messages.LIB_LocStringNotFound": "Can\\'t find loc string for key: %s",
+  "loc.messages.LIB_ParameterIsRequired": "%s not supplied",
+  "loc.messages.LIB_InputRequired": "Input required: %s",
+  "loc.messages.LIB_EndpointNotExist": "Endpoint not present: %s",
+  "loc.messages.LIB_InvalidEndpointAuth": "Invalid endpoint auth: %s",
+  "loc.messages.LIB_PathNotFound": "Not found %s: %s",
+  "loc.messages.LIB_PathHasNullByte": "Path cannot contain null bytes",
+  "loc.messages.LIB_OperationFailed": "Failed %s: %s",
+  "loc.messages.LIB_UseFirstGlobMatch": "Multiple workspace matches. using first.",
+  "loc.messages.LIB_MergeTestResultNotSupported": "Merging test results from multiple files to one test run is not supported on this version of build agent for OSX/Linux, each test result file will be published as a separate test run in VSO/TFS."
+}
