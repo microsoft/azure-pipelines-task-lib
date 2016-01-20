@@ -38,11 +38,21 @@ function Write-AssociateArtifact {
         [string]$Name,
         [Parameter(Mandatory = $true)]
         [string]$Path,
+        [Parameter(Mandatory = $true)]
+        [string]$Type,
+        [hashtable]$Properties,
         [switch]$AsOutput)
 
-    Write-LoggingCommand -Area 'artifact' -Event 'associate' -Data $Path -Properties @{
-            'artifactname' = $Name
-        } -AsOutput:$AsOutput
+    $p = @{ }
+    if ($Properties) {
+        foreach ($key in $Properties.Keys) {
+            $p[$key] = $Properties[$key]
+        }
+    }
+
+    $p['artifactname'] = $Name
+    $p['artifacttype'] = $Type
+    Write-LoggingCommand -Area 'artifact' -Event 'associate' -Data $Path -Properties $p -AsOutput:$AsOutput
 }
 
 function Write-LogDetail {
