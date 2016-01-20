@@ -2,7 +2,7 @@
 param()
 
 # Arrange.
-. $PSScriptRoot\..\..\lib\Initialize-Test.ps1
+. $PSScriptRoot\..\lib\Initialize-Test.ps1
 $variableSets = @(
     @{ Url = '' ; Auth = '{}' ; ExpectedMessage = "Required: 'SomeName' service endpoint URL" }
     @{ Url = 'http://bing.com' ; Auth = '' ; ExpectedMessage = "Required: 'SomeName' service endpoint credentials" }

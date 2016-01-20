@@ -2,7 +2,7 @@
 param()
 
 # Arrange.
-. $PSScriptRoot\..\..\lib\Initialize-Test.ps1
+. $PSScriptRoot\..\lib\Initialize-Test.ps1
 $vstsModule = Get-Module -Name VstsTaskSdk
 $variableSets = @(
     @{

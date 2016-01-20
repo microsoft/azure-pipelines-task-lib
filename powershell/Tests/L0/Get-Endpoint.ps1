@@ -2,7 +2,7 @@
 param()
 
 # Arrange.
-. $PSScriptRoot\..\..\lib\Initialize-Test.ps1
+. $PSScriptRoot\..\lib\Initialize-Test.ps1
 $env:ENDPOINT_URL_SOMENAME = 'Some URL'
 $env:ENDPOINT_AUTH_SOMENAME = '{ ''SomeProperty'' : ''Some property value'', ''SomeProperty2'' : ''Some property value 2'' }'
 

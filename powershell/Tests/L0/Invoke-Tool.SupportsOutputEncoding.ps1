@@ -2,7 +2,7 @@
 param()
 
 # Arrange.
-. $PSScriptRoot\..\..\lib\Initialize-Test.ps1
+. $PSScriptRoot\..\lib\Initialize-Test.ps1
 $tempDirectory = [System.IO.Path]::Combine($env:TMP, [System.IO.Path]::GetRandomFileName())
 New-Item -Path $tempDirectory -ItemType Directory | ForEach-Object { $_.FullName }
 try {

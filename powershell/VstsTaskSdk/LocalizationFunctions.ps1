@@ -69,20 +69,32 @@ function Import-LocStrings {
         # Add each resource string to the hashtable.
         foreach ($member in (Get-Member -InputObject $messages -MemberType NoteProperty)) {
             [string]$key = $member.Name
-            if (($value = $messages."$key") -is [string]) {
-                # The value is a string.
-            } elseif ($value.loc) {
-                # The localized value is present.
-                $value = $value.loc
-            } else {
-                # The localized value is not present. Use the fallback value.
-                $value = $value.fallback
-            }
-
-            $script:resourceStrings[$key] = $value
+            $script:resourceStrings[$key] = $messages."$key"
             $count++
         }
     }
 
     Write-Verbose "Loaded $count strings."
+
+    # Get the culture.
+    $culture = Get-TaskVariable -Name "System.Culture" -Default "en-US"
+
+    # Load the resjson.
+    $resjsonPath = "$([System.IO.Path]::GetDirectoryName($LiteralPath))\Strings\resources.resjson\$culture\resources.resjson"
+    if (Test-Path -LiteralPath $resjsonPath) {
+        Write-Verbose "Loading resource strings from: $resjsonPath"
+        $count = 0
+        $resjson = Get-Content -LiteralPath $resjsonPath | Out-String | ConvertFrom-Json
+        foreach ($member in (Get-Member -Name loc.messages.* -InputObject $resjson -MemberType NoteProperty)) {
+            if (!($value = $resjson."$($member.Name)")) {
+                continue
+            }
+
+            [string]$key = $member.Name.Substring('loc.messages.'.Length)
+            $script:resourceStrings[$key] = $value
+            $count++
+        }
+
+        Write-Verbose "Loaded $count strings."
+    }
 }

@@ -2,7 +2,7 @@
 param()
 
 # Arrange.
-. $PSScriptRoot\..\..\lib\Initialize-Test.ps1
+. $PSScriptRoot\..\lib\Initialize-Test.ps1
 $env:INPUT_Some_Name = 'Some value'
 
 # Act.

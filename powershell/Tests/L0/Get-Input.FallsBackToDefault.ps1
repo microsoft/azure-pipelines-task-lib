@@ -2,9 +2,9 @@
 param()
 
 # Arrange.
-. $PSScriptRoot\..\..\lib\Initialize-Test.ps1
-if (Test-Path -LiteralPath Env:SOME_NAME) {
-    Remove-Item -LiteralPath Env:SOME_NAME
+. $PSScriptRoot\..\lib\Initialize-Test.ps1
+if (Test-Path -LiteralPath Env:INPUT_SOME_NAME) {
+    Remove-Item -LiteralPath Env:INPUT_SOME_NAME
 }
 
 $variableSets = @(
@@ -27,7 +27,7 @@ foreach ($variableSet in $variableSets) {
     $variableSet.Remove('Expected')
 
     # Act.
-    $actual = Get-VstsTaskVariable -Name 'Some.name' @variableSet
+    $actual = Get-VstsInput -Name 'Some name' @variableSet
 
     # Assert.
     Assert-AreEqual $expected $actual

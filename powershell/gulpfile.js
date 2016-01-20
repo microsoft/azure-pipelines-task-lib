@@ -25,13 +25,33 @@ gulp.task('clean', function (done) {
     return del([buildRoot], done);
 });
 
-gulp.task('copy:manifest', ['clean'], function () {
-    return gulp.src(['package.json', '../LICENSE', '../README.md'])
+gulp.task('loc:generate', ['clean'], function() {
+    // Build the content for the en-US resjson file.
+    var lib = require('./VstsTaskSdk/lib.json');
+    var strPath = path.join('VstsTaskSdk', 'Strings', 'resources.resjson', 'en-US');
+    shell.mkdir('-p', strPath);
+    var strings = { };
+    if (lib.messages) {
+        for (var key in lib.messages) {
+            var messageKey = 'loc.messages.' + key;
+            strings[messageKey] = lib.messages[key];
+        }
+    }
+
+    // Create the en-US resjson file.
+    var enPath = path.join(strPath, 'resources.resjson');
+    var enContents = JSON.stringify(strings, null, 2);
+    fs.writeFileSync(enPath, enContents)
+    return;
+});
+
+gulp.task('copy:manifest', ['loc:generate'], function () {
+    return gulp.src(['package.json', path.join('..', 'LICENSE'), path.join('..', 'README.md')])
         .pipe(gulp.dest(buildRoot))
 });
 
 gulp.task('build:lib', ['copy:manifest'], function () {
-    return gulp.src(['VstsTaskSdk/**/*'])
+    return gulp.src([path.join('VstsTaskSdk', '**' ,'*')])
         .pipe(gulp.dest(path.join(buildRoot, 'VstsTaskSdk')))
 });
 

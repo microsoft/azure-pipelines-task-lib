@@ -2,7 +2,7 @@
 param()
 
 # Arrange.
-. $PSScriptRoot\..\..\lib\Initialize-Test.ps1
+. $PSScriptRoot\..\lib\Initialize-Test.ps1
 Register-Mock Write-Warning
 $variableSets = @(
     @{ Expected = 'NoSuchKey' ; Key = 'NoSuchKey' ; ArgumentList = @( ) }
