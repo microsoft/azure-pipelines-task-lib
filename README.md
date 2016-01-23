@@ -6,6 +6,9 @@ Libraries for writing Visual Studio Team Services build and deployment tasks
 ## Node Task Lib
 Library for writing tasks with the node handler
 
+## PowerShell Task Lib
+Library for writing tasks with the PowerShell3 handler
+
 ## Documentation
 
 ### Typescript
@@ -16,8 +19,9 @@ Cross platform tasks are written in Typescript.  It is the preferred way to writ
 
 ### Powershell
 
-A task which automates Powershell technologies can be written with our Powershell SDK.  These only run on windows.
-(Powershell API documentation coming soon)
+A task which automates Powershell technologies can be written with our Powershell SDK.  These only run on Windows.
+
+[PowerShell API](powershell/Docs/VstsTaskSdk.md)
 
 ## Contributing
 
