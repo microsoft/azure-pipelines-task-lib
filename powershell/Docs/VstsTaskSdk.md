@@ -88,7 +88,7 @@ When the distributed task agent invokes the task script, by default STDERR from 
 
 This default behavior is consistent with PowerShell.exe (Console Host). Other hosts may differ. For example PowerShell ISE by default converts STDERR from external commands into error records. For this reason, the recommendation is to test the task script using PowerShell.exe.
 
-Depending upon how the pipelines are manipulated, error records may be produced in some cases.
+Note, depending upon how the pipelines are manipulated, error records may be produced in some cases.
 
 #### These cases do not produce an error record:
 * When redirection is not applied to the external command. Example:
@@ -120,42 +120,42 @@ Many of the commands in the SDK have verbose tracing built in. By using the comm
 Command descriptions coming soon.
 
 ### Find
-#### Find-Files
+#### Find-VstsFiles
 
 ### Input
-#### Get-Endpoint
-#### Get-Input
-#### Get-TaskVariable
-#### Set-TaskVariable
+#### Get-VstsEndpoint
+#### Get-VstsInput
+#### Get-VstsTaskVariable
+#### Set-VstsTaskVariable
 
 ### Localization
-#### Get-LocString
-#### Import-LocStrings
+#### Get-VstsLocString
+#### Import-VstsLocStrings
 
 ### Logging commands
-#### Write-AddAttachment
-#### Write-AssociateArtifact
-#### Write-LogDetail
-#### Write-SetProgress
-#### Write-SetResult
-#### Write-SetVariable
-#### Write-TaskDebug
-#### Write-TaskError
-#### Write-TaskVerbose
-#### Write-TaskWarning
-#### Write-UpdateBuildNumber
-#### Write-UploadArtifact
+#### Write-VstsAddAttachment
+#### Write-VstsAssociateArtifact
+#### Write-VstsLogDetail
+#### Write-VstsSetProgress
+#### Write-VstsSetResult
+#### Write-VstsSetVariable
+#### Write-VstsTaskDebug
+#### Write-VstsTaskError
+#### Write-VstsTaskVerbose
+#### Write-VstsTaskWarning
+#### Write-VstsUpdateBuildNumber
+#### Write-VstsUploadArtifact
 
 ### Server OM
-#### Get-TfsClientCredentials
-#### Get-VssCredentials
+#### Get-VstsTfsClientCredentials
+#### Get-VstsVssCredentials
 
 ### Tool
-#### Assert-Path
-#### Invoke-TaskScript
-#### Invoke-Tool
+#### Assert-VstsPath
+#### Invoke-VstsTaskScript
+#### Invoke-VstsTool
 
 ### Tracing
-#### Trace-EnteringInvocation
-#### Trace-LeavingInvocation
-#### Trace-Path
+#### Trace-VstsEnteringInvocation
+#### Trace-VstsLeavingInvocation
+#### Trace-VstsPath
