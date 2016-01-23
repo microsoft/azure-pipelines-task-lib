@@ -8,21 +8,20 @@
 
 ### Where to get it
 
-```
+```Batchfile
 npm install vsts-task-sdk
 ```
 
 or install a specific version:
 
-```
+```Batchfile
 npm install vsts-task-sdk@0.5.0
 ```
 
 ### task.json modifications
 Use the PowerShell3 execution handler and set the target to the entry PS1 script. The entry PS1 script should be located in the root of the task folder.
-```json
+```JSON
 {
-    [...]
     "execution": {
         "PowerShell3": {
             "target": "MyTask.ps1"
@@ -47,20 +46,20 @@ MyTask
 
 ## Testing a task script
 A task script can be tested interactively without running the agent. From PowerShell.exe run:
-```powershell
+```PowerShell
 Import-Module .\ps_modules\VstsTaskSdk
 Invoke-VstsTaskScript -ScriptBlock { . .\MyTask.ps1 }
 ```
 
 For PowerShell 3 and 4, a different scriptblock syntax is required:
-```powershell
+```PowerShell
 Invoke-VstsTaskScript -ScriptBlock ([scriptblock]::Create('. .\MyTask.ps1'))
 ```
 
 For the convenience of interactive testing, the module will prompt for undefined task variables and inputs. For example, `Get-VstsTaskInput -Name SomeVariable` will prompt for the value if the task variable is not defined. If a value is entered, then it will be stored so that subsequent calls will return the same value. The value is stored at the process level, so it will remain until the host process is exited (e.g. PowerShell.exe).
 
 To disable interactive prompting, a non-interactive flag can be specified when the module is imported:
-```powershell
+```PowerShell
 Import-Module .\ps_modules\VstsTaskSdk -ArgumentList @{ NonInteractive = $true }
 ```
 
@@ -93,18 +92,26 @@ Depending upon how the pipelines are manipulated, error records may be produced 
 
 #### These cases do not produce an error record:
 * When redirection is not applied to the external command. Example:
- * `& cmd.exe /c nosuchcommand`
+```PowerShell
+& cmd.exe /c nosuchcommand
+```
 * When redirection is applied indirectly to the external command and the output is (naturally or directly) piped to Out-Default. Examples:
- * `. { & cmd.exe /c nosuchcommand } 2>&1`
- * `. { & cmd.exe /c nosuchcommand } 2>&1 | Out-Default`
+```PowerShell
+. { & cmd.exe /c nosuchcommand } 2>&1
+. { & cmd.exe /c nosuchcommand } 2>&1 | Out-Default
+```
 
 #### These cases do produce an error record:
 * When redirection is applied directly to the external command. Example:
- * `& cmd.exe /c nosuchcommand 2>&1`
+```PowerShell
+& cmd.exe /c nosuchcommand 2>&1
+```
 * When redirection is applied indirectly to the external command, and the output is piped to any command before it is (naturally or directly) piped to Out-Default. Examples:
- * `. { & cmd.exe /c nosuchcommand } 2>&1 | Foreach-Object { $_ }`
- * `. { & cmd.exe /c nosuchcommand } 2>&1 | Foreach-Object { $_ } | Out-Default`
- * `. { & cmd.exe /c nosuchcommand } 2>&1 | Out-Host`
+```PowerShell
+. { & cmd.exe /c nosuchcommand } 2>&1 | Foreach-Object { $_ }
+. { & cmd.exe /c nosuchcommand } 2>&1 | Foreach-Object { $_ } | Out-Default
+. { & cmd.exe /c nosuchcommand } 2>&1 | Out-Host
+```
 
 ### Debug tracing
 Many of the commands in the SDK have verbose tracing built in. By using the commands provided by the SDK, tracing is provided for free.
