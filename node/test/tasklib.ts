@@ -451,7 +451,7 @@ describe('Test vsts-task-lib', function() {
 			this.timeout(1000);
 
 			var inputValue = 'file name.txt';
-			var expectedValue = '"file name.txt"';
+			var expectedValue = 'file name.txt';
 			process.env['INPUT_PATH1'] = inputValue;
 			var path = tl.getPathInput('path1', /*required=*/true, /*check=*/false);
 			assert(path, 'should return a path');

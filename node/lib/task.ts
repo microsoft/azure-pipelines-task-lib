@@ -355,19 +355,8 @@ export function getPathInput(name: string, required?: boolean, check?: boolean):
         if (check) {
             checkPath(inval, name);
         }
-
-        if (inval.indexOf(' ') > 0) {
-            if (!startsWith(inval, '"')) {
-                inval = '"' + inval;
-            }
-
-            if (!endsWith(inval, '"')) {
-                inval += '"';
-            }
-        }
     }
-
-    debug(name + '=' + inval);
+    
     return inval;
 }
 
