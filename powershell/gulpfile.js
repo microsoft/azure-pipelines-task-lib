@@ -55,8 +55,23 @@ gulp.task('build:lib', ['copy:manifest'], function () {
         .pipe(gulp.dest(path.join(buildRoot, 'VstsTaskSdk')))
 });
 
+gulp.task('version:lib', ['build:lib'], function () {
+    var targetPsd1 = path.join(buildRoot, 'VstsTaskSdk', 'VstsTaskSdk.psd1');
+    var psd1Contents = fs.readFileSync(targetPsd1, 'ucs2'); // UCS-2 is a subset of UTF-16. UTF-16 is not supported by node.
+    var token = "ModuleVersion = '0.1'";
+    var tokenStart = psd1Contents.indexOf(token);
+    if (tokenStart < 0) {
+        console.error('ModuleVersion token not found in PSD1.');
+        process.exit(1);
+    }
 
-gulp.task('default', ['build:lib']);
+    var packageJson = require('./package.json');
+    psd1Contents = psd1Contents.substring(0, tokenStart) + "ModuleVersion = '" + packageJson.version + "'" + psd1Contents.substring(tokenStart + token.length);
+    fs.writeFileSync(targetPsd1, psd1Contents, 'ucs2');
+    return;
+});
+
+gulp.task('default', ['version:lib']);
 
 //---------------------------------------------------------------
 // gulp publish (to npm)
