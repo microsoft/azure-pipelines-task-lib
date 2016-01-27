@@ -90,12 +90,14 @@ export class ToolRunner extends events.EventEmitter {
     /**
      * Add arguments
      * Accepts a full string command line and a string array as well
-     * Will handle double quoted args. E.g. '"arg one" two -z'
+     * With literal=false, will handle double quoted args. E.g. val='"arg one" two -z', args[]=['arg one', 'two', '-z'] 
+     * With literal=true, will put input direct into args. E.g. val='/bin/working folder', args[]=['/bin/working folder']
      * 
-     * @param     val     string cmdline or array of strings
+     * @param     val        string cmdline or array of strings
+     * @param     literal    optional literal flag, if val is a string, add the original val to arguments when literal is true
      * @returns   void
      */
-    public arg(val: any) {
+    public arg(val: any, literal?: boolean) {
         if (!val) {
             return;
         }
@@ -105,11 +107,30 @@ export class ToolRunner extends events.EventEmitter {
             this.args = this.args.concat(val);
         }
         else if (typeof(val) === 'string') {
-            this._debug(this.toolPath + ' arg: ' + val);
-            this.args = this.args.concat(this._argStringToArray(val));
+            if(literal) {
+                this._debug(this.toolPath + ' literal arg: ' + val);
+                this.args = this.args.concat(val);
+            }
+            else {
+                this._debug(this.toolPath + ' arg: ' + val);
+                this.args = this.args.concat(this._argStringToArray(val));    
+            }
         }
     }
 
+    /**
+     * Add path argument
+     * Add path string to argument, path string should not contain double quoted
+     * This will call arg(val, literal?) with literal equal 'true' 
+     * 
+     * @param     val     path argument string
+     * @returns   void
+     */
+    public pathArg(val: string) {
+        this._debug(this.toolPath + ' pathArg: ' + val);
+        this.arg(val, true);
+    }
+    
     /**
      * Add argument(s) if a condition is met
      * Wraps arg().  See arg for details

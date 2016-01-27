@@ -1088,6 +1088,16 @@ describe('Test vsts-task-lib', function() {
 			assert(node.args.toString() === 'foo=bar baz,-x,-y', 'should be foo=bar baz,-x,-y');
 			done();
 		})
+        it('handles literal path', function(done) {
+			this.timeout(1000);
+
+			var node = tl.createToolRunner(tl.which('node', true));
+			node.pathArg('/bin/working folder1');
+            node.arg('/bin/working folder2', true);
+			assert(node.args.length === 2, 'should have 2 args');
+			assert(node.args.toString() === '/bin/working folder1,/bin/working folder2', 'should be /bin/working folder1 /bin/working folder2');
+			done();
+		})
 	});
 
 	describe('Localization', function() {
