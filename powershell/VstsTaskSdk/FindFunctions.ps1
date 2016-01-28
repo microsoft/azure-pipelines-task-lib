@@ -1,6 +1,104 @@
-########################################
-# Public functions.
-########################################
+<#
+.SYNOPSIS
+Finds files or directories.
+
+.DESCRIPTION
+Finds files or directories using advanced pattern matching.
+
+.PARAMETER LiteralDirectory
+Directory to search.
+
+.PARAMETER LegacyPattern
+Proprietary pattern format. The LiteralDirectory parameter is used to root any unrooted patterns.
+
+Separate multiple patterns using ";".
+"?" indicates a wildcard that represents any single character within a path segment.
+"*" indicates a wildcard that represents zero or more characters within a path segment.
+"**" as the entire path segment indicates a recursive search.
+"**" within a path segment indicates a recursive intersegment wildcard.
+"+:" (can be omitted) indicates an include pattern.
+"-:" indicates an exclude pattern.
+
+The result is from the command is a union of all the matches from the include patterns, minus the matches from the exclude patterns.
+
+.PARAMETER IncludeFiles
+Indicates whether to include files in the results.
+
+If neither IncludeFiles or IncludeDirectories is set, then IncludeFiles is assumed.
+
+.PARAMETER IncludeDirectories
+Indicates whether to include directories in the results.
+
+If neither IncludeFiles or IncludeDirectories is set, then IncludeFiles is assumed.
+
+.PARAMETER Force
+Indicates whether to include hidden items.
+
+.EXAMPLE
+Find-VstsFiles -LegacyPattern "C:\Directory\Is?Match.txt"
+
+Given:
+C:\Directory\Is1Match.txt
+C:\Directory\Is2Match.txt
+C:\Directory\IsNotMatch.txt
+
+Returns:
+C:\Directory\Is1Match.txt
+C:\Directory\Is2Match.txt
+
+.EXAMPLE
+Find-VstsFiles -LegacyPattern "C:\Directory\Is*Match.txt"
+
+Given:
+C:\Directory\IsOneMatch.txt
+C:\Directory\IsTwoMatch.txt
+C:\Directory\NonMatch.txt
+
+Returns:
+C:\Directory\IsOneMatch.txt
+C:\Directory\IsTwoMatch.txt
+
+.EXAMPLE
+Find-VstsFiles -LegacyPattern "C:\Directory\**\Match.txt"
+
+Given:
+C:\Directory\Match.txt
+C:\Directory\NotAMatch.txt
+C:\Directory\SubDir\Match.txt
+C:\Directory\SubDir\SubSubDir\Match.txt
+
+Returns:
+C:\Directory\Match.txt
+C:\Directory\SubDir\Match.txt
+C:\Directory\SubDir\SubSubDir\Match.txt
+
+.EXAMPLE
+Find-VstsFiles -LegacyPattern "C:\Directory\**"
+
+Given:
+C:\Directory\One.txt
+C:\Directory\SubDir\Two.txt
+C:\Directory\SubDir\SubSubDir\Three.txt
+
+Returns:
+C:\Directory\One.txt
+C:\Directory\SubDir\Two.txt
+C:\Directory\SubDir\SubSubDir\Three.txt
+
+.EXAMPLE
+Find-VstsFiles -LegacyPattern "C:\Directory\Sub**Match.txt"
+
+Given:
+C:\Directory\IsNotAMatch.txt
+C:\Directory\SubDir\IsAMatch.txt
+C:\Directory\SubDir\IsNot.txt
+C:\Directory\SubDir\SubSubDir\IsAMatch.txt
+C:\Directory\SubDir\SubSubDir\IsNot.txt
+
+Returns:
+C:\Directory\SubDir\IsAMatch.txt
+C:\Directory\SubDir\SubSubDir\IsAMatch.txt
+#>
 function Find-Files {
     [CmdletBinding()]
     param(

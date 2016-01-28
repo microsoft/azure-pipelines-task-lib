@@ -21,7 +21,7 @@ Cross platform tasks are written in Typescript.  It is the preferred way to writ
 
 A task which automates Powershell technologies can be written with our Powershell SDK.  These only run on Windows.
 
-[PowerShell API](powershell/Docs/VstsTaskSdk.md)
+[PowerShell API](powershell/Docs/README.md)
 
 ## Contributing
 

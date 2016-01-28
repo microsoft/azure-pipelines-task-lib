@@ -1,6 +1,10 @@
-########################################
-# Public functions.
-########################################
+<#
+.SYNOPSIS
+Asserts that a path exists. Throws if the path does not exist.
+
+.PARAMETER PassThru
+True to return the path.
+#>
 function Assert-Path {
     [CmdletBinding()]
     param(
@@ -32,6 +36,24 @@ function Assert-Path {
     throw (Get-LocString -Key $resourceKey -ArgumentList $LiteralPath)
 }
 
+<#
+.SYNOPSIS
+Invokes a task script for testing purposes only.
+
+.DESCRIPTION
+This command is for testing purposes only. Use this command to invoke a task script and test how it would behave if it were run by the agent.
+
+.EXAMPLE
+For testing from within PowerShell 5 or higher:
+  Invoke-VstsTaskScript -ScriptBlock { .\MyTaskScript.ps1 }
+
+From PowerShell 3 or 4:
+  Invoke-VstsTaskScript -ScriptBlock ([scriptblock]::Create(' .\MyTaskScript.ps1 '))
+
+.EXAMPLE
+For testing an ad-hoc command:
+  Invoke-VstsTaskScript -ScriptBlock { Write-Warning 'Some fancy warning.' }
+#>
 function Invoke-TaskScript {
     [CmdletBinding()]
     param(
@@ -52,8 +74,22 @@ function Invoke-TaskScript {
     }
 }
 
-# TODO: RENAME TO INVOKE-PROCESS?
-function Invoke-Tool {
+<#
+.SYNOPSIS
+Executes an external program.
+
+.DESCRIPTION
+Executes an external program and waits for the process to exit.
+
+After calling this command, the exit code of the process can be retrieved from the variable $LASTEXITCODE.
+
+.PARAMETER Encoding
+This parameter not required for most scenarios. Indicates how to interpret the encoding from the external program. An example use case would be if an external program outputs UTF-16 XML and the output needs to be parsed.
+
+.PARAMETER RequireExitCodeZero
+Indicates whether to write an error to the error pipeline if the exit code is not zero.
+#>
+function Invoke-Tool { # TODO: RENAME TO INVOKE-PROCESS?
     [CmdletBinding()]
     param(
         [ValidatePattern('^[^\r\n]*$')]
@@ -64,7 +100,7 @@ function Invoke-Tool {
         [string]$Arguments,
         [string]$WorkingDirectory,
         [System.Text.Encoding]$Encoding,
-        [switch]$RequireExitCodeZero) # TODO: THIS SHOULD PROBABLY BE FLIPPED, i.e. [switch]$AllowNonZeroExitCode
+        [switch]$RequireExitCodeZero)
 
     Trace-EnteringInvocation $MyInvocation
     $isPushed = $false

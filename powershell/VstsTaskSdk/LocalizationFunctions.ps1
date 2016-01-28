@@ -1,11 +1,19 @@
-########################################
-# Private module variables.
-########################################
 $script:resourceStrings = @{ }
 
-########################################
-# Public functions.
-########################################
+<#
+.SYNOPSIS
+Gets a localized resource string.
+
+.DESCRIPTION
+Gets a localized resource string and optionally formats the string with arguments.
+
+If the format fails (due to a bad format string or incorrect expected arguments in the format string), then the format string is returned followed by each of the arguments (delimited by a space).
+
+If the lookup key is not found, then the lookup key is returned followed by each of the arguments (delimited by a space).
+
+.PARAMETER Require
+Writes an error to the error pipeline if the endpoint is not found.
+#>
 function Get-LocString {
     [CmdletBinding()]
     param(
@@ -50,6 +58,48 @@ function Get-LocString {
     }
 }
 
+<#
+.SYNOPSIS
+Imports resource strings for use with Get-VstsLocString.
+
+.DESCRIPTION
+Imports resource strings for use with Get-VstsLocString. The imported strings are stored in an internal resource string dictionary. Optionally, if a separate resource file for the current culture exists, then the localized strings from that file then imported (overlaid) into the same internal resource string dictionary.
+
+Resource strings from the SDK are prefixed with "PSLIB_". This prefix should be avoided for custom resource strings.
+
+.Parameter LiteralPath
+JSON file containing resource strings.
+
+.EXAMPLE
+Import-VstsLocStrings -LiteralPath $PSScriptRoot\Task.json
+
+Imports strings from messages section in the JSON file. If a messages section is not defined, then no strings are imported. Example messages section:
+{
+    "messages": {
+        "Hello": "Hello you!",
+        "Hello0": "Hello {0}!"
+    }
+}
+
+.EXAMPLE
+Import-VstsLocStrings -LiteralPath $PSScriptRoot\Task.json
+
+Overlays strings from an optional separate resource file for the current culture.
+
+Given the task variable System.Culture is set to 'de-DE'. This variable is set by the agent based on the current culture for the job.
+Given the file Task.json contains:
+{
+    "messages": {
+        "GoodDay": "Good day!",
+    }
+}
+Given the file resources.resjson\de-DE\resources.resjson:
+{
+    "loc.messages.GoodDay": "Guten Tag!"
+}
+
+The net result from the import command would be one new key-value pair added to the internal dictionary: Key = 'GoodDay', Value = 'Guten Tag!'
+#>
 function Import-LocStrings {
     [CmdletBinding()]
     param(

@@ -1,6 +1,3 @@
-########################################
-# Private module variables.
-########################################
 $script:loggingCommandPrefix = '##vso['
 $script:loggingCommandEscapeMappings = @( # TODO: WHAT ABOUT "="? WHAT ABOUT "%"?
     New-Object psobject -Property @{ Token = ';' ; Replacement = '%3B' }
@@ -11,9 +8,13 @@ $script:loggingCommandEscapeMappings = @( # TODO: WHAT ABOUT "="? WHAT ABOUT "%"
 # TODO: BUG: Escape % ???
 # TODO: Add test to verify don't need to escape "=".
 
-########################################
-# Public functions.
-########################################
+<#
+.SYNOPSIS
+See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+
+.PARAMETER AsOutput
+Indicates whether to write the logging command directly to the host or to the output pipeline.
+#>
 function Write-AddAttachment {
     [CmdletBinding()]
     param(
@@ -31,6 +32,13 @@ function Write-AddAttachment {
         } -AsOutput:$AsOutput
 }
 
+<#
+.SYNOPSIS
+See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+
+.PARAMETER AsOutput
+Indicates whether to write the logging command directly to the host or to the output pipeline.
+#>
 function Write-AssociateArtifact {
     [CmdletBinding()]
     param(
@@ -55,6 +63,13 @@ function Write-AssociateArtifact {
     Write-LoggingCommand -Area 'artifact' -Event 'associate' -Data $Path -Properties $p -AsOutput:$AsOutput
 }
 
+<#
+.SYNOPSIS
+See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+
+.PARAMETER AsOutput
+Indicates whether to write the logging command directly to the host or to the output pipeline.
+#>
 function Write-LogDetail {
     [CmdletBinding()]
     param(
@@ -90,6 +105,13 @@ function Write-LogDetail {
         } -AsOutput:$AsOutput
 }
 
+<#
+.SYNOPSIS
+See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+
+.PARAMETER AsOutput
+Indicates whether to write the logging command directly to the host or to the output pipeline.
+#>
 function Write-SetProgress {
     [CmdletBinding()]
     param(
@@ -104,6 +126,13 @@ function Write-SetProgress {
         } -AsOutput:$AsOutput
 }
 
+<#
+.SYNOPSIS
+See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+
+.PARAMETER AsOutput
+Indicates whether to write the logging command directly to the host or to the output pipeline.
+#>
 function Write-SetResult {
     [CmdletBinding(DefaultParameterSetName = 'AsOutput')]
     param(
@@ -126,6 +155,13 @@ function Write-SetResult {
     }
 }
 
+<#
+.SYNOPSIS
+See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+
+.PARAMETER AsOutput
+Indicates whether to write the logging command directly to the host or to the output pipeline.
+#>
 function Write-SetVariable {
     [CmdletBinding()]
     param(
@@ -139,6 +175,13 @@ function Write-SetVariable {
         } -AsOutput:$AsOutput
 }
 
+<#
+.SYNOPSIS
+See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+
+.PARAMETER AsOutput
+Indicates whether to write the logging command directly to the host or to the output pipeline.
+#>
 function Write-TaskDebug {
     [CmdletBinding()]
     param(
@@ -148,6 +191,13 @@ function Write-TaskDebug {
     Write-TaskDebug_Internal @PSBoundParameters
 }
 
+<#
+.SYNOPSIS
+See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+
+.PARAMETER AsOutput
+Indicates whether to write the logging command directly to the host or to the output pipeline.
+#>
 function Write-TaskError {
     [CmdletBinding()]
     param(
@@ -161,6 +211,13 @@ function Write-TaskError {
     Write-LogIssue -Type error @PSBoundParameters
 }
 
+<#
+.SYNOPSIS
+See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+
+.PARAMETER AsOutput
+Indicates whether to write the logging command directly to the host or to the output pipeline.
+#>
 function Write-TaskVerbose {
     [CmdletBinding()]
     param(
@@ -170,6 +227,13 @@ function Write-TaskVerbose {
     Write-TaskDebug_Internal @PSBoundParameters -AsVerbose
 }
 
+<#
+.SYNOPSIS
+See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+
+.PARAMETER AsOutput
+Indicates whether to write the logging command directly to the host or to the output pipeline.
+#>
 function Write-TaskWarning {
     [CmdletBinding()]
     param(
@@ -183,6 +247,13 @@ function Write-TaskWarning {
     Write-LogIssue -Type warning @PSBoundParameters
 }
 
+<#
+.SYNOPSIS
+See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+
+.PARAMETER AsOutput
+Indicates whether to write the logging command directly to the host or to the output pipeline.
+#>
 function Write-UpdateBuildNumber {
     [CmdletBinding()]
     param(
@@ -193,6 +264,13 @@ function Write-UpdateBuildNumber {
     Write-LoggingCommand -Area 'build' -Event 'updatebuildnumber' -Data $Value -AsOutput:$AsOutput
 }
 
+<#
+.SYNOPSIS
+See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+
+.PARAMETER AsOutput
+Indicates whether to write the logging command directly to the host or to the output pipeline.
+#>
 function Write-UploadArtifact {
     [CmdletBinding()]
     param(
@@ -210,7 +288,13 @@ function Write-UploadArtifact {
         } -AsOutput:$AsOutput
 }
 
-# TODO: Remove this?
+<#
+.SYNOPSIS
+See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+
+.PARAMETER AsOutput
+Indicates whether to write the logging command directly to the host or to the output pipeline.
+#>
 function Write-UploadBuildLog {
     [CmdletBinding()]
     param(

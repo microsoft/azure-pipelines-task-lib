@@ -1,6 +1,3 @@
-########################################
-# Private module variables.
-########################################
 # TODO: It would be better if the Out-Default function resolved the underlying Out-Default
 # command in the begin block. This would allow for supporting other modules that override
 # Out-Default.
