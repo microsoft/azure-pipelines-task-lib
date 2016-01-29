@@ -119,27 +119,55 @@ var locStringCache: {
 } = {};
 var resourceFile: string;
 var libResourceFileLoaded: boolean = false;
+var resourceCulture: string = 'en-US';
 
-function loadLocStrings(resourceFile: string): { [key: string]: string; } {
+function loadResJson(resjsonFile: string): any {
+    var resJson: {} = null;
+    if (exist(resjsonFile)) {
+        var resjsonContent = fs.readFileSync(resjsonFile, 'utf8').toString();
+        // remove BOM
+        if (resjsonContent.indexOf('\uFEFF') == 0) {
+            resjsonContent = resjsonContent.slice(1);
+        }
+
+        try {
+            resJson = JSON.parse(resjsonContent);
+        }
+        catch (err) {
+            debug('unable to parse resjson with err: ' + err.message);
+            resJson = null;
+        }
+    }
+    else {
+        debug('.resjson file not found: ' + resjsonFile);
+    }
+
+    return resJson;
+}
+
+function loadLocStrings(resourceFile: string, culture: string): { [key: string]: string; } {
     var locStrings: {
         [key: string]: string
     } = {};
 
     if (exist(resourceFile)) {
-        debug('load loc strings from: ' + resourceFile);
+        debug('load strings from: ' + resourceFile);
         var resourceJson = require(resourceFile);
 
         if (resourceJson && resourceJson.hasOwnProperty('messages')) {
+            var locResourceJson = null;
+            // load up resource resjson for different culture
+            var localizedResourceFile = path.join(path.dirname(resourceFile), 'strings', 'resources.resjson', culture, 'resources.resjson');
+            if (exist(localizedResourceFile)) {
+                debug('load loc strings from: ' + localizedResourceFile);
+                locResourceJson = loadResJson(localizedResourceFile);
+            }
+
             for (var key in resourceJson.messages) {
-                if (typeof (resourceJson.messages[key]) === 'object') {
-                    if (resourceJson.messages[key].loc && resourceJson.messages[key].loc.toString().length > 0) {
-                        locStrings[key] = resourceJson.messages[key].loc.toString();
-                    }
-                    else if (resourceJson.messages[key].fallback) {
-                        locStrings[key] = resourceJson.messages[key].fallback.toString();
-                    }
+                if (locResourceJson && locResourceJson.hasOwnProperty('loc.messages.' + key)) {
+                    locStrings[key] = locResourceJson['loc.messages.' + key];
                 }
-                else if (typeof (resourceJson.messages[key]) === 'string') {
+                else {
                     locStrings[key] = resourceJson.messages[key];
                 }
             }
@@ -164,6 +192,7 @@ export function setResourcePath(path: string): void {
         resourceFile = null;
         libResourceFileLoaded = false;
         locStringCache = {};
+        resourceCulture = 'en-US';
     }
 
     if (!resourceFile) {
@@ -171,9 +200,10 @@ export function setResourcePath(path: string): void {
         resourceFile = path;
         debug('set resource file to: ' + resourceFile);
 
-        var locStrs = loadLocStrings(resourceFile);
+        resourceCulture = getVariable('system.culture') || resourceCulture;
+        var locStrs = loadLocStrings(resourceFile, resourceCulture);
         for (var key in locStrs) {
-            debug('cache loc string: ' + key);
+            //cache loc string
             locStringCache[key] = locStrs[key];
         }
 
@@ -194,9 +224,9 @@ export function loc(key: string, ...param: any[]): string {
     if (!libResourceFileLoaded) {
         // merge loc strings from vsts-task-lib.
         var libResourceFile = path.join(__dirname, 'lib.json');
-        var libLocStrs = loadLocStrings(libResourceFile);
+        var libLocStrs = loadLocStrings(libResourceFile, resourceCulture);
         for (var libKey in libLocStrs) {
-            debug('cache vsts-task-lib loc string: ' + libKey);
+            //cache vsts-task-lib loc string
             locStringCache[libKey] = libLocStrs[libKey];
         }
 
@@ -224,7 +254,6 @@ export function loc(key: string, ...param: any[]): string {
     else {
         return locString;
     }
-
 }
 
 //-----------------------------------------------------
@@ -356,7 +385,7 @@ export function getPathInput(name: string, required?: boolean, check?: boolean):
             checkPath(inval, name);
         }
     }
-    
+
     return inval;
 }
 
