@@ -1,6 +1,13 @@
-########################################
-# Public functions.
-########################################
+<#
+.SYNOPSIS
+Writes verbose information about the invocation being entered.
+
+.DESCRIPTION
+Used to trace verbose information when entering a function/script. Writes an entering message followed by a short description of the invocation. Additionally each bound parameter and unbound argument is also traced.
+
+.PARAMETER Parameter
+Wildcard pattern to control which bound parameters are traced.
+#>
 function Trace-EnteringInvocation {
     [CmdletBinding()]
     param(
@@ -34,6 +41,13 @@ function Trace-EnteringInvocation {
     }
 }
 
+<#
+.SYNOPSIS
+Writes verbose information about the invocation being left.
+
+.DESCRIPTION
+Used to trace verbose information when leaving a function/script. Writes a leaving message followed by a short description of the invocation.
+#>
 function Trace-LeavingInvocation {
     [CmdletBinding()]
     param(
@@ -43,6 +57,16 @@ function Trace-LeavingInvocation {
     Write-Verbose "Leaving $(Get-InvocationDescription $InvocationInfo)."
 }
 
+<#
+.SYNOPSIS
+Writes verbose information about paths.
+
+.DESCRIPTION
+Writes verbose information about the paths. The paths are sorted and a the common root is written only once, followed by each relative path.
+
+.PARAMETER PassThru
+Indicates whether to return the sorted paths.
+#>
 function Trace-Path {
     [CmdletBinding()]
     param(

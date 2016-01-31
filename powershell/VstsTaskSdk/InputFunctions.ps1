@@ -1,6 +1,13 @@
-########################################
-# Public functions.
-########################################
+<#
+.SYNOPSIS
+Gets an endpoint.
+
+.DESCRIPTION
+Gets an endpoint object for the specified endpoint name. The endpoint is returned as an object with two properties: Auth and Url.
+
+.PARAMETER Require
+Writes an error to the error pipeline if the endpoint is not found.
+#>
 function Get-Endpoint {
     [CmdletBinding()]
     param(
@@ -25,6 +32,25 @@ function Get-Endpoint {
     }
 }
 
+<#
+.SYNOPSIS
+Gets an input.
+
+.DESCRIPTION
+Gets the value for the specified input name.
+
+.PARAMETER AsBool
+Returns the value as a bool. Returns true if the value converted to a string is "1" or "true" (case insensitive); otherwise false.
+
+.PARAMETER AsInt
+Returns the value as an int. Returns the value converted to an int. Returns 0 if the conversion fails.
+
+.PARAMETER Default
+Default value to use if the input is null or empty.
+
+.PARAMETER Require
+Writes an error to the error pipeline if the input is null or empty.
+#>
 function Get-Input {
     [CmdletBinding(DefaultParameterSetName = 'Require')]
     param(
@@ -41,6 +67,25 @@ function Get-Input {
     Get-EnvVariable @PSBoundParameters -Path "Env:INPUT_$($Name.Replace(' ', '_').ToUpperInvariant())"
 }
 
+<#
+.SYNOPSIS
+Gets a task variable.
+
+.DESCRIPTION
+Gets the value for the specified task variable.
+
+.PARAMETER AsBool
+Returns the value as a bool. Returns true if the value converted to a string is "1" or "true" (case insensitive); otherwise false.
+
+.PARAMETER AsInt
+Returns the value as an int. Returns the value converted to an int. Returns 0 if the conversion fails.
+
+.PARAMETER Default
+Default value to use if the input is null or empty.
+
+.PARAMETER Require
+Writes an error to the error pipeline if the input is null or empty.
+#>
 function Get-TaskVariable {
     [CmdletBinding(DefaultParameterSetName = 'Require')]
     param(
@@ -57,6 +102,13 @@ function Get-TaskVariable {
     Get-EnvVariable @PSBoundParameters -Path "Env:$(Format-VariableName $Name)"
 }
 
+<#
+.SYNOPSIS
+Sets a task variable.
+
+.DESCRIPTION
+Sets a task variable in the current task context as well as in the current job context. This allows the task variable to retrieved by subsequent tasks within the same job.
+#>
 function Set-TaskVariable {
     [CmdletBinding()]
     param(
@@ -70,7 +122,6 @@ function Set-TaskVariable {
     Set-Item -LiteralPath $path -Value $Value
 
     # Persist the variable in the task context.
-    # TODO: Should this be called with the formatted name?
     Write-SetVariable -Name $Name -Value $Value
 }
 

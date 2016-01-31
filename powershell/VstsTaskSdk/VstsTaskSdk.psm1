@@ -13,8 +13,8 @@ if ($host.Name -ne 'ConsoleHost') {
 Write-Verbose "NonInteractive: $script:nonInteractive"
 
 # Import/export functions.
+. "$PSScriptRoot\FindFunctions.ps1"
 . "$PSScriptRoot\InputFunctions.ps1"
-. "$PSScriptRoot\LegacyFindFunctions.ps1"
 . "$PSScriptRoot\LocalizationFunctions.ps1"
 . "$PSScriptRoot\LoggingCommandFunctions.ps1"
 . "$PSScriptRoot\LongPathFunctions.ps1"
