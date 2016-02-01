@@ -11,8 +11,6 @@ SYNTAX
     Assert-VstsPath [-LiteralPath] <String> [[-PathType] {Any | Container | Leaf}] [-PassThru]
     [<CommonParameters>]
 
-DESCRIPTION
-
 PARAMETERS
     -LiteralPath <String>
 
@@ -44,8 +42,4 @@ PARAMETERS
         ErrorAction, ErrorVariable, WarningAction, WarningVariable,
         OutBuffer, PipelineVariable, and OutVariable. For more information, see
         about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
-
-INPUTS
-
-OUTPUTS
 ```

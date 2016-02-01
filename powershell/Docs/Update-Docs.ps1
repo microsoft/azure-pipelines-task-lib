@@ -1,18 +1,64 @@
 [CmdletBinding()]
-param()
+param([switch]$NoNewProcess)
 
-function Get-HelpString([Parameter(Mandatory = $true)][string]$Name, [switch]$Full) {
-    $width = 110 # This width fits GitHub.
-    $help = Get-Help @PSBoundParameters
-    $str = $help | Out-String -Width $width
-    # Remove certain sections. Handle cases where the section is blank
-    # as well as cases where the section contains content.
-    $str = [System.Text.RegularExpressions.Regex]::Replace($str, "`r`n(ALIASES|RELATED LINKS|REMARKS) *`r`n(( *[^ `r`n]+[^`r`n]*)?`r`n)+", "`r`n")
-    # Squash all consecutive new-lines greater two down to just two.
-    $str = [System.Text.RegularExpressions.Regex]::Replace($str, "`r`n *`r`n( *`r?`n)+", "`r`n`r`n")
-    # Remove trailing whitespace from each line.
-    $str = [System.Text.RegularExpressions.Regex]::Replace($str, " +`r`n", "`r`n")
-    $str.Trim()
+if (!$NoNewProcess) {
+    # Run the update in a separate process since it requires importing the module.
+    Write-Host "Launching new process."
+    & (Get-Command -Name powershell.exe -CommandType Application) -Command ". '$($MyInvocation.MyCommand.Path)' -NoNewProcess"
+    return
+}
+
+function Get-HelpString {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+        [switch]$Full)
+
+    # Format the help as a string.
+    $str = Get-Help @PSBoundParameters |
+        Out-String -Width 110 # This width fits GitHub.
+
+    # Split the help string into sections.
+    $sections = @( )
+    $section = $null
+    foreach ($line in $str.Trim().Replace("`r", "").Split("`n")) {
+        $line = $line.TrimEnd()
+
+        # Add the blank line.
+        if (!$line) {
+            # Prevent multiple blank lines.
+            if ($section.Lines[$section.Lines.Count - 1]) { $section.Lines += "" }
+            continue
+        # Append the section content line.
+        } elseif ($line.StartsWith(" ") -and !($isExample = $line -like "*----- EXAMPLE*")) {
+            $section.Lines += $line
+            continue
+        # Append the previous section.
+        } elseif ($section) {
+            $sections += $section
+        }
+
+        # Start a new section.
+        $section = @{ Name = $line ; Lines = @( $line ) }
+        if ($isExample) { $section.Lines += "" }
+    }
+
+    # Append the last section.
+    $sections += $section
+
+    # Recombine all sections into a single string.
+    $str = foreach ($section in $sections) {
+        # Skip specific sections.
+        if ($section.Name -in "ALIASES", "RELATED LINKS", "REMARKS") { continue }
+        # Collapse the section into a single string.
+        $sectionStr = ($section.Lines | Out-String -Width ([int]::MaxValue)).TrimEnd()
+        # Skip empty sections.
+        if ($sectionStr -eq $section.Name) { continue }
+        $sectionStr.TrimEnd() # Output the section as a string.
+        "" # Output a blank line between sections.
+    }
+    ($str | Out-String -Width ([int]::MaxValue)).Trim()
 }
 
 # If the module is not already imported, then set a flag to remove it at the end of the script.

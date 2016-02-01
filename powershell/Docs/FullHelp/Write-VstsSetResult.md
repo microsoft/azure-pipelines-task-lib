@@ -12,8 +12,6 @@ SYNTAX
 
     Write-VstsSetResult -Result <String> [-Message <String>] [-DoNotThrow] [<CommonParameters>]
 
-DESCRIPTION
-
 PARAMETERS
     -Result <String>
 
@@ -53,8 +51,4 @@ PARAMETERS
         ErrorAction, ErrorVariable, WarningAction, WarningVariable,
         OutBuffer, PipelineVariable, and OutVariable. For more information, see
         about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
-
-INPUTS
-
-OUTPUTS
 ```

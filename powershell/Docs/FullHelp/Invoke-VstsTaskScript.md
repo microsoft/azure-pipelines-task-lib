@@ -29,10 +29,6 @@ PARAMETERS
         OutBuffer, PipelineVariable, and OutVariable. For more information, see
         about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
 
-INPUTS
-
-OUTPUTS
-
     -------------------------- EXAMPLE 1 --------------------------
 
     PS C:\>For testing from within PowerShell 5 or higher:
