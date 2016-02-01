@@ -176,8 +176,6 @@ SYNOPSIS
 SYNTAX
     Write-VstsAddAttachment [-Type] <String> [-Name] <String> [-Path] <String> [-AsOutput]
     [<CommonParameters>]
-
-DESCRIPTION
 ```
 ### <a name="write-vstsassociateartifact" />Write-VstsAssociateArtifact
 [table of contents](#toc) | [full](FullHelp/Write-VstsAssociateArtifact.md)
@@ -191,8 +189,6 @@ SYNOPSIS
 SYNTAX
     Write-VstsAssociateArtifact [-Name] <String> [-Path] <String> [-Type] <String> [[-Properties]
     <Hashtable>] [-AsOutput] [<CommonParameters>]
-
-DESCRIPTION
 ```
 ### <a name="write-vstslogdetail" />Write-VstsLogDetail
 [table of contents](#toc) | [full](FullHelp/Write-VstsLogDetail.md)
@@ -207,8 +203,6 @@ SYNTAX
     Write-VstsLogDetail [-Id] <Guid> [[-ParentId] <Object>] [[-Type] <String>] [[-Name] <String>] [[-Order]
     <Object>] [[-StartTime] <Object>] [[-FinishTime] <Object>] [[-Progress] <Object>] [[-State] <Object>]
     [[-Result] <Object>] [[-Message] <String>] [-AsOutput] [<CommonParameters>]
-
-DESCRIPTION
 ```
 ### <a name="write-vstssetprogress" />Write-VstsSetProgress
 [table of contents](#toc) | [full](FullHelp/Write-VstsSetProgress.md)
@@ -221,8 +215,6 @@ SYNOPSIS
 
 SYNTAX
     Write-VstsSetProgress [-Percent] <Int32> [[-CurrentOperation] <String>] [-AsOutput] [<CommonParameters>]
-
-DESCRIPTION
 ```
 ### <a name="write-vstssetresult" />Write-VstsSetResult
 [table of contents](#toc) | [full](FullHelp/Write-VstsSetResult.md)
@@ -237,8 +229,6 @@ SYNTAX
     Write-VstsSetResult -Result <String> [-Message <String>] [-AsOutput] [<CommonParameters>]
 
     Write-VstsSetResult -Result <String> [-Message <String>] [-DoNotThrow] [<CommonParameters>]
-
-DESCRIPTION
 ```
 ### <a name="write-vstssetvariable" />Write-VstsSetVariable
 [table of contents](#toc) | [full](FullHelp/Write-VstsSetVariable.md)
@@ -251,8 +241,6 @@ SYNOPSIS
 
 SYNTAX
     Write-VstsSetVariable [-Name] <String> [[-Value] <String>] [-AsOutput] [<CommonParameters>]
-
-DESCRIPTION
 ```
 ### <a name="write-vststaskdebug" />Write-VstsTaskDebug
 [table of contents](#toc) | [full](FullHelp/Write-VstsTaskDebug.md)
@@ -265,8 +253,6 @@ SYNOPSIS
 
 SYNTAX
     Write-VstsTaskDebug [[-Message] <String>] [-AsOutput] [<CommonParameters>]
-
-DESCRIPTION
 ```
 ### <a name="write-vststaskerror" />Write-VstsTaskError
 [table of contents](#toc) | [full](FullHelp/Write-VstsTaskError.md)
@@ -280,8 +266,6 @@ SYNOPSIS
 SYNTAX
     Write-VstsTaskError [[-Message] <String>] [[-ErrCode] <String>] [[-SourcePath] <String>] [[-LineNumber]
     <String>] [[-ColumnNumber] <String>] [-AsOutput] [<CommonParameters>]
-
-DESCRIPTION
 ```
 ### <a name="write-vststaskverbose" />Write-VstsTaskVerbose
 [table of contents](#toc) | [full](FullHelp/Write-VstsTaskVerbose.md)
@@ -294,8 +278,6 @@ SYNOPSIS
 
 SYNTAX
     Write-VstsTaskVerbose [[-Message] <String>] [-AsOutput] [<CommonParameters>]
-
-DESCRIPTION
 ```
 ### <a name="write-vststaskwarning" />Write-VstsTaskWarning
 [table of contents](#toc) | [full](FullHelp/Write-VstsTaskWarning.md)
@@ -309,8 +291,6 @@ SYNOPSIS
 SYNTAX
     Write-VstsTaskWarning [[-Message] <String>] [[-ErrCode] <String>] [[-SourcePath] <String>] [[-LineNumber]
     <String>] [[-ColumnNumber] <String>] [-AsOutput] [<CommonParameters>]
-
-DESCRIPTION
 ```
 ### <a name="write-vstsupdatebuildnumber" />Write-VstsUpdateBuildNumber
 [table of contents](#toc) | [full](FullHelp/Write-VstsUpdateBuildNumber.md)
@@ -323,8 +303,6 @@ SYNOPSIS
 
 SYNTAX
     Write-VstsUpdateBuildNumber [-Value] <String> [-AsOutput] [<CommonParameters>]
-
-DESCRIPTION
 ```
 ### <a name="write-vstsuploadartifact" />Write-VstsUploadArtifact
 [table of contents](#toc) | [full](FullHelp/Write-VstsUploadArtifact.md)
@@ -338,8 +316,6 @@ SYNOPSIS
 SYNTAX
     Write-VstsUploadArtifact [-ContainerFolder] <String> [-Name] <String> [-Path] <String> [-AsOutput]
     [<CommonParameters>]
-
-DESCRIPTION
 ```
 ### <a name="write-vstsuploadbuildlog" />Write-VstsUploadBuildLog
 [table of contents](#toc) | [full](FullHelp/Write-VstsUploadBuildLog.md)
@@ -352,8 +328,6 @@ SYNOPSIS
 
 SYNTAX
     Write-VstsUploadBuildLog [-Path] <String> [-AsOutput] [<CommonParameters>]
-
-DESCRIPTION
 ```
 ## <a name="serverom" />Server OM
 ### <a name="get-vststfsclientcredentials" />Get-VstsTfsClientCredentials
@@ -403,8 +377,6 @@ SYNOPSIS
 SYNTAX
     Assert-VstsPath [-LiteralPath] <String> [[-PathType] {Any | Container | Leaf}] [-PassThru]
     [<CommonParameters>]
-
-DESCRIPTION
 ```
 ### <a name="invoke-vststaskscript" />Invoke-VstsTaskScript
 [table of contents](#toc) | [full](FullHelp/Invoke-VstsTaskScript.md)

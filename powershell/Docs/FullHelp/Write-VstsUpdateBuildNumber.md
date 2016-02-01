@@ -10,8 +10,6 @@ SYNOPSIS
 SYNTAX
     Write-VstsUpdateBuildNumber [-Value] <String> [-AsOutput] [<CommonParameters>]
 
-DESCRIPTION
-
 PARAMETERS
     -Value <String>
 
@@ -35,8 +33,4 @@ PARAMETERS
         ErrorAction, ErrorVariable, WarningAction, WarningVariable,
         OutBuffer, PipelineVariable, and OutVariable. For more information, see
         about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
-
-INPUTS
-
-OUTPUTS
 ```
