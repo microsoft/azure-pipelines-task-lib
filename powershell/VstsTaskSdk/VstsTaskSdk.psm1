@@ -35,6 +35,7 @@ Export-ModuleMember -Function @(
         'Import-LocStrings'
         # Logging command functions.
         'Write-AddAttachment'
+        'Write-AddBuildTag'
         'Write-AssociateArtifact'
         'Write-LogDetail'
         'Write-SetProgress'

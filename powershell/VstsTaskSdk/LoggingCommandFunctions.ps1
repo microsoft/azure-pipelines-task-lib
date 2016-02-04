@@ -39,6 +39,23 @@ See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/comm
 .PARAMETER AsOutput
 Indicates whether to write the logging command directly to the host or to the output pipeline.
 #>
+function Write-AddBuildTag {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Value,
+        [switch]$AsOutput)
+
+    Write-LoggingCommand -Area 'build' -Event 'addbuildtag' -Data $Value -AsOutput:$AsOutput
+}
+
+<#
+.SYNOPSIS
+See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+
+.PARAMETER AsOutput
+Indicates whether to write the logging command directly to the host or to the output pipeline.
+#>
 function Write-AssociateArtifact {
     [CmdletBinding()]
     param(
@@ -168,10 +185,12 @@ function Write-SetVariable {
         [Parameter(Mandatory = $true)]
         [string]$Name,
         [string]$Value,
+        [switch]$Secret,
         [switch]$AsOutput)
 
     Write-LoggingCommand -Area 'task' -Event 'setvariable' -Data $Value -Properties @{
             'variable' = $Name
+            'issecret' = $Secret
         } -AsOutput:$AsOutput
 }
 
