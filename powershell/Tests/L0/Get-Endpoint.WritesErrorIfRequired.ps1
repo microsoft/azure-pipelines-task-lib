@@ -14,7 +14,7 @@ Invoke-VstsTaskScript -ScriptBlock {
         $env:ENDPOINT_AUTH_SOMENAME = $variableSet.Auth
 
         # Act.
-        $actual = Get-VstsEndpoint -Name 'SomeName' -Require 2>&1
+        $actual = Get-VstsEndpoint -Name 'SomeName' -Require -ErrorAction Continue 2>&1
 
         # Assert.
         Assert-IsNotNullOrEmpty $actual

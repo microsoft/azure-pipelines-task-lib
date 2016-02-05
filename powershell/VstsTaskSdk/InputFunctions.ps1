@@ -114,7 +114,8 @@ function Set-TaskVariable {
     param(
         [Parameter(Mandatory = $true)]
         [string]$Name,
-        [string]$Value)
+        [string]$Value,
+        [switch]$Secret)
 
     # Set the environment variable.
     $path = "Env:$(Format-VariableName $Name)"
@@ -122,7 +123,7 @@ function Set-TaskVariable {
     Set-Item -LiteralPath $path -Value $Value
 
     # Persist the variable in the task context.
-    Write-SetVariable -Name $Name -Value $Value
+    Write-SetVariable -Name $Name -Value $Value -Secret:$Secret
 }
 
 ########################################

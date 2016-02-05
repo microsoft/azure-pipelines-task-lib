@@ -18,7 +18,7 @@ Invoke-VstsTaskScript -ScriptBlock {
         $variableSet.Remove('Expected')
 
         # Act.
-        $actual = Get-VstsInput -Name 'Some name' -Require @variableSet 2>&1
+        $actual = Get-VstsInput -Name 'Some name' -Require -ErrorAction Continue @variableSet 2>&1
 
         # Actual.
         Assert-IsNotNullOrEmpty $actual

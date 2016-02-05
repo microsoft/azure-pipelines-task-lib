@@ -1,6 +1,29 @@
 [CmdletBinding()]
 param()
 
+function global:Assert-HostMessage {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Expected,
+        [string]$AlternateExpected,
+        [Parameter(Mandatory = $true)]
+        [string[]]$HostMessages)
+
+    Trace-VstsEnteringInvocation $MyInvocation
+    try {
+        foreach ($hostMessage in $HostMessages) {
+            if ($hostMessage -eq $Expected -or ($AlternateExpected -and $hostMessage -eq $AlternateExpected)) {
+                return
+            }
+        }
+
+        throw "Matching host message not found."
+    } finally {
+        Trace-VstsLeavingInvocation $MyInvocation
+    }
+}
+
 # Arrange.
 . $PSScriptRoot\..\lib\Initialize-Test.ps1
 Invoke-VstsTaskScript -ScriptBlock {
@@ -62,53 +85,48 @@ Invoke-VstsTaskScript -ScriptBlock {
     try {
         foreach ($variableSet in $variableSets) {
             $command = $variableSet.Command
-            Unregister-Mock Write-Host
-            Register-Mock Write-Host
 
-            # Act/Assert - Verify using as output switch.
+            # Verify using as output switch.
+            # Act.
             $actual = & $vstsModule Write-LoggingCommand @command -AsOutput
-            Assert-WasCalled Write-Host -Times 0
+            # Assert.
             if (!$variableSet.AlternateExpected -or $variableSet.AlternateExpected -ne $actual) {
                 Assert-AreEqual $variableSet.Expected $actual
             }
 
-            # Act/Assert - Verify using "Object" parameter set and as output switch.
+            # Verify using "Object" parameterset and as output switch.
+            # Act.
             $actual = & $vstsModule Write-LoggingCommand -Command $command -AsOutput
-            Assert-WasCalled Write-Host -Times 0
+            # Assert.
             if (!$variableSet.AlternateExpected -or $variableSet.AlternateExpected -ne $actual) {
                 Assert-AreEqual $variableSet.Expected $actual
             }
 
-            # Act/Assert - Verify without using as output switch.
+            # Verify without using as output switch.
+            # Arrange.
+            # Override Write-Host for as short a time as possible. Otherwise the test output becomes confusing.
+            $script:hostMessages = @( )
+            Register-Mock Write-Host { $OFS = " " ; $script:hostMessages += "$args" }
+            # Act.
             $actual = & $vstsModule Write-LoggingCommand @command
-            Assert-AreEqual $null $actual
-            try {
-                Assert-WasCalled Write-Host -- $variableSet.Expected
-            } catch {
-                if (!$variableSet.AlternateExpected) {
-                    throw
-                }
-
-                Assert-WasCalled Write-Host -- $variableSet.AlternateExpected
-            }
-
-            # Act/Assert - Verify using "Object" parameter set and without using as output switch.
             Unregister-Mock Write-Host
-            Register-Mock Write-Host
-            $actual = & $vstsModule Write-LoggingCommand -Command $command
+            # Assert.
             Assert-AreEqual $null $actual
-            try {
-                Assert-WasCalled Write-Host -- $variableSet.Expected
-            } catch {
-                if (!$variableSet.AlternateExpected) {
-                    throw
-                }
+            Assert-HostMessage -Expected $variableSet.Expected -AlternateExpected $variableSet.AlternateExpected -HostMessages $hostMessages
 
-                Assert-WasCalled Write-Host -- $variableSet.AlternateExpected
-            }
+            # Verify using "Object" parameterset and without using as output switch.
+            # Arrange.
+            # Override Write-Host for as short a time as possible. Otherwise the test output becomes confusing.
+            $script:hostMessages = @( )
+            Register-Mock Write-Host { $OFS = " " ; $script:hostMessages += "$args" }
+            # Act.
+            $actual = & $vstsModule Write-LoggingCommand -Command $command
+            Unregister-Mock Write-Host
+            # Assert.
+            Assert-AreEqual $null $actual
+            Assert-HostMessage -Expected $variableSet.Expected -AlternateExpected $variableSet.AlternateExpected -HostMessages $hostMessages
         }
     } catch {
-        Unregister-Mock Write-Host
         throw
     }
 }
