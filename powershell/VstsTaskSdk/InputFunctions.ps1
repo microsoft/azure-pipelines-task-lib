@@ -119,7 +119,7 @@ function Set-TaskVariable {
 
     # Set the environment variable.
     $path = "Env:$(Format-VariableName $Name)"
-    Write-Verbose "Set $path = '$Value'"
+    Write-Verbose "Set $path = '$(if ($Secret) { '********' } else { $Value })'"
     Set-Item -LiteralPath $path -Value $Value
 
     # Persist the variable in the task context.
