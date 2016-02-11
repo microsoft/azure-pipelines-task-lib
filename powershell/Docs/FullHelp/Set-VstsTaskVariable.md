@@ -8,7 +8,7 @@ SYNOPSIS
     Sets a task variable.
 
 SYNTAX
-    Set-VstsTaskVariable [-Name] <String> [[-Value] <String>] [<CommonParameters>]
+    Set-VstsTaskVariable [-Name] <String> [[-Value] <String>] [-Secret] [<CommonParameters>]
 
 DESCRIPTION
     Sets a task variable in the current task context as well as in the current job context. This allows the
@@ -28,6 +28,14 @@ PARAMETERS
         Required?                    false
         Position?                    2
         Default value
+        Accept pipeline input?       false
+        Accept wildcard characters?  false
+
+    -Secret [<SwitchParameter>]
+
+        Required?                    false
+        Position?                    named
+        Default value                False
         Accept pipeline input?       false
         Accept wildcard characters?  false
 
