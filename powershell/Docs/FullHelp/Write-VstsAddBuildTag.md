@@ -1,37 +1,21 @@
-# Write-VstsSetVariable
-[table of contents](../Commands.md#toc) | [brief](../Commands.md#write-vstssetvariable)
+# Write-VstsAddBuildTag
+[table of contents](../Commands.md#toc) | [brief](../Commands.md#write-vstsaddbuildtag)
 ```
 NAME
-    Write-VstsSetVariable
+    Write-VstsAddBuildTag
 
 SYNOPSIS
     See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
 
 SYNTAX
-    Write-VstsSetVariable [-Name] <String> [[-Value] <String>] [-Secret] [-AsOutput] [<CommonParameters>]
+    Write-VstsAddBuildTag [-Value] <String> [-AsOutput] [<CommonParameters>]
 
 PARAMETERS
-    -Name <String>
+    -Value <String>
 
         Required?                    true
         Position?                    1
         Default value
-        Accept pipeline input?       false
-        Accept wildcard characters?  false
-
-    -Value <String>
-
-        Required?                    false
-        Position?                    2
-        Default value
-        Accept pipeline input?       false
-        Accept wildcard characters?  false
-
-    -Secret [<SwitchParameter>]
-
-        Required?                    false
-        Position?                    named
-        Default value                False
         Accept pipeline input?       false
         Accept wildcard characters?  false
 

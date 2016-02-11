@@ -1,4 +1,4 @@
-# Commands (v0.5.1)
+# Commands (v0.5.3)
 ## <a name="toc" />Table of Contents
  * [Find](#find)
   * [Find-VstsFiles](#find-vstsfiles)
@@ -12,6 +12,7 @@
   * [Import-VstsLocStrings](#import-vstslocstrings)
  * [Logging Command](#loggingcommand)
   * [Write-VstsAddAttachment](#write-vstsaddattachment)
+  * [Write-VstsAddBuildTag](#write-vstsaddbuildtag)
   * [Write-VstsAssociateArtifact](#write-vstsassociateartifact)
   * [Write-VstsLogDetail](#write-vstslogdetail)
   * [Write-VstsSetProgress](#write-vstssetprogress)
@@ -114,7 +115,7 @@ SYNOPSIS
     Sets a task variable.
 
 SYNTAX
-    Set-VstsTaskVariable [-Name] <String> [[-Value] <String>] [<CommonParameters>]
+    Set-VstsTaskVariable [-Name] <String> [[-Value] <String>] [-Secret] [<CommonParameters>]
 
 DESCRIPTION
     Sets a task variable in the current task context as well as in the current job context. This allows the
@@ -176,6 +177,18 @@ SYNOPSIS
 SYNTAX
     Write-VstsAddAttachment [-Type] <String> [-Name] <String> [-Path] <String> [-AsOutput]
     [<CommonParameters>]
+```
+### <a name="write-vstsaddbuildtag" />Write-VstsAddBuildTag
+[table of contents](#toc) | [full](FullHelp/Write-VstsAddBuildTag.md)
+```
+NAME
+    Write-VstsAddBuildTag
+
+SYNOPSIS
+    See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+
+SYNTAX
+    Write-VstsAddBuildTag [-Value] <String> [-AsOutput] [<CommonParameters>]
 ```
 ### <a name="write-vstsassociateartifact" />Write-VstsAssociateArtifact
 [table of contents](#toc) | [full](FullHelp/Write-VstsAssociateArtifact.md)
@@ -240,7 +253,7 @@ SYNOPSIS
     See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
 
 SYNTAX
-    Write-VstsSetVariable [-Name] <String> [[-Value] <String>] [-AsOutput] [<CommonParameters>]
+    Write-VstsSetVariable [-Name] <String> [[-Value] <String>] [-Secret] [-AsOutput] [<CommonParameters>]
 ```
 ### <a name="write-vststaskdebug" />Write-VstsTaskDebug
 [table of contents](#toc) | [full](FullHelp/Write-VstsTaskDebug.md)
