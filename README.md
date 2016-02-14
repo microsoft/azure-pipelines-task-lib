@@ -46,6 +46,27 @@ $ cd node
 $ gulp test
 ```
 
+Set environment variable TASK_TEST_TRACE=1 to display test output.
+
 ### Powershell
 
-Coming soon
+Once:
+```bash
+$ cd powershell
+$ npm install
+$ sudo npm install gulp -g
+```
+
+Build:
+```bash
+$ cd powershell
+$ gulp
+```
+
+Test:
+```bash
+$ cd powershell
+$ gulp test
+```
+
+Set environment variable TASK_TEST_TRACE=1 to display test output.
