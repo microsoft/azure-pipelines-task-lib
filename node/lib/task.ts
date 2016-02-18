@@ -151,7 +151,6 @@ function loadLocStrings(resourceFile: string, culture: string): { [key: string]:
     } = {};
 
     if (exist(resourceFile)) {
-        debug('load strings from: ' + resourceFile);
         var resourceJson = require(resourceFile);
 
         if (resourceJson && resourceJson.hasOwnProperty('messages')) {
@@ -159,7 +158,6 @@ function loadLocStrings(resourceFile: string, culture: string): { [key: string]:
             // load up resource resjson for different culture
             var localizedResourceFile = path.join(path.dirname(resourceFile), 'strings', 'resources.resjson', culture, 'resources.resjson');
             if (exist(localizedResourceFile)) {
-                debug('load loc strings from: ' + localizedResourceFile);
                 locResourceJson = loadResJson(localizedResourceFile);
             }
 
