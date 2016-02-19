@@ -3,6 +3,7 @@
 ## Dependencies
 * The SDK requires PowerShell 3 or higher.
 * The SDK is designed for use with PowerShell.exe (Console Host).
+* 1.95 agent.
 
 ## Where to get it
 
