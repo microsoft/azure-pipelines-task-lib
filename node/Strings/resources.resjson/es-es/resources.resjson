@@ -1,0 +1,18 @@
+{
+  "loc.messages.LIB_UnhandledEx": "No controlada: %s",
+  "loc.messages.LIB_FailOnCode": "Código de retorno de error: %d",
+  "loc.messages.LIB_ReturnCode": "Código de retorno: %d",
+  "loc.messages.LIB_ResourceFileNotExist": "El archivo de recursos no existe: %s",
+  "loc.messages.LIB_ResourceFileAlreadySet": "El archivo de recursos se ha establecido ya en: %s",
+  "loc.messages.LIB_ResourceFileNotSet": "No se ha establecido el archivo de recursos. No se encuentra la cadena localizada para la clave: %s",
+  "loc.messages.LIB_LocStringNotFound": "No se encuentra la cadena localizada para la clave: %s",
+  "loc.messages.LIB_ParameterIsRequired": "No se ha proporcionado %s",
+  "loc.messages.LIB_InputRequired": "Entrada requerida: %s",
+  "loc.messages.LIB_EndpointNotExist": "No hay punto de conexión: %s",
+  "loc.messages.LIB_InvalidEndpointAuth": "Autenticación de punto de conexión no válida: %s",
+  "loc.messages.LIB_PathNotFound": "No se encuentra %s: %s",
+  "loc.messages.LIB_PathHasNullByte": "La ruta de acceso no puede tener bytes nulos",
+  "loc.messages.LIB_OperationFailed": "Error de %s: %s",
+  "loc.messages.LIB_UseFirstGlobMatch": "Hay varias coincidencias en el área de trabajo. Se usará la primera.",
+  "loc.messages.LIB_MergeTestResultNotSupported": "Esta versión del agente de compilación para OSX/Linux no admite la fusión mediante combinación de resultados de pruebas de varios archivos en una serie de pruebas. Cada archivo de resultados de pruebas se publicará como una serie de pruebas diferente en VSO/TFS."
+}
