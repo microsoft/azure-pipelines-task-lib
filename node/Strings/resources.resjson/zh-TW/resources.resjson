@@ -1,0 +1,18 @@
+{
+  "loc.messages.LIB_UnhandledEx": "未經處理: %s",
+  "loc.messages.LIB_FailOnCode": "傳回程式碼失敗: %d",
+  "loc.messages.LIB_ReturnCode": "傳回程式碼: %d",
+  "loc.messages.LIB_ResourceFileNotExist": "資源檔案不存在: %s",
+  "loc.messages.LIB_ResourceFileAlreadySet": "資源檔案已設定至: %s",
+  "loc.messages.LIB_ResourceFileNotSet": "尚未設定資源檔案，找不到索引鍵的 loc 字串: %s",
+  "loc.messages.LIB_LocStringNotFound": "找不到索引鍵的 loc 字串: %s",
+  "loc.messages.LIB_ParameterIsRequired": "未提供 %s",
+  "loc.messages.LIB_InputRequired": "需要輸入內容: %s",
+  "loc.messages.LIB_EndpointNotExist": "端點不存在: %s",
+  "loc.messages.LIB_InvalidEndpointAuth": "端點驗證無效: %s",
+  "loc.messages.LIB_PathNotFound": "找不到 %s: %s",
+  "loc.messages.LIB_PathHasNullByte": "路徑不能包含 null 位元組",
+  "loc.messages.LIB_OperationFailed": "%s 失敗: %s",
+  "loc.messages.LIB_UseFirstGlobMatch": "多個工作區相符。請先使用。",
+  "loc.messages.LIB_MergeTestResultNotSupported": "OSX/Linux 的此版本組建代理程式不支援將多個檔案的測試結果合併至單一測試回合，每個測試結果檔案將作為個別測試回合在 VSO/TFS 中發行。"
+}

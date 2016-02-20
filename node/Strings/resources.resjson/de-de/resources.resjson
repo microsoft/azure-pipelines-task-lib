@@ -1,0 +1,18 @@
+{
+  "loc.messages.LIB_UnhandledEx": "Ausnahmefehler: %s",
+  "loc.messages.LIB_FailOnCode": "Fehler beim Rückgabecode: %d",
+  "loc.messages.LIB_ReturnCode": "Rückgabecode: %d",
+  "loc.messages.LIB_ResourceFileNotExist": "Die Ressourcendatei ist nicht vorhanden: %s",
+  "loc.messages.LIB_ResourceFileAlreadySet": "Die Ressourcendatei wurde bereits festgelegt auf: %s",
+  "loc.messages.LIB_ResourceFileNotSet": "Die Ressourcendatei wurde nicht festgelegt. Die Lokalisierungszeichenfolge für den folgenden Schlüssel wurde nicht gefunden: %s",
+  "loc.messages.LIB_LocStringNotFound": "Die Lokalisierungszeichenfolge für den folgenden Schlüssel wurde nicht gefunden: %s",
+  "loc.messages.LIB_ParameterIsRequired": "\"%s\" wurde nicht angegeben.",
+  "loc.messages.LIB_InputRequired": "Eingabe erforderlich: %s",
+  "loc.messages.LIB_EndpointNotExist": "Der Endpunkt ist nicht vorhanden: %s",
+  "loc.messages.LIB_InvalidEndpointAuth": "Ungültige Endpunktauthentifizierung: %s",
+  "loc.messages.LIB_PathNotFound": "Nicht gefunden %s: %s",
+  "loc.messages.LIB_PathHasNullByte": "Der Pfad darf nicht NULL Bytes enthalten.",
+  "loc.messages.LIB_OperationFailed": "Fehler %s: %s",
+  "loc.messages.LIB_UseFirstGlobMatch": "Mehrere Arbeitsbereichübereinstimmungen. Die erste Übereinstimmung wird verwendet.",
+  "loc.messages.LIB_MergeTestResultNotSupported": "Das Mergen von Testergebnissen aus mehreren Dateien in einen Testlauf wird von dieser Version des Build-Agents für OSX/Linux nicht unterstützt. Jede Testergebnisdatei wird als separater Testlauf in VSO/TFS veröffentlicht."
+}

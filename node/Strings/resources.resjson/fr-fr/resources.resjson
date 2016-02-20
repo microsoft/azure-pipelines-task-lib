@@ -1,0 +1,18 @@
+{
+  "loc.messages.LIB_UnhandledEx": "Non géré : %s",
+  "loc.messages.LIB_FailOnCode": "Code de retour de l'échec : %d",
+  "loc.messages.LIB_ReturnCode": "Code de retour : %d",
+  "loc.messages.LIB_ResourceFileNotExist": "Le fichier de ressources n'existe pas : %s",
+  "loc.messages.LIB_ResourceFileAlreadySet": "Le fichier de ressources est déjà défini : %s",
+  "loc.messages.LIB_ResourceFileNotSet": "Le fichier de ressources n'est pas défini. La chaîne localisée de la clé est introuvable : %s",
+  "loc.messages.LIB_LocStringNotFound": "Chaîne localisée introuvable pour la clé : %s",
+  "loc.messages.LIB_ParameterIsRequired": "%s non fourni",
+  "loc.messages.LIB_InputRequired": "Entrée nécessaire : %s",
+  "loc.messages.LIB_EndpointNotExist": "Point de terminaison absent : %s",
+  "loc.messages.LIB_InvalidEndpointAuth": "Authentification du point de terminaison non valide : %s",
+  "loc.messages.LIB_PathNotFound": "%s : %s introuvable",
+  "loc.messages.LIB_PathHasNullByte": "Le chemin ne peut pas contenir d'octets de valeur Null",
+  "loc.messages.LIB_OperationFailed": "Échec de %s : %s",
+  "loc.messages.LIB_UseFirstGlobMatch": "Plusieurs espaces de travail correspondants. Utilisation du premier d'entre eux.",
+  "loc.messages.LIB_MergeTestResultNotSupported": "La fusion des résultats des tests de plusieurs fichiers en une seule série de tests n'est pas prise en charge dans cette version de l'agent de build pour OSX/Linux. Chaque fichier de résultats des tests est publié en tant que série de tests distincte dans VSO/TFS."
+}
