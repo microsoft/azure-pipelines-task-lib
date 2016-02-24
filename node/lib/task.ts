@@ -153,14 +153,24 @@ function loadLocStrings(resourceFile: string, culture: string): { [key: string]:
     if (exist(resourceFile)) {
         debug('load strings from: ' + resourceFile);
         var resourceJson = require(resourceFile);
-
         if (resourceJson && resourceJson.hasOwnProperty('messages')) {
             var locResourceJson = null;
             // load up resource resjson for different culture
-            var localizedResourceFile = path.join(path.dirname(resourceFile), 'strings', 'resources.resjson', culture, 'resources.resjson');
-            if (exist(localizedResourceFile)) {
-                debug('load loc strings from: ' + localizedResourceFile);
-                locResourceJson = loadResJson(localizedResourceFile);
+            var localizedResourceFile = path.join(path.dirname(resourceFile), 'Strings', 'resources.resjson');
+            var upperCulture = culture.toUpperCase();
+            var cultures = [];
+            try { cultures = fs.readdirSync(localizedResourceFile); }
+            catch(ex) { }
+            for (var i = 0 ; i < cultures.length ; i++) {
+                if (cultures[i].toUpperCase() == upperCulture) {
+                    localizedResourceFile = path.join(localizedResourceFile, cultures[i], 'resources.resjson');
+                    if (exist(localizedResourceFile)) {
+                        debug('load loc strings from: ' + localizedResourceFile);
+                        locResourceJson = loadResJson(localizedResourceFile);
+                    }
+
+                    break;
+                }
             }
 
             for (var key in resourceJson.messages) {
