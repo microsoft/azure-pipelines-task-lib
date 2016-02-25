@@ -1,0 +1,18 @@
+{
+  "loc.messages.LIB_UnhandledEx": "Eccezione non gestita: %s",
+  "loc.messages.LIB_FailOnCode": "Codice restituito dell'errore: %d",
+  "loc.messages.LIB_ReturnCode": "Codice restituito: %d",
+  "loc.messages.LIB_ResourceFileNotExist": "Il file di risorse non esiste: %s",
+  "loc.messages.LIB_ResourceFileAlreadySet": "Il file di risorse è già stato impostato su %s",
+  "loc.messages.LIB_ResourceFileNotSet": "Il file di risorse non è stato impostato. La stringa localizzata per la chiave %s non è stata trovata",
+  "loc.messages.LIB_LocStringNotFound": "La stringa localizzata per la chiave %s non è stata trovata",
+  "loc.messages.LIB_ParameterIsRequired": "Parametro %s non fornito",
+  "loc.messages.LIB_InputRequired": "Input richiesto: %s",
+  "loc.messages.LIB_EndpointNotExist": "Endpoint non presente: %s",
+  "loc.messages.LIB_InvalidEndpointAuth": "Autenticazione endpoint non valida: %s",
+  "loc.messages.LIB_PathNotFound": "Percorso %s non trovato: %s",
+  "loc.messages.LIB_PathHasNullByte": "Il percorso non può contenere byte Null",
+  "loc.messages.LIB_OperationFailed": "Operazione %s non riuscita: %s",
+  "loc.messages.LIB_UseFirstGlobMatch": "Sono presenti più corrispondenze dell'area di lavoro. Verrà usata la prima.",
+  "loc.messages.LIB_MergeTestResultNotSupported": "L'unione di più file di risultati del test in un'unica esecuzione dei test non è supportata in questa versione dell'agente di compilazione per OS X/Linux. Ogni file dei risultati del test verrà pubblicato come esecuzione dei test separata in VSO/TFS."
+}

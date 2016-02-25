@@ -1,0 +1,18 @@
+{
+  "loc.messages.LIB_UnhandledEx": "Не обработано: %s",
+  "loc.messages.LIB_FailOnCode": "Код возврата при сбое: %d.",
+  "loc.messages.LIB_ReturnCode": "Код возврата: %d",
+  "loc.messages.LIB_ResourceFileNotExist": "Файл ресурсов не существует: %s.",
+  "loc.messages.LIB_ResourceFileAlreadySet": "Файл ресурсов уже задан: %s.",
+  "loc.messages.LIB_ResourceFileNotSet": "Файл ресурсов не задан, не удается найти локализованную строку для ключа: %s.",
+  "loc.messages.LIB_LocStringNotFound": "Не удается найти локализованную строку для ключа: %s.",
+  "loc.messages.LIB_ParameterIsRequired": "Не указан %s.",
+  "loc.messages.LIB_InputRequired": "Требуется ввести данные: %s.",
+  "loc.messages.LIB_EndpointNotExist": "Конечная точка отсутствует: %s.",
+  "loc.messages.LIB_InvalidEndpointAuth": "Недопустимая проверка подлинности конечной точки: %s.",
+  "loc.messages.LIB_PathNotFound": "Не найден %s: %s.",
+  "loc.messages.LIB_PathHasNullByte": "Путь не может содержать пустые байты.",
+  "loc.messages.LIB_OperationFailed": "Сбой %s: %s.",
+  "loc.messages.LIB_UseFirstGlobMatch": "Несколько рабочих областей совпадает, использована первая рабочая область.",
+  "loc.messages.LIB_MergeTestResultNotSupported": "Объединение результатов тестов из нескольких файлов в один тестовый запуск не поддерживается в этой версии агента сборки для OSX/Linux. Каждый файл результатов теста будет опубликован в качестве отдельного тестового запуска в VSO/TFS."
+}
