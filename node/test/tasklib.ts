@@ -1130,13 +1130,13 @@ describe('Test vsts-task-lib', function() {
             var jsonPath = path.join(tempFolder, 'task.json');
             fs.writeFileSync(jsonPath, jsonStr);
 
-            var tempLocFolder = path.join(tempFolder, 'strings', 'resources.resjson', 'zh-CN');
+            var tempLocFolder = path.join(tempFolder, 'Strings', 'resources.resjson', 'zh-CN');
             shell.mkdir('-p', tempLocFolder);
             var locJsonStr = "{\"loc.messages.key1\" : \"loc cn-string for key 1.\", \"loc.messages.key2\" : \"loc cn-string for key %d.\", \"loc.messages.key3\" : \"loc cn-string for key %%.\"}";
             var locJsonPath = path.join(tempLocFolder, 'resources.resjson');
             fs.writeFileSync(locJsonPath, locJsonStr);
 
-            process.env['SYSTEM_CULTURE'] = 'zh-CN';
+            process.env['SYSTEM_CULTURE'] = 'ZH-cn'; // Lib should handle casing differences for culture.
 
             tl.setResourcePath(jsonPath);
 
