@@ -1,0 +1,18 @@
+{
+  "loc.messages.LIB_UnhandledEx": "未处理: %s",
+  "loc.messages.LIB_FailOnCode": "故障返回代码: %d",
+  "loc.messages.LIB_ReturnCode": "返回代码: %d",
+  "loc.messages.LIB_ResourceFileNotExist": "资源文件不存在: %s",
+  "loc.messages.LIB_ResourceFileAlreadySet": "资源文件已被设置为 %s",
+  "loc.messages.LIB_ResourceFileNotSet": "资源文件尚未设置，无法找到关键字的本地字符串: %s",
+  "loc.messages.LIB_LocStringNotFound": "无法找到关键字的本地字符串: %s",
+  "loc.messages.LIB_ParameterIsRequired": "未提供 %s",
+  "loc.messages.LIB_InputRequired": "输入必需项: %s",
+  "loc.messages.LIB_EndpointNotExist": "终结点不存在: %s",
+  "loc.messages.LIB_InvalidEndpointAuth": "终结点验证无效: %s",
+  "loc.messages.LIB_PathNotFound": "找不到 %s: %s",
+  "loc.messages.LIB_PathHasNullByte": "路径不能包含 null 字节",
+  "loc.messages.LIB_OperationFailed": "%s 失败: %s",
+  "loc.messages.LIB_UseFirstGlobMatch": "出现多个工作区匹配时，使用第一个。",
+  "loc.messages.LIB_MergeTestResultNotSupported": "此版本的 OSX/Linux 生成代理不支持来自某个测试运行的多文件合并测试结果，在 VSO/TFS 中，每个测试结果文件都将作为单独的测试运行进行发布。"
+}

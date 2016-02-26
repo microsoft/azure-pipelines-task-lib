@@ -27,7 +27,7 @@ PARAMETERS
     -LegacyPattern <String>
         Proprietary pattern format. The LiteralDirectory parameter is used to root any unrooted patterns.
 
-        Separate multiple patterns using ";".
+        Separate multiple patterns using ";". Escape actual ";" in the path by using ";;".
         "?" indicates a wildcard that represents any single character within a path segment.
         "*" indicates a wildcard that represents zero or more characters within a path segment.
         "**" as the entire path segment indicates a recursive search.

@@ -1,0 +1,18 @@
+{
+  "loc.messages.LIB_UnhandledEx": "未処理: %s",
+  "loc.messages.LIB_FailOnCode": "失敗のリターン コード: %d",
+  "loc.messages.LIB_ReturnCode": "リターン コード: %d",
+  "loc.messages.LIB_ResourceFileNotExist": "リソース ファイルが存在しません: %s",
+  "loc.messages.LIB_ResourceFileAlreadySet": "リソース ファイルは既に %s に設定されています",
+  "loc.messages.LIB_ResourceFileNotSet": "リソース ファイルが設定されておらず、キーの loc 文字列が見つかりません: %s",
+  "loc.messages.LIB_LocStringNotFound": "キーの loc 文字列が見つかりません: %s",
+  "loc.messages.LIB_ParameterIsRequired": "%s が提供されていません",
+  "loc.messages.LIB_InputRequired": "入力が必要です: %s",
+  "loc.messages.LIB_EndpointNotExist": "エンドポイントが存在しません: %s",
+  "loc.messages.LIB_InvalidEndpointAuth": "エンドポイントの権限が不十分です: %s",
+  "loc.messages.LIB_PathNotFound": "見つかりませんでした %s: %s",
+  "loc.messages.LIB_PathHasNullByte": "パスに null バイトを含めることはできません",
+  "loc.messages.LIB_OperationFailed": "失敗しました %s: %s",
+  "loc.messages.LIB_UseFirstGlobMatch": "複数のワークスペースが一致します。最初のワークスペースが使用されます。",
+  "loc.messages.LIB_MergeTestResultNotSupported": "複数のファイルからのテスト結果を 1 つのテスト実行にマージする処理は、OSX/Linux 用のビルド エージェントのこのバージョンではサポートされていません。各テスト結果ファイルが VSO/TFS で別個のテスト実行として発行されます。"
+}
