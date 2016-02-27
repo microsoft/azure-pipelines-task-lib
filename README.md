@@ -1,4 +1,4 @@
-![VSO] (https://mseng.visualstudio.com/DefaultCollection/_apis/public/build/definitions/b924d696-3eae-4116-8443-9a18392d8544/2553/badge)
+![VSO](https://mseng.visualstudio.com/DefaultCollection/_apis/public/build/definitions/b924d696-3eae-4116-8443-9a18392d8544/2553/badge)
 # VSTS DevOps Task SDK
 
 Libraries for writing Visual Studio Team Services build and deployment tasks
