@@ -3,7 +3,7 @@
 Gets an endpoint.
 
 .DESCRIPTION
-Gets an endpoint object for the specified endpoint name. The endpoint is returned as an object with two properties: Auth and Url.
+Gets an endpoint object for the specified endpoint name. The endpoint is returned as an object with three properties: Auth, Data, and Url.
 
 .PARAMETER Require
 Writes an error to the error pipeline if the endpoint is not found.
@@ -17,17 +17,20 @@ function Get-Endpoint {
 
     $url = (Get-EnvVariable -Name (Get-LocString -Key PSLIB_EndpointUrl0 -ArgumentList $Name) -Path "Env:ENDPOINT_URL_$Name" -Require:$Require)
     if ($Require -and !$url) { return }
-
     if ($auth = (Get-EnvVariable -Name (Get-LocString -Key PSLIB_EndpointAuth0 -ArgumentList $Name) -Path "Env:ENDPOINT_AUTH_$Name" -Require:$Require)) {
         $auth = ConvertFrom-Json -InputObject $auth
     }
 
     if ($Require -and !$auth) { return }
+    if ($data = (Get-EnvVariable -Name "'$Name' service endpoint data" -Path "Env:ENDPOINT_DATA_$Name")) {
+        $data = ConvertFrom-Json -InputObject $data
+    }
 
-    if ($url -or $auth) {
+    if ($url -or $auth -or $data) {
         New-Object -TypeName psobject -Property @{
             Url = $url
             Auth = $auth
+            Data = $data
         }
     }
 }
