@@ -1220,5 +1220,47 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
+        
+        it('publish code coverage passes all the properties properly', function(done) {
+            this.timeout(1000);
+
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
+            var ccPublisher = new tl.CodeCoveragePublisher();
+            ccPublisher.publish("Jacoco", "\\user\\admin\\summary.xml", "\\user\\admin\\report", "\\user\\admin\\report\\t.xml,\\user\\admin\\report\\c.xml");
+
+            var output = stdStream.getContents();
+            var expectedOutput = "##vso[codecoverage.publish codecoveragetool=Jacoco;summaryfile=\\user\\admin\\summary.xml;reportdirectory=\\user\\admin\\report;additionalcodecoveragefiles=\\user\\admin\\report\\t.xml,\\user\\admin\\report\\c.xml;]\n"
+            assert(expectedOutput === output, _mismatch(expectedOutput, output));
+            done();
+        })
+
+        it('publish code coverage does not pass properties when the imput parameters are empty', function(done) {
+            this.timeout(1000);
+
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
+            var ccPublisher = new tl.CodeCoveragePublisher();
+            ccPublisher.publish("", "", "", "");
+
+            var output = stdStream.getContents();
+            var expectedOutput = "##vso[codecoverage.publish]\n"
+            assert(expectedOutput === output, _mismatch(expectedOutput, output));
+            done();
+        })
+
+        it('publish code coverage does not pass properties when the imput parameters are null', function(done) {
+            this.timeout(1000);
+
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
+            var ccPublisher = new tl.CodeCoveragePublisher();
+            ccPublisher.publish(null, null, null, null);
+
+            var output = stdStream.getContents();
+            var expectedOutput = "##vso[codecoverage.publish]\n"
+            assert(expectedOutput === output, _mismatch(expectedOutput, output));
+            done();
+        })
     });
 });
