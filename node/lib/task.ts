@@ -941,6 +941,36 @@ export class TestPublisher {
 }
 
 //-----------------------------------------------------
+// Code coverage Publisher
+//-----------------------------------------------------
+export class CodeCoveragePublisher {
+    constructor() {
+    }
+    public publish(codeCoverageTool, summaryFileLocation, reportDirectory, additionalCodeCoverageFiles) {
+
+        var properties = <{ [key: string]: string }>{};
+
+        if (codeCoverageTool) {
+            properties['codecoveragetool'] = codeCoverageTool;
+        }
+
+        if (summaryFileLocation) {
+            properties['summaryfile'] = summaryFileLocation;
+        }
+
+        if (reportDirectory) {
+            properties['reportdirectory'] = reportDirectory;
+        }
+
+        if (additionalCodeCoverageFiles) {
+            properties['additionalcodecoveragefiles'] = additionalCodeCoverageFiles;
+        }
+
+        command('codecoverage.publish', properties, "");        
+    }
+}
+
+//-----------------------------------------------------
 // Tools
 //-----------------------------------------------------
 exports.TaskCommand = tcm.TaskCommand;
