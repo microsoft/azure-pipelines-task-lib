@@ -1230,7 +1230,7 @@ describe('Test vsts-task-lib', function() {
             ccPublisher.publish("Jacoco", "\\user\\admin\\summary.xml", "\\user\\admin\\report", "\\user\\admin\\report\\t.xml,\\user\\admin\\report\\c.xml");
 
             var output = stdStream.getContents();
-            var expectedOutput = "##vso[codecoverage.publish codecoveragetool=Jacoco;summaryfile=\\user\\admin\\summary.xml;reportdirectory=\\user\\admin\\report;additionalcodecoveragefiles=\\user\\admin\\report\\t.xml,\\user\\admin\\report\\c.xml;]\n"
+            var expectedOutput = _buildOutput(["##vso[codecoverage.publish codecoveragetool=Jacoco;summaryfile=\\user\\admin\\summary.xml;reportdirectory=\\user\\admin\\report;additionalcodecoveragefiles=\\user\\admin\\report\\t.xml,\\user\\admin\\report\\c.xml;]"]);
             assert(expectedOutput === output, _mismatch(expectedOutput, output));
             done();
         })
@@ -1244,7 +1244,7 @@ describe('Test vsts-task-lib', function() {
             ccPublisher.publish("", "", "", "");
 
             var output = stdStream.getContents();
-            var expectedOutput = "##vso[codecoverage.publish]\n"
+            var expectedOutput = _buildOutput(["##vso[codecoverage.publish]"]);
             assert(expectedOutput === output, _mismatch(expectedOutput, output));
             done();
         })
@@ -1258,7 +1258,7 @@ describe('Test vsts-task-lib', function() {
             ccPublisher.publish(null, null, null, null);
 
             var output = stdStream.getContents();
-            var expectedOutput = "##vso[codecoverage.publish]\n"
+            var expectedOutput = _buildOutput(["##vso[codecoverage.publish]"]);
             assert(expectedOutput === output, _mismatch(expectedOutput, output));
             done();
         })
