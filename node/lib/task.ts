@@ -109,6 +109,7 @@ export function exitOnCodeIf(code: number, condition: boolean) {
 //
 export function exit(code: number): void {
     setResult(code, loc('LIB_ReturnCode', code));
+    process.exit(0);
 }
 
 //-----------------------------------------------------
