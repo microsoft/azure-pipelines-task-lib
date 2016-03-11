@@ -160,8 +160,8 @@ function loadLocStrings(resourceFile: string, culture: string): { [key: string]:
             var upperCulture = culture.toUpperCase();
             var cultures = [];
             try { cultures = fs.readdirSync(localizedResourceFile); }
-            catch(ex) { }
-            for (var i = 0 ; i < cultures.length ; i++) {
+            catch (ex) { }
+            for (var i = 0; i < cultures.length; i++) {
                 if (cultures[i].toUpperCase() == upperCulture) {
                     localizedResourceFile = path.join(localizedResourceFile, cultures[i], 'resources.resjson');
                     if (exist(localizedResourceFile)) {
@@ -573,7 +573,7 @@ export function mkdirP(p): boolean {
         if (!p) {
             throw new Error(loc('LIB_ParameterIsRequired', 'p'));
         }
-        
+
         // certain chars like \0 will cause shelljs and fs
         // to blow up without exception or error
         if (p.indexOf('\0') >= 0) {
@@ -771,7 +771,7 @@ export function rmRF(path: string, continueOnError?: boolean): boolean {
         shell.rm('-rf', path);
 
         var errMsg: string = shell.error();
-        
+
         // if you try to delete a file that doesn't exist, desired result is achieved
         // other errors are valid
         if (errMsg && !(errMsg.indexOf('ENOENT') === 0)) {
@@ -896,7 +896,7 @@ export function match(list, pattern, options): string[] {
 
 export function filter(pattern, options): (element: string, indexed: number, array: string[]) => boolean {
     return minimatch.filter(pattern, options);
-}    
+}
 
 //-----------------------------------------------------
 // Test Publisher
@@ -912,8 +912,8 @@ export class TestPublisher {
 
         var properties = <{ [key: string]: string }>{};
         properties['type'] = this.testRunner;
-        
-        if(mergeResults){
+
+        if (mergeResults) {
             properties['mergeResults'] = mergeResults;
         }
 
@@ -932,11 +932,11 @@ export class TestPublisher {
         if (publishRunAttachments) {
             properties['publishRunAttachments'] = publishRunAttachments;
         }
-        
-        if(resultFiles){
+
+        if (resultFiles) {
             properties['resultFiles'] = resultFiles;
         }
-        
+
         command('results.publish', properties, '');
     }
 }
