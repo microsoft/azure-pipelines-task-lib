@@ -910,12 +910,6 @@ export class TestPublisher {
 
     public publish(resultFiles, mergeResults, platform, config, runTitle, publishRunAttachments) {
 
-/*
-        if (mergeResults == 'true') {
-            _writeLine(loc('LIB_MergeTestResultNotSupported'));
-        }
-*/
-
         var properties = <{ [key: string]: string }>{};
         properties['type'] = this.testRunner;
         
@@ -944,13 +938,6 @@ export class TestPublisher {
         }
         
         command('results.publish', properties, '');
-/*
-        for (var i = 0; i < resultFiles.length; i++) {
-            properties['fileNumber'] = i.toString();
-            command('results.publish', properties, resultFiles[i]);
-        }
-        */
-        
     }
 }
 
