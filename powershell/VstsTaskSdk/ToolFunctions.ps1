@@ -117,8 +117,8 @@ function Invoke-Tool { # TODO: RENAME TO INVOKE-PROCESS?
         }
 
         $FileName = $FileName.Replace('"', '').Replace("'", "''")
-        $expression = "& '$FileName' --% $Arguments"
-        Invoke-Expression $expression
+        Write-Host "##[command]""$FileName"" $Arguments"
+        Invoke-Expression "& '$FileName' --% $Arguments"
         Write-Verbose "Exit code: $LASTEXITCODE"
         if ($RequireExitCodeZero -and $LASTEXITCODE -ne 0) {
             Write-Error (Get-LocString -Key PSLIB_Process0ExitedWithCode1 -ArgumentList ([System.IO.Path]::GetFileName($FileName)), $LASTEXITCODE)
