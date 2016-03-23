@@ -11,8 +11,8 @@ SYNTAX
     Get-VstsEndpoint [-Name] <String> [-Require] [<CommonParameters>]
 
 DESCRIPTION
-    Gets an endpoint object for the specified endpoint name. The endpoint is returned as an object with two
-    properties: Auth and Url.
+    Gets an endpoint object for the specified endpoint name. The endpoint is returned as an object with three
+    properties: Auth, Data, and Url.
 
 PARAMETERS
     -Name <String>

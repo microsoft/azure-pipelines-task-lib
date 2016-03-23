@@ -1,4 +1,4 @@
-# Commands (v0.5.3)
+# Commands (v0.6.1)
 ## <a name="toc" />Table of Contents
  * [Find](#find)
   * [Find-VstsFiles](#find-vstsfiles)
@@ -68,8 +68,8 @@ SYNTAX
     Get-VstsEndpoint [-Name] <String> [-Require] [<CommonParameters>]
 
 DESCRIPTION
-    Gets an endpoint object for the specified endpoint name. The endpoint is returned as an object with two
-    properties: Auth and Url.
+    Gets an endpoint object for the specified endpoint name. The endpoint is returned as an object with three
+    properties: Auth, Data, and Url.
 ```
 ### <a name="get-vstsinput" />Get-VstsInput
 [table of contents](#toc) | [full](FullHelp/Get-VstsInput.md)
