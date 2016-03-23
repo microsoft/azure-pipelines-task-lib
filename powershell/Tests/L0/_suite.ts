@@ -24,9 +24,11 @@ describe('VstsTaskSdk Suite', function () {
         fs.readdirSync(__dirname).forEach(function (file: string) {
             var ext = path.extname(file);
             if (ext.toLowerCase() == ".ps1") {
-                it(path.basename(file, ext), (done) => {
-                    psm.runPS(path.join(__dirname, file), done);
-                })
+                // if (file.indexOf("StrictMode") >= 0) {
+                    it(path.basename(file, ext), (done) => {
+                        psm.runPS(path.join(__dirname, file), done);
+                    })
+                // }
             }
         });
     }

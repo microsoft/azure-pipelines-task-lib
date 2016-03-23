@@ -61,7 +61,9 @@ function Invoke-TaskScript {
         [scriptblock]$ScriptBlock)
 
     try {
+        $global:ErrorActionPreference = 'Stop'
         Write-Verbose "$($MyInvocation.MyCommand.Module.Name) $($MyInvocation.MyCommand.Module.Version)" 4>&1 | Out-Default
+        Initialize-SecureInputs 4>&1 | Out-Default
         Merge-Pipelines -ScriptBlock $ScriptBlock
     } catch [VstsTaskSdk.TerminationException] {
         # Special internal exception type to control the flow. Not currently intended
@@ -144,14 +146,14 @@ function Merge-Pipelines {
     param(
         [Parameter(Mandatory = $true)]
         [scriptblock]$ScriptBlock,
-        [switch]$DoNotSetErrorActionPreference)
+        [switch]$NoClosure)
 
-    if ($DoNotSetErrorActionPreference) {
+    if ($NoClosure) {
         . $ScriptBlock 2>&1 3>&1 4>&1 5>&1 | Out-Default
     } else {
-        $ErrorActionPreference = 'Stop'
+        # The closure is required so task scripts do not get access to the internal module-scoped members.
         Remove-Item -LiteralPath variable:ScriptBlock
-        Remove-Item -LiteralPath variable:DoNotSetErrorActionPreference
+        Remove-Item -LiteralPath variable:NoClosure
         & $ScriptBlock.GetNewClosure() 2>&1 3>&1 4>&1 5>&1 | Out-Default
     }
 }
