@@ -14,6 +14,7 @@ import globm = require('glob');
 import util = require('util');
 import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
+import vm = require('./vault');
 
 export enum TaskResult {
     Succeeded = 0,

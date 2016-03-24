@@ -13,6 +13,7 @@ import stream = require('stream');
 import shell = require('shelljs');
 import os = require('os');
 import tl = require('vsts-task-lib/task');
+import vm = require('vsts-task-lib/vault');
 import tcm = require('vsts-task-lib/taskcommand');
 import trm = require('vsts-task-lib/toolrunner');
 
@@ -663,6 +664,60 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
+    });
+
+    describe('Vault', function() {
+        it('Can create vault', function(done) {
+            var vault: vm.Vault = new vm.Vault();
+
+            assert(vault, 'should have created a vault object');
+
+            done();
+        })
+        it('Can store and retrieve a basic value', function(done) {
+            var vault: vm.Vault = new vm.Vault();
+            var data = "astring";
+            var name = "mystring";
+            var stored: boolean = vault.storeSecret(name, data);
+            assert(stored, "should have returned stored");
+
+            var ret = vault.retrieveSecret(name);
+
+            assert(data === ret, 'should have retrieved the same string');
+
+            done();
+        })
+        it('Returns null when retrieving non-existant item', function(done) {
+            var vault: vm.Vault = new vm.Vault();
+            var name = "nonexistant";
+            var ret = vault.retrieveSecret(name);
+
+            assert(!ret, 'should have returned null for non-existant item');
+
+            done();
+        })
+        it('Will return false if you store null', function(done) {
+            var vault: vm.Vault = new vm.Vault();
+            var name="nullitem";
+            var stored: boolean = vault.storeSecret(name, null);
+            assert(!stored, "should not have stored a null");
+            
+            var ret = vault.retrieveSecret(name);
+            assert(!ret, 'should have returned null for non-existant item');
+
+            done();
+        })
+        it('Will return false if you store empty string', function(done) {
+            var vault: vm.Vault = new vm.Vault();
+            var name="nullitem";
+            var stored: boolean = vault.storeSecret(name, "");
+            assert(!stored, "should not have stored a null");
+            
+            var ret = vault.retrieveSecret(name);
+            assert(!ret, 'should have returned null for non-existant item');
+
+            done();
+        })                                
     });
 
     describe('ToolRunner', function() {
