@@ -319,11 +319,22 @@ describe('Test vsts-task-lib', function() {
             this.timeout(1000);
 
             process.env['INPUT_UNITTESTINPUT'] = 'test value';
+            tl._loadData();
+
             var inval = tl.getInput('UnitTestInput', true);
             assert(inval === 'test value', 'reading an input should work');
 
             done();
         })
+        it('should clear input envvar', function(done) {
+            this.timeout(1000);
+
+            process.env['INPUT_UNITTESTINPUT'] = 'test value';
+            tl._loadData();
+            assert(!process.env['INPUT_UNITTESTINPUT'], 'input envvar should be cleared');
+
+            done();
+        })        
         it('invalid input is null', function(done) {
             this.timeout(1000);
 
@@ -336,6 +347,8 @@ describe('Test vsts-task-lib', function() {
             this.timeout(1000);
 
             process.env['INPUT_UNITTESTINPUT'] = '   test value   ';
+            tl._loadData();
+
             var inval = tl.getInput('UnitTestInput', true);
             assert(inval === 'test value', 'reading an input should work');
 
@@ -371,7 +384,10 @@ describe('Test vsts-task-lib', function() {
         it('gets an endpoint url', function(done) {
             this.timeout(1000);
 
+
             process.env['ENDPOINT_URL_id1'] = 'http://url';
+            tl._loadData();
+
             var url = tl.getEndpointUrl('id1', true);
             assert(url === 'http://url', 'url should match');
 
@@ -381,19 +397,30 @@ describe('Test vsts-task-lib', function() {
             this.timeout(1000);
 
             process.env['ENDPOINT_AUTH_id1'] = '{ "parameters": {"param1": "val1", "param2": "val2"}, "scheme": "UsernamePassword"}';
+            tl._loadData();
+
             var auth = tl.getEndpointAuthorization('id1', true);
             assert(auth, 'should return an auth obj');
-            console.info(auth);
-            console.info(auth['parameters']);
             assert(auth['parameters']['param1'] === 'val1', 'should be correct object');
 
             done();
         })
+        it('should clear auth envvar', function(done) {
+            this.timeout(1000);
+
+            process.env['ENDPOINT_AUTH_id1'] = '{ "parameters": {"param1": "val1", "param2": "val2"}, "scheme": "UsernamePassword"}';
+            tl._loadData();
+            assert(!process.env['ENDPOINT_AUTH_id1'], 'should clear auth envvar');
+
+            done();
+        })        
         it('gets true bool input value', function(done) {
             this.timeout(1000);
 
             var inputValue = 'true';
             process.env['INPUT_ABOOL'] = inputValue;
+            tl._loadData();
+
             var outVal = tl.getBoolInput('abool', /*required=*/true);
             assert(outVal, 'should return true');
 
@@ -404,6 +431,8 @@ describe('Test vsts-task-lib', function() {
 
             var inputValue = 'false';
             process.env['INPUT_ABOOL'] = inputValue;
+            tl._loadData();
+
             var outVal = tl.getBoolInput('abool', /*required=*/true);
             assert(!outVal, 'should return false');
 
@@ -414,6 +443,8 @@ describe('Test vsts-task-lib', function() {
 
             var inputValue = 'test.txt'
             process.env['INPUT_PATH1'] = inputValue;
+            tl._loadData();
+
             var path = tl.getPathInput('path1', /*required=*/true, /*check=*/false);
             assert(path, 'should return a path');
             assert(path === inputValue, 'test path value');
@@ -454,6 +485,8 @@ describe('Test vsts-task-lib', function() {
             var inputValue = 'file name.txt';
             var expectedValue = 'file name.txt';
             process.env['INPUT_PATH1'] = inputValue;
+            tl._loadData();
+
             var path = tl.getPathInput('path1', /*required=*/true, /*check=*/false);
             assert(path, 'should return a path');
             assert(path === expectedValue, 'returned ' + path + ', expected: ' + expectedValue);
@@ -462,8 +495,11 @@ describe('Test vsts-task-lib', function() {
         })
         it('filePathSupplied checks not supplied', function(done) {
             this.timeout(1000);
+
             var repoRoot = '/repo/root/dir';
             process.env['INPUT_PATH1'] = repoRoot;
+            tl._loadData();
+
             process.env['BUILD_SOURCESDIRECTORY'] = repoRoot;
             var supplied = tl.filePathSupplied('path1');
             assert(!supplied, 'path1 should not be supplied');
@@ -471,8 +507,11 @@ describe('Test vsts-task-lib', function() {
         })
         it('filePathSupplied checks supplied', function(done) {
             this.timeout(1000);
+
             var repoRoot = '/repo/root/dir';
             process.env['INPUT_PATH1'] = repoRoot + '/some/path';
+            tl._loadData();
+
             process.env['BUILD_SOURCESDIRECTORY'] = repoRoot;
             var supplied = tl.filePathSupplied('path1');
             assert(supplied, 'path1 should be supplied');
@@ -486,6 +525,8 @@ describe('Test vsts-task-lib', function() {
 
             var inputValue = __filename;
             process.env['INPUT_PATH1'] = inputValue;
+            tl._loadData();
+
             var path = tl.getPathInput('path1', /*required=*/true, /*check=*/true);
             assert(path, 'should return a path');
             assert(path === inputValue, 'test path value');
@@ -503,6 +544,8 @@ describe('Test vsts-task-lib', function() {
 
             var inputValue = "someRandomFile.txt";
             process.env['INPUT_PATH1'] = inputValue;
+            tl._loadData();
+
             var path = tl.getPathInput('path1', /*required=*/true, /*check=*/true);
             assert(path, 'should return a path');
             assert(path === inputValue, 'returned ' + path + ', expected ' + inputValue);

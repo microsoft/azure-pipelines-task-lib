@@ -31,3 +31,6 @@ node_modules
 
 # Docs intermediate files
 node/docs/vsotask.json
+
+# tests
+node/.taskKey

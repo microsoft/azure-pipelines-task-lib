@@ -15,11 +15,14 @@ import util = require('util');
 import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
 import vm = require('./vault');
+require('./extensions');
 
 export enum TaskResult {
     Succeeded = 0,
     Failed = 1
 }
+
+var vault: vm.Vault = new vm.Vault();
 
 //-----------------------------------------------------
 // String convenience
@@ -308,7 +311,7 @@ export function setVariable(name: string, val: string): void {
  * @returns   string
  */
 export function getInput(name: string, required?: boolean): string {
-    var inval = process.env['INPUT_' + name.replace(' ', '_').toUpperCase()];
+    var inval = vault.retrieveSecret('INPUT_' + name.replace(' ', '_').toUpperCase());
     if (inval) {
         inval = inval.trim();
     }
@@ -445,7 +448,7 @@ export interface EndpointAuthorization {
  * @returns   string
  */
 export function getEndpointAuthorization(id: string, optional: boolean): EndpointAuthorization {
-    var aval = process.env['ENDPOINT_AUTH_' + id];
+    var aval = vault.retrieveSecret('ENDPOINT_AUTH_' + id);
 
     if (!optional && !aval) {
         setResult(TaskResult.Failed, loc('LIB_EndpointNotExist', id));
@@ -980,4 +983,30 @@ exports.commandFromString = tcm.commandFromString;
 exports.ToolRunner = trm.ToolRunner;
 trm.debug = debug;
 
+//-------------------------------------------------------------------
+// Populate the vault with sensitive data.  Inputs and Endpoints
+//-------------------------------------------------------------------
+
+// only exposed as a function so unit tests can reload vault for each test
+// in prod, it's called globally below so user does not need to call
+
+export function _loadData(): void {
+    debug('loading inputs and endpoints');
+    var loaded = 0;
+    for (var envvar in process.env){
+        if (envvar.startsWith('INPUT_') ||
+            envvar.startsWith('ENDPOINT_AUTH_')) {
+
+            if (process.env[envvar]) {
+                ++loaded;    
+                debug('loading ' + envvar);
+                vault.storeSecret(envvar, process.env[envvar]);
+                delete process.env[envvar];
+            }
+        }
+    }
+    debug('loaded ' + loaded);
+}
+
+_loadData();
 
