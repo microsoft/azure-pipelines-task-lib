@@ -14,9 +14,6 @@ Invoke-VstsTaskScript -ScriptBlock {
         @{ AsInt = $true }
     )
     foreach ($variableSet in $variableSets) {
-        $expected = $variableSet.Expected
-        $variableSet.Remove('Expected')
-
         # Act.
         $actual = Get-VstsTaskVariable -Name 'Some name' -Require -ErrorAction Continue @variableSet 2>&1
 

@@ -1,3 +1,5 @@
+$script:secureInputs = @{ }
+
 <#
 .SYNOPSIS
 Gets an endpoint.
@@ -15,14 +17,14 @@ function Get-Endpoint {
         [string]$Name,
         [switch]$Require)
 
-    $url = (Get-EnvVariable -Name (Get-LocString -Key PSLIB_EndpointUrl0 -ArgumentList $Name) -Path "Env:ENDPOINT_URL_$Name" -Require:$Require)
+    $url = (Get-SecureInput -Name (Get-LocString -Key PSLIB_EndpointUrl0 -ArgumentList $Name) -Path "Env:ENDPOINT_URL_$Name" -Require:$Require)
     if ($Require -and !$url) { return }
-    if ($auth = (Get-EnvVariable -Name (Get-LocString -Key PSLIB_EndpointAuth0 -ArgumentList $Name) -Path "Env:ENDPOINT_AUTH_$Name" -Require:$Require)) {
+    if ($auth = (Get-SecureInput -Name (Get-LocString -Key PSLIB_EndpointAuth0 -ArgumentList $Name) -Path "Env:ENDPOINT_AUTH_$Name" -Require:$Require)) {
         $auth = ConvertFrom-Json -InputObject $auth
     }
 
     if ($Require -and !$auth) { return }
-    if ($data = (Get-EnvVariable -Name "'$Name' service endpoint data" -Path "Env:ENDPOINT_DATA_$Name")) {
+    if ($data = (Get-SecureInput -Name "'$Name' service endpoint data" -Path "Env:ENDPOINT_DATA_$Name")) {
         $data = ConvertFrom-Json -InputObject $data
     }
 
@@ -67,7 +69,7 @@ function Get-Input {
         [switch]$AsInt)
 
     $PSBoundParameters['Name'] = (Get-LocString -Key PSLIB_Input0 -ArgumentList $Name)
-    Get-EnvVariable @PSBoundParameters -Path "Env:INPUT_$($Name.Replace(' ', '_').ToUpperInvariant())"
+    Get-SecureInput @PSBoundParameters -Path "Env:INPUT_$($Name.Replace(' ', '_').ToUpperInvariant())"
 }
 
 <#
@@ -142,11 +144,11 @@ function Get-EnvVariable {
         [Parameter(ParameterSetName = 'Require')]
         [switch]$Require,
         [Parameter(ParameterSetName = 'Default')]
-        $Default,
+        [object]$Default,
         [switch]$AsBool,
         [switch]$AsInt)
 
-    # Attempt to get the env var.
+    # Attempt to get the environment variable.
     $item = $null
     if ((Test-Path -LiteralPath $Path) -and ($item = Get-Item -LiteralPath $Path).Value) {
         # Intentionally empty.
@@ -158,60 +160,121 @@ function Get-EnvVariable {
         }
     }
 
-    if ($item -and $item.value) {
-        $value = $item.value
-        Write-Verbose "$($path): '$value'"
+    Get-FinalValue -Value $item.Value @PSBoundParameters
+}
+
+function Get-SecureInput {
+    [CmdletBinding(DefaultParameterSetName = 'Require')]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+        [Parameter(ParameterSetName = 'Require')]
+        [switch]$Require,
+        [Parameter(ParameterSetName = 'Default')]
+        [object]$Default,
+        [switch]$AsBool,
+        [switch]$AsInt)
+
+    # Attempt to get the secure variable.
+    $value = $null
+    if ($psCredential = $script:secureInputs[$Path]) {
+        $value = $psCredential.GetNetworkCredential().Password
+    } elseif (!$script:nonInteractive) {
+        # The value wasn't found. Prompt for the value if running in interactive dev mode.
+        $value = Read-Host -Prompt $Name
+        if ($value) {
+            $script:secureInputs[$Path] = New-Object System.Management.Automation.PSCredential(
+                $Path,
+                (ConvertTo-SecureString -String $value -AsPlainText -Force))
+        }
+    }
+
+    Get-FinalValue -Value $value @PSBoundParameters
+}
+
+function Get-FinalValue {
+    [CmdletBinding(DefaultParameterSetName = 'Require')]
+    param(
+        [string]$Value,
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+        [Parameter(ParameterSetName = 'Require')]
+        [switch]$Require,
+        [Parameter(ParameterSetName = 'Default')]
+        [object]$Default,
+        [switch]$AsBool,
+        [switch]$AsInt)
+
+    $result = $Value
+    if ($result) {
+        if ($Path -like 'Env:ENDPOINT_AUTH_*') {
+            Write-Verbose "$($Path): '********'"
+        } else {
+            Write-Verbose "$($Path): '$result'"
+        }
     } else {
-        Write-Verbose "$path (empty)"
+        Write-Verbose "$Path (empty)"
 
         # Write error if required.
         if ($Require) {
-            # TODO: This is technically wrong for loc. It would be best to grab the
-            # localized description from the json. However, this might be OK since
-            # this type of validation is typically performed up-front by the UI. So
-            # the likely scenario for encountering this error would be if someone
-            # (a developer) uploaded a definition themselves. At that point it should
-            # be upon them to validate what they are doing. And since we don't localize
-            # for developers, this may not matter after all.
             Write-Error "$(Get-LocString -Key PSLIB_Required0 $Name)"
             return
         }
 
         # Fallback to the default if provided.
         if ($PSCmdlet.ParameterSetName -eq 'Default') {
-            $value = $Default
-            Write-Verbose " Defaulted to: '$value'"
+            $result = $Default
+            Write-Verbose " Defaulted to: '$result'"
         } else {
-            $value = ''
+            $result = ''
         }
     }
 
     # Convert to bool if specified.
     if ($AsBool) {
-        if ($value -isnot [bool]) {
-            $value = "$value" -in '1', 'true'
-            Write-Verbose " Converted to bool: $value"
+        if ($result -isnot [bool]) {
+            $result = "$result" -in '1', 'true'
+            Write-Verbose " Converted to bool: $result"
         }
 
-        return $value
+        return $result
     }
 
     # Convert to int if specified.
     if ($AsInt) {
-        if ($value -isnot [int]) {
+        if ($result -isnot [int]) {
             try {
-                $value = [int]"$value"
+                $result = [int]"$result"
             } catch {
-                $value = 0
+                $result = 0
             }
 
-            Write-Verbose " Converted to int: $value"
+            Write-Verbose " Converted to int: $result"
         }
 
-        return $value
+        return $result
     }
 
-    return $value
+    return $result
+}
+
+function Initialize-SecureInputs {
+    # Store endpoints/inputs in a secure fashion.
+    foreach ($variable in (Get-ChildItem -Path Env:ENDPOINT_*, Env:INPUT_*)) {
+        $path = "Env:$($variable.Name)"
+        if ($variable.Value) {
+            $script:secureInputs[$path] = New-Object System.Management.Automation.PSCredential(
+                $path,
+                (ConvertTo-SecureString -String $variable.Value -AsPlainText -Force))
+        }
+
+        # Clear the environment variable.
+        Remove-Item -LiteralPath $path
+    }
 }
 
 function Format-VariableName {

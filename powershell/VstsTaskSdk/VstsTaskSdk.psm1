@@ -80,5 +80,21 @@ namespace VstsTaskSdk
 $null = New-Item -Force -Path "function:\global:Out-Default" -Value (Get-Command -CommandType Function -Name Out-Default -ListImported)
 New-Alias -Name Out-Default -Value "global:Out-Default" -Scope global
 
+$scriptText = @"
 # Load the SDK resource strings.
-Merge-Pipelines -ScriptBlock ([scriptblock]::Create("Import-LocStrings `"$PSScriptRoot\lib.json`"")) -DoNotSetErrorActionPreference
+Import-LocStrings "$PSScriptRoot\lib.json"
+
+# Load the module that contains ConvertTo-SecureString.
+if (!(Get-Module -Name Microsoft.PowerShell.Security)) {
+    Write-Verbose "Importing the module 'Microsoft.PowerShell.Security'."
+    Import-Module -Name Microsoft.PowerShell.Security 2>&1 |
+        ForEach-Object {
+            if (`$_ -is [System.Management.Automation.ErrorRecord]) {
+                Write-Verbose `$_.Exception.Message
+            } else {
+                ,`$_
+            }
+        }
+}
+"@
+Merge-Pipelines -ScriptBlock ([scriptblock]::Create($scriptText)) -NoClosure
