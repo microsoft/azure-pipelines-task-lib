@@ -179,6 +179,23 @@ See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/comm
 .PARAMETER AsOutput
 Indicates whether to write the logging command directly to the host or to the output pipeline.
 #>
+function Write-SetSecret {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Value,
+        [switch]$AsOutput)
+
+    Write-LoggingCommand -Area 'task' -Event 'setsecret' -Data $Value -AsOutput:$AsOutput
+}
+
+<#
+.SYNOPSIS
+See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+
+.PARAMETER AsOutput
+Indicates whether to write the logging command directly to the host or to the output pipeline.
+#>
 function Write-SetVariable {
     [CmdletBinding()]
     param(
