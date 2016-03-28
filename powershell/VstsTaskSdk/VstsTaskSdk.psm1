@@ -40,6 +40,7 @@ Export-ModuleMember -Function @(
         'Write-LogDetail'
         'Write-SetProgress'
         'Write-SetResult'
+        'Write-SetSecret'
         'Write-SetVariable'
         'Write-TaskDebug'
         'Write-TaskError'

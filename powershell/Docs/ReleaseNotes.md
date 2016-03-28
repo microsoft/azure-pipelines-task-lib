@@ -1,7 +1,10 @@
 # Release Notes
 
 ## 0.6.1
+ * Updated initialization (`Invoke-TaskScript`) to globally set `ErrorActionPreference` to `Stop`.
+ * Updated initialization (`Invoke-TaskScript`) to remove input and endpoint variables from the environment drive. The variables are stored within the module as `PSCredential` objects. `Get-Input` and `Get-Endpoint` have been updated to retrieve the internally stored variables and return the plain values.
  * Updated `Invoke-Tool`. The command line being invoked is now written to the host stream.
+ * Added `Write-SetSecret`.
 
 ## 0.6.0
  * Updated `Get-Endpoint`. Added a `Data` property to the endpoint object.

@@ -17,6 +17,7 @@
   * [Write-VstsLogDetail](#write-vstslogdetail)
   * [Write-VstsSetProgress](#write-vstssetprogress)
   * [Write-VstsSetResult](#write-vstssetresult)
+  * [Write-VstsSetSecret](#write-vstssetsecret)
   * [Write-VstsSetVariable](#write-vstssetvariable)
   * [Write-VstsTaskDebug](#write-vststaskdebug)
   * [Write-VstsTaskError](#write-vststaskerror)
@@ -242,6 +243,18 @@ SYNTAX
     Write-VstsSetResult -Result <String> [-Message <String>] [-AsOutput] [<CommonParameters>]
 
     Write-VstsSetResult -Result <String> [-Message <String>] [-DoNotThrow] [<CommonParameters>]
+```
+### <a name="write-vstssetsecret" />Write-VstsSetSecret
+[table of contents](#toc) | [full](FullHelp/Write-VstsSetSecret.md)
+```
+NAME
+    Write-VstsSetSecret
+
+SYNOPSIS
+    See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+
+SYNTAX
+    Write-VstsSetSecret [-Value] <String> [-AsOutput] [<CommonParameters>]
 ```
 ### <a name="write-vstssetvariable" />Write-VstsSetVariable
 [table of contents](#toc) | [full](FullHelp/Write-VstsSetVariable.md)
