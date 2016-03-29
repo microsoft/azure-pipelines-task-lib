@@ -405,6 +405,17 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
+        it('gets null if endpoint auth not set', function(done) {
+            this.timeout(1000);
+
+            // don't set
+            tl._loadData();
+
+            var auth = tl.getEndpointAuthorization('id1', true);
+            assert(auth === null, 'should not return an auth obj');
+
+            done();
+        })        
         it('should clear auth envvar', function(done) {
             this.timeout(1000);
 

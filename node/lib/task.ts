@@ -22,7 +22,7 @@ export enum TaskResult {
     Failed = 1
 }
 
-var vault: vm.Vault = new vm.Vault();
+var vault: vm.Vault;
 
 //-----------------------------------------------------
 // String convenience
@@ -454,7 +454,8 @@ export function getEndpointAuthorization(id: string, optional: boolean): Endpoin
         setResult(TaskResult.Failed, loc('LIB_EndpointNotExist', id));
     }
 
-    debug(id + '=' + aval);
+    console.log(id + ' exists ' + (aval !== null));
+    debug(id + ' exists ' + (aval !== null));
 
     var auth: EndpointAuthorization;
     try {
@@ -991,6 +992,7 @@ trm.debug = debug;
 // in prod, it's called globally below so user does not need to call
 
 export function _loadData(): void {
+    vault = new vm.Vault();
     debug('loading inputs and endpoints');
     var loaded = 0;
     for (var envvar in process.env){
