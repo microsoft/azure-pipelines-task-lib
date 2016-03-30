@@ -971,9 +971,29 @@ export class CodeCoveragePublisher {
             properties['additionalcodecoveragefiles'] = additionalCodeCoverageFiles;
         }
 
-        command('codecoverage.publish', properties, "");        
+        command('codecoverage.publish', properties, "");
     }
 }
+
+//-----------------------------------------------------
+// Code coverage Publisher
+//-----------------------------------------------------
+export class CodeCoverageEnabler {
+    private buildTool: string;
+    private ccTool: string;
+
+    constructor(buildTool: string, ccTool: string) {
+        this.buildTool = buildTool;
+        this.ccTool = ccTool;
+    }
+
+    public enableCodeCoverage(buildProps: { [key: string]: string }) {
+        buildProps['buildtool'] = this.buildTool;
+        buildProps['codecoveragetool'] = this.ccTool;
+        command('codecoverage.enable', buildProps, "");
+    }
+}
+
 
 //-----------------------------------------------------
 // Tools
@@ -993,12 +1013,12 @@ trm.debug = debug;
 export function _loadData(): void {
     debug('loading inputs and endpoints');
     var loaded = 0;
-    for (var envvar in process.env){
+    for (var envvar in process.env) {
         if (envvar.startsWith('INPUT_') ||
             envvar.startsWith('ENDPOINT_AUTH_')) {
 
             if (process.env[envvar]) {
-                ++loaded;    
+                ++loaded;
                 debug('loading ' + envvar);
                 vault.storeSecret(envvar, process.env[envvar]);
                 delete process.env[envvar];
