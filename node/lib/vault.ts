@@ -38,6 +38,7 @@ export class Vault {
             return false;
         }
 
+        name = name.toLowerCase()
         var key = this.getKey();
         var cipher = crypto.createCipher(algorithm, key);
         var crypted = cipher.update(data,'utf8','hex')
@@ -48,6 +49,7 @@ export class Vault {
 
     public retrieveSecret(name: string): string {
         var secret = null;
+        name = (name || '').toLowerCase()
 
         if (this._store.hasOwnProperty(name)) {
             var key = this.getKey();

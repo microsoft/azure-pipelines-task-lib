@@ -741,6 +741,20 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
+        it('Stores and retrieves using case-insenstive key comparison', function(done) {
+            var vault: vm.Vault = new vm.Vault();
+            var data = "astring";
+            var storageName = "MYstring";
+            var retrievalName = "mySTRING";
+            var stored: boolean = vault.storeSecret(storageName, data);
+            assert(stored, "should have returned stored");
+
+            var ret = vault.retrieveSecret(retrievalName);
+
+            assert(data === ret, 'should have retrieved the same string');
+
+            done();
+        })
         it('Returns null when retrieving non-existant item', function(done) {
             var vault: vm.Vault = new vm.Vault();
             var name = "nonexistant";
