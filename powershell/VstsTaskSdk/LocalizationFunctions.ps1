@@ -65,7 +65,7 @@ function Import-LocStrings {
     # Load the json.
     Write-Verbose "Loading resource strings from: $LiteralPath"
     $count = 0
-    if ($messages = (Get-Content -LiteralPath $LiteralPath | Out-String | ConvertFrom-Json).messages) {
+    if ($messages = (Get-Content -LiteralPath $LiteralPath -Encoding UTF8 | Out-String | ConvertFrom-Json).messages) {
         # Add each resource string to the hashtable.
         foreach ($member in (Get-Member -InputObject $messages -MemberType NoteProperty)) {
             [string]$key = $member.Name
@@ -84,7 +84,7 @@ function Import-LocStrings {
     if (Test-Path -LiteralPath $resjsonPath) {
         Write-Verbose "Loading resource strings from: $resjsonPath"
         $count = 0
-        $resjson = Get-Content -LiteralPath $resjsonPath | Out-String | ConvertFrom-Json
+        $resjson = Get-Content -LiteralPath $resjsonPath -Encoding UTF8 | Out-String | ConvertFrom-Json
         foreach ($member in (Get-Member -Name loc.messages.* -InputObject $resjson -MemberType NoteProperty)) {
             if (!($value = $resjson."$($member.Name)")) {
                 continue
