@@ -172,7 +172,7 @@ describe('Test vsts-task-lib', function() {
             var testPath = path.join(_testTemp, 'testFolder');
             tl.mkdirP(testPath);
             assert(shell.test('-d', testPath), 'directory created');
-			
+
             // can't remove folder with locked file on windows
             var filePath = path.join(testPath, 'file.txt');
             fs.appendFileSync(filePath, 'some data');
@@ -334,7 +334,7 @@ describe('Test vsts-task-lib', function() {
             assert(!process.env['INPUT_UNITTESTINPUT'], 'input envvar should be cleared');
 
             done();
-        })        
+        })
         it('invalid input is null', function(done) {
             this.timeout(1000);
 
@@ -413,7 +413,7 @@ describe('Test vsts-task-lib', function() {
             assert(!process.env['ENDPOINT_AUTH_id1'], 'should clear auth envvar');
 
             done();
-        })        
+        })
         it('gets true bool input value', function(done) {
             this.timeout(1000);
 
@@ -741,10 +741,10 @@ describe('Test vsts-task-lib', function() {
         })
         it('Will return false if you store null', function(done) {
             var vault: vm.Vault = new vm.Vault();
-            var name="nullitem";
+            var name = "nullitem";
             var stored: boolean = vault.storeSecret(name, null);
             assert(!stored, "should not have stored a null");
-            
+
             var ret = vault.retrieveSecret(name);
             assert(!ret, 'should have returned null for non-existant item');
 
@@ -752,15 +752,15 @@ describe('Test vsts-task-lib', function() {
         })
         it('Will return false if you store empty string', function(done) {
             var vault: vm.Vault = new vm.Vault();
-            var name="nullitem";
+            var name = "nullitem";
             var stored: boolean = vault.storeSecret(name, "");
             assert(!stored, "should not have stored a null");
-            
+
             var ret = vault.retrieveSecret(name);
             assert(!ret, 'should have returned null for non-existant item');
 
             done();
-        })                                
+        })
     });
 
     describe('ToolRunner', function() {
@@ -1318,7 +1318,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        
+
         it('publish code coverage passes all the properties properly', function(done) {
             this.timeout(1000);
 
@@ -1347,7 +1347,7 @@ describe('Test vsts-task-lib', function() {
             done();
         })
 
-        it('publish code coverage does not pass properties when the imput parameters are null', function(done) {
+        it('publish code coverage does not pass properties when the input parameters are null', function(done) {
             this.timeout(1000);
 
             var stdStream = new StringStream();
@@ -1357,6 +1357,52 @@ describe('Test vsts-task-lib', function() {
 
             var output = stdStream.getContents();
             var expectedOutput = _buildOutput(["##vso[codecoverage.publish]"]);
+            assert(expectedOutput === output, _mismatch(expectedOutput, output));
+            done();
+        })
+
+        it('enable code coverage does not pass properties when the input parameters are null', function(done) {
+            this.timeout(1000);
+
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
+            var ccEnabler = new tl.CodeCoverageEnabler(null, null);
+            var buildProps: { [key: string]: string } = {};
+            ccEnabler.enableCodeCoverage(buildProps);
+
+            var output = stdStream.getContents();
+            var expectedOutput = _buildOutput(["##vso[codecoverage.enable ]"]);
+            assert(expectedOutput === output, _mismatch(expectedOutput, output));
+            done();
+        })
+
+        it('enable code coverage passes properties when the input parameters are existing', function(done) {
+            this.timeout(1000);
+
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
+            var ccEnabler = new tl.CodeCoverageEnabler("jacoco", "buildtool");
+            var buildProps: { [key: string]: string } = {};
+            buildProps['abc'] = 'xyz';
+            ccEnabler.enableCodeCoverage(buildProps);
+
+            var output = stdStream.getContents();
+            var expectedOutput = _buildOutput(["##vso[codecoverage.enable abc=xyz;buildtool=jacoco;codecoveragetool=buildtool;]"]);
+            assert(expectedOutput === output, _mismatch(expectedOutput, output));
+            done();
+        })
+
+        it('enable code coverage passes parameters when the input parameters are empty', function(done) {
+            this.timeout(1000);
+
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
+            var ccEnabler = new tl.CodeCoverageEnabler("jacoco", "buildtool");
+            var buildProps: { [key: string]: string } = {};
+            ccEnabler.enableCodeCoverage(buildProps);
+
+            var output = stdStream.getContents();
+            var expectedOutput = _buildOutput(["##vso[codecoverage.enable buildtool=jacoco;codecoveragetool=buildtool;]"]);
             assert(expectedOutput === output, _mismatch(expectedOutput, output));
             done();
         })
