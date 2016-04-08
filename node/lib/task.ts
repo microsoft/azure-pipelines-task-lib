@@ -451,7 +451,11 @@ export function getEndpointAuthorization(id: string, optional: boolean): Endpoin
         setResult(TaskResult.Failed, loc('LIB_EndpointNotExist', id));
     }
 
-    debug(id + '=' + aval);
+    if (aval) {
+        debug(id + '=********');
+    } else {
+        debug(id + ' (null)');
+    }
 
     var auth: EndpointAuthorization;
     try {
