@@ -1,6 +1,6 @@
 {
   "name": "vsts-task-sdk",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "VSTS Task SDK",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
