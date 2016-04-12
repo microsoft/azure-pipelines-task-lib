@@ -27,6 +27,7 @@
     "minimatch": "^3.0.0",
     "node-uuid": "^1.4.7",
     "q": "^1.1.2",
+    "semver": "^5.1.0",
     "shelljs": "^0.3.0",
     "vso-node-api": "^0.6.1"
   },
@@ -39,6 +40,6 @@
     "merge2": "^0.3.6",
     "mocha": "^2.2.5",
     "semver": "^5.1.0",
-    "typescript": "1.8.0-dev.20160104"
+    "typescript": "1.8.7"
   }
 }

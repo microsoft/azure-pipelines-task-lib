@@ -1,0 +1,14 @@
+{
+  "name": "vsts-task-lib",
+  "version": false,
+  "dependencies": {},
+  "ambientDependencies": {
+    "glob": "registry:dt/glob#5.0.10+20160317120654",
+    "minimatch": "registry:dt/minimatch#2.0.8+20160317120654",
+    "mocha": "registry:dt/mocha#2.2.5+20160317120654",
+    "node": "registry:dt/node#4.0.0+20160412142033",
+    "q": "registry:dt/q#0.0.0+20160323171452",
+    "semver": "registry:dt/semver#4.3.4+20160316171810",
+    "shelljs": "registry:dt/shelljs#0.3.0+20150131233628"
+  }
+}

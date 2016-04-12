@@ -60,8 +60,8 @@ gulp.task('copy:manifest', ['loc:generate'], function () {
 });
 
 gulp.task('copy:d.ts', ['clean'], function () {
-	return gulp.src(['definitions/**/*'])
-		.pipe(gulp.dest(path.join(buildRoot, 'definitions')))
+	return gulp.src(['typings/**/*'])
+		.pipe(gulp.dest(path.join(buildRoot, 'typings')))
 });
 
 gulp.task('definitions', ['copy:d.ts', 'copy:manifest'], function () {
@@ -70,7 +70,7 @@ gulp.task('definitions', ['copy:d.ts', 'copy:manifest'], function () {
         baseDir: 'lib',
         files: [ 'task.ts', 'taskcommand.ts', 'toolrunner.ts' ],
 		excludes: ['node_modules/**/*.d.ts', 'definitions/**/*.d.ts'],
-        externs: ['../definitions/node.d.ts', '../definitions/Q.d.ts'],
+        externs: ['../typings/main.d.ts'],
         out: '_build/d.ts/vsts-task-lib.d.ts'
     });
 });
@@ -88,7 +88,7 @@ gulp.task('default', ['build:lib']);
 // gulp test
 //---------------------------------------------------------------
 gulp.task('build:test', function () {
-    return gulp.src(['./test/*.ts'], { base: '.'})
+    return gulp.src(['./test/tasklib.ts'], { base: '.'})
         .pipe(ts)
         .on('error', errorHandler)
         .pipe(gulp.dest(buildRoot));
@@ -119,6 +119,7 @@ gulp.task('test', ['testprep:node_modules'], function () {
 gulp.task('prepublish', function (done) {
 	return del([
 		path.join(buildRoot, 'definitions'), 
+        path.join(buildRoot, 'typings'), 
 		path.join(buildRoot, 'test'),
 		path.join(buildRoot, 'd.ts')], 
 		done);

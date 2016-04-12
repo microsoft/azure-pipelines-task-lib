@@ -1,11 +1,10 @@
 
-/// <reference path="../definitions/node.d.ts" />
-/// <reference path="../definitions/Q.d.ts" />
 
 import Q = require('q');
 import os = require('os');
 import events = require('events');
 import child = require('child_process');
+import stream = require('stream');
 
 var run = function(cmd, callback) {
     console.log('running: ' + cmd);
@@ -34,8 +33,8 @@ export interface IExecOptions {
     silent: boolean;
     failOnStdErr: boolean;
     ignoreReturnCode: boolean;
-    outStream: NodeJS.WritableStream;
-    errStream: NodeJS.WritableStream;
+    outStream: stream.Writable;
+    errStream: stream.Writable;
 };
 
 /**
@@ -61,10 +60,10 @@ export class ToolRunner extends events.EventEmitter {
     constructor(toolPath) {
         debug('toolRunner toolPath: ' + toolPath);
 
+        super();
         this.toolPath = toolPath;
         this.args = [];
         this.silent = false;
-        super();
     }
 
     public toolPath: string;
@@ -217,15 +216,16 @@ export class ToolRunner extends events.EventEmitter {
         var success = true;
         options = options || <IExecOptions>{};
 
-        var ops: IExecOptions = {
+        var ops: IExecOptions = <IExecOptions>{
             cwd: options.cwd || process.cwd(),
             env: options.env || process.env,
             silent: options.silent || false,
-            outStream: options.outStream || process.stdout,
-            errStream: options.errStream || process.stderr,
             failOnStdErr: options.failOnStdErr || false,
             ignoreReturnCode: options.ignoreReturnCode || false
         };
+
+        ops.outStream = options.outStream || <stream.Writable>process.stdout;
+        ops.errStream = options.errStream || <stream.Writable>process.stderr;
 
         var argString = this.args.join(' ') || '';
         var cmdString = this.toolPath;
@@ -304,15 +304,16 @@ export class ToolRunner extends events.EventEmitter {
         var success = true;
         options = options || <IExecOptions>{};
 
-        var ops: IExecOptions = {
+        var ops: IExecOptions = <IExecOptions>{
             cwd: options.cwd || process.cwd(),
             env: options.env || process.env,
             silent: options.silent || false,
-            outStream: options.outStream || process.stdout,
-            errStream: options.errStream || process.stderr,
             failOnStdErr: options.failOnStdErr || false,
             ignoreReturnCode: options.ignoreReturnCode || false
         };
+
+        ops.outStream = options.outStream || <stream.Writable>process.stdout;
+        ops.errStream = options.errStream || <stream.Writable>process.stderr;
 
         var argString = this.args.join(' ') || '';
         var cmdString = this.toolPath;
@@ -333,6 +334,9 @@ export class ToolRunner extends events.EventEmitter {
             ops.errStream.write(r.stderr);
         }
 
-        return <IExecResult>{ code: r.status, stdout: r.stdout, stderr: r.stderr, error: r.error };
+        var res:IExecResult = <IExecResult>{ code: r.status, error: r.error };
+        res.stdout = r.stdout.toString();
+        res.stderr = r.stderr.toString();
+        return res;
     }   
 }

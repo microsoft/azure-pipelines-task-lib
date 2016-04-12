@@ -1,8 +1,4 @@
-/// <reference path="../definitions/node.d.ts" />
-/// <reference path="../definitions/Q.d.ts" />
-/// <reference path="../definitions/shelljs.d.ts" />
-/// <reference path="../definitions/minimatch.d.ts" />
-/// <reference path="../definitions/glob.d.ts" />
+/// <reference path="../typings/main.d.ts" />
 
 import Q = require('q');
 import shell = require('shelljs');
@@ -15,6 +11,7 @@ import util = require('util');
 import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
 import vm = require('./vault');
+import semver = require('semver');
 require('./extensions');
 
 export enum TaskResult {
@@ -1013,6 +1010,15 @@ exports.TaskCommand = tcm.TaskCommand;
 exports.commandFromString = tcm.commandFromString;
 exports.ToolRunner = trm.ToolRunner;
 trm.debug = debug;
+
+//-----------------------------------------------------
+// Validation Checks
+//-----------------------------------------------------
+
+// async await needs generators in node 4.x+
+if (semver.lt(process.versions.node, '4.2.0')) {
+    this.warning('Tasks require a new agent.  Upgrade your agent or node to 4.2.0 or later');
+}
 
 //-------------------------------------------------------------------
 // Populate the vault with sensitive data.  Inputs and Endpoints
