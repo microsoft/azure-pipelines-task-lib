@@ -851,7 +851,12 @@ export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Pro
     var toolPath = which(tool, true);
     var tr = createToolRunner(toolPath);
     if (args) {
-        tr.arg(args);
+        if (args instanceof Array) {
+            tr.arg(args);
+        }
+        else if (typeof(args) === 'string') {
+            tr.argString(args)
+        }
     }
     return tr.exec(options);
 }
@@ -867,11 +872,16 @@ export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Pro
  * @param     options  optionalexec options.  See IExecOptions
  * @returns   IExecResult
  */
-export function execSync(tool: string, args: any, options?: trm.IExecOptions): trm.IExecResult {
+export function execSync(tool: string, args: string | string[], options?: trm.IExecOptions): trm.IExecResult {
     var toolPath = which(tool, true);
     var tr = createToolRunner(toolPath);
     if (args) {
-        tr.arg(args);
+        if (args instanceof Array) {
+            tr.arg(args);
+        }
+        else if (typeof(args) === 'string') {
+            tr.argString(args)
+        }
     }
 
     return tr.execSync(options);

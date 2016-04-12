@@ -28,6 +28,7 @@ import tl = require('vsts-task-lib/task')
  
 <a href="#taskcreateToolRunner">createToolRunner</a> <br/>
 <a href="#toolrunnerToolRunnerarg">ToolRunner.arg</a> <br/>
+<a href="#toolrunnerToolRunnerargstring">ToolRunner.argString</a> <br/>
 <a href="#toolrunnerToolRunnerargIf">ToolRunner.argIf</a> <br/>
 <a href="#toolrunnerIExecOptions">IExecOptions</a> <br/>
 <a href="#toolrunnerToolRunnerexec">ToolRunner.exec</a> <br/>
@@ -220,10 +221,24 @@ tool | string | path to tool to exec
 <div id="toolrunnerToolRunnerarg">
 ### toolrunner.ToolRunner.arg <a href="#index">(^)</a>
 Add arguments
-Accepts a full string command line and a string array as well
-Will handle double quoted args. E.g. '"arg one" two -z'
+Accepts a string argument or a string array as well
 ```javascript
-arg(val:any):void
+arg(val:string | string[]):void
+```
+ 
+Param | Type | Description
+--- | --- | ---
+val | any | string cmdline or array of strings
+
+<br/>
+<div id="toolrunnerToolRunnerargstring">
+### toolrunner.ToolRunner.argString <a href="#index">(^)</a>
+Add command line args
+Accepts a full string command line
+Will handle double quoted args. 
+E.g. '"arg one" two -z'
+```javascript
+argString(val:string):void
 ```
  
 Param | Type | Description

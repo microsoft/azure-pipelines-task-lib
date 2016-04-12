@@ -79,25 +79,66 @@ export class ToolRunner extends events.EventEmitter {
     }
 
     private _argStringToArray(argString: string): string[] {
-        var args = argString.match(/([^" ]*("[^"]*")[^" ]*)|[^" ]+/g);
-        //remove double quotes from each string in args as child_process.spawn() cannot handle literla quotes as part of arguments
-        for (var i = 0; i < args.length; i++) {
-            args[i] = args[i].replace(/"/g, "");
+        var args = [];
+
+        var inQuotes = false;
+        var escaped =false;
+        var arg = '';
+
+        var append = function(c) {
+            // we only escape double quotes.
+            if (escaped && c !== '"') {
+                arg += '\\';
+            }
+
+            arg += c;
+            escaped = false;
         }
+
+        for (var i=0; i < argString.length; i++) {
+            var c = argString.charAt(i);
+
+            if (c === '"') {
+                if (!escaped) {
+                    inQuotes = !inQuotes;
+                }
+                else {
+                    append(c);
+                }
+                continue;
+            }
+            
+            if (c === "\\" && inQuotes) {
+                escaped = true;
+                continue;
+            }
+
+            if (c === ' ' && !inQuotes) {
+                if (arg.length > 0) {
+                    args.push(arg);
+                    arg = '';
+                }
+                continue;
+            }
+
+            append(c);
+        }
+
+        if (arg.length > 0) {
+            args.push(arg.trim());
+        }
+
         return args;
     }
 
     /**
-     * Add arguments
-     * Accepts a full string command line and a string array as well
-     * With literal=false, will handle double quoted args. E.g. val='"arg one" two -z', args[]=['arg one', 'two', '-z'] 
-     * With literal=true, will put input direct into args. E.g. val='/bin/working folder', args[]=['/bin/working folder']
+     * Add argument
+     * Append an argument or an array of arguments 
      * 
      * @param     val        string cmdline or array of strings
-     * @param     literal    optional literal flag, if val is a string, add the original val to arguments when literal is true
      * @returns   void
      */
-    public arg(val: any, literal?: boolean) {
+    public arg(val: string | string[]) {
         if (!val) {
             return;
         }
@@ -107,15 +148,25 @@ export class ToolRunner extends events.EventEmitter {
             this.args = this.args.concat(val);
         }
         else if (typeof(val) === 'string') {
-            if(literal) {
-                this._debug(this.toolPath + ' literal arg: ' + val);
-                this.args = this.args.concat(val);
-            }
-            else {
-                this._debug(this.toolPath + ' arg: ' + val);
-                this.args = this.args.concat(this._argStringToArray(val));    
-            }
+            this._debug(this.toolPath + ' arg: ' + val);
+            this.args = this.args.concat(val.trim());
         }
+    }
+
+    /**
+     * Append argument command line string
+     * e.g. '"arg one" two -z' would append args[]=['arg one', 'two', '-z'] 
+     * 
+     * @param     val        string cmdline
+     * @returns   void
+     */
+    public argString(val: string) {
+        if (!val) {
+            return;
+        }
+
+        this._debug(this.toolPath + ' arg: ' + val);
+        this.args = this.args.concat(this._argStringToArray(val));    
     }
 
     /**
@@ -128,7 +179,7 @@ export class ToolRunner extends events.EventEmitter {
      */
     public pathArg(val: string) {
         this._debug(this.toolPath + ' pathArg: ' + val);
-        this.arg(val, true);
+        this.arg(val);
     }
     
     /**

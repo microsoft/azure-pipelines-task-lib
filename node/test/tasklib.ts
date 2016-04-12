@@ -1181,21 +1181,42 @@ describe('Test vsts-task-lib', function() {
             assert(node.args.toString() === 'one,two', 'should be one,two');
             done();
         })
-        it('handles basic arg line with spaces', function(done) {
+        it('handles padded spaces', function(done) {
             this.timeout(1000);
 
             var node = tl.createToolRunner(tl.which('node', true));
-            node.arg('one two');
+            node.arg(' one ');
+            node.arg('two');
+            assert(node.args.length === 2, 'should have 2 args');
+            console.log(node.args.toString());
+            assert(node.args.toString() === 'one,two', 'should be one,two');
+            done();
+        })        
+        it('handles basic arg string with spaces', function(done) {
+            this.timeout(1000);
+
+            var node = tl.createToolRunner(tl.which('node', true));
+            node.argString('one two');
             node.arg('three');
             assert(node.args.length === 3, 'should have 3 args');
             assert(node.args.toString() === 'one,two,three', 'should be one,two,three');
             done();
         })
+        it('handles arg string with extra spaces', function(done) {
+            this.timeout(1000);
+
+            var node = tl.createToolRunner(tl.which('node', true));
+            node.argString('one   two');
+            node.arg('three');
+            assert(node.args.length === 3, 'should have 3 args');
+            assert(node.args.toString() === 'one,two,three', 'should be one,two,three');
+            done();
+        })        
         it('handles equals and switches', function(done) {
             this.timeout(1000);
 
             var node = tl.createToolRunner(tl.which('node', true));
-            node.arg('foo=bar -x');
+            node.argString('foo=bar -x');
             node.arg('-y');
             assert(node.args.length === 3, 'should have 3 args');
             assert(node.args.toString() === 'foo=bar,-x,-y', 'should be foo=bar,-x,-y');
@@ -1205,18 +1226,28 @@ describe('Test vsts-task-lib', function() {
             this.timeout(1000);
 
             var node = tl.createToolRunner(tl.which('node', true));
-            node.arg('foo="bar baz" -x');
+            node.argString('foo="bar baz" -x');
             node.arg('-y');
             assert(node.args.length === 3, 'should have 3 args');
             assert(node.args.toString() === 'foo=bar baz,-x,-y', 'should be foo=bar baz,-x,-y');
             done();
         })
+        it('handles quote in double quotes', function(done) {
+            this.timeout(1000);
+
+            var node = tl.createToolRunner(tl.which('node', true));
+            node.argString('foo="bar \\" baz" -x');
+            node.arg('-y');
+            assert(node.args.length === 3, 'should have 3 args');
+            assert(node.args.toString() === 'foo=bar " baz,-x,-y', 'should be foo=bar " baz,-x,-y');
+            done();
+        })        
         it('handles literal path', function(done) {
             this.timeout(1000);
 
             var node = tl.createToolRunner(tl.which('node', true));
             node.pathArg('/bin/working folder1');
-            node.arg('/bin/working folder2', true);
+            node.arg('/bin/working folder2');
             assert(node.args.length === 2, 'should have 2 args');
             assert(node.args.toString() === '/bin/working folder1,/bin/working folder2', 'should be /bin/working folder1 /bin/working folder2');
             done();
