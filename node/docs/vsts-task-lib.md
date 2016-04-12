@@ -220,7 +220,7 @@ tool | string | path to tool to exec
 <br/>
 <div id="toolrunnerToolRunnerarg">
 ### toolrunner.ToolRunner.arg <a href="#index">(^)</a>
-Add arguments
+Adds individual arguments
 Accepts a string argument or a string array as well
 ```javascript
 arg(val:string | string[]):void
@@ -228,7 +228,7 @@ arg(val:string | string[]):void
  
 Param | Type | Description
 --- | --- | ---
-val | any | string cmdline or array of strings
+val | string or string[] | string cmdline or array of strings
 
 <br/>
 <div id="toolrunnerToolRunnerargstring">
@@ -243,7 +243,7 @@ argString(val:string):void
  
 Param | Type | Description
 --- | --- | ---
-val | any | string cmdline or array of strings
+val | string | string cmdline
  
 <br/>
 <div id="toolrunnerToolRunnerargIf">
