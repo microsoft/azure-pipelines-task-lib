@@ -1,27 +1,27 @@
-![VSO](https://mseng.visualstudio.com/DefaultCollection/_apis/public/build/definitions/b924d696-3eae-4116-8443-9a18392d8544/2553/badge)
+
 # VSTS DevOps Task SDK
 
-Libraries for writing Visual Studio Team Services build and deployment tasks
+Libraries for writing [Visual Studio Team Services](https://www.visualstudio.com/en-us/products/visual-studio-team-services-vs.aspx) build and deployment tasks
 
-## Node Task Lib
-Library for writing tasks with the node handler
+![VSO](https://mseng.visualstudio.com/DefaultCollection/_apis/public/build/definitions/b924d696-3eae-4116-8443-9a18392d8544/2553/badge)
 
-## PowerShell Task Lib
-Library for writing tasks with the PowerShell3 handler
+Reference examples of our in the box tasks [are here](https://github.com/Microsoft/vso-agent-tasks)
 
-## Documentation
-
-### Typescript
+## Typescript Tasks  
 
 Cross platform tasks are written in Typescript.  It is the preferred way to write tasks once.
 
-[Typescript API](node/docs/vsts-task-lib.md)
+[![NPM version][npm-lib-image]][npm-lib-url]
 
-### Powershell
+Documentation: [Typescript API](node/docs/vsts-task-lib.md)
+
+## PowerShell Tasks
 
 A task which automates Powershell technologies can be written with our Powershell SDK.  These only run on Windows.
 
-[PowerShell API](powershell/Docs/README.md)
+[![NPM version][npm-sdk-image]][npm-sdk-url]
+
+Documentation: [PowerShell API](powershell/Docs/README.md)
 
 ## Contributing
 
@@ -68,5 +68,10 @@ Test:
 $ cd powershell
 $ gulp test
 ```
+
+[npm-lib-image]: https://img.shields.io/npm/v/vsts-task-lib.svg?style=flat
+[npm-lib-url]: https://www.npmjs.com/package/vsts-task-lib
+[npm-sdk-image]: https://img.shields.io/npm/v/vsts-task-sdk.svg?style=flat
+[npm-sdk-url]: https://www.npmjs.com/package/vsts-task-sdk
 
 Set environment variable TASK_TEST_TRACE=1 to display test output.
