@@ -133,7 +133,12 @@ $null = New-Item -Force -Path "function:\global:Invoke-VstsTaskScript" -Value ([
         Remove-Variable -Name vstsModule
 
         # Call the user's script.
-        & $ScriptBlock 2>&1 3>&1 4>&1 5>&1 | Out-Default
+        $ScriptBlock |
+            ForEach-Object {
+                # Remove the scriptblock variable before calling it.
+                Remove-Variable -Name ScriptBlock
+                & $_ 2>&1 3>&1 4>&1 5>&1 | Out-Default
+            }
     } catch [VstsTaskSdk.TerminationException] {
         # Special internal exception type to control the flow. Not currently intended
         # for public usage and subject to change.
