@@ -141,6 +141,6 @@ $null = New-Item -Force -Path "function:\global:Invoke-VstsTaskScript" -Value ([
     } catch {
         Write-Verbose "Caught exception from task script." 4>&1 | Out-Default
         $_ | Out-Default
-        & (Get-Module -Name VstsTaskSdk) Write-SetResult -Result Failed -DoNotThrow
+        Write-Host "##vso[task.complete result=Failed]"
     }
 '@))
