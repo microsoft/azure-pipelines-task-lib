@@ -15,10 +15,7 @@ var algorithm = "aes-256-ctr";
 // The secret is generated and stored externally for the lifetime of the task.
 //
 export class Vault {
-    constructor() {
-        // in agent, workFolder is set.  
-        // In interactive dev mode, it won't be
-        var keyPath = process.env["agent.workFolder"] || process.cwd();
+    constructor(keyPath: string) {        
         this._keyFile = path.join(keyPath, '.taskkey');
         this._store = <{[key: string] : string}>{};
         this.genKey();

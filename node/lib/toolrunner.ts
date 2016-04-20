@@ -241,15 +241,44 @@ export class ToolRunner extends events.EventEmitter {
 
         var cp = child.spawn(this.toolPath, this.args, { cwd: ops.cwd, env: ops.env });
 
-        cp.stdout.on('data', (data) => {
+        var processLineBuffer = (data: Buffer, strBuffer: string, onLine:(line: string) => void): void => {
+            try {
+                var s = strBuffer + data.toString();
+                var n = s.indexOf(os.EOL);
+
+                while(n > -1) {
+                    var line = s.substring(0, n);
+                    onLine(line);
+
+                    // the rest of the string ...
+                    s = s.substring(n + os.EOL.length);
+                    n = s.indexOf(os.EOL);
+                }
+
+                strBuffer = s;                
+            }
+            catch (err) {
+                // streaming lines to console is best effort.  Don't fail a build.
+                this._debug('error processing line');
+            }
+
+        }
+
+        var stdbuffer: string = '';
+        cp.stdout.on('data', (data: Buffer) => {
             this.emit('stdout', data);
 
             if (!ops.silent) {
                 ops.outStream.write(data);    
             }
+
+            processLineBuffer(data, stdbuffer, (line: string) => {
+                this.emit('stdline', line);    
+            });
         });
 
-        cp.stderr.on('data', (data) => {
+        var errbuffer: string = '';
+        cp.stderr.on('data', (data: Buffer) => {
             this.emit('stderr', data);
 
             success = !ops.failOnStdErr;
@@ -257,6 +286,10 @@ export class ToolRunner extends events.EventEmitter {
                 var s = ops.failOnStdErr ? ops.errStream : ops.outStream;
                 s.write(data);
             }
+
+            processLineBuffer(data, errbuffer, (line: string) => {
+                this.emit('errline', line);    
+            });            
         });
 
         cp.on('error', (err) => {
@@ -265,6 +298,14 @@ export class ToolRunner extends events.EventEmitter {
 
         cp.on('exit', (code, signal) => {
             this._debug('rc:' + code);
+
+            if (stdbuffer.length > 0) {
+                this.emit('stdline', stdbuffer);
+            }
+            
+            if (errbuffer.length > 0) {
+                this.emit('errline', errbuffer);
+            }
 
             if (code != 0 && !ops.ignoreReturnCode) {
                 success = false;
@@ -276,7 +317,7 @@ export class ToolRunner extends events.EventEmitter {
             }
             else {
                 defer.reject(new Error(this.toolPath + ' failed with return code: ' + code));
-            }
+            }      
         });
 
         return <Q.Promise<number>>defer.promise;

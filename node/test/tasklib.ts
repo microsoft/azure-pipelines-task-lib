@@ -720,14 +720,14 @@ describe('Test vsts-task-lib', function() {
 
     describe('Vault', function() {
         it('Can create vault', function(done) {
-            var vault: vm.Vault = new vm.Vault();
+            var vault: vm.Vault = new vm.Vault(process.cwd());
 
             assert(vault, 'should have created a vault object');
 
             done();
         })
         it('Can store and retrieve a basic value', function(done) {
-            var vault: vm.Vault = new vm.Vault();
+            var vault: vm.Vault = new vm.Vault(process.cwd());
             var data = "astring";
             var name = "mystring";
             var stored: boolean = vault.storeSecret(name, data);
@@ -740,7 +740,7 @@ describe('Test vsts-task-lib', function() {
             done();
         })
         it('Stores and retrieves using case-insenstive key comparison', function(done) {
-            var vault: vm.Vault = new vm.Vault();
+            var vault: vm.Vault = new vm.Vault(process.cwd());
             var data = "astring";
             var storageName = "MYstring";
             var retrievalName = "mySTRING";
@@ -754,7 +754,7 @@ describe('Test vsts-task-lib', function() {
             done();
         })
         it('Returns null when retrieving non-existant item', function(done) {
-            var vault: vm.Vault = new vm.Vault();
+            var vault: vm.Vault = new vm.Vault(process.cwd());
             var name = "nonexistant";
             var ret = vault.retrieveSecret(name);
 
@@ -763,7 +763,7 @@ describe('Test vsts-task-lib', function() {
             done();
         })
         it('Will return false if you store null', function(done) {
-            var vault: vm.Vault = new vm.Vault();
+            var vault: vm.Vault = new vm.Vault(process.cwd());
             var name = "nullitem";
             var stored: boolean = vault.storeSecret(name, null);
             assert(!stored, "should not have stored a null");
@@ -774,7 +774,7 @@ describe('Test vsts-task-lib', function() {
             done();
         })
         it('Will return false if you store empty string', function(done) {
-            var vault: vm.Vault = new vm.Vault();
+            var vault: vm.Vault = new vm.Vault(process.cwd());
             var name = "nullitem";
             var stored: boolean = vault.storeSecret(name, "");
             assert(!stored, "should not have stored a null");

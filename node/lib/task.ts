@@ -1028,7 +1028,10 @@ if (semver.lt(process.versions.node, '4.2.0')) {
 // in prod, it's called globally below so user does not need to call
 
 export function _loadData(): void {
-    vault = new vm.Vault();
+    // in agent, workFolder is set.  
+    // In interactive dev mode, it won't be    
+    var keyPath = getVariable("agent.workFolder") || process.cwd();
+    vault = new vm.Vault(keyPath);
     debug('loading inputs and endpoints');
     var loaded = 0;
     for (var envvar in process.env) {
