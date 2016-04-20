@@ -3,7 +3,7 @@
 ## Dependencies
 * The SDK requires PowerShell 3 or higher.
 * The SDK is designed for use with PowerShell.exe (Console Host).
-* A 1.95 (or higher) agent is required to fully run a PowerShell3 task end-to-end. An agent is not required for interactively testing the task.
+* A TFS 2015 Update 2 agent (or higher) is required to run a PowerShell3 task end-to-end. However, an agent is not required for interactively testing the task.
 
 ## Where to get it
 
