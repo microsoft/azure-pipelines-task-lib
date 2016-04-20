@@ -1,4 +1,4 @@
-# Commands (v0.6.1)
+# Commands (v0.6.2)
 ## <a name="toc" />Table of Contents
  * [Find](#find)
   * [Find-VstsFiles](#find-vstsfiles)
@@ -31,7 +31,6 @@
   * [Get-VstsVssCredentials](#get-vstsvsscredentials)
  * [Tool](#tool)
   * [Assert-VstsPath](#assert-vstspath)
-  * [Invoke-VstsTaskScript](#invoke-vststaskscript)
   * [Invoke-VstsTool](#invoke-vststool)
  * [Trace](#trace)
   * [Trace-VstsEnteringInvocation](#trace-vstsenteringinvocation)
@@ -403,22 +402,6 @@ SYNOPSIS
 SYNTAX
     Assert-VstsPath [-LiteralPath] <String> [[-PathType] {Any | Container | Leaf}] [-PassThru]
     [<CommonParameters>]
-```
-### <a name="invoke-vststaskscript" />Invoke-VstsTaskScript
-[table of contents](#toc) | [full](FullHelp/Invoke-VstsTaskScript.md)
-```
-NAME
-    Invoke-VstsTaskScript
-
-SYNOPSIS
-    Invokes a task script for testing purposes only.
-
-SYNTAX
-    Invoke-VstsTaskScript [-ScriptBlock] <ScriptBlock> [<CommonParameters>]
-
-DESCRIPTION
-    This command is for testing purposes only. Use this command to invoke a task script and test how it would
-    behave if it were run by the agent.
 ```
 ### <a name="invoke-vststool" />Invoke-VstsTool
 [table of contents](#toc) | [full](FullHelp/Invoke-VstsTool.md)
