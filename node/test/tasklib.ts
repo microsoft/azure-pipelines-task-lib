@@ -1319,6 +1319,7 @@ describe('Test vsts-task-lib', function() {
             process.env['SYSTEM_CULTURE'] = 'zh-CN';
 
             tl.setResourcePath(jsonPath);
+            console.log('TEMP: ' + tl.loc('key2', 2));
             assert(tl.loc('key2', 2) === 'string for key 2.', 'en-US fallback string not return for key.');
 
             done();
