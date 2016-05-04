@@ -313,6 +313,7 @@ describe('Test vsts-task-lib', function() {
     });
 
     describe('TaskInputsVariables', function() {
+        // getInput tests
         it('gets input value', function(done) {
             this.timeout(1000);
 
@@ -329,6 +330,8 @@ describe('Test vsts-task-lib', function() {
 
             process.env['INPUT_UNITTESTINPUT'] = 'test value';
             tl._loadData();
+            var inval = tl.getInput('UnitTestInput', true);
+            assert(inval === 'test value', 'reading an input should work');
             assert(!process.env['INPUT_UNITTESTINPUT'], 'input envvar should be cleared');
 
             done();
@@ -352,6 +355,8 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
+
+        // getVariable tests
         it('gets a variable', function(done) {
             this.timeout(1000);
 
@@ -361,6 +366,8 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
+
+        // setVariable tests
         it('sets a variable', function(done) {
             this.timeout(1000);
 
@@ -379,9 +386,10 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
+
+        // getEndpointUrl/getEndpointAuthorization tests
         it('gets an endpoint url', function(done) {
             this.timeout(1000);
-
 
             process.env['ENDPOINT_URL_id1'] = 'http://url';
             tl._loadData();
@@ -419,10 +427,15 @@ describe('Test vsts-task-lib', function() {
 
             process.env['ENDPOINT_AUTH_id1'] = '{ "parameters": {"param1": "val1", "param2": "val2"}, "scheme": "UsernamePassword"}';
             tl._loadData();
+            var auth = tl.getEndpointAuthorization('id1', true);
+            assert(auth, 'should return an auth obj');
+            assert(auth['parameters']['param1'] === 'val1', 'should be correct object');
             assert(!process.env['ENDPOINT_AUTH_id1'], 'should clear auth envvar');
 
             done();
         })
+
+        // getBoolInput tests
         it('gets true bool input value', function(done) {
             this.timeout(1000);
 
@@ -447,6 +460,49 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
+
+        // getDelimitedInput tests
+        it('gets delimited input values removes empty values', function(done) {
+            this.timeout(1000);
+
+            var inputValue = 'test  value'; // contains two spaces
+            process.env['INPUT_DELIM'] = inputValue;
+            tl._loadData();
+
+            var outVal = tl.getDelimitedInput('delim', ' ', /*required*/true);
+            assert(outVal.length == 2, 'should return array with two elements');
+            assert(outVal[0] == 'test', 'should return correct element 1');
+            assert(outVal[1] == 'value', 'should return correct element 2');
+
+            done();
+        })
+        it('gets delimited input for a single value', function(done) {
+            this.timeout(1000);
+
+            var inputValue = 'testvalue';
+            process.env['INPUT_DELIM'] = inputValue;
+            tl._loadData();
+
+            var outVal = tl.getDelimitedInput('delim', ' ', /*required*/true);
+            assert(outVal.length == 1, 'should return array with one element');
+            assert(outVal[0] == 'testvalue', 'should return correct element 1');
+
+            done();
+        })
+        it('gets delimited input for an empty value', function(done) {
+            this.timeout(1000);
+
+            var inputValue = '';
+            process.env['INPUT_DELIM'] = inputValue;
+            tl._loadData();
+
+            var outVal = tl.getDelimitedInput('delim', ' ', /*required*/false);
+            assert(outVal.length == 0, 'should return array with zero elements');
+
+            done();
+        })
+
+        // getPathInput tests
         it('gets path input value', function(done) {
             this.timeout(1000);
 
@@ -502,30 +558,6 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('filePathSupplied checks not supplied', function(done) {
-            this.timeout(1000);
-
-            var repoRoot = '/repo/root/dir';
-            process.env['INPUT_PATH1'] = repoRoot;
-            tl._loadData();
-
-            process.env['BUILD_SOURCESDIRECTORY'] = repoRoot;
-            var supplied = tl.filePathSupplied('path1');
-            assert(!supplied, 'path1 should not be supplied');
-            done();
-        })
-        it('filePathSupplied checks supplied', function(done) {
-            this.timeout(1000);
-
-            var repoRoot = '/repo/root/dir';
-            process.env['INPUT_PATH1'] = repoRoot + '/some/path';
-            tl._loadData();
-
-            process.env['BUILD_SOURCESDIRECTORY'] = repoRoot;
-            var supplied = tl.filePathSupplied('path1');
-            assert(supplied, 'path1 should be supplied');
-            done();
-        })
         it('gets path value with check and exist', function(done) {
             this.timeout(1000);
 
@@ -562,6 +594,32 @@ describe('Test vsts-task-lib', function() {
             var errMsg = errStream.getContents();
             assert(errMsg.indexOf("Not found") === 0, "testing error path not exist")
 
+            done();
+        })
+
+        // filePathSupplied tests
+        it('filePathSupplied checks not supplied', function(done) {
+            this.timeout(1000);
+
+            var repoRoot = '/repo/root/dir';
+            process.env['INPUT_PATH1'] = repoRoot;
+            tl._loadData();
+
+            process.env['BUILD_SOURCESDIRECTORY'] = repoRoot;
+            var supplied = tl.filePathSupplied('path1');
+            assert(!supplied, 'path1 should not be supplied');
+            done();
+        })
+        it('filePathSupplied checks supplied', function(done) {
+            this.timeout(1000);
+
+            var repoRoot = '/repo/root/dir';
+            process.env['INPUT_PATH1'] = repoRoot + '/some/path';
+            tl._loadData();
+
+            process.env['BUILD_SOURCESDIRECTORY'] = repoRoot;
+            var supplied = tl.filePathSupplied('path1');
+            assert(supplied, 'path1 should be supplied');
             done();
         })
     });
