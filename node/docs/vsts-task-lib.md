@@ -138,9 +138,11 @@ name | string | name of the path input to check
 <br/>
 <div id="taskgetDelimitedInput">
 ### task.getDelimitedInput <a href="#index">(^)</a>
-Gets the value of an input and splits the values by a delimiter (space, comma, etc...)
-Useful for splitting an input with simple list of items like targets
-IMPORTANT: Do not use for splitting additional args!  Instead use arg() - it will split and handle
+Gets the value of an input and splits the value using a delimiter (space, comma, etc).
+Empty values are removed.  This function is useful for splitting an input containing a simple
+list of items - such as build targets.
+IMPORTANT: Do not use this function for splitting additional args!  Instead use argString(), which
+follows normal argument splitting rules and handles values encapsulated by quotes.
 If required is true and the value is not set, the task will fail with an error.  Execution halts.
 ```javascript
 getDelimitedInput(name:string, delim:string, required?:boolean):string
