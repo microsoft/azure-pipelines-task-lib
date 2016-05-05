@@ -356,7 +356,15 @@ export function getDelimitedInput(name: string, delim: string, required?: boolea
     if (!inval) {
         return [];
     }
-    return inval.split(delim);
+
+    var result = [];
+    inval.split(delim).forEach(x => {
+        if (x) {
+            result.push(x);
+        }
+    });
+
+    return result;
 }
 
 /**
