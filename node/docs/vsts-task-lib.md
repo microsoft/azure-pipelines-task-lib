@@ -1,5 +1,8 @@
 # VSTS-TASK-LIB TYPESCRIPT API
  
+## Dependencies
+A [cross platform agent](https://github.com/Microsoft/vso-agent) OR a TFS 2015 Update 2 Windows agent (or higher) is required to run a Node task end-to-end. However, an agent is not required for interactively testing the task.
+ 
 ## Importing
 For now, the built vsts-task-lib (in _build) should be packaged with your task in a node_modules folder
  
@@ -10,6 +13,8 @@ In the example below, it is in a folder named definitions above the tasks lib
 /// <reference path="../definitions/vsts-task-lib.d.ts" />
 import tl = require('vsts-task-lib/task')
 ```
+ 
+## [Release notes](releases.md)
  
 <div id="index">
 ## Index
