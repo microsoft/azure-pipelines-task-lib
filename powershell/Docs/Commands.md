@@ -70,6 +70,8 @@ SYNTAX
 DESCRIPTION
     Gets an endpoint object for the specified endpoint name. The endpoint is returned as an object with three
     properties: Auth, Data, and Url.
+
+    The Data property requires a 1.97 agent or higher.
 ```
 ### <a name="get-vstsinput" />Get-VstsInput
 [table of contents](#toc) | [full](FullHelp/Get-VstsInput.md)
