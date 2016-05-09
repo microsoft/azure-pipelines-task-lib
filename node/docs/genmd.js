@@ -107,6 +107,8 @@ writeLine('/// <reference path="../definitions/vsts-task-lib.d.ts" />');
 writeLine("import tl = require('vsts-task-lib/task')");
 writeLine('```');
 writeLine();
+writeLine('## [Release notes](releases.md)');
+writeLine();
 
 var obj = function(o) {
     console.log(JSON.stringify(o, null, 2));

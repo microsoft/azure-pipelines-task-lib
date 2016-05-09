@@ -1,5 +1,8 @@
 # VSTS-TASK-LIB TYPESCRIPT API
  
+## Dependencies
+A [cross platform agent](https://github.com/Microsoft/vso-agent) OR a TFS 2015 Update 2 Windows agent (or higher) is required to run a Node task end-to-end. However, an agent is not required for interactively testing the task.
+ 
 ## Importing
 For now, the built vsts-task-lib (in _build) should be packaged with your task in a node_modules folder
  
@@ -10,6 +13,8 @@ In the example below, it is in a folder named definitions above the tasks lib
 /// <reference path="../definitions/vsts-task-lib.d.ts" />
 import tl = require('vsts-task-lib/task')
 ```
+ 
+## [Release notes](releases.md)
  
 <div id="index">
 ## Index
@@ -133,9 +138,11 @@ name | string | name of the path input to check
 <br/>
 <div id="taskgetDelimitedInput">
 ### task.getDelimitedInput <a href="#index">(^)</a>
-Gets the value of an input and splits the values by a delimiter (space, comma, etc...)
-Useful for splitting an input with simple list of items like targets
-IMPORTANT: Do not use for splitting additional args!  Instead use arg() - it will split and handle
+Gets the value of an input and splits the value using a delimiter (space, comma, etc).
+Empty values are removed.  This function is useful for splitting an input containing a simple
+list of items - such as build targets.
+IMPORTANT: Do not use this function for splitting additional args!  Instead use argString(), which
+follows normal argument splitting rules and handles values encapsulated by quotes.
 If required is true and the value is not set, the task will fail with an error.  Execution halts.
 ```javascript
 getDelimitedInput(name:string, delim:string, required?:boolean):string
