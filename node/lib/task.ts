@@ -65,17 +65,21 @@ export function setErrStream(errStream): void {
  * If the result is Failed (1), then execution will halt.  
  * 
  * @param result    TaskResult enum of Success or Failed.  If the result is Failed (1), then execution will halt.
- * @param messages  A message which will be logged and added as an issue if an failed
+ * @param message   A message which will be logged as an error issue if the result is Failed.
  * @returns         void
  */
 export function setResult(result: TaskResult, message: string): void {
     debug('task result: ' + TaskResult[result]);
-    command('task.complete', { 'result': TaskResult[result] }, message);
 
-    if (result == TaskResult.Failed) {
-        _writeError(message);
+    // add an error issue
+    if (result == TaskResult.Failed && message) {
+        error(message);
     }
 
+    // set the task result
+    command('task.complete', { 'result': TaskResult[result] }, message);
+
+    // exit if failed
     if (result == TaskResult.Failed && !process.env['TASKLIB_INPROC_UNITS']) {
         process.exit(0);
     }

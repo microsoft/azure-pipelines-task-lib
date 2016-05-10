@@ -1,5 +1,8 @@
 # VSTS-TASK-LIB RELEASES
 
+## 0.7.3
+ * Updated `setResult` to log the message as an error issue if the result is Failed.
+
 ## 0.7.2
  * Updated `getDelimitedInput` to remove empty entries.
 
