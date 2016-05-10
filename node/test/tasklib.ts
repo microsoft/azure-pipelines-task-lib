@@ -519,14 +519,14 @@ describe('Test vsts-task-lib', function() {
         it('gets path invalid value required', function(done) {
             this.timeout(1000);
 
-            var errStream = new StringStream();
-            tl.setErrStream(errStream);
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
 
             var path = tl.getPathInput('some_missing_path', /*required=*/true, /*check=*/false);
             assert(!path, 'should not return a path');
 
-            var errMsg = errStream.getContents();
-            assert(errMsg.indexOf("Input required:") === 0, "testing err for the required field")
+            var output = stdStream.getContents();
+            assert(output.indexOf("##vso[task.issue type=error;]Input required:") >= 0, "testing err for the required field")
 
             done();
         })
@@ -580,8 +580,8 @@ describe('Test vsts-task-lib', function() {
         it('gets path value with check and not exist', function(done) {
             this.timeout(1000);
 
-            var errStream = new StringStream();
-            tl.setErrStream(errStream);
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
 
             var inputValue = "someRandomFile.txt";
             process.env['INPUT_PATH1'] = inputValue;
@@ -591,8 +591,8 @@ describe('Test vsts-task-lib', function() {
             assert(path, 'should return a path');
             assert(path === inputValue, 'returned ' + path + ', expected ' + inputValue);
 
-            var errMsg = errStream.getContents();
-            assert(errMsg.indexOf("Not found") === 0, "testing error path not exist")
+            var output = stdStream.getContents();
+            assert(output.indexOf("##vso[task.issue type=error;]Not found") >= 0, "testing error path not exist")
 
             done();
         })
@@ -731,7 +731,25 @@ describe('Test vsts-task-lib', function() {
 
             var expected = _buildOutput(
                 ['##vso[task.debug]task result: Failed',
+                    '##vso[task.issue type=error;]failed msg',
                     '##vso[task.complete result=Failed;]failed msg']);
+
+            var output = stdStream.getContents();
+
+            assert(output === expected, _mismatch(expected, output));
+
+            done();
+        })
+        it('setResult failed does not create issue with empty message', function(done) {
+            this.timeout(1000);
+
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
+            tl.setResult(tl.TaskResult.Failed, '');
+
+            var expected = _buildOutput(
+                ['##vso[task.debug]task result: Failed',
+                    '##vso[task.complete result=Failed;]']);
 
             var output = stdStream.getContents();
 
@@ -766,6 +784,7 @@ describe('Test vsts-task-lib', function() {
 
             var expected = _buildOutput(
                 ['##vso[task.debug]task result: Failed',
+                    '##vso[task.issue type=error;]Return code: 1',
                     '##vso[task.complete result=Failed;]Return code: 1']);
 
             var output = stdStream.getContents();

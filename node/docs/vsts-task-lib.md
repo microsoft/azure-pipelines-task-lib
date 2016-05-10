@@ -367,7 +367,7 @@ setResult(result:TaskResult, message:string):void
 Param | Type | Description
 --- | --- | ---
 result | TaskResult | TaskResult enum of Success or Failed.  If the result is Failed (1), then execution will halt.
-message | string |  - 
+message | string | A message which will be logged and as an error issue if the result is Failed.
  
  
 <br/>
