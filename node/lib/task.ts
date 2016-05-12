@@ -646,17 +646,17 @@ export function which(tool: string, check?: boolean): string {
 
                     var baseAttempt = attempt;
                     attempt = baseAttempt + '.exe';
-                    if (exist(attempt) && stats(attempt).isFile) {
+                    if (exist(attempt) && stats(attempt).isFile()) {
                         toolPath = attempt;
                         return;
                     }
                     attempt = baseAttempt + '.cmd';
-                    if (exist(attempt) && stats(attempt).isFile) {
+                    if (exist(attempt) && stats(attempt).isFile()) {
                         toolPath = attempt;
                         return;
                     }
                     attempt = baseAttempt + '.bat';
-                    if (exist(attempt) && stats(attempt).isFile) {
+                    if (exist(attempt) && stats(attempt).isFile()) {
                         toolPath = attempt;
                         return;
                     }
@@ -664,7 +664,7 @@ export function which(tool: string, check?: boolean): string {
             }
 
             // Command not found in Path, but the input itself is point to a file.
-            if (!toolPath && exist(tool) && stats(tool).isFile) {
+            if (!toolPath && exist(tool) && stats(tool).isFile()) {
                 toolPath = path.resolve(tool);
             }
         }
