@@ -57,7 +57,7 @@ export function setErrStream(errStream): void {
 
 
 //-----------------------------------------------------
-// Results and Exiting
+// Results
 //-----------------------------------------------------
 
 /**
@@ -78,21 +78,6 @@ export function setResult(result: TaskResult, message: string): void {
 
     // set the task result
     command('task.complete', { 'result': TaskResult[result] }, message);
-
-    // exit if failed
-    if (result == TaskResult.Failed && !process.env['TASKLIB_INPROC_UNITS']) {
-        process.exit(0);
-    }
-}
-
-// deprecated
-export function handlerError(errMsg: string, continueOnError: boolean) {
-    if (continueOnError) {
-        error(errMsg);
-    }
-    else {
-        setResult(TaskResult.Failed, errMsg);
-    }
 }
 
 //
@@ -101,20 +86,6 @@ export function handlerError(errMsg: string, continueOnError: boolean) {
 process.on('uncaughtException', (err) => {
     setResult(TaskResult.Failed, loc('LIB_UnhandledEx', err.message));
 });
-
-// deprecating
-export function exitOnCodeIf(code: number, condition: boolean) {
-    if (condition) {
-        setResult(TaskResult.Failed, loc('LIB_FailOnCode', code));
-    }
-}
-
-//
-// back compat: should use setResult
-//
-export function exit(code: number): void {
-    setResult(code, loc('LIB_ReturnCode', code));
-}
 
 //-----------------------------------------------------
 // Loc Helpers
@@ -294,7 +265,7 @@ export function getVariable(name: string): string {
  */
 export function setVariable(name: string, val: string): void {
     if (!name) {
-        setResult(TaskResult.Failed, loc('LIB_ParameterIsRequired', 'name'));
+        throw new Error(loc('LIB_ParameterIsRequired', 'name'));
     }
 
     var varValue = val || '';
@@ -318,7 +289,7 @@ export function getInput(name: string, required?: boolean): string {
     }
 
     if (required && !inval) {
-        setResult(TaskResult.Failed, loc('LIB_InputRequired', name));
+        throw new Error(loc('LIB_InputRequired', name));
     }
 
     debug(name + '=' + inval);
@@ -429,7 +400,7 @@ export function getEndpointUrl(id: string, optional: boolean): string {
     var urlval = process.env['ENDPOINT_URL_' + id];
 
     if (!optional && !urlval) {
-        setResult(TaskResult.Failed, loc('LIB_EndpointNotExist', id));
+        throw new Error(loc('LIB_EndpointNotExist', id));
     }
 
     debug(id + '=' + urlval);
@@ -473,7 +444,7 @@ export function getEndpointAuthorization(id: string, optional: boolean): Endpoin
         auth = <EndpointAuthorization>JSON.parse(aval);
     }
     catch (err) {
-        setResult(TaskResult.Failed, loc('LIB_InvalidEndpointAuth', aval)); // exit
+        throw new Error(loc('LIB_InvalidEndpointAuth', aval)); 
     }
 
     return auth;
@@ -503,6 +474,20 @@ export function debug(message: string): void {
 //-----------------------------------------------------
 // Disk Functions
 //-----------------------------------------------------
+function checkShell(cmd: string, continueOnError?: boolean) {
+    var se = shell.error();
+    
+    if (se) {
+        debug(cmd + ' failed');
+        var errMsg = loc('LIB_OperationFailed', cmd, se);
+        debug(errMsg);
+
+        if (!continueOnError) {
+            throw new Error(errMsg);    
+        }
+    }
+}
+
 export interface FsStats extends fs.Stats {
 
 }
@@ -540,7 +525,7 @@ export function exist(path: string): boolean {
 export function checkPath(p: string, name: string): void {
     debug('check path : ' + p);
     if (!exist(p)) {
-        setResult(TaskResult.Failed, loc('LIB_PathNotFound', name, p));  // exit
+        throw new Error(loc('LIB_PathNotFound', name, p));
     }
 }
 
@@ -553,6 +538,7 @@ export function checkPath(p: string, name: string): void {
 export function cd(path: string): void {
     if (path) {
         shell.cd(path);
+        checkShell('cd');
     }
 }
 
@@ -564,6 +550,7 @@ export function cd(path: string): void {
  */
 export function pushd(path: string): void {
     shell.pushd(path);
+    checkShell('pushd');
 }
 
 /**
@@ -573,6 +560,7 @@ export function pushd(path: string): void {
  */
 export function popd(): void {
     shell.popd();
+    checkShell('popd');
 }
 
 /**
@@ -582,39 +570,25 @@ export function popd(): void {
  * @param     p       path to create
  * @returns   boolean
  */
-export function mkdirP(p): boolean {
-    var success = true;
-
-    try {
-        if (!p) {
-            throw new Error(loc('LIB_ParameterIsRequired', 'p'));
-        }
-
-        // certain chars like \0 will cause shelljs and fs
-        // to blow up without exception or error
-        if (p.indexOf('\0') >= 0) {
-            throw new Error(loc('LIB_PathHasNullByte'));
-        }
-
-        if (!shell.test('-d', p)) {
-            debug('creating path: ' + p);
-            shell.mkdir('-p', p);
-            var errMsg = shell.error();
-            if (errMsg) {
-                handlerError(errMsg, false);
-                success = false;
-            }
-        }
-        else {
-            debug('path exists: ' + p);
-        }
-    }
-    catch (err) {
-        success = false;
-        handlerError(loc('LIB_OperationFailed', 'mkdirP', err.message), false);
+export function mkdirP(p): void {
+    if (!p) {
+        throw new Error(loc('LIB_ParameterIsRequired', 'p'));
     }
 
-    return success;
+    // certain chars like \0 will cause shelljs and fs
+    // to blow up without exception or error
+    if (p.indexOf('\0') >= 0) {
+        throw new Error(loc('LIB_PathHasNullByte'));
+    }
+
+    if (!shell.test('-d', p)) {
+        debug('creating path: ' + p);
+        shell.mkdir('-p', p);
+        checkShell('mkdirP');
+    }
+    else {
+        debug('path exists: ' + p);
+    }
 }
 
 /**
@@ -680,7 +654,7 @@ export function which(tool: string, check?: boolean): string {
         return toolPath;
     }
     catch (err) {
-        handlerError(loc('LIB_OperationFailed', 'which', err.message), false);
+        throw new Error(loc('LIB_OperationFailed', 'which', err.message));
     }
 }
 
@@ -695,24 +669,9 @@ export function which(tool: string, check?: boolean): string {
  * @param     continueOnError optional. whether to continue on error
  * @returns   boolean
  */
-export function cp(options, source: string, dest: string, continueOnError?: boolean): boolean {
-    var success = true;
-
-    try {
-        shell.cp(options, source, dest);
-        var errMsg = shell.error();
-
-        if (errMsg) {
-            handlerError(errMsg, continueOnError);
-            success = false;
-        }
-    }
-    catch (err) {
-        success = false;
-        handlerError(loc('LIB_OperationFailed', 'cp', err.message), false);
-    }
-
-    return success;
+export function cp(options, source: string, dest: string, continueOnError?: boolean): void {
+    shell.cp(options, source, dest);
+    checkShell('cp');
 }
 
 /**
@@ -725,28 +684,14 @@ export function cp(options, source: string, dest: string, continueOnError?: bool
  * @param     continueOnError optional. whether to continue on error
  * @returns   boolean
  */
-export function mv(source: string, dest: string, force: boolean, continueOnError?: boolean): boolean {
-    var success = true;
-
-    try {
-        if (force) {
-            shell.mv('-f', source, dest);
-        } else {
-            shell.mv(source, dest);
-        }
-        var errMsg = shell.error();
-
-        if (errMsg) {
-            handlerError(errMsg, continueOnError);
-            success = false;
-        }
-    }
-    catch (err) {
-        success = false;
-        handlerError(loc('LIB_OperationFailed', 'mv', err.message), false);
+export function mv(source: string, dest: string, force: boolean, continueOnError?: boolean): void {
+    if (force) {
+        shell.mv('-f', source, dest);
+    } else {
+        shell.mv(source, dest);
     }
 
-    return success;
+    checkShell('mv', continueOnError);
 }
 
 /**
@@ -767,7 +712,7 @@ export function find(findPath: string): string[] {
         return matches;
     }
     catch (err) {
-        handlerError(loc('LIB_OperationFailed', 'find', err.message), false);
+        throw new Error(loc('LIB_OperationFailed', 'find', err.message));
     }
 }
 
@@ -779,28 +724,17 @@ export function find(findPath: string): string[] {
  * @param     continueOnError optional. whether to continue on error
  * @returns   string[]
  */
-export function rmRF(path: string, continueOnError?: boolean): boolean {
-    var success = true;
+export function rmRF(path: string, continueOnError?: boolean): void {
+    debug('rm -rf ' + path);
+    shell.rm('-rf', path);
 
-    try {
-        debug('rm -rf ' + path);
-        shell.rm('-rf', path);
+    var errMsg: string = shell.error();
 
-        var errMsg: string = shell.error();
-
-        // if you try to delete a file that doesn't exist, desired result is achieved
-        // other errors are valid
-        if (errMsg && !(errMsg.indexOf('ENOENT') === 0)) {
-            handlerError(errMsg, continueOnError);
-            success = false;
-        }
+    // if you try to delete a file that doesn't exist, desired result is achieved
+    // other errors are valid
+    if (errMsg && !(errMsg.indexOf('ENOENT') === 0)) {
+        throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
     }
-    catch (err) {
-        success = false;
-        handlerError(loc('LIB_OperationFailed', 'rmRF', err.message), false);
-    }
-
-    return success;
 }
 
 export function glob(pattern: string): string[] {
@@ -834,18 +768,6 @@ export function globFirst(pattern: string): string {
     debug('found ' + matches.length + ' matches');
 
     return matches[0];
-}
-
-//-----------------------------------------------------
-// Exec convenience wrapper
-//-----------------------------------------------------
-var _argStringToArray = function(argString: string): string[] {
-    var args = argString.match(/([^" ]*("[^"]*")[^" ]*)|[^" ]+/g);
-
-    for (var i = 0; i < args.length; i++) {
-        args[i] = args[i].replace(/"/g, "");
-    }
-    return args;
 }
 
 /**

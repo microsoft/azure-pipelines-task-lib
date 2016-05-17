@@ -65,8 +65,7 @@ describe('Test vsts-task-lib', function() {
             tl.setErrStream(_nullTestStream);
             tl.setEnvVar('TASKLIB_INPROC_UNITS', '1');
 
-            var success = tl.mkdirP(_testTemp);
-            assert(success, 'should have created test temp');
+            tl.mkdirP(_testTemp);
         }
         catch (err) {
             assert.fail('Failed to load task lib: ' + err.message);
@@ -83,8 +82,7 @@ describe('Test vsts-task-lib', function() {
             this.timeout(1000);
 
             var testPath = path.join(_testTemp, 'mkdirTest');
-            var success = tl.mkdirP(testPath);
-            assert(success, 'should created a path');
+            tl.mkdirP(testPath);
             assert(shell.test('-d', testPath), 'directory created');
 
             done();
@@ -94,8 +92,7 @@ describe('Test vsts-task-lib', function() {
             this.timeout(1000);
 
             var testPath = path.join(_testTemp, 'mkdir1', 'mkdir2');
-            var success = tl.mkdirP(testPath);
-            assert(success, 'should created a path');
+            tl.mkdirP(testPath);
             assert(shell.test('-d', testPath), 'directory created');
 
             done();
@@ -105,18 +102,32 @@ describe('Test vsts-task-lib', function() {
             this.timeout(1000);
 
             var testPath = path.join(_testTemp, 'mkdir\0');
-            var success = tl.mkdirP(testPath);
-            assert(!success, 'should have failed');
-            assert(!shell.test('-d', testPath), 'directory created');
+            var worked: boolean = false;
+            try {
+                tl.mkdirP(testPath);
+                worked = true;
+            }
+            catch (err) {
+                // asserting failure
+                assert(!shell.test('-d', testPath), 'directory should not be created');
+            }
 
+            assert(!worked, 'mkdirP with illegal chars should have not have worked');
+            
             done();
         });
 
         it('fails if mkdirP with null path', function(done) {
             this.timeout(1000);
 
-            var success = tl.mkdirP(null);
-            assert(!success, 'should have failed');
+            var worked: boolean = false;
+            try {
+                tl.mkdirP(null);
+                worked = true;
+            }
+            catch (err) {}
+
+            assert(!worked, 'mkdirP with null should have not have worked');
 
             done();
         });
@@ -124,8 +135,14 @@ describe('Test vsts-task-lib', function() {
         it('fails if mkdirP with empty path', function(done) {
             this.timeout(1000);
 
-            var success = tl.mkdirP('');
-            assert(!success, 'should have failed');
+            var worked: boolean = false;
+            try {
+                tl.mkdirP('');
+                worked = true;
+            }
+            catch (err) {}
+
+            assert(!worked, 'mkdirP with empty string should have not have worked');
 
             done();
         });
@@ -139,8 +156,7 @@ describe('Test vsts-task-lib', function() {
             assert(shell.test('-d', testPath), 'directory created');
             assert(shell.test('-e', testPath), 'directory exists');
 
-            var success = tl.rmRF(testPath);
-            assert(success, 'should have deleted a single folder');
+            tl.rmRF(testPath);
             assert(!shell.test('-e', testPath), 'directory removed');
 
             done();
@@ -156,8 +172,7 @@ describe('Test vsts-task-lib', function() {
             assert(shell.test('-d', testPath), '1 directory created');
             assert(shell.test('-d', testPath2), '2 directory created');
 
-            var success = tl.rmRF(testPath);
-            assert(success, 'should have removed recursive folders');
+            tl.rmRF(testPath);
             assert(!shell.test('-e', testPath), '1 directory removed');
             assert(!shell.test('-e', testPath2), '2 directory removed');
 
@@ -177,15 +192,13 @@ describe('Test vsts-task-lib', function() {
             assert(shell.test('-e', filePath), 'file exists');
 
             var fd = fs.openSync(filePath, 'r');
-            var success = tl.rmRF(testPath);
+            tl.rmRF(testPath);
 
             if (plat === 'win32') {
                 assert(shell.test('-e', testPath), 'directory still exists');
-                assert(!success, 'should not be able to remove folder with locked file');
             }
             else {
                 assert(!shell.test('-e', testPath), 'directory removed');
-                assert(success, 'should not be able to remove folder with locked file');
             }
 
             fs.closeSync(fd);
@@ -210,8 +223,7 @@ describe('Test vsts-task-lib', function() {
             var errStream = new StringStream();
             tl.setErrStream(errStream);
 
-            var success = tl.rmRF(testPath);
-            assert(success, 'should have succeeded removing path that does not exist');
+            tl.rmRF(testPath);
             assert(!shell.test('-e', testPath), 'directory still doesnt exist');
 
             done();
@@ -239,8 +251,7 @@ describe('Test vsts-task-lib', function() {
             var errStream = new StringStream();
             tl.setErrStream(errStream);
 
-            var success = tl.mv(sourceFile, destFile, false);
-            assert(success, 'should have succeeded moving to path that does not exist');
+            tl.mv(sourceFile, destFile, false);
             assert(!shell.test('-e', sourceFile), 'source file still exist');
             assert(shell.test('-e', destFile), 'dest file still does not exist');
 
@@ -270,13 +281,20 @@ describe('Test vsts-task-lib', function() {
             var errStream = new StringStream();
             tl.setErrStream(errStream);
 
-            var success = tl.mv(sourceFile, destFile, false);
-            assert(!success, 'should not have succeeded moving to path that exists without force option');
-            assert(shell.test('-e', sourceFile), 'source file does not exist');
-            assert(shell.test('-e', destFile), 'dest file does not exist');
+            var worked: boolean = false;            
+            try {
+                tl.mv(sourceFile, destFile, false);
+                worked = true;
+            }
+            catch (err) {
+                // this should fail
+                assert(shell.test('-e', sourceFile), 'source file does not exist');
+                assert(shell.test('-e', destFile), 'dest file does not exist');
+            }
 
-            success = tl.mv(sourceFile, destFile, true);
-            assert(success, 'should have succeeded moving to path that exist with force option');
+            assert(!worked, 'mv should have not have worked');
+
+            tl.mv(sourceFile, destFile, true);
             assert(!shell.test('-e', sourceFile), 'source file should not exist');
             assert(shell.test('-e', destFile), 'dest file does not exist after mv -f');
 
@@ -336,12 +354,18 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('invalid input is null', function(done) {
+        it('required input throws', function(done) {
             this.timeout(1000);
 
-            var inval = tl.getInput('SomeInvalidInput', true);
-            assert(!inval, 'a non existant input should return null');
+            var worked: boolean = false;
+            try {
+                var inval = tl.getInput('SomeUnsuppliedRequiredInput', true);
+                worked = true;       
+            }
+            catch(err) {}
 
+            assert(!worked, 'req input should have not have worked');
+            
             done();
         })
         it('gets input value with whitespace', function(done) {
@@ -516,17 +540,37 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('gets path invalid value required', function(done) {
+        it('throws if required path not supplied', function(done) {
             this.timeout(1000);
 
             var stdStream = new StringStream();
             tl.setStdStream(stdStream);
 
-            var path = tl.getPathInput('some_missing_path', /*required=*/true, /*check=*/false);
-            assert(!path, 'should not return a path');
+            var worked: boolean = false;
+            try {
+                var path = tl.getPathInput(null, /*required=*/true, /*check=*/false);
+                worked = true;
+            }
+            catch (err) {}
 
-            var output = stdStream.getContents();
-            assert(output.indexOf("##vso[task.issue type=error;]Input required:") >= 0, "testing err for the required field")
+            assert(!worked, 'req path should have not have worked');
+
+            done();
+        })
+        it('get invalid checked path throws', function(done) {
+            this.timeout(1000);
+
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
+
+            var worked: boolean = false;
+            try {
+                var path = tl.getPathInput('some_missing_path', /*required=*/true, /*check=*/true);
+                worked = true;
+            }
+            catch (err) {}
+
+            assert(!worked, 'invalid checked path should have not have worked');
 
             done();
         })
@@ -587,12 +631,15 @@ describe('Test vsts-task-lib', function() {
             process.env['INPUT_PATH1'] = inputValue;
             tl._loadData();
 
-            var path = tl.getPathInput('path1', /*required=*/true, /*check=*/true);
-            assert(path, 'should return a path');
-            assert(path === inputValue, 'returned ' + path + ', expected ' + inputValue);
-
-            var output = stdStream.getContents();
-            assert(output.indexOf("##vso[task.issue type=error;]Not found") >= 0, "testing error path not exist")
+            var worked: boolean = false;
+            try {
+                var path = tl.getPathInput('path1', /*required=*/true, /*check=*/true);
+                worked = true;
+            }
+            catch (err) {
+                assert(err.message.indexOf("Not found") >= 0, "error should have said Not found");
+            }
+            assert(!worked, 'invalid checked path should have not have worked');
 
             done();
         })
@@ -750,42 +797,6 @@ describe('Test vsts-task-lib', function() {
             var expected = _buildOutput(
                 ['##vso[task.debug]task result: Failed',
                     '##vso[task.complete result=Failed;]']);
-
-            var output = stdStream.getContents();
-
-            assert(output === expected, _mismatch(expected, output));
-
-            done();
-        })
-        // compat
-        it('exit 0 success outputs', function(done) {
-            this.timeout(1000);
-
-            var stdStream = new StringStream();
-            tl.setStdStream(stdStream);
-            tl.exit(0);
-
-            var expected = _buildOutput(
-                ['##vso[task.debug]task result: Succeeded',
-                    '##vso[task.complete result=Succeeded;]Return code: 0']);
-
-            var output = stdStream.getContents();
-
-            assert(output === expected, _mismatch(expected, output));
-
-            done();
-        })
-        it('exit 1 failed outputs', function(done) {
-            this.timeout(1000);
-
-            var stdStream = new StringStream();
-            tl.setStdStream(stdStream);
-            tl.exit(1);
-
-            var expected = _buildOutput(
-                ['##vso[task.debug]task result: Failed',
-                    '##vso[task.issue type=error;]Return code: 1',
-                    '##vso[task.complete result=Failed;]Return code: 1']);
 
             var output = stdStream.getContents();
 
