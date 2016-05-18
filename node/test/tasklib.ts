@@ -192,12 +192,20 @@ describe('Test vsts-task-lib', function() {
             assert(shell.test('-e', filePath), 'file exists');
 
             var fd = fs.openSync(filePath, 'r');
-            tl.rmRF(testPath);
 
+            var worked = false;
+            try {
+                tl.rmRF(testPath);
+                worked = true;    
+            }
+            catch(err){}
+            
             if (plat === 'win32') {
+                assert(!worked, 'should not work on windows');
                 assert(shell.test('-e', testPath), 'directory still exists');
             }
             else {
+                assert(worked, 'should work on nix');
                 assert(!shell.test('-e', testPath), 'directory removed');
             }
 
