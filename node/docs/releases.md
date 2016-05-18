@@ -1,5 +1,12 @@
 # VSTS-TASK-LIB RELEASES
 
+## 0.8.2
+  * Pattern change.  Use async function with code in try/catch.  SetResult to fail in the catch.  See samples.
+  * setResult will not halt execution.  Process.exit caused output loss in some scenarios.
+  * All GetInput functions will throw if required and not supplied
+  * Disk operations will throw if they fail
+  * mv and cp take options string as optional arg
+  
 ## 0.7.3
  * Updated `setResult` to log the message as an error issue if the result is Failed.
 

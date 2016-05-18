@@ -80,7 +80,7 @@ Functions for retrieving inputs for the task
 <div id="taskgetInput">
 ### task.getInput <a href="#index">(^)</a>
 Gets the value of an input.  The value is also trimmed.
-If required is true and the value is not set, the task will fail with an error.  Execution halts.
+If required is true and the value is not set, it will throw.
 ```javascript
 getInput(name:string, required?:boolean):string
 ```
@@ -94,7 +94,7 @@ required | boolean | whether input is required.  optional, defaults to false
 <div id="taskgetBoolInput">
 ### task.getBoolInput <a href="#index">(^)</a>
 Gets the value of an input and converts to a bool.  Convenience.
-If required is true and the value is not set, the task will fail with an error.  Execution halts.
+If required is true and the value is not set, it will throw.
 ```javascript
 getBoolInput(name:string, required?:boolean):boolean
 ```
@@ -109,8 +109,8 @@ required | boolean | whether input is required.  optional, defaults to false
 ### task.getPathInput <a href="#index">(^)</a>
 Gets the value of a path input
 It will be quoted for you if it isn't already and contains spaces
-If required is true and the value is not set, the task will fail with an error.  Execution halts.
-If check is true and the path does not exist, the task will fail with an error.  Execution halts.
+If required is true and the value is not set, it will throw.
+If check is true and the path does not exist, it will throw.
 ```javascript
 getPathInput(name:string, required?:boolean, check?:boolean):string
 ```
@@ -143,7 +143,7 @@ Empty values are removed.  This function is useful for splitting an input contai
 list of items - such as build targets.
 IMPORTANT: Do not use this function for splitting additional args!  Instead use argString(), which
 follows normal argument splitting rules and handles values encapsulated by quotes.
-If required is true and the value is not set, the task will fail with an error.  Execution halts.
+If required is true and the value is not set, it will throw.
 ```javascript
 getDelimitedInput(name:string, delim:string, required?:boolean):string
 ```
@@ -359,14 +359,14 @@ options | IExecOptions | optionalexec options.  See IExecOptions
 <div id="tasksetResult">
 ### task.setResult <a href="#index">(^)</a>
 Sets the result of the task.
-If the result is Failed (1), then execution will halt.
+This does not affect execution.  If not set, task will be Succeeded.
 ```javascript
 setResult(result:TaskResult, message:string):void
 ```
  
 Param | Type | Description
 --- | --- | ---
-result | TaskResult | TaskResult enum of Success or Failed.  If the result is Failed (1), then execution will halt.
+result | TaskResult | TaskResult enum of Succeded or Failed.
 message | string | A message which will be logged and as an error issue if the result is Failed.
  
  
@@ -381,7 +381,7 @@ Retrieve service endpoints and authorization details
 <div id="taskgetEndpointUrl">
 ### task.getEndpointUrl <a href="#index">(^)</a>
 Gets the url for a service endpoint
-If the url was not set and is not optional, the task will fail with an error message. Execution will halt.
+If the url was not set and is not optional, it will throw.
 ```javascript
 getEndpointUrl(id:string, optional:boolean):string
 ```
@@ -429,7 +429,7 @@ Functions for disk operations
 <div id="taskwhich">
 ### task.which <a href="#index">(^)</a>
 Returns path of a tool had the tool actually been invoked.  Resolves via paths.
-If you check and the tool does not exist, the task will fail with an error message and halt execution.
+If you check and the tool does not exist, it will throw.
 ```javascript
 which(tool:string, check?:boolean):string
 ```
@@ -443,7 +443,7 @@ check | boolean | whether to check if tool exists
 <div id="taskcheckPath">
 ### task.checkPath <a href="#index">(^)</a>
 Checks whether a path exists.
-If the path does not exist, the task will fail with an error message. Execution will halt.
+If the path does not exist, it will throw.
 ```javascript
 checkPath(p:string, name:string):void
 ```
@@ -480,43 +480,42 @@ path | string | new working directory path
 <br/>
 <div id="taskcp">
 ### task.cp <a href="#index">(^)</a>
-Returns path of a tool had the tool actually been invoked.  Resolves via paths.
-If you check and the tool does not exist, the task will fail with an error message and halt execution.
-Returns whether the copy was successful
+Copy from source to destination.  Options are string -r, -f or -rf for recursive and force
+Will throw if it fails
 ```javascript
-cp(options:any, source:string, dest:string, continueOnError?:boolean):boolean
+cp(options:string, source:string, dest:string, continueOnError?:boolean):void
 ```
  
 Param | Type | Description
 --- | --- | ---
-options | any | string -r, -f or -rf for recursive and force
 source | string | source path
 dest | string | destination path
+options | string | optional. -r, -f or -rf for recursive and force
 continueOnError | boolean | optional. whether to continue on error
  
 <br/>
 <div id="taskmv">
 ### task.mv <a href="#index">(^)</a>
 Moves a path.
-Returns whether the copy was successful
+Will throw if it fails
 ```javascript
-mv(source:string, dest:string, force:boolean, continueOnError?:boolean):boolean
+mv(source:string, dest:string, force:boolean, continueOnError?:boolean):void
 ```
  
 Param | Type | Description
 --- | --- | ---
 source | string | source path
 dest | string | destination path
-force | boolean | whether to force and overwrite
+options | string | optional. -f or -n for force and no clobber
 continueOnError | boolean | optional. whether to continue on error
  
 <br/>
 <div id="taskmkdirP">
 ### task.mkdirP <a href="#index">(^)</a>
 Make a directory.  Creates the full path with folders in between
-Returns whether it was successful or not
+Will throw if it fails
 ```javascript
-mkdirP(p:any):boolean
+mkdirP(p:any):void
 ```
  
 Param | Type | Description
@@ -540,9 +539,9 @@ findPath | string | path to find files under
 <div id="taskrmRF">
 ### task.rmRF <a href="#index">(^)</a>
 Remove a path recursively with force
-Returns whether it succeeds
+Will throw if it fails
 ```javascript
-rmRF(path:string, continueOnError?:boolean):boolean
+rmRF(path:string, continueOnError?:boolean):void
 ```
  
 Param | Type | Description

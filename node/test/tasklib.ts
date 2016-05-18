@@ -259,7 +259,7 @@ describe('Test vsts-task-lib', function() {
             var errStream = new StringStream();
             tl.setErrStream(errStream);
 
-            tl.mv(sourceFile, destFile, false);
+            tl.mv(sourceFile, destFile);
             assert(!shell.test('-e', sourceFile), 'source file still exist');
             assert(shell.test('-e', destFile), 'dest file still does not exist');
 
@@ -291,7 +291,7 @@ describe('Test vsts-task-lib', function() {
 
             var worked: boolean = false;            
             try {
-                tl.mv(sourceFile, destFile, false);
+                tl.mv(sourceFile, destFile);
                 worked = true;
             }
             catch (err) {
@@ -302,7 +302,7 @@ describe('Test vsts-task-lib', function() {
 
             assert(!worked, 'mv should have not have worked');
 
-            tl.mv(sourceFile, destFile, true);
+            tl.mv(sourceFile, destFile, '-f');
             assert(!shell.test('-e', sourceFile), 'source file should not exist');
             assert(shell.test('-e', destFile), 'dest file does not exist after mv -f');
 

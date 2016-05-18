@@ -568,7 +568,6 @@ export function popd(): void {
  * Returns whether it was successful or not
  * 
  * @param     p       path to create
- * @returns   boolean
  */
 export function mkdirP(p): void {
     if (!p) {
@@ -663,15 +662,20 @@ export function which(tool: string, check?: boolean): string {
  * If you check and the tool does not exist, the task will fail with an error message and halt execution.
  * Returns whether the copy was successful
  * 
- * @param     options    string -r, -f or -rf for recursive and force
  * @param     source     source path
  * @param     dest       destination path
+ * @param     options    string -r, -f or -rf for recursive and force 
  * @param     continueOnError optional. whether to continue on error
- * @returns   boolean
  */
-export function cp(options, source: string, dest: string, continueOnError?: boolean): void {
-    shell.cp(options, source, dest);
-    checkShell('cp');
+export function cp(source: string, dest: string, options?: string, continueOnError?: boolean): void {
+    if (options) {
+        shell.cp(options, source, dest);    
+    }
+    else {
+        shell.cp(source, dest);
+    }
+    
+    checkShell('cp', continueOnError);
 }
 
 /**
@@ -680,17 +684,17 @@ export function cp(options, source: string, dest: string, continueOnError?: bool
  * 
  * @param     source     source path
  * @param     dest       destination path
- * @param     force      whether to force and overwrite
+ * @param     options    string -f or -n for force and no clobber 
  * @param     continueOnError optional. whether to continue on error
- * @returns   boolean
  */
-export function mv(source: string, dest: string, force: boolean, continueOnError?: boolean): void {
-    if (force) {
-        shell.mv('-f', source, dest);
-    } else {
+export function mv(source: string, dest: string, options?: string, continueOnError?: boolean): void {
+    if (options) {
+        shell.mv(options, source, dest);    
+    }
+    else {
         shell.mv(source, dest);
     }
-
+    
     checkShell('mv', continueOnError);
 }
 
