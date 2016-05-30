@@ -651,6 +651,38 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
+        it('gets path value with normalize path', function (done) {
+            this.timeout(1000);
+
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
+
+            var inputValue = "/etc/usr\\someRandomFile.txt";
+            process.env['INPUT_PATH1'] = inputValue;
+            tl._loadData();
+
+            assert.equal(tl.getPathInput('path1',/*required=*/true, /*check=*/false,/*normalizePath=*/true), "/etc/usr/someRandomFile.txt");
+            done();
+        })
+        
+        //pathToPosix tests
+        it('test posix file path functionality', function (done) {
+            this.timeout(1000);
+
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
+
+            var path1 = '/etc/usr\\someRandomFile.txt';
+            var path2 = '/etc/usr/someRandomFile.txt';
+            var path3 = 'c:\\etc\\usr\\someRandomFile.txt';
+            var path4 = 'c:\\etc\\usr/someRandomFile.txt';
+            
+            assert.equal(tl.pathToPosix(path1), '/etc/usr/someRandomFile.txt');
+            assert.equal(tl.pathToPosix(path2), '/etc/usr/someRandomFile.txt');
+            assert.equal(tl.pathToPosix(path3), 'c:/etc/usr/someRandomFile.txt');
+            assert.equal(tl.pathToPosix(path4), 'c:/etc/usr/someRandomFile.txt');
+            done();
+        })
 
         // filePathSupplied tests
         it('filePathSupplied checks not supplied', function(done) {

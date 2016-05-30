@@ -367,14 +367,19 @@ export function filePathSupplied(name: string): boolean {
  * It will be quoted for you if it isn't already and contains spaces
  * If required is true and the value is not set, the task will fail with an error.  Execution halts.
  * If check is true and the path does not exist, the task will fail with an error.  Execution halts.
+ * If normalize is true, normalized path will be returned
  * 
  * @param     name      name of the input to get
  * @param     required  whether input is required.  optional, defaults to false
  * @param     check     whether path is checked.  optional, defaults to false 
+ * @param     normalizePath     normalize the path to POSIX path type.  optional, defaults to false
  * @returns   string
  */
-export function getPathInput(name: string, required?: boolean, check?: boolean): string {
+export function getPathInput(name: string, required?: boolean, check?: boolean, normalizePath?: boolean): string {
     var inval = getInput(name, required);
+    if (normalizePath) {
+        inval = pathToPosix(inval);
+    }
     if (inval) {
         if (check) {
             checkPath(inval, name);
@@ -382,6 +387,23 @@ export function getPathInput(name: string, required?: boolean, check?: boolean):
     }
 
     return inval;
+}
+
+/**
+ * Converts given path string to POSIX type path string
+ * it will replace the windows file path seperator to unix file path seperator
+ * 
+ * @param     pathInput  input path
+ * @returns   string
+ */
+export function pathToPosix(pathInput: string) {
+    var p = path.normalize(pathInput);
+    var path_regex = /\/\//;
+    p = p.replace(/\\/g, "/");
+    while (p.match(path_regex)) {
+        p = p.replace(path_regex, "/");
+    }
+    return p;
 }
 
 //-----------------------------------------------------
