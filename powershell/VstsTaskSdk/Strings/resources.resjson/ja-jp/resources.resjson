@@ -11,7 +11,7 @@
   "loc.messages.PSLIB_PathNotFound0": "パスが見つかりません: '{0}'",
   "loc.messages.PSLIB_Process0ExitedWithCode1": "プロセス '{0}' がコード '{1}' で終了しました。",
   "loc.messages.PSLIB_Required0": "必要: {0}",
-  "loc.messages.PSLIB_StringFormatFailed": "文字列の形式が正しくありません。",
+  "loc.messages.PSLIB_StringFormatFailed": "文字列のフォーマットに失敗しました。",
   "loc.messages.PSLIB_StringResourceKeyNotFound0": "文字列のリソース キーが見つかりません: '{0}'",
   "loc.messages.PSLIB_TaskVariable0": "'{0}' タスク変数"
 }
