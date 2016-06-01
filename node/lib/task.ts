@@ -415,6 +415,64 @@ export function getEndpointUrl(id: string, optional: boolean): string {
     return urlval;
 }
 
+/*
+ * Gets the endpoint data parameter value with specified key for a service endpoint
+ * If the endpoint data parameter was not set and is not optional, the task will fail with an error message. Execution will halt.
+ *
+ * @param id name of the service endpoint
+ * @param key of the parameter
+ * @param optional whether the endpoint data is optional
+ * @returns {string} value of the endpoint data parameter
+ */
+export function getEndpointDataParameter(id: string, key: string, optional: boolean): string {
+    var dataParamVal = process.env['ENDPOINT_DATA_' + id + '_' + key.toUpperCase()];
+
+    if(!optional && !dataParamVal) {
+        throw new Error(loc('LIB_EndpointDataNotExist', id, key));
+    }
+
+    debug(id + ' data ' + key + ' = ' + dataParamVal);
+    return dataParamVal;
+}
+
+/**
+ * Gets the endpoint authorization scheme for a service endpoint
+ * If the endpoint authorization scheme is not set and is not optional, the task will fail with an error message. Execution will halt.
+ *
+ * @param id name of the service endpoint
+ * @param optional whether the endpoint authorization scheme is optional
+ * @returns {string} value of the endpoint authorization scheme
+ */
+export function getEndpointAuthorizationScheme(id: string, optional: boolean) : string {
+    var authScheme = process.env['ENDPOINT_AUTH_SCHEME_' + id];
+
+    if(!optional && !authScheme) {
+        throw new Error(loc('LIB_EndpointNotExist', id));
+    }
+
+    debug(id + ' auth scheme = ' + authScheme);
+    return authScheme;
+}
+
+/**
+ * Gets the endpoint authorization parameter value for a service endpoint with specified key
+ * If the endpoint authorization parameter is not set and is not optional, the task will fail with an error message. Execution will halt.
+ *
+ * @param id name of the service endpoint
+ * @param key key to find the endpoint authorization parameter
+ * @param optional optional whether the endpoint authorization scheme is optional
+ * @returns {string} value of the endpoint authorization parameter value
+ */
+export function getEndpointAuthorizationParameter(id: string, key: string, optional: boolean) : string {
+    var authParam = process.env['ENDPOINT_AUTH_PARAM_' + id + '_' + key.toUpperCase()];
+
+    if(!optional && !authParam) {
+        throw new Error(loc('LIB_EndpointNotExist', id));
+    }
+
+    debug(id + ' auth param ' + key + ' = ' + authParam);
+    return authParam;
+}
 /**
  * Interface for EndpointAuthorization
  * Contains a schema and a string/string dictionary of auth data

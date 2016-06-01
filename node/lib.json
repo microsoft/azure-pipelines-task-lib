@@ -10,6 +10,8 @@
     "LIB_ParameterIsRequired": "%s not supplied",
     "LIB_InputRequired": "Input required: %s",
     "LIB_EndpointNotExist": "Endpoint not present: %s",
+    "LIB_EndpointDataNotExist": "Endpoint data not present: %s with key %s",
+    "LIB_InvalidEndpointData": "Invalid endpoint data: %s",
     "LIB_InvalidEndpointAuth": "Invalid endpoint auth: %s",
     "LIB_PathNotFound": "Not found %s: %s",
     "LIB_PathHasNullByte": "Path cannot contain null bytes",

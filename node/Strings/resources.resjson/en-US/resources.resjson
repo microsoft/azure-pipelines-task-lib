@@ -9,6 +9,8 @@
   "loc.messages.LIB_ParameterIsRequired": "%s not supplied",
   "loc.messages.LIB_InputRequired": "Input required: %s",
   "loc.messages.LIB_EndpointNotExist": "Endpoint not present: %s",
+  "loc.messages.LIB_EndpointDataNotExist": "Endpoint data not present: %s with key %s",
+  "loc.messages.LIB_InvalidEndpointData": "Invalid endpoint data: %s",
   "loc.messages.LIB_InvalidEndpointAuth": "Invalid endpoint auth: %s",
   "loc.messages.LIB_PathNotFound": "Not found %s: %s",
   "loc.messages.LIB_PathHasNullByte": "Path cannot contain null bytes",

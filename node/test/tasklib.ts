@@ -444,7 +444,7 @@ describe('Test vsts-task-lib', function() {
             done();
         })
 
-        // getEndpointUrl/getEndpointAuthorization tests
+        // getEndpointUrl/getEndpointAuthorization/getEndpointData tests
         it('gets an endpoint url', function(done) {
             this.timeout(1000);
 
@@ -491,7 +491,26 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
+        it('gets an endpoint data', function(done) {
+            this.timeout(1000);
+            process.env['ENDPOINT_DATA_id1_PARAM1'] = 'val1';
+            tl._loadData();
 
+            var data = tl.getEndpointDataParameter('id1', 'param1', true);
+            assert(data, 'should return a string value');
+            assert(data === 'val1', 'should be correct object');
+
+            done();
+        })
+        it('gets error if endpoint data is not set', function(done) {
+            this.timeout(1000);
+            tl._loadData();
+
+            var data = tl.getEndpointDataParameter('id1', 'noparam', true);
+            assert(data === undefined, 'Error should occur if endpoint data is not set');
+
+            done();
+        })
         // getBoolInput tests
         it('gets true bool input value', function(done) {
             this.timeout(1000);
