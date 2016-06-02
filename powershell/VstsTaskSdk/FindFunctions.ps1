@@ -247,7 +247,7 @@ function Get-PathIterator {
         ForEach-Object {
             if ($_.Attributes.HasFlag([VstsTaskSdk.FS.Attributes]::Directory)) {
                 if ($IncludeDirectories) {
-                    $i_.FullName
+                    $_.FullName
                 }
             } elseif ($IncludeFiles) {
                 $_.FullName
