@@ -1,5 +1,8 @@
 # Release Notes
 
+## 0.6.3
+ * Updated `Find-VstsFiles` to fix `-IncludeDirectories` functionality.
+
 ## 0.6.2
  * Updated initialization (`Invoke-VstsTaskScript`) to run within the global session state. Modules imported by the task script will now be imported into the global session state.
 
