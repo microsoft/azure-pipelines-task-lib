@@ -393,12 +393,37 @@ describe('Test vsts-task-lib', function() {
             this.timeout(1000);
 
             process.env['BUILD_REPOSITORY_NAME'] = 'Test Repository';
+            tl._loadData();
+            
             var varVal = tl.getVariable('Build.Repository.Name');
             assert(varVal === 'Test Repository', 'reading a variable should work');
 
             done();
         })
+        it('gets a secret variable', function(done) {
+            this.timeout(1000);
 
+            process.env['SECRET_BUILD_REPOSITORY_NAME'] = 'Test Repository';
+            tl._loadData();
+            
+            var varVal = tl.getVariable('Build.Repository.Name');
+            assert(varVal === 'Test Repository', 'reading a variable should work');
+
+            done();
+        })
+        it('gets a secret variable while variable also exist', function(done) {
+            this.timeout(1000);
+
+            process.env['BUILD_REPOSITORY_NAME'] = 'Test Repository';
+            process.env['SECRET_BUILD_REPOSITORY_NAME'] = 'Secret Test Repository';
+            tl._loadData();
+            
+            var varVal = tl.getVariable('Build.Repository.Name');
+            assert(varVal === 'Secret Test Repository', 'reading a variable should work');
+
+            done();
+        })
+        
         // setVariable tests
         it('sets a variable', function(done) {
             this.timeout(1000);

@@ -251,7 +251,15 @@ export function loc(key: string, ...param: any[]): string {
  * @returns   string
  */
 export function getVariable(name: string): string {
-    var varval = process.env[name.replace(/\./g, '_').toUpperCase()];
+    var varval;
+    if (vault) {
+        varval = vault.retrieveSecret('SECRET_' + name.replace(/\./g, '_').toUpperCase());
+    }
+
+    if (!varval) {
+        varval = process.env[name.replace(/\./g, '_').toUpperCase()];
+    }
+
     debug(name + '=' + varval);
     return varval;
 }
@@ -444,7 +452,7 @@ export function getEndpointAuthorization(id: string, optional: boolean): Endpoin
         auth = <EndpointAuthorization>JSON.parse(aval);
     }
     catch (err) {
-        throw new Error(loc('LIB_InvalidEndpointAuth', aval)); 
+        throw new Error(loc('LIB_InvalidEndpointAuth', aval));
     }
 
     return auth;
@@ -476,14 +484,14 @@ export function debug(message: string): void {
 //-----------------------------------------------------
 function checkShell(cmd: string, continueOnError?: boolean) {
     var se = shell.error();
-    
+
     if (se) {
         debug(cmd + ' failed');
         var errMsg = loc('LIB_OperationFailed', cmd, se);
         debug(errMsg);
 
         if (!continueOnError) {
-            throw new Error(errMsg);    
+            throw new Error(errMsg);
         }
     }
 }
@@ -611,7 +619,7 @@ export function which(tool: string, check?: boolean): string {
             // No relative/absolute paths provided?
             if (tool.search(/[\/\\]/) === -1) {
                 // Search for command in PATH
-                pathArray.forEach(function(dir) {
+                pathArray.forEach(function (dir) {
                     if (toolPath)
                         return; // already found it
 
@@ -669,12 +677,12 @@ export function which(tool: string, check?: boolean): string {
  */
 export function cp(source: string, dest: string, options?: string, continueOnError?: boolean): void {
     if (options) {
-        shell.cp(options, source, dest);    
+        shell.cp(options, source, dest);
     }
     else {
         shell.cp(source, dest);
     }
-    
+
     checkShell('cp', continueOnError);
 }
 
@@ -689,12 +697,12 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
  */
 export function mv(source: string, dest: string, options?: string, continueOnError?: boolean): void {
     if (options) {
-        shell.mv(options, source, dest);    
+        shell.mv(options, source, dest);
     }
     else {
         shell.mv(source, dest);
     }
-    
+
     checkShell('mv', continueOnError);
 }
 
@@ -791,7 +799,7 @@ export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Pro
         if (args instanceof Array) {
             tr.arg(args);
         }
-        else if (typeof(args) === 'string') {
+        else if (typeof (args) === 'string') {
             tr.argString(args)
         }
     }
@@ -816,7 +824,7 @@ export function execSync(tool: string, args: string | string[], options?: trm.IE
         if (args instanceof Array) {
             tr.arg(args);
         }
-        else if (typeof(args) === 'string') {
+        else if (typeof (args) === 'string') {
             tr.argString(args)
         }
     }
@@ -976,7 +984,8 @@ export function _loadData(): void {
     var loaded = 0;
     for (var envvar in process.env) {
         if (envvar.startsWith('INPUT_') ||
-            envvar.startsWith('ENDPOINT_AUTH_')) {
+            envvar.startsWith('ENDPOINT_AUTH_') ||
+            envvar.startsWith('SECRET_')) {
 
             if (process.env[envvar]) {
                 ++loaded;
