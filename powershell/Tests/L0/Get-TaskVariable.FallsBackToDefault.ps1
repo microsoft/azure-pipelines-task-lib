@@ -8,6 +8,10 @@ Invoke-VstsTaskScript -ScriptBlock {
         Remove-Item -LiteralPath Env:SOME_NAME
     }
 
+    if (Test-Path -LiteralPath Env:SECRET_SOME_NAME) {
+        Remove-Item -LiteralPath Env:SECRET_SOME_NAME
+    }
+
     $variableSets = @(
         @{ Expected = '' }
         @{ Default = 'Some default' ; Expected = 'Some default'}
