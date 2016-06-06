@@ -491,6 +491,45 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
+        it('gets endpoint auth scheme', function(done) {
+            this.timeout(1000);
+            process.env['ENDPOINT_AUTH_SCHEME_id1'] = 'scheme1';
+            tl._loadData();
+
+            var data = tl.getEndpointAuthorizationScheme('id1', true);
+            assert(data, 'should return a string value');
+            assert(data === 'scheme1', 'should be correct scheme');
+
+            done();
+        })
+        it('gets undefined if endpoint auth scheme is not set', function(done) {
+            this.timeout(1000);
+            tl._loadData();
+
+            var data = tl.getEndpointAuthorizationScheme('id1', true);
+            assert(!data, 'should be undefined when auth scheme is not set');
+
+            done();
+        })
+        it('gets endpoint auth parameters', function(done) {
+            this.timeout(1000);
+            process.env['ENDPOINT_AUTH_PARAMETER_id1_PARAM1'] = 'value1';
+            tl._loadData();
+
+            var data = tl.getEndpointAuthorizationParameter('id1', 'param1', true);
+            assert(data, 'should return a string value');
+            assert(data === 'value1', 'should be correct auth param');
+            done();
+        })
+        it('gets undefined if endpoint auth parameter is not set', function(done) {
+            this.timeout(1000);
+            tl._loadData();
+
+            var data = tl.getEndpointAuthorizationParameter('id1', 'noparam', true);
+            assert(!data, 'should be undefined when auth param is not set');
+
+            done();
+        })
         it('gets an endpoint data', function(done) {
             this.timeout(1000);
             process.env['ENDPOINT_DATA_id1_PARAM1'] = 'val1';
@@ -502,7 +541,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('gets error if endpoint data is not set', function(done) {
+        it('gets undefined if endpoint data is not set', function(done) {
             this.timeout(1000);
             tl._loadData();
 
