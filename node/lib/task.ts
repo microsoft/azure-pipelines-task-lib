@@ -447,7 +447,7 @@ export function getEndpointAuthorizationScheme(id: string, optional: boolean) : 
     var authScheme = process.env['ENDPOINT_AUTH_SCHEME_' + id];
 
     if(!optional && !authScheme) {
-        throw new Error(loc('LIB_EndpointNotExist', id));
+        throw new Error(loc('LIB_EndpointAuthNotExist', id));
     }
 
     debug(id + ' auth scheme = ' + authScheme);
@@ -467,7 +467,7 @@ export function getEndpointAuthorizationParameter(id: string, key: string, optio
     var authParam = process.env['ENDPOINT_AUTH_PARAM_' + id + '_' + key.toUpperCase()];
 
     if(!optional && !authParam) {
-        throw new Error(loc('LIB_EndpointNotExist', id));
+        throw new Error(loc('LIB_EndpointAuthNotExist', id));
     }
 
     debug(id + ' auth param ' + key + ' = ' + authParam);
@@ -499,7 +499,7 @@ export function getEndpointAuthorization(id: string, optional: boolean): Endpoin
     var aval = vault.retrieveSecret('ENDPOINT_AUTH_' + id);
 
     if (!optional && !aval) {
-        setResult(TaskResult.Failed, loc('LIB_EndpointNotExist', id));
+        setResult(TaskResult.Failed, loc('LIB_EndpointAuthNotExist', id));
     }
 
     console.log(id + ' exists ' + (aval !== null));
