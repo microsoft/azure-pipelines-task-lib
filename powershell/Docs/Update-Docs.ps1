@@ -24,7 +24,7 @@ function Get-HelpString {
     $section = $null
     foreach ($line in $str.Trim().Replace("`r", "").Split("`n")) {
         $line = $line.TrimEnd()
-
+        $line = $line.Replace("http://go.microsoft.com", "https://go.microsoft.com")
         # Add the blank line.
         if (!$line) {
             # Prevent multiple blank lines.
