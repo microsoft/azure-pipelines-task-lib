@@ -1220,5 +1220,93 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
+
+        it('publish code coverage passes all the properties properly', function(done) {
+            this.timeout(1000);
+
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
+            var ccPublisher = new tl.CodeCoveragePublisher();
+            ccPublisher.publish("Jacoco", "\\user\\admin\\summary.xml", "\\user\\admin\\report", "\\user\\admin\\report\\t.xml,\\user\\admin\\report\\c.xml");
+
+            var output = stdStream.getContents();
+            var expectedOutput = _buildOutput(["##vso[codecoverage.publish codecoveragetool=Jacoco;summaryfile=\\user\\admin\\summary.xml;reportdirectory=\\user\\admin\\report;additionalcodecoveragefiles=\\user\\admin\\report\\t.xml,\\user\\admin\\report\\c.xml;]"]);
+            assert(expectedOutput === output, _mismatch(expectedOutput, output));
+            done();
+        })
+
+        it('publish code coverage does not pass properties when the imput parameters are empty', function(done) {
+            this.timeout(1000);
+
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
+            var ccPublisher = new tl.CodeCoveragePublisher();
+            ccPublisher.publish("", "", "", "");
+
+            var output = stdStream.getContents();
+            var expectedOutput = _buildOutput(["##vso[codecoverage.publish]"]);
+            assert(expectedOutput === output, _mismatch(expectedOutput, output));
+            done();
+        })
+
+        it('publish code coverage does not pass properties when the input parameters are null', function(done) {
+            this.timeout(1000);
+
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
+            var ccPublisher = new tl.CodeCoveragePublisher();
+            ccPublisher.publish(null, null, null, null);
+
+            var output = stdStream.getContents();
+            var expectedOutput = _buildOutput(["##vso[codecoverage.publish]"]);
+            assert(expectedOutput === output, _mismatch(expectedOutput, output));
+            done();
+        })
+
+        it('enable code coverage does not pass properties when the input parameters are null', function(done) {
+            this.timeout(1000);
+
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
+            var ccEnabler = new tl.CodeCoverageEnabler(null, null);
+            var buildProps: { [key: string]: string } = {};
+            ccEnabler.enableCodeCoverage(buildProps);
+
+            var output = stdStream.getContents();
+            var expectedOutput = _buildOutput(["##vso[codecoverage.enable ]"]);
+            assert(expectedOutput === output, _mismatch(expectedOutput, output));
+            done();
+        })
+
+        it('enable code coverage passes properties when the input parameters are existing', function(done) {
+            this.timeout(1000);
+
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
+            var ccEnabler = new tl.CodeCoverageEnabler("jacoco", "buildtool");
+            var buildProps: { [key: string]: string } = {};
+            buildProps['abc'] = 'xyz';
+            ccEnabler.enableCodeCoverage(buildProps);
+
+            var output = stdStream.getContents();
+            var expectedOutput = _buildOutput(["##vso[codecoverage.enable abc=xyz;buildtool=jacoco;codecoveragetool=buildtool;]"]);
+            assert(expectedOutput === output, _mismatch(expectedOutput, output));
+            done();
+        })
+
+        it('enable code coverage passes parameters when the input parameters are empty', function(done) {
+            this.timeout(1000);
+
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
+            var ccEnabler = new tl.CodeCoverageEnabler("jacoco", "buildtool");
+            var buildProps: { [key: string]: string } = {};
+            ccEnabler.enableCodeCoverage(buildProps);
+
+            var output = stdStream.getContents();
+            var expectedOutput = _buildOutput(["##vso[codecoverage.enable buildtool=jacoco;codecoveragetool=buildtool;]"]);
+            assert(expectedOutput === output, _mismatch(expectedOutput, output));
+            done();
+        })
     });
 });

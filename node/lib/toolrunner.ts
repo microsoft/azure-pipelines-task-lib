@@ -59,12 +59,12 @@ export function debug(message) {
 
 export class ToolRunner extends events.EventEmitter {
     constructor(toolPath) {
+        super();
         debug('toolRunner toolPath: ' + toolPath);
 
         this.toolPath = toolPath;
         this.args = [];
         this.silent = false;
-        super();
     }
 
     public toolPath: string;
