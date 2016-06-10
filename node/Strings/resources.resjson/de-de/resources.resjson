@@ -11,7 +11,7 @@
   "loc.messages.LIB_EndpointNotExist": "Der Endpunkt ist nicht vorhanden: %s",
   "loc.messages.LIB_InvalidEndpointAuth": "Ungültige Endpunktauthentifizierung: %s",
   "loc.messages.LIB_PathNotFound": "Nicht gefunden %s: %s",
-  "loc.messages.LIB_PathHasNullByte": "Der Pfad darf keine NULL-Bytes enthalten.",
+  "loc.messages.LIB_PathHasNullByte": "Der Pfad darf nicht NULL Bytes enthalten.",
   "loc.messages.LIB_OperationFailed": "Fehler %s: %s",
   "loc.messages.LIB_UseFirstGlobMatch": "Mehrere Arbeitsbereichübereinstimmungen. Die erste Übereinstimmung wird verwendet.",
   "loc.messages.LIB_MergeTestResultNotSupported": "Das Mergen von Testergebnissen aus mehreren Dateien in einen Testlauf wird von dieser Version des Build-Agents für OSX/Linux nicht unterstützt. Jede Testergebnisdatei wird als separater Testlauf in VSO/TFS veröffentlicht."
