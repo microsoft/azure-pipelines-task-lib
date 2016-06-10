@@ -19,24 +19,24 @@ var _testTemp = path.join(__dirname, '_temp');
 
 var plat = os.platform();
 
-var NullStream = function() {
+var NullStream = function () {
     stream.Writable.call(this);
-    this._write = function(data, encoding, next) {
+    this._write = function (data, encoding, next) {
         next();
     }
 }
 util.inherits(NullStream, stream.Writable);
 
-var StringStream = function() {
+var StringStream = function () {
     var contents = '';
 
     stream.Writable.call(this);
-    this._write = function(data, encoding, next) {
+    this._write = function (data, encoding, next) {
         contents += data;
         next();
     }
 
-    this.getContents = function() {
+    this.getContents = function () {
         return contents.toString();
     }
 }
@@ -44,22 +44,22 @@ util.inherits(StringStream, stream.Writable);
 
 var _nullTestStream = new NullStream();
 
-var _mismatch = function(expected, output) {
+var _mismatch = function (expected, output) {
     return 'expected' + os.EOL + '"' + expected + '"' + os.EOL + 'returned' + os.EOL + '"' + output + '"';
 }
 
-var _buildOutput = function(lines) {
+var _buildOutput = function (lines) {
     var output = '';
-    lines.forEach(function(line) {
+    lines.forEach(function (line) {
         output += line + os.EOL;
     });
 
     return output;
 }
 
-describe('Test vsts-task-lib', function() {
+describe('Test vsts-task-lib', function () {
 
-    before(function(done) {
+    before(function (done) {
         try {
             tl.setStdStream(_nullTestStream);
             tl.setErrStream(_nullTestStream);
@@ -73,12 +73,12 @@ describe('Test vsts-task-lib', function() {
         done();
     });
 
-    after(function() {
+    after(function () {
 
     });
 
-    describe('Dir Operations', function() {
-        it('creates folder with mkdirP', function(done) {
+    describe('Dir Operations', function () {
+        it('creates folder with mkdirP', function (done) {
             this.timeout(1000);
 
             var testPath = path.join(_testTemp, 'mkdirTest');
@@ -88,7 +88,7 @@ describe('Test vsts-task-lib', function() {
             done();
         });
 
-        it('creates nested folders with mkdirP', function(done) {
+        it('creates nested folders with mkdirP', function (done) {
             this.timeout(1000);
 
             var testPath = path.join(_testTemp, 'mkdir1', 'mkdir2');
@@ -98,7 +98,7 @@ describe('Test vsts-task-lib', function() {
             done();
         });
 
-        it('fails if mkdirP with illegal chars', function(done) {
+        it('fails if mkdirP with illegal chars', function (done) {
             this.timeout(1000);
 
             var testPath = path.join(_testTemp, 'mkdir\0');
@@ -113,11 +113,11 @@ describe('Test vsts-task-lib', function() {
             }
 
             assert(!worked, 'mkdirP with illegal chars should have not have worked');
-            
+
             done();
         });
 
-        it('fails if mkdirP with null path', function(done) {
+        it('fails if mkdirP with null path', function (done) {
             this.timeout(1000);
 
             var worked: boolean = false;
@@ -125,14 +125,14 @@ describe('Test vsts-task-lib', function() {
                 tl.mkdirP(null);
                 worked = true;
             }
-            catch (err) {}
+            catch (err) { }
 
             assert(!worked, 'mkdirP with null should have not have worked');
 
             done();
         });
 
-        it('fails if mkdirP with empty path', function(done) {
+        it('fails if mkdirP with empty path', function (done) {
             this.timeout(1000);
 
             var worked: boolean = false;
@@ -140,14 +140,14 @@ describe('Test vsts-task-lib', function() {
                 tl.mkdirP('');
                 worked = true;
             }
-            catch (err) {}
+            catch (err) { }
 
             assert(!worked, 'mkdirP with empty string should have not have worked');
 
             done();
         });
 
-        it('removes single folder with rmRF', function(done) {
+        it('removes single folder with rmRF', function (done) {
             this.timeout(1000);
 
             var testPath = path.join(_testTemp, 'testFolder');
@@ -162,7 +162,7 @@ describe('Test vsts-task-lib', function() {
             done();
         });
 
-        it('removes recursive folders with rmRF', function(done) {
+        it('removes recursive folders with rmRF', function (done) {
             this.timeout(1000);
 
             var testPath = path.join(_testTemp, 'testDir1');
@@ -179,7 +179,7 @@ describe('Test vsts-task-lib', function() {
             done();
         });
 
-        it('removes folder with locked file with rmRF', function(done) {
+        it('removes folder with locked file with rmRF', function (done) {
             this.timeout(1000);
 
             var testPath = path.join(_testTemp, 'testFolder');
@@ -196,10 +196,10 @@ describe('Test vsts-task-lib', function() {
             var worked = false;
             try {
                 tl.rmRF(testPath);
-                worked = true;    
+                worked = true;
             }
-            catch(err){}
-            
+            catch (err) { }
+
             if (plat === 'win32') {
                 assert(!worked, 'should not work on windows');
                 assert(shell.test('-e', testPath), 'directory still exists');
@@ -216,7 +216,7 @@ describe('Test vsts-task-lib', function() {
             done();
         });
 
-        it('removes folder that doesnt exist with rmRF', function(done) {
+        it('removes folder that doesnt exist with rmRF', function (done) {
             this.timeout(1000);
 
             var testFolder = 'testDir';
@@ -237,7 +237,7 @@ describe('Test vsts-task-lib', function() {
             done();
         });
 
-        it('move to non existant destination', function(done) {
+        it('move to non existant destination', function (done) {
             this.timeout(1000);
 
             var sourceFile = 'sourceFile';
@@ -266,7 +266,7 @@ describe('Test vsts-task-lib', function() {
             done();
         });
 
-        it('move to existing destination should fail unless forced', function(done) {
+        it('move to existing destination should fail unless forced', function (done) {
             this.timeout(1000);
 
             var sourceFile = 'sourceFile';
@@ -289,7 +289,7 @@ describe('Test vsts-task-lib', function() {
             var errStream = new StringStream();
             tl.setErrStream(errStream);
 
-            var worked: boolean = false;            
+            var worked: boolean = false;
             try {
                 tl.mv(sourceFile, destFile);
                 worked = true;
@@ -310,8 +310,8 @@ describe('Test vsts-task-lib', function() {
         });
     });
 
-    describe('Which on Windows', function() {
-        it('which() on windows return file with Extension', function(done) {
+    describe('Which on Windows', function () {
+        it('which() on windows return file with Extension', function (done) {
             this.timeout(1000);
 
             if (os.type().match(/^Win/)) {
@@ -338,9 +338,9 @@ describe('Test vsts-task-lib', function() {
         });
     });
 
-    describe('TaskInputsVariables', function() {
+    describe('TaskInputsVariables', function () {
         // getInput tests
-        it('gets input value', function(done) {
+        it('gets input value', function (done) {
             this.timeout(1000);
 
             process.env['INPUT_UNITTESTINPUT'] = 'test value';
@@ -351,7 +351,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('should clear input envvar', function(done) {
+        it('should clear input envvar', function (done) {
             this.timeout(1000);
 
             process.env['INPUT_UNITTESTINPUT'] = 'test value';
@@ -362,21 +362,21 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('required input throws', function(done) {
+        it('required input throws', function (done) {
             this.timeout(1000);
 
             var worked: boolean = false;
             try {
                 var inval = tl.getInput('SomeUnsuppliedRequiredInput', true);
-                worked = true;       
+                worked = true;
             }
-            catch(err) {}
+            catch (err) { }
 
             assert(!worked, 'req input should have not have worked');
-            
+
             done();
         })
-        it('gets input value with whitespace', function(done) {
+        it('gets input value with whitespace', function (done) {
             this.timeout(1000);
 
             process.env['INPUT_UNITTESTINPUT'] = '   test value   ';
@@ -389,7 +389,7 @@ describe('Test vsts-task-lib', function() {
         })
 
         // getVariable tests
-        it('gets a variable', function(done) {
+        it('gets a variable', function (done) {
             this.timeout(1000);
 
             process.env['BUILD_REPOSITORY_NAME'] = 'Test Repository';
@@ -400,7 +400,7 @@ describe('Test vsts-task-lib', function() {
         })
 
         // setVariable tests
-        it('sets a variable', function(done) {
+        it('sets a variable', function (done) {
             this.timeout(1000);
 
             tl.setVariable('Build.Repository.Uri', 'test value');
@@ -409,7 +409,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('sets and gets a variable', function(done) {
+        it('sets and gets a variable', function (done) {
             this.timeout(1000);
 
             tl.setVariable('UnitTestVariable', 'test var value');
@@ -420,7 +420,7 @@ describe('Test vsts-task-lib', function() {
         })
 
         // getEndpointUrl/getEndpointAuthorization tests
-        it('gets an endpoint url', function(done) {
+        it('gets an endpoint url', function (done) {
             this.timeout(1000);
 
             process.env['ENDPOINT_URL_id1'] = 'http://url';
@@ -431,7 +431,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('gets an endpoint auth', function(done) {
+        it('gets an endpoint auth', function (done) {
             this.timeout(1000);
 
             process.env['ENDPOINT_AUTH_id1'] = '{ "parameters": {"param1": "val1", "param2": "val2"}, "scheme": "UsernamePassword"}';
@@ -443,7 +443,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('gets null if endpoint auth not set', function(done) {
+        it('gets null if endpoint auth not set', function (done) {
             this.timeout(1000);
 
             // don't set
@@ -453,8 +453,8 @@ describe('Test vsts-task-lib', function() {
             assert(auth === null, 'should not return an auth obj');
 
             done();
-        })        
-        it('should clear auth envvar', function(done) {
+        })
+        it('should clear auth envvar', function (done) {
             this.timeout(1000);
 
             process.env['ENDPOINT_AUTH_id1'] = '{ "parameters": {"param1": "val1", "param2": "val2"}, "scheme": "UsernamePassword"}';
@@ -468,7 +468,7 @@ describe('Test vsts-task-lib', function() {
         })
 
         // getBoolInput tests
-        it('gets true bool input value', function(done) {
+        it('gets true bool input value', function (done) {
             this.timeout(1000);
 
             var inputValue = 'true';
@@ -480,7 +480,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('gets false bool input value', function(done) {
+        it('gets false bool input value', function (done) {
             this.timeout(1000);
 
             var inputValue = 'false';
@@ -494,7 +494,7 @@ describe('Test vsts-task-lib', function() {
         })
 
         // getDelimitedInput tests
-        it('gets delimited input values removes empty values', function(done) {
+        it('gets delimited input values removes empty values', function (done) {
             this.timeout(1000);
 
             var inputValue = 'test  value'; // contains two spaces
@@ -508,7 +508,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('gets delimited input for a single value', function(done) {
+        it('gets delimited input for a single value', function (done) {
             this.timeout(1000);
 
             var inputValue = 'testvalue';
@@ -521,7 +521,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('gets delimited input for an empty value', function(done) {
+        it('gets delimited input for an empty value', function (done) {
             this.timeout(1000);
 
             var inputValue = '';
@@ -535,7 +535,7 @@ describe('Test vsts-task-lib', function() {
         })
 
         // getPathInput tests
-        it('gets path input value', function(done) {
+        it('gets path input value', function (done) {
             this.timeout(1000);
 
             var inputValue = 'test.txt'
@@ -548,7 +548,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('throws if required path not supplied', function(done) {
+        it('throws if required path not supplied', function (done) {
             this.timeout(1000);
 
             var stdStream = new StringStream();
@@ -559,13 +559,13 @@ describe('Test vsts-task-lib', function() {
                 var path = tl.getPathInput(null, /*required=*/true, /*check=*/false);
                 worked = true;
             }
-            catch (err) {}
+            catch (err) { }
 
             assert(!worked, 'req path should have not have worked');
 
             done();
         })
-        it('get invalid checked path throws', function(done) {
+        it('get invalid checked path throws', function (done) {
             this.timeout(1000);
 
             var stdStream = new StringStream();
@@ -576,13 +576,13 @@ describe('Test vsts-task-lib', function() {
                 var path = tl.getPathInput('some_missing_path', /*required=*/true, /*check=*/true);
                 worked = true;
             }
-            catch (err) {}
+            catch (err) { }
 
             assert(!worked, 'invalid checked path should have not have worked');
 
             done();
         })
-        it('gets path invalid value not required', function(done) {
+        it('gets path invalid value not required', function (done) {
             this.timeout(1000);
 
             var errStream = new StringStream();
@@ -596,7 +596,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('gets path input value with space', function(done) {
+        it('gets path input value with space', function (done) {
             this.timeout(1000);
 
             var inputValue = 'file name.txt';
@@ -610,7 +610,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('gets path value with check and exist', function(done) {
+        it('gets path value with check and exist', function (done) {
             this.timeout(1000);
 
             var errStream = new StringStream();
@@ -629,7 +629,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('gets path value with check and not exist', function(done) {
+        it('gets path value with check and not exist', function (done) {
             this.timeout(1000);
 
             var stdStream = new StringStream();
@@ -645,6 +645,7 @@ describe('Test vsts-task-lib', function() {
                 worked = true;
             }
             catch (err) {
+                console.log("Error: " + err);
                 assert(err.message.indexOf("Not found") >= 0, "error should have said Not found");
             }
             assert(!worked, 'invalid checked path should have not have worked');
@@ -653,7 +654,7 @@ describe('Test vsts-task-lib', function() {
         })
 
         // filePathSupplied tests
-        it('filePathSupplied checks not supplied', function(done) {
+        it('filePathSupplied checks not supplied', function (done) {
             this.timeout(1000);
 
             var repoRoot = '/repo/root/dir';
@@ -665,7 +666,7 @@ describe('Test vsts-task-lib', function() {
             assert(!supplied, 'path1 should not be supplied');
             done();
         })
-        it('filePathSupplied checks supplied', function(done) {
+        it('filePathSupplied checks supplied', function (done) {
             this.timeout(1000);
 
             var repoRoot = '/repo/root/dir';
@@ -679,8 +680,8 @@ describe('Test vsts-task-lib', function() {
         })
     });
 
-    describe('TaskCommands', function() {
-        it('constructs', function(done) {
+    describe('TaskCommands', function () {
+        it('constructs', function (done) {
             this.timeout(1000);
 
             assert(tcm.TaskCommand, 'TaskCommand should be available');
@@ -689,7 +690,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('toStrings', function(done) {
+        it('toStrings', function (done) {
             this.timeout(1000);
 
             var tc = new tcm.TaskCommand('some.cmd', { foo: 'bar' }, 'a message');
@@ -698,14 +699,14 @@ describe('Test vsts-task-lib', function() {
             assert(cmdStr === '##vso[some.cmd foo=bar;]a message');
             done();
         })
-        it('handles null properties', function(done) {
+        it('handles null properties', function (done) {
             this.timeout(1000);
 
             var tc = new tcm.TaskCommand('some.cmd', null, 'a message');
             assert(tc.toString() === '##vso[some.cmd]a message');
             done();
         })
-        it('parses cmd with no properties', function(done) {
+        it('parses cmd with no properties', function (done) {
             var cmdStr = '##vso[basic.command]messageVal';
 
             var tc = tcm.commandFromString(cmdStr);
@@ -715,7 +716,7 @@ describe('Test vsts-task-lib', function() {
             assert(tc.message === 'messageVal', 'message is correct');
             done();
         })
-        it('parses basic cmd with values', function(done) {
+        it('parses basic cmd with values', function (done) {
             var cmdStr = '##vso[basic.command prop1=val1;]messageVal';
 
             var tc = tcm.commandFromString(cmdStr);
@@ -727,7 +728,7 @@ describe('Test vsts-task-lib', function() {
             assert(tc.message === 'messageVal', 'message is correct');
             done();
         })
-        it('parses basic cmd with multiple properties no trailing semi', function(done) {
+        it('parses basic cmd with multiple properties no trailing semi', function (done) {
             var cmdStr = '##vso[basic.command prop1=val1;prop2=val2]messageVal';
 
             var tc = tcm.commandFromString(cmdStr);
@@ -740,7 +741,7 @@ describe('Test vsts-task-lib', function() {
             assert(tc.message === 'messageVal', 'message is correct');
             done();
         })
-        it('parses values with spaces in them', function(done) {
+        it('parses values with spaces in them', function (done) {
             var cmdStr = '##vso[task.setvariable variable=task variable;]task variable set value';
 
             var tc = tcm.commandFromString(cmdStr);
@@ -750,7 +751,7 @@ describe('Test vsts-task-lib', function() {
             assert(tc.message === 'task variable set value');
             done();
         })
-        it('handles empty properties', function(done) {
+        it('handles empty properties', function (done) {
             this.timeout(1000);
 
             var tc = new tcm.TaskCommand('some.cmd', {}, 'a message');
@@ -759,8 +760,8 @@ describe('Test vsts-task-lib', function() {
         })
     });
 
-    describe('TaskLibCommands', function() {
-        it('setResult success outputs', function(done) {
+    describe('TaskLibCommands', function () {
+        it('setResult success outputs', function (done) {
             this.timeout(1000);
 
             var stdStream = new StringStream();
@@ -777,7 +778,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('setResult failed outputs', function(done) {
+        it('setResult failed outputs', function (done) {
             this.timeout(1000);
 
             var stdStream = new StringStream();
@@ -795,7 +796,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('setResult failed does not create issue with empty message', function(done) {
+        it('setResult failed does not create issue with empty message', function (done) {
             this.timeout(1000);
 
             var stdStream = new StringStream();
@@ -814,15 +815,15 @@ describe('Test vsts-task-lib', function() {
         })
     });
 
-    describe('Vault', function() {
-        it('Can create vault', function(done) {
+    describe('Vault', function () {
+        it('Can create vault', function (done) {
             var vault: vm.Vault = new vm.Vault(process.cwd());
 
             assert(vault, 'should have created a vault object');
 
             done();
         })
-        it('Can store and retrieve a basic value', function(done) {
+        it('Can store and retrieve a basic value', function (done) {
             var vault: vm.Vault = new vm.Vault(process.cwd());
             var data = "astring";
             var name = "mystring";
@@ -835,7 +836,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('Stores and retrieves using case-insenstive key comparison', function(done) {
+        it('Stores and retrieves using case-insenstive key comparison', function (done) {
             var vault: vm.Vault = new vm.Vault(process.cwd());
             var data = "astring";
             var storageName = "MYstring";
@@ -849,7 +850,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('Returns null when retrieving non-existant item', function(done) {
+        it('Returns null when retrieving non-existant item', function (done) {
             var vault: vm.Vault = new vm.Vault(process.cwd());
             var name = "nonexistant";
             var ret = vault.retrieveSecret(name);
@@ -858,7 +859,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('Will return false if you store null', function(done) {
+        it('Will return false if you store null', function (done) {
             var vault: vm.Vault = new vm.Vault(process.cwd());
             var name = "nullitem";
             var stored: boolean = vault.storeSecret(name, null);
@@ -869,7 +870,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('Will return false if you store empty string', function(done) {
+        it('Will return false if you store empty string', function (done) {
             var vault: vm.Vault = new vm.Vault(process.cwd());
             var name = "nullitem";
             var stored: boolean = vault.storeSecret(name, "");
@@ -882,8 +883,8 @@ describe('Test vsts-task-lib', function() {
         })
     });
 
-    describe('ToolRunner', function() {
-        it('ExecSync convenience with stdout', function(done) {
+    describe('ToolRunner', function () {
+        it('ExecSync convenience with stdout', function (done) {
             this.timeout(1000);
 
             tl.pushd(__dirname);
@@ -911,7 +912,7 @@ describe('Test vsts-task-lib', function() {
             tl.popd();
             done();
         })
-        it('ExecSync with stdout', function(done) {
+        it('ExecSync with stdout', function (done) {
             this.timeout(1000);
 
             tl.pushd(__dirname);
@@ -946,7 +947,7 @@ describe('Test vsts-task-lib', function() {
             tl.popd();
             done();
         })
-        it('ExecSync fails with rc 1 and stderr', function(done) {
+        it('ExecSync fails with rc 1 and stderr', function (done) {
             this.timeout(1000);
 
             tl.pushd(__dirname);
@@ -980,7 +981,7 @@ describe('Test vsts-task-lib', function() {
             tl.popd();
             done();
         })
-        it('Exec convenience with stdout', function(done) {
+        it('Exec convenience with stdout', function (done) {
             this.timeout(1000);
 
             tl.pushd(__dirname);
@@ -997,32 +998,32 @@ describe('Test vsts-task-lib', function() {
 
             if (plat === 'win32') {
                 tl.exec('cmd', '/c echo \'vsts-task-lib\'', _testExecOptions)
-                    .then(function(code) {
+                    .then(function (code) {
                         assert(code === 0, 'return code of cmd should be 0');
                     })
-                    .fail(function(err) {
+                    .fail(function (err) {
                         assert.fail('cmd failed to run: ' + err.message);
                     })
-                    .fin(function() {
+                    .fin(function () {
                         tl.popd();
                         done();
                     })
             }
             else {
                 tl.exec('ls', '-l -a', _testExecOptions)
-                    .then(function(code) {
+                    .then(function (code) {
                         assert(code === 0, 'return code of ls should be 0');
                     })
-                    .fail(function(err) {
+                    .fail(function (err) {
                         assert.fail('ls failed to run: ' + err.message);
                     })
-                    .fin(function() {
+                    .fin(function () {
                         tl.popd();
                         done();
                     })
             }
         })
-        it('ToolRunner writes debug', function(done) {
+        it('ToolRunner writes debug', function (done) {
             this.timeout(1000);
 
             tl.pushd(__dirname);
@@ -1046,15 +1047,15 @@ describe('Test vsts-task-lib', function() {
                 cmd.arg('/c echo \'vsts-task-lib\'');
 
                 cmd.exec(_testExecOptions)
-                    .then(function(code) {
+                    .then(function (code) {
                         var contents = stdStream.getContents();
                         assert(contents.indexOf('exec tool: ' + cmdPath) >= 0, 'should exec cmd');
                         assert(code === 0, 'return code of cmd should be 0');
                     })
-                    .fail(function(err) {
+                    .fail(function (err) {
                         assert.fail('ls failed to run: ' + err.message);
                     })
-                    .fin(function() {
+                    .fin(function () {
                         tl.popd();
                         done();
                     })
@@ -1065,21 +1066,21 @@ describe('Test vsts-task-lib', function() {
                 ls.arg('-a');
 
                 ls.exec(_testExecOptions)
-                    .then(function(code) {
+                    .then(function (code) {
                         var contents = stdStream.getContents();
                         assert(contents.indexOf('exec tool: /bin/ls') >= 0, 'should exec ls');
                         assert(code === 0, 'return code of ls should be 0');
                     })
-                    .fail(function(err) {
+                    .fail(function (err) {
                         assert.fail('ls failed to run: ' + err.message);
                     })
-                    .fin(function() {
+                    .fin(function () {
                         tl.popd();
                         done();
                     })
             }
         })
-        it('Execs with stdout', function(done) {
+        it('Execs with stdout', function (done) {
             this.timeout(1000);
 
             tl.pushd(__dirname);
@@ -1104,14 +1105,14 @@ describe('Test vsts-task-lib', function() {
                 });
 
                 cmd.exec(_testExecOptions)
-                    .then(function(code) {
+                    .then(function (code) {
                         assert(code === 0, 'return code of cmd should be 0');
                         assert(output && output.length > 0, 'should have emitted stdout');
                     })
-                    .fail(function(err) {
+                    .fail(function (err) {
                         assert.fail('cmd failed to run: ' + err.message);
                     })
-                    .fin(function() {
+                    .fin(function () {
                         tl.popd();
                         done();
                     })
@@ -1126,20 +1127,20 @@ describe('Test vsts-task-lib', function() {
                 });
 
                 ls.exec(_testExecOptions)
-                    .then(function(code) {
+                    .then(function (code) {
                         assert(code === 0, 'return code of ls should be 0');
                         assert(output && output.length > 0, 'should have emitted stdout');
                     })
-                    .fail(function(err) {
+                    .fail(function (err) {
                         assert.fail('ls failed to run: ' + err.message);
                     })
-                    .fin(function() {
+                    .fin(function () {
                         tl.popd();
                         done();
                     })
             }
         })
-        it('Fails on return code 1 with stderr', function(done) {
+        it('Fails on return code 1 with stderr', function (done) {
             this.timeout(1000);
 
             var failed = false;
@@ -1164,14 +1165,14 @@ describe('Test vsts-task-lib', function() {
                 });
 
                 cmd.exec(_testExecOptions)
-                    .then(function(code) {
+                    .then(function (code) {
                         assert(code === 1, 'return code of cmd should be 1');
                         assert(output && output.length > 0, 'should have emitted stderr');
                     })
-                    .fail(function(err) {
+                    .fail(function (err) {
                         failed = true;
                     })
-                    .fin(function() {
+                    .fin(function () {
                         if (!failed) {
                             done(new Error('cmd should have failed'));
                             return;
@@ -1189,14 +1190,14 @@ describe('Test vsts-task-lib', function() {
                 });
 
                 ls.exec(_testExecOptions)
-                    .then(function(code) {
+                    .then(function (code) {
                         assert(code === 1, 'return code of ls -j should be 1');
                         assert(output && output.length > 0, 'should have emitted stderr');
                     })
-                    .fail(function(err) {
+                    .fail(function (err) {
                         failed = true;
                     })
-                    .fin(function() {
+                    .fin(function () {
                         if (!failed) {
                             done(new Error('ls should have failed'));
                             return;
@@ -1206,7 +1207,7 @@ describe('Test vsts-task-lib', function() {
                     })
             }
         })
-        it('Succeeds on stderr by default', function(done) {
+        it('Succeeds on stderr by default', function (done) {
             this.timeout(1000);
 
             var scriptPath = path.join(__dirname, 'scripts', 'stderroutput.js');
@@ -1223,15 +1224,15 @@ describe('Test vsts-task-lib', function() {
                 errStream: _nullTestStream
             }
             ls.exec(_testExecOptions)
-                .then(function(code) {
+                .then(function (code) {
                     assert(code === 0, 'should have succeeded on stderr');
                     done();
                 })
-                .fail(function(err) {
+                .fail(function (err) {
                     done(new Error('did not succeed on stderr'))
                 })
         })
-        it('Fails on stderr if specified', function(done) {
+        it('Fails on stderr if specified', function (done) {
             this.timeout(1000);
 
             var failed = false;
@@ -1250,13 +1251,13 @@ describe('Test vsts-task-lib', function() {
                 errStream: _nullTestStream
             }
             ls.exec(_testExecOptions)
-                .then(function(code) {
+                .then(function (code) {
                     assert(code === 0, 'should have succeeded on stderr');
                 })
-                .fail(function(err) {
+                .fail(function (err) {
                     failed = true;
                 })
-                .fin(function() {
+                .fin(function () {
                     if (!failed) {
                         done(new Error('should have failed on stderr'));
                         return;
@@ -1265,7 +1266,7 @@ describe('Test vsts-task-lib', function() {
                     done();
                 })
         })
-        it('handles single args', function(done) {
+        it('handles single args', function (done) {
             this.timeout(1000);
 
             var node = tl.createToolRunner(tl.which('node', true));
@@ -1275,7 +1276,7 @@ describe('Test vsts-task-lib', function() {
             assert(node.args.toString() === 'one,two', 'should be one,two');
             done();
         })
-        it('handles padded spaces', function(done) {
+        it('handles padded spaces', function (done) {
             this.timeout(1000);
 
             var node = tl.createToolRunner(tl.which('node', true));
@@ -1284,8 +1285,8 @@ describe('Test vsts-task-lib', function() {
             assert(node.args.length === 2, 'should have 2 args');
             assert(node.args.toString() === 'one,two', 'should be one,two');
             done();
-        })        
-        it('handles basic arg string with spaces', function(done) {
+        })
+        it('handles basic arg string with spaces', function (done) {
             this.timeout(1000);
 
             var node = tl.createToolRunner(tl.which('node', true));
@@ -1295,7 +1296,7 @@ describe('Test vsts-task-lib', function() {
             assert(node.args.toString() === 'one,two,three', 'should be one,two,three');
             done();
         })
-        it('handles arg string with extra spaces', function(done) {
+        it('handles arg string with extra spaces', function (done) {
             this.timeout(1000);
 
             var node = tl.createToolRunner(tl.which('node', true));
@@ -1305,7 +1306,7 @@ describe('Test vsts-task-lib', function() {
             assert(node.args.toString() === 'one,two,three', 'should be one,two,three');
             done();
         })
-        it('handles arg string with backslash', function(done) {
+        it('handles arg string with backslash', function (done) {
             this.timeout(1000);
 
             var node = tl.createToolRunner(tl.which('node', true));
@@ -1314,8 +1315,8 @@ describe('Test vsts-task-lib', function() {
             assert(node.args.length === 3, 'should have 3 args');
             assert(node.args.toString() === 'one,two\\arg,three', 'should be one,two,three');
             done();
-        })                
-        it('handles equals and switches', function(done) {
+        })
+        it('handles equals and switches', function (done) {
             this.timeout(1000);
 
             var node = tl.createToolRunner(tl.which('node', true));
@@ -1325,7 +1326,7 @@ describe('Test vsts-task-lib', function() {
             assert(node.args.toString() === 'foo=bar,-x,-y', 'should be foo=bar,-x,-y');
             done();
         })
-        it('handles double quotes', function(done) {
+        it('handles double quotes', function (done) {
             this.timeout(1000);
 
             var node = tl.createToolRunner(tl.which('node', true));
@@ -1335,7 +1336,7 @@ describe('Test vsts-task-lib', function() {
             assert(node.args.toString() === 'foo=bar baz,-x,-y', 'should be foo=bar baz,-x,-y');
             done();
         })
-        it('handles quote in double quotes', function(done) {
+        it('handles quote in double quotes', function (done) {
             this.timeout(1000);
 
             var node = tl.createToolRunner(tl.which('node', true));
@@ -1344,8 +1345,8 @@ describe('Test vsts-task-lib', function() {
             assert(node.args.length === 3, 'should have 3 args');
             assert(node.args.toString() === 'foo=bar " baz,-x,-y', 'should be foo=bar " baz,-x,-y');
             done();
-        })        
-        it('handles literal path', function(done) {
+        })
+        it('handles literal path', function (done) {
             this.timeout(1000);
 
             var node = tl.createToolRunner(tl.which('node', true));
@@ -1357,8 +1358,8 @@ describe('Test vsts-task-lib', function() {
         })
     });
 
-    describe('Localization', function() {
-        it('validate loc string key in lib.json', function(done) {
+    describe('Localization', function () {
+        it('validate loc string key in lib.json', function (done) {
             this.timeout(1000);
 
             var jsonPath = path.join(__dirname, '../lib.json');
@@ -1378,7 +1379,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('get loc string from loc resources.json', function(done) {
+        it('get loc string from loc resources.json', function (done) {
             this.timeout(1000);
 
             var tempFolder = path.join(__dirname, Math.floor(Math.random() * 100).toString());
@@ -1403,7 +1404,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('fallback to current string if culture resources.resjson not found', function(done) {
+        it('fallback to current string if culture resources.resjson not found', function (done) {
             this.timeout(1000);
 
             var tempFolder = path.join(__dirname, Math.floor(Math.random() * 100).toString());
@@ -1419,7 +1420,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('fallback to current string if loc string not found in culture resources.resjson', function(done) {
+        it('fallback to current string if loc string not found in culture resources.resjson', function (done) {
             this.timeout(1000);
 
             var tempFolder = path.join(__dirname, Math.floor(Math.random() * 100).toString());
@@ -1441,7 +1442,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('fallback to en-US if culture not set', function(done) {
+        it('fallback to en-US if culture not set', function (done) {
             this.timeout(1000);
 
             var tempFolder = path.join(__dirname, Math.floor(Math.random() * 100).toString());
@@ -1463,7 +1464,7 @@ describe('Test vsts-task-lib', function() {
 
             done();
         })
-        it('return key and params if key is not in task.json', function(done) {
+        it('return key and params if key is not in task.json', function (done) {
             this.timeout(1000);
 
             var tempFolder = path.join(__dirname, Math.floor(Math.random() * 100).toString());
@@ -1478,7 +1479,7 @@ describe('Test vsts-task-lib', function() {
             done();
         })
 
-        it('publish code coverage passes all the properties properly', function(done) {
+        it('publish code coverage passes all the properties properly', function (done) {
             this.timeout(1000);
 
             var stdStream = new StringStream();
@@ -1492,7 +1493,7 @@ describe('Test vsts-task-lib', function() {
             done();
         })
 
-        it('publish code coverage does not pass properties when the imput parameters are empty', function(done) {
+        it('publish code coverage does not pass properties when the imput parameters are empty', function (done) {
             this.timeout(1000);
 
             var stdStream = new StringStream();
@@ -1506,7 +1507,7 @@ describe('Test vsts-task-lib', function() {
             done();
         })
 
-        it('publish code coverage does not pass properties when the input parameters are null', function(done) {
+        it('publish code coverage does not pass properties when the input parameters are null', function (done) {
             this.timeout(1000);
 
             var stdStream = new StringStream();
@@ -1520,7 +1521,7 @@ describe('Test vsts-task-lib', function() {
             done();
         })
 
-        it('enable code coverage does not pass properties when the input parameters are null', function(done) {
+        it('enable code coverage does not pass properties when the input parameters are null', function (done) {
             this.timeout(1000);
 
             var stdStream = new StringStream();
@@ -1535,7 +1536,7 @@ describe('Test vsts-task-lib', function() {
             done();
         })
 
-        it('enable code coverage passes properties when the input parameters are existing', function(done) {
+        it('enable code coverage passes properties when the input parameters are existing', function (done) {
             this.timeout(1000);
 
             var stdStream = new StringStream();
@@ -1551,7 +1552,7 @@ describe('Test vsts-task-lib', function() {
             done();
         })
 
-        it('enable code coverage passes parameters when the input parameters are empty', function(done) {
+        it('enable code coverage passes parameters when the input parameters are empty', function (done) {
             this.timeout(1000);
 
             var stdStream = new StringStream();
@@ -1565,5 +1566,17 @@ describe('Test vsts-task-lib', function() {
             assert(expectedOutput === output, _mismatch(expectedOutput, output));
             done();
         })
+
+        it('check exist functionality', function (done) {
+            this.timeout(1000);
+
+            tl.mkdirP(_testTemp);
+            var fileName = path.join(_testTemp, "test.txt");
+            fs.writeFileSync(fileName, "");
+
+            assert(tl.exist(fileName), "file should exists"); //check existance of file
+            assert(tl.exist(fileName), "file shouldn't be existing");
+            done();
+        });
     });
 });

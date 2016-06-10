@@ -511,7 +511,17 @@ export function stats(path: string): FsStats {
  * @returns   boolean 
  */
 export function exist(path: string): boolean {
-    return path && fs.statSync(path) != null;
+    var exist = false;
+    try {
+        exist = path && fs.statSync(path) != null;
+    } catch (err) {
+        if (err && err.code === 'ENOENT') {
+            exist = false;
+        } else {
+            throw err;
+        }
+    }
+    return exist;
 }
 
 /**
