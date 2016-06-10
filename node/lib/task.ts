@@ -160,8 +160,8 @@ function loadLocStrings(resourceFile: string, culture: string): { [key: string]:
             var upperCulture = culture.toUpperCase();
             var cultures = [];
             try { cultures = fs.readdirSync(localizedResourceFile); }
-            catch(ex) { }
-            for (var i = 0 ; i < cultures.length ; i++) {
+            catch (ex) { }
+            for (var i = 0; i < cultures.length; i++) {
                 if (cultures[i].toUpperCase() == upperCulture) {
                     localizedResourceFile = path.join(localizedResourceFile, cultures[i], 'resources.resjson');
                     if (exist(localizedResourceFile)) {
@@ -578,7 +578,7 @@ export function mkdirP(p): boolean {
         if (!p) {
             throw new Error(loc('LIB_ParameterIsRequired', 'p'));
         }
-        
+
         // certain chars like \0 will cause shelljs and fs
         // to blow up without exception or error
         if (p.indexOf('\0') >= 0) {
@@ -627,7 +627,7 @@ export function which(tool: string, check?: boolean): string {
             // No relative/absolute paths provided?
             if (tool.search(/[\/\\]/) === -1) {
                 // Search for command in PATH
-                pathArray.forEach(function(dir) {
+                pathArray.forEach(function (dir) {
                     if (toolPath)
                         return; // already found it
 
@@ -776,7 +776,7 @@ export function rmRF(path: string, continueOnError?: boolean): boolean {
         shell.rm('-rf', path);
 
         var errMsg: string = shell.error();
-        
+
         // if you try to delete a file that doesn't exist, desired result is achieved
         // other errors are valid
         if (errMsg && !(errMsg.indexOf('ENOENT') === 0)) {
@@ -828,7 +828,7 @@ export function globFirst(pattern: string): string {
 //-----------------------------------------------------
 // Exec convenience wrapper
 //-----------------------------------------------------
-var _argStringToArray = function(argString: string): string[] {
+var _argStringToArray = function (argString: string): string[] {
     var args = argString.match(/([^" ]*("[^"]*")[^" ]*)|[^" ]+/g);
 
     for (var i = 0; i < args.length; i++) {
@@ -901,7 +901,7 @@ export function match(list, pattern, options): string[] {
 
 export function filter(pattern, options): (element: string, indexed: number, array: string[]) => boolean {
     return minimatch.filter(pattern, options);
-}    
+}
 
 //-----------------------------------------------------
 // Test Publisher
@@ -915,12 +915,12 @@ export class TestPublisher {
 
     public publish(resultFiles, mergeResults, platform, config, runTitle, publishRunAttachments) {
 
-        if (mergeResults == 'true') {
-            _writeLine(loc('LIB_MergeTestResultNotSupported'));
-        }
-
         var properties = <{ [key: string]: string }>{};
         properties['type'] = this.testRunner;
+
+        if (mergeResults) {
+            properties['mergeResults'] = mergeResults;
+        }
 
         if (platform) {
             properties['platform'] = platform;
@@ -938,10 +938,60 @@ export class TestPublisher {
             properties['publishRunAttachments'] = publishRunAttachments;
         }
 
-        for (var i = 0; i < resultFiles.length; i++) {
-            properties['fileNumber'] = i.toString();
-            command('results.publish', properties, resultFiles[i]);
+        if (resultFiles) {
+            properties['resultFiles'] = resultFiles;
         }
+
+        command('results.publish', properties, '');
+    }
+}
+
+//-----------------------------------------------------
+// Code coverage Publisher
+//-----------------------------------------------------
+export class CodeCoveragePublisher {
+    constructor() {
+    }
+    public publish(codeCoverageTool, summaryFileLocation, reportDirectory, additionalCodeCoverageFiles) {
+
+        var properties = <{ [key: string]: string }>{};
+
+        if (codeCoverageTool) {
+            properties['codecoveragetool'] = codeCoverageTool;
+        }
+
+        if (summaryFileLocation) {
+            properties['summaryfile'] = summaryFileLocation;
+        }
+
+        if (reportDirectory) {
+            properties['reportdirectory'] = reportDirectory;
+        }
+
+        if (additionalCodeCoverageFiles) {
+            properties['additionalcodecoveragefiles'] = additionalCodeCoverageFiles;
+        }
+
+        command('codecoverage.publish', properties, "");
+    }
+}
+
+//-----------------------------------------------------
+// Code coverage Publisher
+//-----------------------------------------------------
+export class CodeCoverageEnabler {
+    private buildTool: string;
+    private ccTool: string;
+
+    constructor(buildTool: string, ccTool: string) {
+        this.buildTool = buildTool;
+        this.ccTool = ccTool;
+    }
+
+    public enableCodeCoverage(buildProps: { [key: string]: string }) {
+        buildProps['buildtool'] = this.buildTool;
+        buildProps['codecoveragetool'] = this.ccTool;
+        command('codecoverage.enable', buildProps, "");
     }
 }
 
