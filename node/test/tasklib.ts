@@ -1575,7 +1575,8 @@ describe('Test vsts-task-lib', function () {
             fs.writeFileSync(fileName, "");
 
             assert(tl.exist(fileName), "file should exists"); //check existance of file
-            assert(tl.exist(fileName), "file shouldn't be existing");
+            fs.unlinkSync(fileName);
+            assert(!tl.exist(fileName), "file shouldn't be existing");
             done();
         });
     });
