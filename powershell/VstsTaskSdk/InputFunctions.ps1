@@ -19,17 +19,26 @@ function Get-Endpoint {
         [string]$Name,
         [switch]$Require)
 
+    # Get the URL.
     $url = (Get-SecureInput -Name (Get-LocString -Key PSLIB_EndpointUrl0 -ArgumentList $Name) -Path "Env:ENDPOINT_URL_$Name" -Require:$Require)
+
+    # Short-circuit if not found.
     if ($Require -and !$url) { return }
+
+    # Get the auth object.
     if ($auth = (Get-SecureInput -Name (Get-LocString -Key PSLIB_EndpointAuth0 -ArgumentList $Name) -Path "Env:ENDPOINT_AUTH_$Name" -Require:$Require)) {
         $auth = ConvertFrom-Json -InputObject $auth
     }
 
+    # Short-circuit if not found.
     if ($Require -and !$auth) { return }
+
+    # Get the data.
     if ($data = (Get-SecureInput -Name "'$Name' service endpoint data" -Path "Env:ENDPOINT_DATA_$Name")) {
         $data = ConvertFrom-Json -InputObject $data
     }
 
+    # Return the endpoint.
     if ($url -or $auth -or $data) {
         New-Object -TypeName psobject -Property @{
             Url = $url
@@ -70,7 +79,12 @@ function Get-Input {
         [switch]$AsBool,
         [switch]$AsInt)
 
+    # Update the Name in the bound parameters hashtable for downstream user facing
+    # messages (i.e. required error message or interactive prompt).
     $PSBoundParameters['Name'] = (Get-LocString -Key PSLIB_Input0 -ArgumentList $Name)
+
+    # Get the secure input. Splat the bound parameters hashtable. Splatting is required
+    # in order to concisely invoke the correct parameter set.
     Get-SecureInput @PSBoundParameters -Path "Env:INPUT_$($Name.Replace(' ', '_').ToUpperInvariant())"
 }
 
@@ -105,8 +119,35 @@ function Get-TaskVariable {
         [switch]$AsBool,
         [switch]$AsInt)
 
+    # Update the Name in the bound parameters hashtable for downstream user facing
+    # messages (i.e. required error message or interactive prompt).
     $PSBoundParameters['Name'] = Get-LocString -Key PSLIB_TaskVariable0 -ArgumentList $Name
-    Get-EnvVariable @PSBoundParameters -Path "Env:$(Format-VariableName $Name)"
+
+    # Attempt to get the secret variable.
+    $value = $null
+    $path = "Env:SECRET_$(Format-VariableName $Name)"
+    if ($psCredential = $script:secureInputs[$path]) {
+        # The secret variable was found.
+        $value = $psCredential.GetNetworkCredential().Password
+        Get-FinalValue @PSBoundParameters -Path $path -Value $value
+    } else {
+        # Attempt to get the environment variable.
+        $item = $null
+        $path = "Env:$(Format-VariableName $Name)"
+        if ((Test-Path -LiteralPath $path) -and ($item = Get-Item -LiteralPath $path).Value) {
+            # Intentionally empty.
+        } elseif (!$script:nonInteractive) {
+            # The value wasn't found. Prompt for the value if running in interactive dev mode.
+            Set-Item -LiteralPath $path -Value (Read-Host -Prompt $Name)
+            if (Test-Path -LiteralPath $path) {
+                $item = Get-Item -LiteralPath $path
+            }
+        }
+
+        # Get the converted value. Splat the bound parameters hashtable. Splatting is required
+        # in order to concisely invoke the correct parameter set.
+        Get-FinalValue @PSBoundParameters -Path $path -Value $item.Value
+    }
 }
 
 <#
@@ -136,35 +177,6 @@ function Set-TaskVariable {
 ########################################
 # Private functions.
 ########################################
-function Get-EnvVariable {
-    [CmdletBinding(DefaultParameterSetName = 'Require')]
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Name,
-        [Parameter(Mandatory = $true)]
-        [string]$Path,
-        [Parameter(ParameterSetName = 'Require')]
-        [switch]$Require,
-        [Parameter(ParameterSetName = 'Default')]
-        [object]$Default,
-        [switch]$AsBool,
-        [switch]$AsInt)
-
-    # Attempt to get the environment variable.
-    $item = $null
-    if ((Test-Path -LiteralPath $Path) -and ($item = Get-Item -LiteralPath $Path).Value) {
-        # Intentionally empty.
-    } elseif (!$script:nonInteractive) {
-        # The value wasn't found. Prompt for the value if running in interactive dev mode.
-        Set-Item -LiteralPath $path -Value (Read-Host -Prompt $Name)
-        if (Test-Path -LiteralPath $path) {
-            $item = Get-Item -LiteralPath $path
-        }
-    }
-
-    Get-FinalValue -Value $item.Value @PSBoundParameters
-}
-
 function Get-SecureInput {
     [CmdletBinding(DefaultParameterSetName = 'Require')]
     param(
@@ -266,7 +278,7 @@ function Get-FinalValue {
 
 function Initialize-SecureInputs {
     # Store endpoints/inputs in a secure fashion.
-    foreach ($variable in (Get-ChildItem -Path Env:ENDPOINT_*, Env:INPUT_*)) {
+    foreach ($variable in (Get-ChildItem -Path Env:ENDPOINT_*, Env:INPUT_*, Env:SECRET_*)) {
         $path = "Env:$($variable.Name)"
         if ($variable.Value) {
             $script:secureInputs[$path] = New-Object System.Management.Automation.PSCredential(

@@ -393,8 +393,33 @@ describe('Test vsts-task-lib', function () {
             this.timeout(1000);
 
             process.env['BUILD_REPOSITORY_NAME'] = 'Test Repository';
+            tl._loadData();
+
             var varVal = tl.getVariable('Build.Repository.Name');
             assert(varVal === 'Test Repository', 'reading a variable should work');
+
+            done();
+        })
+        it('gets a secret variable', function (done) {
+            this.timeout(1000);
+
+            process.env['SECRET_BUILD_REPOSITORY_NAME'] = 'Test Repository';
+            tl._loadData();
+
+            var varVal = tl.getVariable('Build.Repository.Name');
+            assert(varVal === 'Test Repository', 'reading a variable should work');
+
+            done();
+        })
+        it('gets a secret variable while variable also exist', function (done) {
+            this.timeout(1000);
+
+            process.env['BUILD_REPOSITORY_NAME'] = 'Test Repository';
+            process.env['SECRET_BUILD_REPOSITORY_NAME'] = 'Secret Test Repository';
+            tl._loadData();
+
+            var varVal = tl.getVariable('Build.Repository.Name');
+            assert(varVal === 'Secret Test Repository', 'reading a variable should work');
 
             done();
         })
@@ -419,7 +444,7 @@ describe('Test vsts-task-lib', function () {
             done();
         })
 
-        // getEndpointUrl/getEndpointAuthorization tests
+        // getEndpointUrl/getEndpointAuthorization/getEndpointData tests
         it('gets an endpoint url', function (done) {
             this.timeout(1000);
 
@@ -466,7 +491,68 @@ describe('Test vsts-task-lib', function () {
 
             done();
         })
+        it('gets endpoint auth scheme', function (done) {
+            this.timeout(1000);
+            process.env['ENDPOINT_AUTH_SCHEME_id1'] = 'scheme1';
+            tl._loadData();
 
+            var data = tl.getEndpointAuthorizationScheme('id1', true);
+            assert(data, 'should return a string value');
+            assert(data === 'scheme1', 'should be correct scheme');
+            assert(!process.env['ENDPOINT_AUTH_SCHEME_id1'], 'should clear auth envvar');
+
+            done();
+        })
+        it('gets undefined if endpoint auth scheme is not set', function (done) {
+            this.timeout(1000);
+            tl._loadData();
+
+            var data = tl.getEndpointAuthorizationScheme('id1', true);
+            assert(!data, 'should be undefined when auth scheme is not set');
+
+            done();
+        })
+        it('gets endpoint auth parameters', function (done) {
+            this.timeout(1000);
+            process.env['ENDPOINT_AUTH_PARAMETER_id1_PARAM1'] = 'value1';
+            tl._loadData();
+
+            var data = tl.getEndpointAuthorizationParameter('id1', 'param1', true);
+            assert(data, 'should return a string value');
+            assert(data === 'value1', 'should be correct auth param');
+            assert(!process.env['ENDPOINT_AUTH_PARAMETER_id1_PARAM1'], 'should clear auth envvar');
+
+            done();
+        })
+        it('gets undefined if endpoint auth parameter is not set', function (done) {
+            this.timeout(1000);
+            tl._loadData();
+
+            var data = tl.getEndpointAuthorizationParameter('id1', 'noparam', true);
+            assert(!data, 'should be undefined when auth param is not set');
+
+            done();
+        })
+        it('gets an endpoint data', function (done) {
+            this.timeout(1000);
+            process.env['ENDPOINT_DATA_id1_PARAM1'] = 'val1';
+            tl._loadData();
+
+            var data = tl.getEndpointDataParameter('id1', 'param1', true);
+            assert(data, 'should return a string value');
+            assert(data === 'val1', 'should be correct object');
+
+            done();
+        })
+        it('gets undefined if endpoint data is not set', function (done) {
+            this.timeout(1000);
+            tl._loadData();
+
+            var data = tl.getEndpointDataParameter('id1', 'noparam', true);
+            assert(data === undefined, 'Error should occur if endpoint data is not set');
+
+            done();
+        })
         // getBoolInput tests
         it('gets true bool input value', function (done) {
             this.timeout(1000);
@@ -1567,7 +1653,7 @@ describe('Test vsts-task-lib', function () {
             done();
         })
 
-        it('check exist functionality', function (done) {
+        it('check exist functionality for existing file', function (done) {
             this.timeout(1000);
 
             tl.mkdirP(_testTemp);
@@ -1576,6 +1662,13 @@ describe('Test vsts-task-lib', function () {
 
             assert(tl.exist(fileName), "file should exists"); //check existance of file
             fs.unlinkSync(fileName);
+            done();
+        });
+
+        it('check exist functionality for non existing file', function (done) {
+            this.timeout(1000);
+
+            var fileName = path.join(_testTemp, "test.txt");
             assert(!tl.exist(fileName), "file shouldn't be existing");
             done();
         });
