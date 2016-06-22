@@ -22,7 +22,10 @@ function Get-TfsClientCredentials {
 
     Add-Type -LiteralPath (Assert-Path "$(Get-TaskVariable -Name 'Agent.ServerOMDirectory' -Require)\Microsoft.TeamFoundation.Client.dll" -PassThru)
     $endpoint = (Get-Endpoint -Name SystemVssConnection -Require)
-    New-Object Microsoft.TeamFoundation.Client.OAuthTokenCredential([string]$endpoint.auth.parameters.AccessToken)
+    $credentials = New-Object Microsoft.TeamFoundation.Client.TfsClientCredentials($false) # Do not use default credentials.
+    $credentials.AllowInteractive = $false
+    $credentials.Federated = New-Object Microsoft.TeamFoundation.Client.OAuthTokenCredential([string]$endpoint.auth.parameters.AccessToken)
+    $credentials
 }
 
 <#
