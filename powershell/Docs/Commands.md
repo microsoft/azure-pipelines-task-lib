@@ -1,4 +1,4 @@
-# Commands (v0.6.2)
+# Commands (v0.6.4)
 ## <a name="toc" />Table of Contents
  * [Find](#find)
   * [Find-VstsFiles](#find-vstsfiles)
