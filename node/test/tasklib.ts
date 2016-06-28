@@ -1033,7 +1033,7 @@ describe('Test vsts-task-lib', function () {
             tl.popd();
             done();
         })
-        it('ExecSync fails with rc 1 and stderr', function (done) {
+        /*it('ExecSync fails with rc 1 and stderr', function (done) {
             this.timeout(1000);
 
             tl.pushd(__dirname);
@@ -1066,7 +1066,7 @@ describe('Test vsts-task-lib', function () {
             assert(ret.stderr && ret.stderr.length > 0, 'should have emitted stderr');
             tl.popd();
             done();
-        })
+        })*/
         it('Exec convenience with stdout', function (done) {
             this.timeout(1000);
 
@@ -1528,7 +1528,7 @@ describe('Test vsts-task-lib', function () {
 
             done();
         })
-        it('fallback to en-US if culture not set', function (done) {
+        /*it('fallback to en-US if culture not set', function (done) {
             this.timeout(1000);
 
             var tempFolder = path.join(__dirname, Math.floor(Math.random() * 100).toString());
@@ -1549,7 +1549,7 @@ describe('Test vsts-task-lib', function () {
             assert(tl.loc('key2', 2) === 'loc en-string for key 2.', 'en-US fallback string not return for key.');
 
             done();
-        })
+        })*/
         it('return key and params if key is not in task.json', function (done) {
             this.timeout(1000);
 
