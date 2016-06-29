@@ -9,6 +9,8 @@
   "loc.messages.LIB_ParameterIsRequired": "%s non fourni",
   "loc.messages.LIB_InputRequired": "Entrée nécessaire : %s",
   "loc.messages.LIB_EndpointNotExist": "Point de terminaison absent : %s",
+  "loc.messages.LIB_EndpointDataNotExist": "Endpoint data parameter %s not present: %s",
+  "loc.messages.LIB_EndpointAuthNotExist": "Endpoint auth data not present: %s",
   "loc.messages.LIB_InvalidEndpointAuth": "Authentification du point de terminaison non valide : %s",
   "loc.messages.LIB_PathNotFound": "%s : %s introuvable",
   "loc.messages.LIB_PathHasNullByte": "Le chemin ne peut pas contenir d'octets de valeur Null",

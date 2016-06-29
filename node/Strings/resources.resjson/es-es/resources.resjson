@@ -9,6 +9,8 @@
   "loc.messages.LIB_ParameterIsRequired": "No se ha proporcionado %s",
   "loc.messages.LIB_InputRequired": "Entrada requerida: %s",
   "loc.messages.LIB_EndpointNotExist": "No hay punto de conexión: %s",
+  "loc.messages.LIB_EndpointDataNotExist": "Endpoint data parameter %s not present: %s",
+  "loc.messages.LIB_EndpointAuthNotExist": "Endpoint auth data not present: %s",
   "loc.messages.LIB_InvalidEndpointAuth": "Autenticación de punto de conexión no válida: %s",
   "loc.messages.LIB_PathNotFound": "No se encuentra %s: %s",
   "loc.messages.LIB_PathHasNullByte": "La ruta de acceso no puede tener bytes nulos",

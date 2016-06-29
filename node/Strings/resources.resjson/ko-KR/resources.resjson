@@ -9,6 +9,8 @@
   "loc.messages.LIB_ParameterIsRequired": "%s이(가) 제공되지 않음",
   "loc.messages.LIB_InputRequired": "입력 필요: %s",
   "loc.messages.LIB_EndpointNotExist": "끝점이 없음: %s",
+  "loc.messages.LIB_EndpointDataNotExist": "Endpoint data parameter %s not present: %s",
+  "loc.messages.LIB_EndpointAuthNotExist": "Endpoint auth data not present: %s",
   "loc.messages.LIB_InvalidEndpointAuth": "잘못된 끝점 인증: %s",
   "loc.messages.LIB_PathNotFound": "%s을(를) 찾을 수 없음: %s",
   "loc.messages.LIB_PathHasNullByte": "경로에 null 바이트를 포함할 수 없음",

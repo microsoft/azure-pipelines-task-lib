@@ -9,6 +9,8 @@
   "loc.messages.LIB_ParameterIsRequired": "未提供 %s",
   "loc.messages.LIB_InputRequired": "输入必需项: %s",
   "loc.messages.LIB_EndpointNotExist": "终结点不存在: %s",
+  "loc.messages.LIB_EndpointDataNotExist": "Endpoint data parameter %s not present: %s",
+  "loc.messages.LIB_EndpointAuthNotExist": "Endpoint auth data not present: %s",
   "loc.messages.LIB_InvalidEndpointAuth": "终结点验证无效: %s",
   "loc.messages.LIB_PathNotFound": "找不到 %s: %s",
   "loc.messages.LIB_PathHasNullByte": "路径不能包含 null 字节",

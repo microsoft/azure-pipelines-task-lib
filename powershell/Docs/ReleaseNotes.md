@@ -1,5 +1,12 @@
 # Release Notes
 
+## 0.6.4
+ * Updated `Get-VstsTfsClientCredentials` to fix authentication bugs.
+
+## 0.6.3
+ * Updated `Find-VstsFiles` to fix `-IncludeDirectories` functionality.
+ * Updated initialization (`Invoke-VstsTaskScript`) to remove secret variables from the environment drive. The variables are stored within the module as `PSCredential` objects. `Get-VstsTaskVariable` has been updated to retrieve the internally stored secret variables and return the plain values. Otherwise `Get-VstsTaskVariable` falls back to checking for the variable as a non-secret variable on the environment drive.
+
 ## 0.6.2
  * Updated initialization (`Invoke-VstsTaskScript`) to run within the global session state. Modules imported by the task script will now be imported into the global session state.
 

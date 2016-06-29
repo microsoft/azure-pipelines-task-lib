@@ -9,6 +9,8 @@
   "loc.messages.LIB_ParameterIsRequired": "Не указан %s.",
   "loc.messages.LIB_InputRequired": "Требуется ввести данные: %s.",
   "loc.messages.LIB_EndpointNotExist": "Конечная точка отсутствует: %s.",
+  "loc.messages.LIB_EndpointDataNotExist": "Endpoint data parameter %s not present: %s",
+  "loc.messages.LIB_EndpointAuthNotExist": "Endpoint auth data not present: %s",
   "loc.messages.LIB_InvalidEndpointAuth": "Недопустимая проверка подлинности конечной точки: %s.",
   "loc.messages.LIB_PathNotFound": "Не найден %s: %s.",
   "loc.messages.LIB_PathHasNullByte": "Путь не может содержать пустые байты.",
