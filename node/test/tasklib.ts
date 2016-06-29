@@ -738,36 +738,60 @@ describe('Test vsts-task-lib', function () {
 
             done();
         })
+
+        //normalizePath tests
         it('gets path value with normalize path', function (done) {
             this.timeout(1000);
 
-            var stdStream = new StringStream();
+            let stdStream = new StringStream();
             tl.setStdStream(stdStream);
 
-            var inputValue = "/etc/usr\\someRandomFile.txt";
+            let inputValue = "/etc/usr\\someRandomFile.txt";
             process.env['INPUT_PATH1'] = inputValue;
             tl._loadData();
+            let output = tl.getPathInput('path1',/*required=*/true, /*check=*/false,/*normalizePath=*/true);
 
-            assert.equal(tl.getPathInput('path1',/*required=*/true, /*check=*/false,/*normalizePath=*/true), "/etc/usr/someRandomFile.txt");
+            if (os.platform() == 'win32') {
+                assert.equal(output, '\\etc\\usr\\someRandomFile.txt');
+            } else {
+                assert.equal(output, "/etc/usr/someRandomFile.txt");
+            }
             done();
         })
-        
+
         //pathToPosix tests
         it('test posix file path functionality', function (done) {
             this.timeout(1000);
 
-            var stdStream = new StringStream();
+            let stdStream = new StringStream();
             tl.setStdStream(stdStream);
 
-            var path1 = '/etc/usr\\someRandomFile.txt';
-            var path2 = '/etc/usr/someRandomFile.txt';
-            var path3 = 'c:\\etc\\usr\\someRandomFile.txt';
-            var path4 = 'c:\\etc\\usr/someRandomFile.txt';
-            
-            assert.equal(tl.pathToPosix(path1), '/etc/usr/someRandomFile.txt');
-            assert.equal(tl.pathToPosix(path2), '/etc/usr/someRandomFile.txt');
-            assert.equal(tl.pathToPosix(path3), 'c:/etc/usr/someRandomFile.txt');
-            assert.equal(tl.pathToPosix(path4), 'c:/etc/usr/someRandomFile.txt');
+            assert.equal(tl.pathToPosix('c:\\windows\\test.txt'), 'c:/windows/test.txt');
+            assert.equal(tl.pathToPosix('c:\\windows\\..\\b.txt'), 'c:/b.txt');
+            assert.equal(tl.pathToPosix('c:\\windows\\..\\node\\a.txt'), 'c:/node/a.txt');
+            assert.equal(tl.pathToPosix('c:\\windows/a.txt'), 'c:/windows/a.txt');
+            assert.equal(tl.pathToPosix('c:\\windows\\..\\node/b.txt'), 'c:/node/b.txt');
+            assert.equal(tl.pathToPosix('//windows\\unix/mixed'), '/windows/unix/mixed');
+            assert.equal(tl.pathToPosix('\\windows//unix/mixed'), '/windows/unix/mixed');
+            assert.equal(tl.pathToPosix('////\\windows\\..\\unix/mixed/'), '/unix/mixed/');
+            done();
+        })
+
+        //pathToWindos tests
+        it('test Windows file path functionality', function (done) {
+            this.timeout(1000);
+
+            let stdStream = new StringStream();
+            tl.setStdStream(stdStream);
+
+            assert.equal(tl.pathToWindows('c:\\windows\\test.txt'), 'c:\\windows\\test.txt');
+            assert.equal(tl.pathToWindows('c:\\windows\\..\\b.txt'), 'c:\\b.txt');
+            assert.equal(tl.pathToWindows('c:\\windows\\..\\node\\a.txt'), 'c:\\node\\a.txt');
+            assert.equal(tl.pathToWindows('c:\\windows/a.txt'), 'c:\\windows\\a.txt');
+            assert.equal(tl.pathToWindows('c:\\windows\\..\\node/b.txt'), 'c:\\node\\b.txt');
+            assert.equal(tl.pathToWindows('//windows\\unix/mixed'), '\\windows\\unix\\mixed');
+            assert.equal(tl.pathToWindows('\\windows//unix/mixed'), '\\windows\\unix\\mixed');
+            assert.equal(tl.pathToWindows('////\\windows\\..\\unix/mixed/'), '\\unix\\mixed\\');
             done();
         })
 

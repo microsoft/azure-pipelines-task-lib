@@ -384,14 +384,16 @@ export function filePathSupplied(name: string): boolean {
  * @returns   string
  */
 export function getPathInput(name: string, required?: boolean, check?: boolean, normalizePath?: boolean): string {
-    var inval = getInput(name, required);
+    let inval = getInput(name, required);
     if (normalizePath) {
-        inval = pathToPosix(inval);
-    }
-    if (inval) {
-        if (check) {
-            checkPath(inval, name);
+        if (os.platform() == 'win32') {
+            inval = pathToWindows(inval);
+        } else {
+            inval = pathToPosix(inval);
         }
+    }
+    if (inval && check) {
+        checkPath(inval, name);
     }
 
     return inval;
@@ -404,14 +406,26 @@ export function getPathInput(name: string, required?: boolean, check?: boolean, 
  * @param     pathInput  input path
  * @returns   string
  */
-export function pathToPosix(pathInput: string) {
-    var p = path.normalize(pathInput);
-    var path_regex = /\/\//;
+export function pathToPosix(pathInput: string): string {
+    let p = path.normalize(pathInput);
+    let path_regex = /\/\//;
     p = p.replace(/\\/g, "/");
     while (p.match(path_regex)) {
         p = p.replace(path_regex, "/");
     }
     return p;
+}
+
+/**
+ * Converts given path string to Windows type path string
+ * it will replace the Posix file path seperator to Windows file path seperator
+ * 
+ * @param     pathInput  input path
+ * @returns   string
+ */
+export function pathToWindows(pathInput: string): string {
+    let p = pathToPosix(pathInput);
+    return p.replace(/\//g, "\\");
 }
 
 //-----------------------------------------------------
