@@ -65,7 +65,7 @@ gulp.task('copy:d.ts', ['clean'], function () {
 });
 
 gulp.task('definitions', ['copy:d.ts', 'copy:manifest'], function () {
-    return dtsgen.generate({
+    return dtsgen.default({
         name: 'vsts-task-lib',
         baseDir: 'lib',
         files: [ 'task.ts', 'taskcommand.ts', 'toolrunner.ts' ],
