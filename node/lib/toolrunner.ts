@@ -367,6 +367,7 @@ export class ToolRunner extends events.EventEmitter {
         }
         
         var r = child.spawnSync(this.toolPath, this.args, { cwd: ops.cwd, env: ops.env });
+        
         if (r.stdout && r.stdout.length > 0) {
             ops.outStream.write(r.stdout);
         }
@@ -376,8 +377,8 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         var res:IExecResult = <IExecResult>{ code: r.status, error: r.error };
-        res.stdout = r.stdout.toString();
-        res.stderr = r.stderr.toString();
+        res.stdout = (r.stdout) ? r.stdout.toString() : null;
+        res.stderr = (r.stderr) ? r.stderr.toString() : null;
         return res;
     }   
 }
