@@ -362,8 +362,8 @@ export function getDelimitedInput(name: string, delim: string, required?: boolea
  */
 export function filePathSupplied(name: string): boolean {
     // normalize paths
-    var pathValue = path.resolve(this.getPathInput(name) || '');
-    var repoRoot = path.resolve(this.getVariable('build.sourcesDirectory') || '');
+    var pathValue = this.resolve(this.getPathInput(name) || '');
+    var repoRoot = this.resolve(this.getVariable('build.sourcesDirectory') || '');
 
     var supplied = pathValue !== repoRoot;
     debug(name + 'path supplied :' + supplied);
@@ -694,7 +694,9 @@ export function mkdirP(p): void {
  * @returns {string}
  */
 export function resolve(...pathSegments: any[]): string {
-    return path.resolve(pathSegments);
+    var absolutePath = path.resolve.apply(this, pathSegments);
+    debug('Absolute path for pathSegments: ' + pathSegments + ' = ' + absolutePath);
+    return absolutePath;
 }
 
 /**
@@ -722,7 +724,7 @@ export function which(tool: string, check?: boolean): string {
                     if (toolPath)
                         return; // already found it
 
-                    var attempt = path.resolve(dir + '/' + tool);
+                    var attempt = this.resolve(dir + '/' + tool);
 
                     var baseAttempt = attempt;
                     attempt = baseAttempt + '.exe';
@@ -745,7 +747,7 @@ export function which(tool: string, check?: boolean): string {
 
             // Command not found in Path, but the input itself is point to a file.
             if (!toolPath && exist(tool) && stats(tool).isFile) {
-                toolPath = path.resolve(tool);
+                toolPath = this.resolve(tool);
             }
         }
         else {

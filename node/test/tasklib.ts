@@ -764,6 +764,19 @@ describe('Test vsts-task-lib', function () {
             assert(supplied, 'path1 should be supplied');
             done();
         })
+
+        //resolve tests
+        it('resolve', function(done) {
+            var absolutePath = tl.resolve('/repo/root', '/repo/root/some/path');
+            if(os.platform() !== 'win32') {
+                assert(absolutePath === '/repo/root/some/path', 'absolute path not expected, got:' + absolutePath + ' expected: /repo/root/some/path');
+            } else {
+                var winDrive = path.parse(path.resolve('')).root;
+                var expectedPath = winDrive.concat('repo\\root\\abc');
+                assert(absolutePath === expectedPath, 'absolute path not as expected, got: ' + absolutePath + ' expected: ' + expectedPath);
+            }
+            done();
+        })
     });
 
     describe('TaskCommands', function () {
