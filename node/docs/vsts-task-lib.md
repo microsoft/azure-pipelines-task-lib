@@ -62,6 +62,7 @@ import tl = require('vsts-task-lib/task')
 <a href="#taskrmRF">rmRF</a> <br/>
 <a href="#taskpushd">pushd</a> <br/>
 <a href="#taskpopd">popd</a> <br/>
+<a href="#taskresolve">resolve</a> <br/>
 <a href="#taskstats">stats</a> <br/>
  
 ### Localization <a href="#Localization">(v)</a>
@@ -568,6 +569,15 @@ Change working directory back to previously pushed directory
 ```javascript
 popd():void
 ```
+<br/>
+<div id="taskresolve">
+### task.resolve <a href="#index">(^)</a>
+Resolves a sequence of paths or path segments into an absolute path.
+See [path.resolve](https://nodejs.org/docs/latest/api/path.html#path_path_resolve_path)
+```javascript
+resolve(param:any):string
+```
+
 <br/>
 <div id="taskstats">
 ### task.stats <a href="#index">(^)</a>
