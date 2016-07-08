@@ -772,7 +772,7 @@ describe('Test vsts-task-lib', function () {
                 assert(absolutePath === '/repo/root/some/path', 'absolute path not expected, got:' + absolutePath + ' expected: /repo/root/some/path');
             } else {
                 var winDrive = path.parse(path.resolve('')).root;
-                var expectedPath = winDrive.concat('repo\\root\\abc');
+                var expectedPath = winDrive.concat('repo\\root\\some\\path');
                 assert(absolutePath === expectedPath, 'absolute path not as expected, got: ' + absolutePath + ' expected: ' + expectedPath);
             }
             done();

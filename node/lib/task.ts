@@ -724,7 +724,7 @@ export function which(tool: string, check?: boolean): string {
                     if (toolPath)
                         return; // already found it
 
-                    var attempt = this.resolve(dir + '/' + tool);
+                    var attempt = resolve(dir + '/' + tool);
 
                     var baseAttempt = attempt;
                     attempt = baseAttempt + '.exe';
@@ -747,7 +747,7 @@ export function which(tool: string, check?: boolean): string {
 
             // Command not found in Path, but the input itself is point to a file.
             if (!toolPath && exist(tool) && stats(tool).isFile) {
-                toolPath = this.resolve(tool);
+                toolPath = resolve(tool);
             }
         }
         else {
