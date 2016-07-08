@@ -687,6 +687,17 @@ export function mkdirP(p): void {
 }
 
 /**
+ * Resolves a sequence of paths or path segments into an absolute path.
+ * Calls node.js path.resolve()
+ * Allows L0 testing with consistent path formats on Mac/Linux and Windows in the mock implementation
+ * @param pathSegments
+ * @returns {string}
+ */
+export function resolve(...pathSegments: any[]): string {
+    return path.resolve(pathSegments);
+}
+
+/**
  * Returns path of a tool had the tool actually been invoked.  Resolves via paths.
  * If you check and the tool does not exist, the task will fail with an error message and halt execution.
  * 
