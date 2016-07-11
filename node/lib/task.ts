@@ -375,21 +375,57 @@ export function filePathSupplied(name: string): boolean {
  * It will be quoted for you if it isn't already and contains spaces
  * If required is true and the value is not set, the task will fail with an error.  Execution halts.
  * If check is true and the path does not exist, the task will fail with an error.  Execution halts.
+ * If normalize is true, normalized path will be returned
  * 
  * @param     name      name of the input to get
  * @param     required  whether input is required.  optional, defaults to false
  * @param     check     whether path is checked.  optional, defaults to false 
+ * @param     normalizePath     normalize the path to POSIX path type.  optional, defaults to false
  * @returns   string
  */
-export function getPathInput(name: string, required?: boolean, check?: boolean): string {
-    var inval = getInput(name, required);
-    if (inval) {
-        if (check) {
-            checkPath(inval, name);
+export function getPathInput(name: string, required?: boolean, check?: boolean, normalizePath?: boolean): string {
+    let inval = getInput(name, required);
+    if (normalizePath) {
+        if (os.platform() == 'win32') {
+            inval = pathToWindows(inval);
+        } else {
+            inval = pathToPosix(inval);
         }
+    }
+    if (inval && check) {
+        checkPath(inval, name);
     }
 
     return inval;
+}
+
+/**
+ * Converts given path string to POSIX type path string
+ * it will replace the windows file path seperator to unix file path seperator
+ * 
+ * @param     pathInput  input path
+ * @returns   string
+ */
+export function pathToPosix(pathInput: string): string {
+    let p = path.normalize(pathInput);
+    let path_regex = /\/\//;
+    p = p.replace(/\\/g, "/");
+    while (p.match(path_regex)) {
+        p = p.replace(path_regex, "/");
+    }
+    return p;
+}
+
+/**
+ * Converts given path string to Windows type path string
+ * it will replace the Posix file path seperator to Windows file path seperator
+ * 
+ * @param     pathInput  input path
+ * @returns   string
+ */
+export function pathToWindows(pathInput: string): string {
+    let p = pathToPosix(pathInput);
+    return p.replace(/\//g, "\\");
 }
 
 //-----------------------------------------------------
