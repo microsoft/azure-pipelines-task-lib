@@ -362,8 +362,8 @@ export function getDelimitedInput(name: string, delim: string, required?: boolea
  */
 export function filePathSupplied(name: string): boolean {
     // normalize paths
-    var pathValue = path.resolve(this.getPathInput(name) || '');
-    var repoRoot = path.resolve(this.getVariable('build.sourcesDirectory') || '');
+    var pathValue = this.resolve(this.getPathInput(name) || '');
+    var repoRoot = this.resolve(this.getVariable('build.sourcesDirectory') || '');
 
     var supplied = pathValue !== repoRoot;
     debug(name + 'path supplied :' + supplied);
@@ -687,6 +687,19 @@ export function mkdirP(p): void {
 }
 
 /**
+ * Resolves a sequence of paths or path segments into an absolute path.
+ * Calls node.js path.resolve()
+ * Allows L0 testing with consistent path formats on Mac/Linux and Windows in the mock implementation
+ * @param pathSegments
+ * @returns {string}
+ */
+export function resolve(...pathSegments: any[]): string {
+    var absolutePath = path.resolve.apply(this, pathSegments);
+    debug('Absolute path for pathSegments: ' + pathSegments + ' = ' + absolutePath);
+    return absolutePath;
+}
+
+/**
  * Returns path of a tool had the tool actually been invoked.  Resolves via paths.
  * If you check and the tool does not exist, the task will fail with an error message and halt execution.
  * 
@@ -711,7 +724,7 @@ export function which(tool: string, check?: boolean): string {
                     if (toolPath)
                         return; // already found it
 
-                    var attempt = path.resolve(dir + '/' + tool);
+                    var attempt = resolve(dir + '/' + tool);
 
                     var baseAttempt = attempt;
                     attempt = baseAttempt + '.exe';
@@ -734,7 +747,7 @@ export function which(tool: string, check?: boolean): string {
 
             // Command not found in Path, but the input itself is point to a file.
             if (!toolPath && exist(tool) && stats(tool).isFile) {
-                toolPath = path.resolve(tool);
+                toolPath = resolve(tool);
             }
         }
         else {
