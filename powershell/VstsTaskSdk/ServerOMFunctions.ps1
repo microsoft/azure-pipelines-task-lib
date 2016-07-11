@@ -37,21 +37,41 @@ The agent job token is used to construct the credentials object. The identity as
 
 .EXAMPLE
 $vssCredentials = Get-VstsVssCredentials
-Add-Type -LiteralPath (Assert-Path "$(Get-TaskVariable -Name 'Agent.ServerOMDirectory' -Require)\Microsoft.TeamFoundation.Common.dll" -PassThru)
-Add-Type -LiteralPath (Assert-Path "$(Get-TaskVariable -Name 'Agent.ServerOMDirectory' -Require)\Microsoft.VisualStudio.Services.WebApi.dll" -PassThru)
-# This is a bad example. All of the Server OM DLLs should be in one folder.
-Add-Type -LiteralPath (Assert-Path "$(Get-TaskVariable -Name 'Agent.ServerOMDirectory' -Require)\Modules\Microsoft.TeamFoundation.DistributedTask.Task.Internal\Microsoft.TeamFoundation.Core.WebApi.dll" -PassThru)
+Add-Type -LiteralPath (Assert-VstsPath "$(Get-VstsTaskVariable -Name 'Agent.ServerOMDirectory' -Require)\Microsoft.TeamFoundation.Core.WebApi.dll" -PassThru)
 $projectHttpClient = New-Object Microsoft.TeamFoundation.Core.WebApi.ProjectHttpClient(
-    (New-Object System.Uri($env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI)),
+    (New-Object System.Uri((Get-VstsTaskVariable -Name System.TeamFoundationCollectionUri -Require))),
     $vssCredentials)
-$projectHttpClient.GetProjects().Result
+$projectHttpClient.GetProjects().GetAwaiter().GetResult()
 #>
 function Get-VssCredentials {
     [CmdletBinding()]
     param()
 
-    Add-Type -LiteralPath (Assert-Path "$(Get-TaskVariable -Name 'Agent.ServerOMDirectory' -Require)\Microsoft.VisualStudio.Services.Common.dll" -PassThru)
     $endpoint = (Get-Endpoint -Name SystemVssConnection -Require)
-    New-Object Microsoft.VisualStudio.Services.Common.VssServiceIdentityCredential(
-        New-Object Microsoft.VisualStudio.Services.Common.VssServiceIdentityToken([string]$endpoint.auth.parameters.AccessToken))
+    Add-Type -LiteralPath (Assert-Path "$(Get-TaskVariable -Name 'Agent.ServerOMDirectory' -Require)\Microsoft.VisualStudio.Services.Common.dll" -PassThru)
+    try {
+        Add-Type -LiteralPath (Assert-Path "$(Get-TaskVariable -Name 'Agent.ServerOMDirectory' -Require)\Microsoft.VisualStudio.Services.Client.dll" -PassThru)
+    } catch [System.Reflection.ReflectionTypeLoadException] {
+        if ($_.Exception.LoaderExceptions.Count -eq 1 -and
+            $_.Exception.LoaderExceptions[0] -is [System.IO.FileNotFoundException] -and
+            $_.Exception.LoaderExceptions[0].FileName -eq 'Microsoft.ServiceBus, Version=2.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35') {
+
+            # TODO: Consider bundling Microsoft.ServiceBus.dll with the lib (approx 3.75mb).
+
+            # The 1.x Windows agent did not layout Microsoft.ServiceBus.dll. Fallback to
+            # the old way of authenticating. For on-premises TFS, this appears to 401 when
+            # attempting to use the "WRAP access_token" and falls back to NTLM.
+            return New-Object Microsoft.VisualStudio.Services.Common.VssCredentials(
+                (New-Object Microsoft.VisualStudio.Services.Common.WindowsCredential($true)), # Use default credentials.
+                (New-Object Microsoft.VisualStudio.Services.Common.VssServiceIdentityCredential(New-Object Microsoft.VisualStudio.Services.Common.VssServiceIdentityToken([string]$endpoint.auth.parameters.AccessToken))),
+                [Microsoft.VisualStudio.Services.Common.CredentialPromptType]::DoNotPrompt)
+        }
+
+        throw # Rethrow.
+    }
+
+    return New-Object Microsoft.VisualStudio.Services.Common.VssCredentials(
+        (New-Object Microsoft.VisualStudio.Services.Common.WindowsCredential($false)), # Do not use default credentials.
+        (New-Object Microsoft.VisualStudio.Services.Client.VssOAuthCredential($endpoint.auth.parameters.AccessToken)),
+        [Microsoft.VisualStudio.Services.Common.CredentialPromptType]::DoNotPrompt)
 }
