@@ -7,7 +7,7 @@ Libraries for writing [Visual Studio Team Services](https://www.visualstudio.com
 
 Reference examples of our in the box tasks [are here](https://github.com/Microsoft/vso-agent-tasks)
 
-## Typescript Tasks  
+## Typescript Tasks (0.8 Release) 
 
 Cross platform tasks are written in Typescript.  It is the preferred way to write tasks once.
 
