@@ -1,5 +1,5 @@
 
-# VSTS DevOps Task SDK
+# VSTS DevOps Task SDK (0.8 Release)
 
 Libraries for writing [Visual Studio Team Services](https://www.visualstudio.com/en-us/products/visual-studio-team-services-vs.aspx) build and deployment tasks
 
