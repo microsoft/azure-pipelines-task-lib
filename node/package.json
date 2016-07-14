@@ -1,10 +1,11 @@
 {
   "name": "vsts-task-lib",
-  "version": "0.8.4",
+  "version": "0.9.0",
   "description": "VSTS Task SDK",
   "main": "./task.js",
+  "typings": "./task.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node make.js test"
   },
   "repository": {
     "type": "git",
@@ -33,7 +34,7 @@
   },
   "devDependencies": {
     "del": "^1.2.0",
-    "dts-generator": "1.5.0",
+    "dts-generator": "^1.7.0",
     "gulp": "^3.9.0",
     "gulp-mocha": "2.0.0",
     "gulp-typescript": "^2.9.0",

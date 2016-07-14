@@ -1,7 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-/// <reference path="../_build/d.ts/vsts-task-lib.d.ts" />
+/// <reference path="../typings/index.d.ts" />
+/// <reference path="../_build/task.d.ts" />
 
 import assert = require('assert');
 import path = require('path');
@@ -10,10 +11,11 @@ import util = require('util');
 import stream = require('stream');
 import shell = require('shelljs');
 import os = require('os');
-import tl = require('vsts-task-lib/task');
-import vm = require('vsts-task-lib/vault');
-import tcm = require('vsts-task-lib/taskcommand');
-import trm = require('vsts-task-lib/toolrunner');
+
+import * as tl from '../_build/task';
+import * as vm from '../_build/vault';
+import * as tcm from '../_build/taskcommand';
+import * as trm from '../_build/toolrunner';
 
 var _testTemp = path.join(__dirname, '_temp');
 

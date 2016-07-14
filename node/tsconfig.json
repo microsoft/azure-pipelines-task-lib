@@ -1,6 +1,11 @@
 {
     "compilerOptions": {
         "target": "ES5",
-        "module": "commonjs"
-    }
+        "module": "commonjs",
+        "declaration": true
+    },
+    "files": [
+    	"extensions.ts",
+        "task.ts"
+    ]
 }
