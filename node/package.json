@@ -34,10 +34,8 @@
   },
   "devDependencies": {
     "del": "^1.2.0",
-    "dts-generator": "^1.7.0",
     "gulp": "^3.9.0",
     "gulp-mocha": "2.0.0",
-    "gulp-typescript": "^2.9.0",
     "merge2": "^0.3.6",
     "mocha": "^2.2.5",
     "semver": "^5.1.0",
