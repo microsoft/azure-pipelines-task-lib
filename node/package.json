@@ -1,6 +1,6 @@
 {
   "name": "vsts-task-lib",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "description": "VSTS Task SDK",
   "main": "./task.js",
   "scripts": {
