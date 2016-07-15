@@ -292,7 +292,7 @@ export class ToolRunner extends events.EventEmitter {
             defer.reject(new Error(this.toolPath + ' failed. ' + err.message));
         });
 
-        cp.on('exit', (code, signal) => {
+        cp.on('close', (code, signal) => {
             this._debug('rc:' + code);
 
             if (stdbuffer.length > 0) {

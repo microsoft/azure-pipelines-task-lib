@@ -2,10 +2,12 @@
     "compilerOptions": {
         "target": "ES5",
         "module": "commonjs",
-        "declaration": true
+        "declaration": true,
+        "moduleResolution": "node",
+        "removeComments": true      
     },
     "files": [
-    	"extensions.ts",
-        "task.ts"
+        "extensions.ts",
+    	"index.ts"
     ]
 }

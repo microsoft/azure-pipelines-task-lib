@@ -1,5 +1,3 @@
-/// <reference path="typings/index.d.ts" />
-
 import Q = require('q');
 import shell = require('shelljs');
 import fs = require('fs');

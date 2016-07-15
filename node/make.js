@@ -21,16 +21,21 @@ var run = function(cl) {
 
 target.clean = function () {
     rm('-Rf', buildPath);
+    rm('-Rf', testPath);
 };
 
 target.build = function() {
     target.clean();
     
     run('tsc --outDir ' + buildPath);
-    cp('-Rf', rp('typings'), buildPath);    
+    cp(rp('dependencies/typings.json'), buildPath);    
     cp(rp('package.json'), buildPath);
+    cp(rp('README.md'), buildPath);
+    cp(rp('../LICENSE'), buildPath);
     cp(rp('lib.json'), buildPath);
     cp('-Rf', rp('Strings'), buildPath);
+    // just a bootstrap file to avoid /// in final js and .d.ts file
+    rm(path.join(buildPath, 'index.*'));
 
     target.loc();
 }
