@@ -193,7 +193,7 @@ Hello World
 ##vso[task.debug]task result: Failed
 ##vso[task.issue type=error;]Input required: samplepathinput
 ##vso[task.complete result=Failed;]Input required: samplepathinput
--=B=- ~/Projects/sampletask$ 
+$ 
 ```
 
 So, as you can see, this offers powerful testing automation options to test all arcs with no agent or server.
@@ -212,8 +212,6 @@ undefined
 > tl.which('echo');
 ##vso[task.debug]echo=/bin/echo
 '/bin/echo'
-> tl.tool('echo').toolPath
-'echo'
 > tl.tool('echo').arg('Hello World!').args
 ##vso[task.debug]echo arg: Hello World!
 [ 'Hello World!' ]
