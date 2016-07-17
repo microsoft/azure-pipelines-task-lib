@@ -46,10 +46,6 @@ util.inherits(StringStream, stream.Writable);
 
 var _nullTestStream = new NullStream();
 
-var _mismatch = function (expected, output) {
-    return 'expected' + os.EOL + '"' + expected + '"' + os.EOL + 'returned' + os.EOL + '"' + output + '"';
-}
-
 var _buildOutput = function (lines) {
     var output = '';
     lines.forEach(function (line) {
@@ -349,7 +345,7 @@ describe('Test vsts-task-lib', function () {
             tl._loadData();
 
             var inval = tl.getInput('UnitTestInput', true);
-            assert(inval === 'test value', 'reading an input should work');
+            assert.equal(inval, 'test value');
 
             done();
         })
@@ -359,7 +355,7 @@ describe('Test vsts-task-lib', function () {
             process.env['INPUT_UNITTESTINPUT'] = 'test value';
             tl._loadData();
             var inval = tl.getInput('UnitTestInput', true);
-            assert(inval === 'test value', 'reading an input should work');
+            assert.equal(inval, 'test value');
             assert(!process.env['INPUT_UNITTESTINPUT'], 'input envvar should be cleared');
 
             done();
@@ -385,7 +381,7 @@ describe('Test vsts-task-lib', function () {
             tl._loadData();
 
             var inval = tl.getInput('UnitTestInput', true);
-            assert(inval === 'test value', 'reading an input should work');
+            assert.equal(inval, 'test value');
 
             done();
         })
@@ -398,7 +394,7 @@ describe('Test vsts-task-lib', function () {
             tl._loadData();
 
             var varVal = tl.getVariable('Build.Repository.Name');
-            assert(varVal === 'Test Repository', 'reading a variable should work');
+            assert.equal(varVal, 'Test Repository');
 
             done();
         })
@@ -409,7 +405,7 @@ describe('Test vsts-task-lib', function () {
             tl._loadData();
 
             var varVal = tl.getVariable('Build.Repository.Name');
-            assert(varVal === 'Test Repository', 'reading a variable should work');
+            assert.equal(varVal, 'Test Repository');
 
             done();
         })
@@ -421,7 +417,7 @@ describe('Test vsts-task-lib', function () {
             tl._loadData();
 
             var varVal = tl.getVariable('Build.Repository.Name');
-            assert(varVal === 'Secret Test Repository', 'reading a variable should work');
+            assert.equal(varVal, 'Secret Test Repository');
 
             done();
         })
@@ -432,7 +428,7 @@ describe('Test vsts-task-lib', function () {
 
             tl.setVariable('Build.Repository.Uri', 'test value');
             var varVal = process.env['BUILD_REPOSITORY_URI'];
-            assert(varVal === 'test value', 'setting a variable should work');
+            assert.equal(varVal, 'test value');
 
             done();
         })
@@ -441,7 +437,7 @@ describe('Test vsts-task-lib', function () {
 
             tl.setVariable('UnitTestVariable', 'test var value');
             var varVal = tl.getVariable('UnitTestVariable');
-            assert(varVal === 'test var value', 'variable should match after set and get');
+            assert.equal(varVal, 'test var value');
 
             done();
         })
@@ -454,7 +450,7 @@ describe('Test vsts-task-lib', function () {
             tl._loadData();
 
             var url = tl.getEndpointUrl('id1', true);
-            assert(url === 'http://url', 'url should match');
+            assert.equal(url, 'http://url', 'url should match');
 
             done();
         })
@@ -466,7 +462,7 @@ describe('Test vsts-task-lib', function () {
 
             var auth = tl.getEndpointAuthorization('id1', true);
             assert(auth, 'should return an auth obj');
-            assert(auth['parameters']['param1'] === 'val1', 'should be correct object');
+            assert.equal(auth['parameters']['param1'], 'val1', 'should be correct object');
 
             done();
         })
@@ -477,7 +473,7 @@ describe('Test vsts-task-lib', function () {
             tl._loadData();
 
             var auth = tl.getEndpointAuthorization('id1', true);
-            assert(auth === null, 'should not return an auth obj');
+            assert.equal(auth, null, 'should not return an auth obj');
 
             done();
         })
@@ -500,7 +496,7 @@ describe('Test vsts-task-lib', function () {
 
             var data = tl.getEndpointAuthorizationScheme('id1', true);
             assert(data, 'should return a string value');
-            assert(data === 'scheme1', 'should be correct scheme');
+            assert.equal(data, 'scheme1', 'should be correct scheme');
             assert(!process.env['ENDPOINT_AUTH_SCHEME_id1'], 'should clear auth envvar');
 
             done();
@@ -521,7 +517,7 @@ describe('Test vsts-task-lib', function () {
 
             var data = tl.getEndpointAuthorizationParameter('id1', 'param1', true);
             assert(data, 'should return a string value');
-            assert(data === 'value1', 'should be correct auth param');
+            assert.equal(data, 'value1', 'should be correct auth param');
             assert(!process.env['ENDPOINT_AUTH_PARAMETER_id1_PARAM1'], 'should clear auth envvar');
 
             done();
@@ -542,7 +538,7 @@ describe('Test vsts-task-lib', function () {
 
             var data = tl.getEndpointDataParameter('id1', 'param1', true);
             assert(data, 'should return a string value');
-            assert(data === 'val1', 'should be correct object');
+            assert.equal(data, 'val1', 'should be correct object');
 
             done();
         })
@@ -551,7 +547,7 @@ describe('Test vsts-task-lib', function () {
             tl._loadData();
 
             var data = tl.getEndpointDataParameter('id1', 'noparam', true);
-            assert(data === undefined, 'Error should occur if endpoint data is not set');
+            assert.equal(data, undefined, 'Error should occur if endpoint data is not set');
 
             done();
         })
@@ -590,9 +586,9 @@ describe('Test vsts-task-lib', function () {
             tl._loadData();
 
             var outVal = tl.getDelimitedInput('delim', ' ', /*required*/true);
-            assert(outVal.length == 2, 'should return array with two elements');
-            assert(outVal[0] == 'test', 'should return correct element 1');
-            assert(outVal[1] == 'value', 'should return correct element 2');
+            assert.equal(outVal.length, 2, 'should return array with two elements');
+            assert.equal(outVal[0], 'test', 'should return correct element 1');
+            assert.equal(outVal[1], 'value', 'should return correct element 2');
 
             done();
         })
@@ -604,8 +600,8 @@ describe('Test vsts-task-lib', function () {
             tl._loadData();
 
             var outVal = tl.getDelimitedInput('delim', ' ', /*required*/true);
-            assert(outVal.length == 1, 'should return array with one element');
-            assert(outVal[0] == 'testvalue', 'should return correct element 1');
+            assert.equal(outVal.length, 1, 'should return array with one element');
+            assert.equal(outVal[0], 'testvalue', 'should return correct element 1');
 
             done();
         })
@@ -617,7 +613,7 @@ describe('Test vsts-task-lib', function () {
             tl._loadData();
 
             var outVal = tl.getDelimitedInput('delim', ' ', /*required*/false);
-            assert(outVal.length == 0, 'should return array with zero elements');
+            assert.equal(outVal.length, 0, 'should return array with zero elements');
 
             done();
         })
@@ -632,7 +628,7 @@ describe('Test vsts-task-lib', function () {
 
             var path = tl.getPathInput('path1', /*required=*/true, /*check=*/false);
             assert(path, 'should return a path');
-            assert(path === inputValue, 'test path value');
+            assert.equal(path, inputValue, 'test path value');
 
             done();
         })
@@ -680,7 +676,7 @@ describe('Test vsts-task-lib', function () {
             assert(!path, 'should not return a path');
 
             var errMsg = errStream.getContents();
-            assert(errMsg === "", "no err")
+            assert.equal(errMsg, "", "no err")
 
             done();
         })
@@ -694,7 +690,7 @@ describe('Test vsts-task-lib', function () {
 
             var path = tl.getPathInput('path1', /*required=*/true, /*check=*/false);
             assert(path, 'should return a path');
-            assert(path === expectedValue, 'returned ' + path + ', expected: ' + expectedValue);
+            assert.equal(path, expectedValue, 'returned ' + path + ', expected: ' + expectedValue);
 
             done();
         })
@@ -710,7 +706,7 @@ describe('Test vsts-task-lib', function () {
 
             var path = tl.getPathInput('path1', /*required=*/true, /*check=*/true);
             assert(path, 'should return a path');
-            assert(path === inputValue, 'test path value');
+            assert.equal(path, inputValue, 'test path value');
 
             var errMsg = errStream.getContents();
             assert(errMsg === "", "no err")
@@ -775,7 +771,7 @@ describe('Test vsts-task-lib', function () {
             } else {
                 var winDrive = path.parse(path.resolve('')).root;
                 var expectedPath = winDrive.concat('repo\\root\\some\\path');
-                assert(absolutePath === expectedPath, 'absolute path not as expected, got: ' + absolutePath + ' expected: ' + expectedPath);
+                assert.equal(absolutePath, expectedPath, 'absolute path not as expected, got: ' + absolutePath + ' expected: ' + expectedPath);
             }
             done();
         })
@@ -797,14 +793,14 @@ describe('Test vsts-task-lib', function () {
             var tc = new tcm.TaskCommand('some.cmd', { foo: 'bar' }, 'a message');
             assert(tc, 'TaskCommand constructor works');
             var cmdStr = tc.toString();
-            assert(cmdStr === '##vso[some.cmd foo=bar;]a message');
+            assert.equal(cmdStr, '##vso[some.cmd foo=bar;]a message');
             done();
         })
         it('handles null properties', function (done) {
             this.timeout(1000);
 
             var tc = new tcm.TaskCommand('some.cmd', null, 'a message');
-            assert(tc.toString() === '##vso[some.cmd]a message');
+            assert.equal(tc.toString(), '##vso[some.cmd]a message');
             done();
         })
         it('parses cmd with no properties', function (done) {
@@ -814,7 +810,7 @@ describe('Test vsts-task-lib', function () {
 
             assert(tc.command === 'basic.command', 'cmd should be correct');
             assert(Object.keys(tc.properties).length == 0, 'should have no properties.');
-            assert(tc.message === 'messageVal', 'message is correct');
+            assert.equal(tc.message, 'messageVal', 'message is correct');
             done();
         })
         it('parses basic cmd with values', function (done) {
@@ -824,9 +820,9 @@ describe('Test vsts-task-lib', function () {
 
             assert(tc.command === 'basic.command', 'cmd should be correct');
             assert(tc.properties['prop1'], 'should be a property names prop1');
-            assert(Object.keys(tc.properties).length == 1, 'should have one property.');
-            assert(tc.properties['prop1'] === 'val1', 'property value is correct');
-            assert(tc.message === 'messageVal', 'message is correct');
+            assert.equal(Object.keys(tc.properties).length, 1, 'should have one property.');
+            assert.equal(tc.properties['prop1'], 'val1', 'property value is correct');
+            assert.equal(tc.message, 'messageVal', 'message is correct');
             done();
         })
         it('parses basic cmd with multiple properties no trailing semi', function (done) {
@@ -836,27 +832,27 @@ describe('Test vsts-task-lib', function () {
 
             assert(tc.command === 'basic.command', 'cmd should be correct');
             assert(tc.properties['prop1'], 'should be a property names prop1');
-            assert(Object.keys(tc.properties).length == 2, 'should have one property.');
-            assert(tc.properties['prop1'] === 'val1', 'property value is correct');
-            assert(tc.properties['prop2'] === 'val2', 'property value is correct');
-            assert(tc.message === 'messageVal', 'message is correct');
+            assert.equal(Object.keys(tc.properties).length, 2, 'should have one property.');
+            assert.equal(tc.properties['prop1'], 'val1', 'property value is correct');
+            assert.equal(tc.properties['prop2'], 'val2', 'property value is correct');
+            assert.equal(tc.message, 'messageVal', 'message is correct');
             done();
         })
         it('parses values with spaces in them', function (done) {
             var cmdStr = '##vso[task.setvariable variable=task variable;]task variable set value';
 
             var tc = tcm.commandFromString(cmdStr);
-            assert(tc.command === 'task.setvariable', 'cmd should be task.setvariable');
+            assert.equal(tc.command, 'task.setvariable', 'cmd should be task.setvariable');
             assert(tc.properties['variable'], 'should be a property names variable');
-            assert(tc.properties['variable'] === 'task variable', 'property variable is correct');
-            assert(tc.message === 'task variable set value');
+            assert.equal(tc.properties['variable'], 'task variable', 'property variable is correct');
+            assert.equal(tc.message, 'task variable set value');
             done();
         })
         it('handles empty properties', function (done) {
             this.timeout(1000);
 
             var tc = new tcm.TaskCommand('some.cmd', {}, 'a message');
-            assert(tc.toString() === '##vso[some.cmd]a message');
+            assert.equal(tc.toString(), '##vso[some.cmd]a message');
             done();
         })
     });
@@ -875,7 +871,7 @@ describe('Test vsts-task-lib', function () {
 
             var output = stdStream.getContents();
 
-            assert(output === expected, _mismatch(expected, output));
+            assert.equal(output, expected);
 
             done();
         })
@@ -893,7 +889,7 @@ describe('Test vsts-task-lib', function () {
 
             var output = stdStream.getContents();
 
-            assert(output === expected, _mismatch(expected, output));
+            assert.equal(output, expected);
 
             done();
         })
@@ -910,7 +906,7 @@ describe('Test vsts-task-lib', function () {
 
             var output = stdStream.getContents();
 
-            assert(output === expected, _mismatch(expected, output));
+            assert.equal(output, expected);
 
             done();
         })
@@ -933,7 +929,7 @@ describe('Test vsts-task-lib', function () {
 
             var ret = vault.retrieveSecret(name);
 
-            assert(data === ret, 'should have retrieved the same string');
+            assert.equal(data, ret, 'should have retrieved the same string');
 
             done();
         })
@@ -947,7 +943,7 @@ describe('Test vsts-task-lib', function () {
 
             var ret = vault.retrieveSecret(retrievalName);
 
-            assert(data === ret, 'should have retrieved the same string');
+            assert.equal(data, ret, 'should have retrieved the same string');
 
             done();
         })
@@ -1002,11 +998,11 @@ describe('Test vsts-task-lib', function () {
 
             if (plat === 'win32') {
                 var ret = tl.execSync('cmd', '/c echo \'vsts-task-lib\'', _testExecOptions);
-                assert(ret.code === 0, 'return code of cmd should be 0');
+                assert.equal(ret.code, 0, 'return code of cmd should be 0');
             }
             else {
                 var ret = tl.execSync('ls', '-l -a', _testExecOptions);
-                assert(ret.code === 0, 'return code of ls should be 0');
+                assert.equal(ret.code, 0, 'return code of ls should be 0');
             }
 
             assert(ret.stdout && ret.stdout.length > 0, 'should have emitted stdout');
@@ -1029,19 +1025,19 @@ describe('Test vsts-task-lib', function () {
             }
 
             if (plat === 'win32') {
-                var cmd = tl.createToolRunner(tl.which('cmd', true));
+                var cmd = tl.tool(tl.which('cmd', true));
                 cmd.arg('/c echo \'vsts-task-lib\'');
 
                 var ret = cmd.execSync(_testExecOptions);
-                assert(ret.code === 0, 'return code of cmd should be 0');
+                assert.equal(ret.code, 0, 'return code of cmd should be 0');
             }
             else {
-                var ls = tl.createToolRunner(tl.which('ls', true));
+                var ls = tl.tool(tl.which('ls', true));
                 ls.arg('-l');
                 ls.arg('-a');
 
                 var ret = ls.execSync(_testExecOptions);
-                assert(ret.code === 0, 'return code of ls should be 0');
+                assert.equal(ret.code, 0, 'return code of ls should be 0');
             }
 
             assert(ret.stdout && ret.stdout.length > 0, 'should have emitted stdout');
@@ -1064,18 +1060,18 @@ describe('Test vsts-task-lib', function () {
             }
 
             if (plat === 'win32') {
-                var cmd = tl.createToolRunner(tl.which('cmd', true));
+                var cmd = tl.tool(tl.which('cmd', true));
                 cmd.arg('/c notExist');
 
                 var ret = cmd.execSync(_testExecOptions);
-                assert(ret.code === 1, 'return code of cmd should be 1 on failure');
+                assert.equal(ret.code, 1, 'return code of cmd should be 1 on failure');
             }
             else {
-                var ls = tl.createToolRunner(tl.which('ls', true));
+                var ls = tl.tool(tl.which('ls', true));
                 ls.arg('-j');
 
                 var ret = ls.execSync(_testExecOptions);
-                assert(ret.code === 1, 'return code of ls should be 1 on failure');
+                assert.equal(ret.code, 1, 'return code of ls should be 1 on failure');
             }
 
             assert(ret.stderr && ret.stderr.length > 0, 'should have emitted stderr');
@@ -1100,7 +1096,7 @@ describe('Test vsts-task-lib', function () {
             if (plat === 'win32') {
                 tl.exec('cmd', '/c echo \'vsts-task-lib\'', _testExecOptions)
                     .then(function (code) {
-                        assert(code === 0, 'return code of cmd should be 0');
+                        assert.equal(code, 0, 'return code of cmd should be 0');
                     })
                     .fail(function (err) {
                         assert.fail('cmd failed to run: ' + err.message);
@@ -1113,7 +1109,7 @@ describe('Test vsts-task-lib', function () {
             else {
                 tl.exec('ls', '-l -a', _testExecOptions)
                     .then(function (code) {
-                        assert(code === 0, 'return code of ls should be 0');
+                        assert.equal(code, 0, 'return code of ls should be 0');
                     })
                     .fail(function (err) {
                         assert.fail('ls failed to run: ' + err.message);
@@ -1144,14 +1140,14 @@ describe('Test vsts-task-lib', function () {
 
             if (plat === 'win32') {
                 var cmdPath = tl.which('cmd', true);
-                var cmd = tl.createToolRunner(cmdPath);
+                var cmd = tl.tool(cmdPath);
                 cmd.arg('/c echo \'vsts-task-lib\'');
 
                 cmd.exec(_testExecOptions)
                     .then(function (code) {
                         var contents = stdStream.getContents();
                         assert(contents.indexOf('exec tool: ' + cmdPath) >= 0, 'should exec cmd');
-                        assert(code === 0, 'return code of cmd should be 0');
+                        assert.equal(code, 0, 'return code of cmd should be 0');
                     })
                     .fail(function (err) {
                         assert.fail('ls failed to run: ' + err.message);
@@ -1162,7 +1158,7 @@ describe('Test vsts-task-lib', function () {
                     })
             }
             else {
-                var ls = tl.createToolRunner(tl.which('ls', true));
+                var ls = tl.tool(tl.which('ls', true));
                 ls.arg('-l');
                 ls.arg('-a');
 
@@ -1170,7 +1166,7 @@ describe('Test vsts-task-lib', function () {
                     .then(function (code) {
                         var contents = stdStream.getContents();
                         assert(contents.indexOf('exec tool: /bin/ls') >= 0, 'should exec ls');
-                        assert(code === 0, 'return code of ls should be 0');
+                        assert.equal(code, 0, 'return code of ls should be 0');
                     })
                     .fail(function (err) {
                         assert.fail('ls failed to run: ' + err.message);
@@ -1198,7 +1194,7 @@ describe('Test vsts-task-lib', function () {
 
             var output = '';
             if (plat === 'win32') {
-                var cmd = tl.createToolRunner(tl.which('cmd', true));
+                var cmd = tl.tool(tl.which('cmd', true));
                 cmd.arg('/c  echo \'vsts-task-lib\'');
 
                 cmd.on('stdout', (data) => {
@@ -1207,7 +1203,7 @@ describe('Test vsts-task-lib', function () {
 
                 cmd.exec(_testExecOptions)
                     .then(function (code) {
-                        assert(code === 0, 'return code of cmd should be 0');
+                        assert.equal(code, 0, 'return code of cmd should be 0');
                         assert(output && output.length > 0, 'should have emitted stdout');
                     })
                     .fail(function (err) {
@@ -1219,7 +1215,7 @@ describe('Test vsts-task-lib', function () {
                     })
             }
             else {
-                var ls = tl.createToolRunner(tl.which('ls', true));
+                var ls = tl.tool(tl.which('ls', true));
                 ls.arg('-l');
                 ls.arg('-a');
 
@@ -1229,7 +1225,7 @@ describe('Test vsts-task-lib', function () {
 
                 ls.exec(_testExecOptions)
                     .then(function (code) {
-                        assert(code === 0, 'return code of ls should be 0');
+                        assert.equal(code, 0, 'return code of ls should be 0');
                         assert(output && output.length > 0, 'should have emitted stdout');
                     })
                     .fail(function (err) {
@@ -1258,7 +1254,7 @@ describe('Test vsts-task-lib', function () {
 
             var output = '';
             if (plat === 'win32') {
-                var cmd = tl.createToolRunner(tl.which('cmd', true));
+                var cmd = tl.tool(tl.which('cmd', true));
                 cmd.arg('/c notExist');
 
                 cmd.on('stderr', (data) => {
@@ -1283,7 +1279,7 @@ describe('Test vsts-task-lib', function () {
                     })
             }
             else {
-                var ls = tl.createToolRunner(tl.which('ls', true));
+                var ls = tl.tool(tl.which('ls', true));
                 ls.arg('-j');
 
                 ls.on('stderr', (data) => {
@@ -1292,7 +1288,7 @@ describe('Test vsts-task-lib', function () {
 
                 ls.exec(_testExecOptions)
                     .then(function (code) {
-                        assert(code === 1, 'return code of ls -j should be 1');
+                        assert.equal(code, 1, 'return code of ls -j should be 1');
                         assert(output && output.length > 0, 'should have emitted stderr');
                     })
                     .fail(function (err) {
@@ -1312,7 +1308,7 @@ describe('Test vsts-task-lib', function () {
             this.timeout(1000);
 
             var scriptPath = path.join(__dirname, 'scripts', 'stderroutput.js');
-            var ls = tl.createToolRunner(tl.which('node', true));
+            var ls = tl.tool(tl.which('node', true));
             ls.arg(scriptPath);
 
             var _testExecOptions: trm.IExecOptions = {
@@ -1326,7 +1322,7 @@ describe('Test vsts-task-lib', function () {
             }
             ls.exec(_testExecOptions)
                 .then(function (code) {
-                    assert(code === 0, 'should have succeeded on stderr');
+                    assert.equal(code, 0, 'should have succeeded on stderr');
                     done();
                 })
                 .fail(function (err) {
@@ -1339,7 +1335,7 @@ describe('Test vsts-task-lib', function () {
             var failed = false;
 
             var scriptPath = path.join(__dirname, 'scripts', 'stderrOutput.js');
-            var ls = tl.createToolRunner(tl.which('node', true));
+            var ls = tl.tool(tl.which('node', true));
             ls.arg(scriptPath);
 
             var _testExecOptions: trm.IExecOptions = {
@@ -1353,7 +1349,7 @@ describe('Test vsts-task-lib', function () {
             }
             ls.exec(_testExecOptions)
                 .then(function (code) {
-                    assert(code === 0, 'should have succeeded on stderr');
+                    assert.equal(code, 0, 'should have succeeded on stderr');
                 })
                 .fail(function (err) {
                     failed = true;
@@ -1370,91 +1366,100 @@ describe('Test vsts-task-lib', function () {
         it('handles single args', function (done) {
             this.timeout(1000);
 
-            var node = tl.createToolRunner(tl.which('node', true));
+            var node = tl.tool(tl.which('node', true));
             node.arg('one');
             node.arg('two');
-            assert(node.args.length === 2, 'should have 2 args');
-            assert(node.args.toString() === 'one,two', 'should be one,two');
+            assert.equal(node.args.length, 2, 'should have 2 args');
+            assert.equal(node.args.toString(), 'one,two', 'should be one,two');
             done();
         })
+        it('handles arg chaining', function (done) {
+            this.timeout(1000);
+
+            var node = tl.tool(tl.which('node', true));
+            node.arg('one').arg('two').argIf(true, 'three').line('four five');
+            //node.arg('one').arg('two').argIf(true, 'three');
+            assert.equal(node.args.length, 5, 'should have 5 args');
+            assert.equal(node.args.toString(), 'one,two,three,four,five', 'should be one,two,three,four,five');
+            done();
+        })        
         it('handles padded spaces', function (done) {
             this.timeout(1000);
 
-            var node = tl.createToolRunner(tl.which('node', true));
+            var node = tl.tool(tl.which('node', true));
             node.arg(' one ');
             node.arg('two');
-            assert(node.args.length === 2, 'should have 2 args');
-            assert(node.args.toString() === 'one,two', 'should be one,two');
+            assert.equal(node.args.length, 2, 'should have 2 args');
+            assert.equal(node.args.toString(), 'one,two', 'should be one,two');
             done();
         })
         it('handles basic arg string with spaces', function (done) {
             this.timeout(1000);
 
-            var node = tl.createToolRunner(tl.which('node', true));
-            node.argString('one two');
+            var node = tl.tool(tl.which('node', true));
+            node.line('one two');
             node.arg('three');
-            assert(node.args.length === 3, 'should have 3 args');
-            assert(node.args.toString() === 'one,two,three', 'should be one,two,three');
+            assert.equal(node.args.length, 3, 'should have 3 args');
+            assert.equal(node.args.toString(), 'one,two,three', 'should be one,two,three');
             done();
         })
         it('handles arg string with extra spaces', function (done) {
             this.timeout(1000);
 
-            var node = tl.createToolRunner(tl.which('node', true));
-            node.argString('one   two');
+            var node = tl.tool(tl.which('node', true));
+            node.line('one   two');
             node.arg('three');
-            assert(node.args.length === 3, 'should have 3 args');
-            assert(node.args.toString() === 'one,two,three', 'should be one,two,three');
+            assert.equal(node.args.length, 3, 'should have 3 args');
+            assert.equal(node.args.toString(), 'one,two,three', 'should be one,two,three');
             done();
         })
         it('handles arg string with backslash', function (done) {
             this.timeout(1000);
 
-            var node = tl.createToolRunner(tl.which('node', true));
-            node.argString('one two\\arg');
+            var node = tl.tool(tl.which('node', true));
+            node.line('one two\\arg');
             node.arg('three');
-            assert(node.args.length === 3, 'should have 3 args');
-            assert(node.args.toString() === 'one,two\\arg,three', 'should be one,two,three');
+            assert.equal(node.args.length, 3, 'should have 3 args');
+            assert.equal(node.args.toString(), 'one,two\\arg,three', 'should be one,two,three');
             done();
         })
         it('handles equals and switches', function (done) {
             this.timeout(1000);
 
-            var node = tl.createToolRunner(tl.which('node', true));
-            node.argString('foo=bar -x');
+            var node = tl.tool(tl.which('node', true));
+            node.line('foo=bar -x');
             node.arg('-y');
-            assert(node.args.length === 3, 'should have 3 args');
-            assert(node.args.toString() === 'foo=bar,-x,-y', 'should be foo=bar,-x,-y');
+            assert.equal(node.args.length, 3, 'should have 3 args');
+            assert.equal(node.args.toString(), 'foo=bar,-x,-y', 'should be foo=bar,-x,-y');
             done();
         })
         it('handles double quotes', function (done) {
             this.timeout(1000);
 
-            var node = tl.createToolRunner(tl.which('node', true));
-            node.argString('foo="bar baz" -x');
+            var node = tl.tool(tl.which('node', true));
+            node.line('foo="bar baz" -x');
             node.arg('-y');
-            assert(node.args.length === 3, 'should have 3 args');
-            assert(node.args.toString() === 'foo=bar baz,-x,-y', 'should be foo=bar baz,-x,-y');
+            assert.equal(node.args.length, 3, 'should have 3 args');
+            assert.equal(node.args.toString(), 'foo=bar baz,-x,-y', 'should be foo=bar baz,-x,-y');
             done();
         })
         it('handles quote in double quotes', function (done) {
             this.timeout(1000);
 
-            var node = tl.createToolRunner(tl.which('node', true));
-            node.argString('foo="bar \\" baz" -x');
+            var node = tl.tool(tl.which('node', true));
+            node.line('foo="bar \\" baz" -x');
             node.arg('-y');
-            assert(node.args.length === 3, 'should have 3 args');
-            assert(node.args.toString() === 'foo=bar " baz,-x,-y', 'should be foo=bar " baz,-x,-y');
+            assert.equal(node.args.length, 3, 'should have 3 args');
+            assert.equal(node.args.toString(), 'foo=bar " baz,-x,-y', 'should be foo=bar " baz,-x,-y');
             done();
         })
         it('handles literal path', function (done) {
             this.timeout(1000);
 
-            var node = tl.createToolRunner(tl.which('node', true));
-            node.pathArg('/bin/working folder1');
-            node.arg('/bin/working folder2');
-            assert(node.args.length === 2, 'should have 2 args');
-            assert(node.args.toString() === '/bin/working folder1,/bin/working folder2', 'should be /bin/working folder1 /bin/working folder2');
+            var node = tl.tool(tl.which('node', true));
+            node.arg('--path').arg('/bin/working folder1');
+            assert.equal(node.args.length, 2, 'should have 2 args');
+            assert.equal(node.args.toString(), '--path,/bin/working folder1', 'should be --path /bin/working folder1');
             done();
         })
     });
@@ -1499,9 +1504,9 @@ describe('Test vsts-task-lib', function () {
 
             tl.setResourcePath(jsonPath);
 
-            assert(tl.loc('key1') === 'loc cn-string for key 1.', 'string not found for key.');
-            assert(tl.loc('key2', 2) === 'loc cn-string for key 2.', 'string not found for key.');
-            assert(tl.loc('key3') === 'loc cn-string for key %%.', 'string not found for key.');
+            assert.equal(tl.loc('key1'), 'loc cn-string for key 1.', 'string not found for key.');
+            assert.equal(tl.loc('key2', 2), 'loc cn-string for key 2.', 'string not found for key.');
+            assert.equal(tl.loc('key3'), 'loc cn-string for key %%.', 'string not found for key.');
 
             done();
         })
@@ -1517,7 +1522,7 @@ describe('Test vsts-task-lib', function () {
             process.env['SYSTEM_CULTURE'] = 'zh-CN';
 
             tl.setResourcePath(jsonPath);
-            assert(tl.loc('key2', 2) === 'string for key 2.', 'en-US fallback string not return for key.');
+            assert.equal(tl.loc('key2', 2), 'string for key 2.', 'en-US fallback string not return for key.');
 
             done();
         })
@@ -1539,7 +1544,7 @@ describe('Test vsts-task-lib', function () {
             process.env['SYSTEM_CULTURE'] = 'zh-CN';
 
             tl.setResourcePath(jsonPath);
-            assert(tl.loc('key2', 2) === 'string for key 2.', 'en-US fallback string not return for key.');
+            assert.equal(tl.loc('key2', 2), 'string for key 2.', 'en-US fallback string not return for key.');
 
             done();
         })
@@ -1561,7 +1566,7 @@ describe('Test vsts-task-lib', function () {
             process.env['SYSTEM_CULTURE'] = '';
 
             tl.setResourcePath(jsonPath);
-            assert(tl.loc('key2', 2) === 'loc en-string for key 2.', 'en-US fallback string not return for key.');
+            assert.equal(tl.loc('key2', 2), 'loc en-string for key 2.', 'en-US fallback string not return for key.');
 
             done();
         })
@@ -1575,7 +1580,7 @@ describe('Test vsts-task-lib', function () {
             fs.writeFileSync(jsonPath, jsonStr);
 
             tl.setResourcePath(jsonPath);
-            assert(tl.loc('key3', 3) === 'key3 3', 'key and params not return for non-exist key.');
+            assert.equal(tl.loc('key3', 3), 'key3 3', 'key and params not return for non-exist key.');
 
             done();
         })
@@ -1590,7 +1595,7 @@ describe('Test vsts-task-lib', function () {
 
             var output = stdStream.getContents();
             var expectedOutput = _buildOutput(["##vso[codecoverage.publish codecoveragetool=Jacoco;summaryfile=\\user\\admin\\summary.xml;reportdirectory=\\user\\admin\\report;additionalcodecoveragefiles=\\user\\admin\\report\\t.xml,\\user\\admin\\report\\c.xml;]"]);
-            assert(expectedOutput === output, _mismatch(expectedOutput, output));
+            assert.equal(expectedOutput, output);
             done();
         })
 
@@ -1604,7 +1609,7 @@ describe('Test vsts-task-lib', function () {
 
             var output = stdStream.getContents();
             var expectedOutput = _buildOutput(["##vso[codecoverage.publish]"]);
-            assert(expectedOutput === output, _mismatch(expectedOutput, output));
+            assert.equal(expectedOutput, output);
             done();
         })
 
@@ -1618,7 +1623,7 @@ describe('Test vsts-task-lib', function () {
 
             var output = stdStream.getContents();
             var expectedOutput = _buildOutput(["##vso[codecoverage.publish]"]);
-            assert(expectedOutput === output, _mismatch(expectedOutput, output));
+            assert.equal(expectedOutput, output);
             done();
         })
 
@@ -1633,7 +1638,7 @@ describe('Test vsts-task-lib', function () {
 
             var output = stdStream.getContents();
             var expectedOutput = _buildOutput(["##vso[codecoverage.enable ]"]);
-            assert(expectedOutput === output, _mismatch(expectedOutput, output));
+            assert.equal(expectedOutput, output);
             done();
         })
 
@@ -1649,7 +1654,7 @@ describe('Test vsts-task-lib', function () {
 
             var output = stdStream.getContents();
             var expectedOutput = _buildOutput(["##vso[codecoverage.enable abc=xyz;buildtool=jacoco;codecoveragetool=buildtool;]"]);
-            assert(expectedOutput === output, _mismatch(expectedOutput, output));
+            assert.equal(expectedOutput, output);
             done();
         })
 
@@ -1664,7 +1669,7 @@ describe('Test vsts-task-lib', function () {
 
             var output = stdStream.getContents();
             var expectedOutput = _buildOutput(["##vso[codecoverage.enable buildtool=jacoco;codecoveragetool=buildtool;]"]);
-            assert(expectedOutput === output, _mismatch(expectedOutput, output));
+            assert.equal(expectedOutput, output);
             done();
         })
 

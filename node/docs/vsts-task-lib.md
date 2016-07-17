@@ -31,7 +31,7 @@ import tl = require('vsts-task-lib/task')
  
 ### Execution <a href="#Execution">(v)</a>
  
-<a href="#taskcreateToolRunner">createToolRunner</a> <br/>
+<a href="#tasktool">tool</a> <br/>
 <a href="#toolrunnerToolRunnerarg">ToolRunner.arg</a> <br/>
 <a href="#toolrunnerToolRunnerargstring">ToolRunner.argString</a> <br/>
 <a href="#toolrunnerToolRunnerargIf">ToolRunner.argIf</a> <br/>
@@ -192,33 +192,24 @@ Tasks typically execute a series of tools (cli) and set the result of the task b
 ```javascript
 /// <reference path="../definitions/vsts-task-lib.d.ts" />
 import tl = require('vsts-task-lib/task');
+import tr = require('vsts-task-lib/toolrunner');
 
-var toolPath = tl.which('atool');
-var tool = tl.createToolRunner(toolPath);
-
-tool.arg('--afile');
-tool.arg(tl.getPathInput('afile', true));
-
-// NOTE: arg function handles complex additional args with double quotes like
-//       "arg one" arg2 -x
-//
-tool.arg(tl.getInput('arguments', false));
-
-tool.exec()
-.then((code) => {
-    tl.setResult(tl.TaskResult.Succeeded, "tool returned " + code);
-})
-.fail((err) => {
-    tl.debug('toolRunner fail');
+try {
+    var toolPath = tl.which('atool');
+    var atool:tr.ToolRunner = tl.tool(toolPath).arg('--afile').line('arguments');
+    var code: number = await tr.exec(); 
+    console.log('rc=' + code);
+}
+catch (err) {
     tl.setResult(tl.TaskResult.Failed, err.message);
-})
+}
 ```
 <br/>
-<div id="taskcreateToolRunner">
-### task.createToolRunner <a href="#index">(^)</a>
+<div id="tasktool">
+### task.tool <a href="#index">(^)</a>
 Convenience factory to create a ToolRunner.
 ```javascript
-createToolRunner(tool:string):ToolRunner
+tool(tool:string):ToolRunner
 ```
  
 Param | Type | Description
@@ -230,23 +221,25 @@ tool | string | path to tool to exec
 ### toolrunner.ToolRunner.arg <a href="#index">(^)</a>
 Adds individual arguments
 Accepts a string argument or a string array as well
+returns a toolrunner for chaining
 ```javascript
-arg(val:string | string[]):void
+arg(val:string | string[]):ToolRunner
 ```
  
 Param | Type | Description
 --- | --- | ---
-val | string or string[] | string cmdline or array of strings
+val | string or string[]
 
 <br/>
-<div id="toolrunnerToolRunnerargstring">
-### toolrunner.ToolRunner.argString <a href="#index">(^)</a>
+<div id="toolrunnerToolRunnerline">
+### toolrunner.ToolRunner.line <a href="#index">(^)</a>
 Add command line args
 Accepts a full string command line
 Will handle double quoted args. 
 E.g. '"arg one" two -z'
+returns a toolrunner for chaining
 ```javascript
-argString(val:string):void
+line(val:string):void
 ```
  
 Param | Type | Description
@@ -258,6 +251,7 @@ val | string | string cmdline
 ### toolrunner.ToolRunner.argIf <a href="#index">(^)</a>
 Add argument(s) if a condition is met
 Wraps arg().  See arg for details
+returns a toolrunner for chaining
 ```javascript
 argIf(condition:any, val:any):void
 ```
@@ -360,7 +354,8 @@ options | IExecOptions | optionalexec options.  See IExecOptions
 <div id="tasksetResult">
 ### task.setResult <a href="#index">(^)</a>
 Sets the result of the task.
-This does not affect execution.  If not set, task will be Succeeded.
+Execution will continue.  
+If not set, task will be Succeeded.
 ```javascript
 setResult(result:TaskResult, message:string):void
 ```

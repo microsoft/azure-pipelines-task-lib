@@ -129,11 +129,12 @@ export class ToolRunner extends events.EventEmitter {
     /**
      * Add argument
      * Append an argument or an array of arguments 
+     * returns ToolRunner for chaining
      * 
      * @param     val        string cmdline or array of strings
-     * @returns   void
+     * @returns   ToolRunner
      */
-    public arg(val: string | string[]) {
+    public arg(val: string | string[]): ToolRunner {
         if (!val) {
             return;
         }
@@ -146,49 +147,42 @@ export class ToolRunner extends events.EventEmitter {
             this._debug(this.toolPath + ' arg: ' + val);
             this.args = this.args.concat(val.trim());
         }
+
+        return this;
     }
 
     /**
      * Append argument command line string
-     * e.g. '"arg one" two -z' would append args[]=['arg one', 'two', '-z'] 
+     * e.g. '"arg one" two -z' would append args[]=['arg one', 'two', '-z']
+     * returns ToolRunner for chaining 
      * 
      * @param     val        string cmdline
-     * @returns   void
+     * @returns   ToolRunner
      */
-    public argString(val: string) {
+    public line(val: string): ToolRunner {
         if (!val) {
             return;
         }
 
         this._debug(this.toolPath + ' arg: ' + val);
-        this.args = this.args.concat(this._argStringToArray(val));    
-    }
-
-    /**
-     * Add path argument
-     * Add path string to argument, path string should not contain double quoted
-     * This will call arg(val, literal?) with literal equal 'true' 
-     * 
-     * @param     val     path argument string
-     * @returns   void
-     */
-    public pathArg(val: string) {
-        this._debug(this.toolPath + ' pathArg: ' + val);
-        this.arg(val);
+        this.args = this.args.concat(this._argStringToArray(val));
+        return this;    
     }
     
     /**
      * Add argument(s) if a condition is met
      * Wraps arg().  See arg for details
+     * returns ToolRunner for chaining
      *
      * @param     condition     boolean condition
      * @param     val     string cmdline or array of strings
-     * @returns   void
+     * @returns   ToolRunner
      */
     public argIf(condition: any, val: any) {
         if (condition) {
             this.arg(val);
         }
+        return this;
     }
 
     /**

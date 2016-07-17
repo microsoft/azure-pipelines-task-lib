@@ -907,7 +907,7 @@ export function globFirst(pattern: string): string {
  */
 export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Promise<number> {
     var toolPath = which(tool, true);
-    var tr = createToolRunner(toolPath);
+    var tr: trm.ToolRunner = this.tool(toolPath);
     tr.on('debug', (data) => {
         debug(data);
     });
@@ -917,7 +917,7 @@ export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Pro
             tr.arg(args);
         }
         else if (typeof (args) === 'string') {
-            tr.argString(args)
+            tr.line(args)
         }
     }
     return tr.exec(options);
@@ -936,7 +936,7 @@ export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Pro
  */
 export function execSync(tool: string, args: string | string[], options?: trm.IExecOptions): trm.IExecResult {
     var toolPath = which(tool, true);
-    var tr = createToolRunner(toolPath);
+    var tr: trm.ToolRunner = this.tool(toolPath);
     tr.on('debug', (data) => {
         debug(data);
     });
@@ -946,7 +946,7 @@ export function execSync(tool: string, args: string | string[], options?: trm.IE
             tr.arg(args);
         }
         else if (typeof (args) === 'string') {
-            tr.argString(args)
+            tr.line(args)
         }
     }
 
@@ -959,7 +959,7 @@ export function execSync(tool: string, args: string | string[], options?: trm.IE
  * @param     tool     path to tool to exec
  * @returns   ToolRunner
  */
-export function createToolRunner(tool: string) {
+export function tool(tool: string) {
     var tr: trm.ToolRunner = new trm.ToolRunner(tool);
     tr.on('debug', (message: string) => {
         debug(message);

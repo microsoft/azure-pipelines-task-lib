@@ -20,3 +20,16 @@
 ## 0.7.0
  * Updated `ToolRunner.arg` to simply append to the arg array that is passed to `spawn`.
  * Added `ToolRunner.argString` to split additional arguments, which are then appended to the arg array that is passed to `spawn`.
+
+## 0.8.x
+ * Starting API clean of deprecated method.
+ * tl.exit() removed.  Unsafe to exit process.  Script should execute
+
+## 0.9.5
+ * API clean up as we approach 1.0 major version
+ * Added typings to npm module so typescript and VS Code finds easily 
+ * `tl.createToolRunner()` changed to `tl.tool()`;
+ * `tr.arg`, `tr.argIf` returns ToolRunner now for easy chaining
+ * `tr.argString` changed to `tr.line`
+ * `tr.argPath` removed.  It was a compat only useless method.
+ * changes above allow easy lines like `await tl.tool('git').arg('--version');`
