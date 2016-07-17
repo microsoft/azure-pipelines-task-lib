@@ -13,16 +13,19 @@ TODO: posting soon
 
 ## Tools 
 
-[Typescript Compiler 1.8.7 or greater](https://www.npmjs.com/package/typescript)
+[Typescript Compiler 1.8.7 or greater](https://www.npmjs.com/package/typescript)  
+
 [Node 4.4.7 (LTS) or greater](https://nodejs.org/en/)  
+
 [Npm 3.0 or greater recommended](https://www.npmjs.com/package/npm3) (comes with node >=5. creates flat dependencies in tasks)  
-[Typings 1.0 or greater](https://github.com/typings/typings/blob/master/README.md)  
+
+[Typings 1.0 or greater](https://github.com/typings/typings/blob/master/README.md)    
 
 This tutorial uses [VS Code](https://code.visualstudio.com) for great intellisense and debugging support
 
 ## Sample Files
 
-Files used for this walk through are [located here in this gist](https://gist.github.com/bryanmacfarlane/154f14dd8cb11a71ef04b0c836e5be6e)**
+Files used for this walk through are [located here in this gist](https://gist.github.com/bryanmacfarlane/154f14dd8cb11a71ef04b0c836e5be6e)
 
 ## Create Task Scaffolding
 
@@ -34,8 +37,8 @@ $ npm init
 
 ### Add vsts-task-lib
 
-Add vsts-task-lib to your task.  Remember your task must carry the lib.  
-Ensure it's at least 0.9.5 which now carries typings.  
+Add vsts-task-lib to your task.  Remember your task must carry the lib.  Ensure it's at least 0.9.5 which now carries typings.  
+
 The package.json should have dependency with ^.  Ex: ^0.9.5.  This means you are locked to 0.9.x and will pick up patches on npm install.
 
 The npm module carries the .d.ts typecript definition files so compile and intellisense support will just work.
@@ -57,8 +60,7 @@ $ typings install dt~node --global --save
 $ typings install dt~q --global --save
 ```
 
-Create a .gitignore and add node_modules and typings to it.  
-Your build process should do `npm install` and `typings install`.  No need to checkin dependencies.
+Create a .gitignore and add node_modules and typings to it.  Your build process should do `npm install` and `typings install`.  No need to checkin dependencies.
 
 ```bash
 $ cat .gitignore
@@ -74,7 +76,8 @@ Create a `tsconfig.json` file from the sample gist.  The most important piece be
 
 Now that the scaffolding is out of the way, let's create the task!
 
-Create a `task.json` file using `sample_task.json` as a starting point.  
+Create a `task.json` file using `sample_task.json` as a starting point.    
+
 Replace the `{{placeholders}}`.  The most important being a [unique guid](http://www.guidgen.com/).
 Note: copy from web view since file needs property names in quotes (browser might strip in raw view)
 
@@ -164,6 +167,8 @@ Hello World
 Task done! 0,-1
 -=B=- ~/Projects/sampletask$ 
 ```
+
+> TIP: be careful with chars like ! in env vars.  [Example here](http://superuser.com/questions/133780/in-bash-how-do-i-escape-an-exclamation-mark) 
 
 Now let's set the sample bool.  This should fail since if sample bool is true, it should need the other input.  See the code.
 
