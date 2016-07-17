@@ -13,6 +13,8 @@ Cross platform tasks are written in Typescript.  It is the preferred way to writ
 
 [![NPM version][npm-lib-image]][npm-lib-url]
 
+Step by Step: [Create Task](docs/stepbystep.md)  
+
 Documentation: [Typescript API](docs/vsts-task-lib.md)
 
 ## Contributing
