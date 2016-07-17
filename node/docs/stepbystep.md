@@ -125,11 +125,11 @@ But, see the [API Reference](vsts-task-lib.md) for specifics.
 
 ## Compile
 
-Just type `tsc` from the root of the task.  That should have compiled a task.js
+Just type `tsc` from the root of the task.  That should have compiled an index.js
 
 ## Run the Task
 
-The task can be run by simply running `node task.js`.  Note that is exactly what our agent will do.
+The task can be run by simply running `node index.js`.  Note that is exactly what our agent will do.
 
 ```bash
 $ node index.js
