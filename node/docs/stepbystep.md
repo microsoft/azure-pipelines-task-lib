@@ -165,7 +165,7 @@ Hello World
 ##vso[task.debug]success:true
 ##vso[task.debug]samplebool=null
 Task done! 0,-1
--=B=- ~/Projects/sampletask$ 
+$ 
 ```
 
 > TIP: be careful with chars like ! in env vars.  [Example here](http://superuser.com/questions/133780/in-bash-how-do-i-escape-an-exclamation-mark) 
@@ -173,8 +173,8 @@ Task done! 0,-1
 Now let's set the sample bool.  This should fail since if sample bool is true, it should need the other input.  See the code.
 
 ```bash
--=B=- ~/Projects/sampletask$ export INPUT_SAMPLEBOOL=true
--=B=- ~/Projects/sampletask$ node index.js
+$ export INPUT_SAMPLEBOOL=true
+$ node index.js
 ##vso[task.debug]agent.workFolder=undefined
 ##vso[task.debug]loading inputs and endpoints
 ##vso[task.debug]loading INPUT_SAMPLEBOOL
