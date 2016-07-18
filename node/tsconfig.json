@@ -3,8 +3,7 @@
         "target": "ES5",
         "module": "commonjs",
         "declaration": true,
-        "moduleResolution": "node",
-        "removeComments": true      
+        "moduleResolution": "node"      
     },
     "files": [
         "extensions.ts",
