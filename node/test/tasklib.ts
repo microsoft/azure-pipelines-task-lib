@@ -803,6 +803,20 @@ describe('Test vsts-task-lib', function () {
             assert.equal(tc.toString(), '##vso[some.cmd]a message');
             done();
         })
+        it('handles boolean properties', function (done) {
+            this.timeout(1000);
+
+            var tc = new tcm.TaskCommand('some.cmd', { foo: false }, 'a message');
+            assert.equal(tc.toString(), '##vso[some.cmd foo=false;]a message');
+            done();
+        })
+        it('handles undefined properties', function (done) {
+            this.timeout(1000);
+
+            var tc = new tcm.TaskCommand('some.cmd', { foo: undefined }, 'a message');
+            assert.equal(tc.toString(), '##vso[some.cmd ]a message');
+            done();
+        })
         it('parses cmd with no properties', function (done) {
             var cmdStr = '##vso[basic.command]messageVal';
 
