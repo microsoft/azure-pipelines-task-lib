@@ -31,7 +31,7 @@ export class TaskCommand {
             for (var key in this.properties) {
                 if (this.properties.hasOwnProperty(key)) {
                     var val = this.properties[key];
-                    if (val) {
+                    if (val != null) {
                         cmdStr += key + '=' + val + ';';
                     }                    
                 }
