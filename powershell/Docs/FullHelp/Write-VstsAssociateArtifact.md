@@ -5,7 +5,7 @@ NAME
     Write-VstsAssociateArtifact
 
 SYNOPSIS
-    See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 SYNTAX
     Write-VstsAssociateArtifact [-Name] <String> [-Path] <String> [-Type] <String> [[-Properties]

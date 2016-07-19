@@ -5,7 +5,7 @@ NAME
     Write-VstsSetProgress
 
 SYNOPSIS
-    See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 SYNTAX
     Write-VstsSetProgress [-Percent] <Int32> [[-CurrentOperation] <String>] [-AsOutput] [<CommonParameters>]

@@ -5,7 +5,7 @@ NAME
     Write-VstsTaskDebug
 
 SYNOPSIS
-    See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 SYNTAX
     Write-VstsTaskDebug [[-Message] <String>] [-AsOutput] [<CommonParameters>]

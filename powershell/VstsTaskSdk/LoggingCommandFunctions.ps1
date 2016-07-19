@@ -10,7 +10,7 @@ $script:loggingCommandEscapeMappings = @( # TODO: WHAT ABOUT "="? WHAT ABOUT "%"
 
 <#
 .SYNOPSIS
-See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 .PARAMETER AsOutput
 Indicates whether to write the logging command directly to the host or to the output pipeline.
@@ -34,7 +34,7 @@ function Write-AddAttachment {
 
 <#
 .SYNOPSIS
-See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 .PARAMETER AsOutput
 Indicates whether to write the logging command directly to the host or to the output pipeline.
@@ -51,7 +51,7 @@ function Write-AddBuildTag {
 
 <#
 .SYNOPSIS
-See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 .PARAMETER AsOutput
 Indicates whether to write the logging command directly to the host or to the output pipeline.
@@ -82,7 +82,7 @@ function Write-AssociateArtifact {
 
 <#
 .SYNOPSIS
-See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 .PARAMETER AsOutput
 Indicates whether to write the logging command directly to the host or to the output pipeline.
@@ -124,7 +124,7 @@ function Write-LogDetail {
 
 <#
 .SYNOPSIS
-See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 .PARAMETER AsOutput
 Indicates whether to write the logging command directly to the host or to the output pipeline.
@@ -145,7 +145,7 @@ function Write-SetProgress {
 
 <#
 .SYNOPSIS
-See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 .PARAMETER AsOutput
 Indicates whether to write the logging command directly to the host or to the output pipeline.
@@ -174,7 +174,7 @@ function Write-SetResult {
 
 <#
 .SYNOPSIS
-See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 .PARAMETER AsOutput
 Indicates whether to write the logging command directly to the host or to the output pipeline.
@@ -191,7 +191,7 @@ function Write-SetSecret {
 
 <#
 .SYNOPSIS
-See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 .PARAMETER AsOutput
 Indicates whether to write the logging command directly to the host or to the output pipeline.
@@ -213,7 +213,7 @@ function Write-SetVariable {
 
 <#
 .SYNOPSIS
-See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 .PARAMETER AsOutput
 Indicates whether to write the logging command directly to the host or to the output pipeline.
@@ -229,7 +229,7 @@ function Write-TaskDebug {
 
 <#
 .SYNOPSIS
-See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 .PARAMETER AsOutput
 Indicates whether to write the logging command directly to the host or to the output pipeline.
@@ -249,7 +249,7 @@ function Write-TaskError {
 
 <#
 .SYNOPSIS
-See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 .PARAMETER AsOutput
 Indicates whether to write the logging command directly to the host or to the output pipeline.
@@ -265,7 +265,7 @@ function Write-TaskVerbose {
 
 <#
 .SYNOPSIS
-See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 .PARAMETER AsOutput
 Indicates whether to write the logging command directly to the host or to the output pipeline.
@@ -285,7 +285,7 @@ function Write-TaskWarning {
 
 <#
 .SYNOPSIS
-See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 .PARAMETER AsOutput
 Indicates whether to write the logging command directly to the host or to the output pipeline.
@@ -302,7 +302,7 @@ function Write-UpdateBuildNumber {
 
 <#
 .SYNOPSIS
-See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 .PARAMETER AsOutput
 Indicates whether to write the logging command directly to the host or to the output pipeline.
@@ -326,7 +326,7 @@ function Write-UploadArtifact {
 
 <#
 .SYNOPSIS
-See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 .PARAMETER AsOutput
 Indicates whether to write the logging command directly to the host or to the output pipeline.
