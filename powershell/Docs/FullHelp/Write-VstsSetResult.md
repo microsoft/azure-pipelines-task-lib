@@ -5,7 +5,7 @@ NAME
     Write-VstsSetResult
 
 SYNOPSIS
-    See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 SYNTAX
     Write-VstsSetResult -Result <String> [-Message <String>] [-AsOutput] [<CommonParameters>]

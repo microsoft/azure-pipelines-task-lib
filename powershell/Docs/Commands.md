@@ -174,7 +174,7 @@ NAME
     Write-VstsAddAttachment
 
 SYNOPSIS
-    See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 SYNTAX
     Write-VstsAddAttachment [-Type] <String> [-Name] <String> [-Path] <String> [-AsOutput]
@@ -187,7 +187,7 @@ NAME
     Write-VstsAddBuildTag
 
 SYNOPSIS
-    See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 SYNTAX
     Write-VstsAddBuildTag [-Value] <String> [-AsOutput] [<CommonParameters>]
@@ -199,7 +199,7 @@ NAME
     Write-VstsAssociateArtifact
 
 SYNOPSIS
-    See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 SYNTAX
     Write-VstsAssociateArtifact [-Name] <String> [-Path] <String> [-Type] <String> [[-Properties]
@@ -212,7 +212,7 @@ NAME
     Write-VstsLogDetail
 
 SYNOPSIS
-    See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 SYNTAX
     Write-VstsLogDetail [-Id] <Guid> [[-ParentId] <Object>] [[-Type] <String>] [[-Name] <String>] [[-Order]
@@ -226,7 +226,7 @@ NAME
     Write-VstsSetProgress
 
 SYNOPSIS
-    See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 SYNTAX
     Write-VstsSetProgress [-Percent] <Int32> [[-CurrentOperation] <String>] [-AsOutput] [<CommonParameters>]
@@ -238,7 +238,7 @@ NAME
     Write-VstsSetResult
 
 SYNOPSIS
-    See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 SYNTAX
     Write-VstsSetResult -Result <String> [-Message <String>] [-AsOutput] [<CommonParameters>]
@@ -252,7 +252,7 @@ NAME
     Write-VstsSetSecret
 
 SYNOPSIS
-    See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 SYNTAX
     Write-VstsSetSecret [-Value] <String> [-AsOutput] [<CommonParameters>]
@@ -264,7 +264,7 @@ NAME
     Write-VstsSetVariable
 
 SYNOPSIS
-    See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 SYNTAX
     Write-VstsSetVariable [-Name] <String> [[-Value] <String>] [-Secret] [-AsOutput] [<CommonParameters>]
@@ -276,7 +276,7 @@ NAME
     Write-VstsTaskDebug
 
 SYNOPSIS
-    See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 SYNTAX
     Write-VstsTaskDebug [[-Message] <String>] [-AsOutput] [<CommonParameters>]
@@ -288,7 +288,7 @@ NAME
     Write-VstsTaskError
 
 SYNOPSIS
-    See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 SYNTAX
     Write-VstsTaskError [[-Message] <String>] [[-ErrCode] <String>] [[-SourcePath] <String>] [[-LineNumber]
@@ -301,7 +301,7 @@ NAME
     Write-VstsTaskVerbose
 
 SYNOPSIS
-    See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 SYNTAX
     Write-VstsTaskVerbose [[-Message] <String>] [-AsOutput] [<CommonParameters>]
@@ -313,7 +313,7 @@ NAME
     Write-VstsTaskWarning
 
 SYNOPSIS
-    See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 SYNTAX
     Write-VstsTaskWarning [[-Message] <String>] [[-ErrCode] <String>] [[-SourcePath] <String>] [[-LineNumber]
@@ -326,7 +326,7 @@ NAME
     Write-VstsUpdateBuildNumber
 
 SYNOPSIS
-    See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 SYNTAX
     Write-VstsUpdateBuildNumber [-Value] <String> [-AsOutput] [<CommonParameters>]
@@ -338,7 +338,7 @@ NAME
     Write-VstsUploadArtifact
 
 SYNOPSIS
-    See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 SYNTAX
     Write-VstsUploadArtifact [-ContainerFolder] <String> [-Name] <String> [-Path] <String> [-AsOutput]
@@ -351,7 +351,7 @@ NAME
     Write-VstsUploadBuildLog
 
 SYNOPSIS
-    See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 SYNTAX
     Write-VstsUploadBuildLog [-Path] <String> [-AsOutput] [<CommonParameters>]

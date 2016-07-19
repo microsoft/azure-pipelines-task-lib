@@ -5,7 +5,7 @@ Libraries for writing [Visual Studio Team Services](https://www.visualstudio.com
 
 ![VSTS](https://mseng.visualstudio.com/DefaultCollection/_apis/public/build/definitions/b924d696-3eae-4116-8443-9a18392d8544/2553/badge)
 
-Reference examples of our in the box tasks [are here](https://github.com/Microsoft/vso-agent-tasks)
+Reference examples of our in the box tasks [are here](https://github.com/Microsoft/vsts-tasks)
 
 ## Typescript Tasks  
 
