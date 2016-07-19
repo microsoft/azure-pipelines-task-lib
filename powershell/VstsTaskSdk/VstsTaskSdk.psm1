@@ -53,7 +53,9 @@ Export-ModuleMember -Function @(
         'Out-Default'
         # Server OM functions.
         'Get-TfsClientCredentials'
+        'Get-TfsService'
         'Get-VssCredentials'
+        'Get-VssHttpClient'
         # Tool functions.
         'Assert-Path'
         'Invoke-Tool'
