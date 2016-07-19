@@ -730,12 +730,12 @@ export function which(tool: string, check?: boolean): string {
                         toolPath = attempt;
                         return;
                     }
-                    attempt = baseAttempt + '.cmd';
+                    attempt = baseAttempt + '.bat';
                     if (exist(attempt) && stats(attempt).isFile) {
                         toolPath = attempt;
                         return;
                     }
-                    attempt = baseAttempt + '.bat';
+                    attempt = baseAttempt + '.cmd';
                     if (exist(attempt) && stats(attempt).isFile) {
                         toolPath = attempt;
                         return;
