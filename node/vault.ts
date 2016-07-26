@@ -15,7 +15,7 @@ var algorithm = "aes-256-ctr";
 // The secret is generated and stored externally for the lifetime of the task.
 //
 export class Vault {
-    constructor(keyPath: string) {        
+    constructor(keyPath: string) {
         this._keyFile = path.join(keyPath, '.taskkey');
         this._store = <{[key: string] : string}>{};
         this.genKey();
@@ -29,11 +29,19 @@ export class Vault {
     }
 
     public storeSecret(name: string, data: string): boolean {
-        if (!name || name.length == 0 || !data || data.length == 0) {
+        if (!name || name.length == 0) {
             return false;
         }
 
         name = name.toLowerCase()
+        if (!data || data.length == 0) {
+            if (this._store.hasOwnProperty(name)) {
+                delete this._store[name];
+            }
+
+            return false;
+        }
+
         var key = this.getKey();
         var cipher = crypto.createCipher(algorithm, key);
         var crypted = cipher.update(data,'utf8','hex')
@@ -54,9 +62,9 @@ export class Vault {
             dec += decipher.final('utf8');
             secret = dec;
         }
-        
+
         return secret;
-    }    
+    }
 
     private getKey()
     {

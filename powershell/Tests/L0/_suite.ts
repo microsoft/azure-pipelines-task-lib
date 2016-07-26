@@ -4,31 +4,30 @@
 
 import Q = require('q');
 import assert = require('assert');
-import psm = require('../lib/psRunner');
+import psRunner = require('../lib/psRunner');
 import path = require('path');
 import fs = require('fs');
 var shell = require('shelljs');
-var ps = shell.which('powershell');
+var ps = shell.which('powershell.exe');
 describe('VstsTaskSdk Suite', function () {
     this.timeout(20000);
 
     before((done) => {
-        // init here
         done();
     });
 
-    after(function () {
+    after(() => {
+        psRunner.ensureStopped();
     });
 
     if (ps) {
-        fs.readdirSync(__dirname).forEach(function (file: string) {
-            var ext = path.extname(file);
-            if (ext.toLowerCase() == ".ps1") {
-                // if (file.indexOf("StrictMode") >= 0) {
-                    it(path.basename(file, ext), (done) => {
-                        psm.runPS(path.join(__dirname, file), done);
-                    })
-                // }
+        fs.readdirSync(__dirname).forEach((file: string) => {
+            let fullPath = path.join(__dirname, file);
+            if (file.match(/.ps1$/)) {
+                let description: string = path.basename(file, '.ps1');
+                it(description, (done) => {
+                    psRunner.run(fullPath, done);
+                });
             }
         });
     }

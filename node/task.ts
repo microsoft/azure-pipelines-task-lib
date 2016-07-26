@@ -17,7 +17,18 @@ export enum TaskResult {
     Failed = 1
 }
 
-var vault: vm.Vault;
+/**
+ * Hash table of known variable info. The formatted env var name is the lookup key.
+ *
+ * The purpose of this hash table is to keep track of known variables. The hash table
+ * needs to be maintained for multiple reasons:
+ *  1) to distinguish between env vars and job vars
+ *  2) to distinguish between secret vars and public
+ *  3) to know the real variable name and not just the formatted env var name.
+ */
+let knownVariableMap: { [key: string]: KnownVariableInfo; } = { };
+
+let vault: vm.Vault;
 
 //-----------------------------------------------------
 // String convenience
@@ -243,19 +254,33 @@ export function loc(key: string, ...param: any[]): string {
 // Input Helpers
 //-----------------------------------------------------
 /**
- * Gets a variables value which is defined on the build definition or set at runtime.
+ * Gets a variable value that is defined on the build/release definition or set at runtime.
  * 
  * @param     name     name of the variable to get
  * @returns   string
  */
 export function getVariable(name: string): string {
-    var varval;
-    if (vault) {
-        varval = vault.retrieveSecret('SECRET_' + name.replace(/\./g, '_').toUpperCase());
+    let varval: string;
+
+    // get the metadata
+    let info: KnownVariableInfo;
+    let key: string = getVariableKey(name);
+    if (knownVariableMap.hasOwnProperty(key)) {
+        info = knownVariableMap[key];
     }
 
-    if (!varval) {
-        varval = process.env[name.replace(/\./g, '_').toUpperCase()];
+    if (info && info.secret) {
+        // get the secret value
+        varval = vault.retrieveSecret('SECRET_' + key);
+    }
+    else {
+        // get the public value
+        varval = process.env[key];
+
+        // fallback for pre 2.104.1 agent
+        if (!varval && name.toUpperCase() == 'AGENT.JOBSTATUS') {
+            varval = process.env['agent.jobstatus'];
+        }
     }
 
     debug(name + '=' + varval);
@@ -263,21 +288,92 @@ export function getVariable(name: string): string {
 }
 
 /**
- * Sets a variables which will be available to subsequent tasks as well.
+ * Gets a snapshot of the current state of all job variables available to the task.
+ * Requires a 2.104.1 agent or higher for full functionality.
+ *
+ * Limitations on an agent prior to 2.104.1:
+ *  1) The return value does not include all public variables. Only public variables
+ *     that have been added using setVariable are returned.
+ *  2) The name returned for each secret variable is the formatted environment variable
+ *     name, not the actual variable name (unless it was set explicitly at runtime using
+ *     setVariable).
+ *
+ * @returns VariableInfo[]
+ */
+export function getVariables(): VariableInfo[] {
+    return Object.keys(knownVariableMap)
+        .map((key: string) => {
+            let info: KnownVariableInfo = knownVariableMap[key];
+            return new VariableInfo(info.name, getVariable(info.name), info.secret);
+        });
+}
+
+/**
+ * Sets a variable which will be available to subsequent tasks as well.
  * 
- * @param     name     name of the variable to set
+ * @param     name    name of the variable to set
  * @param     val     value to set
+ * @param     secret  whether variable is secret.  optional, defaults to false
  * @returns   void
  */
-export function setVariable(name: string, val: string): void {
+export function setVariable(name: string, val: string, secret: boolean = false): void {
+    // once a secret always a secret
+    let key: string = getVariableKey(name);
+    if (knownVariableMap.hasOwnProperty(key)) {
+        secret = secret || knownVariableMap[key].secret;
+    }
+
+    // store the value
+    let varValue = val || '';
+    debug('set ' + name + '=' + (secret && varValue ? '********' : varValue));
+    if (secret) {
+        vault.storeSecret('SECRET_' + key, varValue);
+        delete process.env[key];
+    } else {
+        process.env[key] = varValue;
+    }
+
+    // store the metadata
+    knownVariableMap[key] = new KnownVariableInfo(name, secret);
+
+    // write the command
+    command('task.setvariable', { 'variable': name || '', 'secret': (secret || false).toString() }, varValue);
+}
+
+function getVariableKey(name: string): string {
     if (!name) {
         throw new Error(loc('LIB_ParameterIsRequired', 'name'));
     }
 
-    var varValue = val || '';
-    process.env[name.replace(/\./g, '_').toUpperCase()] = varValue;
-    debug('set ' + name + '=' + varValue);
-    command('task.setvariable', { 'variable': name || '' }, varValue);
+    return name.replace(/\./g, '_').toUpperCase();
+}
+
+/**
+ * Used to store the following information about job variables:
+ *  1) the real variable name (not the formatted environment variable name)
+ *  2) whether the variable is a secret variable
+ */
+class KnownVariableInfo {
+    constructor(name: string, secret: boolean) {
+        this.name = name;
+        this.secret = secret;
+    }
+
+    public name: string;
+    public secret: boolean;
+}
+
+/** Snapshot of a variable at the time when getVariables was called. */
+export class VariableInfo {
+    constructor(name: string, value: string, secret: boolean) {
+        this.name = name;
+        this.value = value;
+        this.secret = secret;
+    }
+
+    public name: string;
+    public value: string;
+    public secret: boolean;
 }
 
 /**
@@ -1106,17 +1202,32 @@ if (semver.lt(process.versions.node, '4.2.0')) {
 // in prod, it's called globally below so user does not need to call
 
 export function _loadData(): void {
-    // in agent, workFolder is set.  
-    // In interactive dev mode, it won't be    
-    var keyPath = getVariable("agent.workFolder") || process.cwd();
+    // in agent, workFolder is set.
+    // In interactive dev mode, it won't be
+    let keyPath: string = getVariable("agent.workFolder") || process.cwd();
     vault = new vm.Vault(keyPath);
+    knownVariableMap = { };
     debug('loading inputs and endpoints');
-    var loaded = 0;
-    for (var envvar in process.env) {
+    let loaded: number = 0;
+    for (let envvar in process.env) {
         if (envvar.startsWith('INPUT_') ||
             envvar.startsWith('ENDPOINT_AUTH_') ||
             envvar.startsWith('SECRET_')) {
 
+            // Record the secret variable metadata. This is required by getVariable to know whether
+            // to retrieve the value from the vault. In a 2.104.1 agent or higher, this metadata will
+            // be overwritten when the VSTS_SECRET_VARIABLES env var is processed below.
+            if (envvar.startsWith('SECRET_')) {
+                let variableName: string = envvar.substring('SECRET_'.length);
+                if (variableName) {
+                    // This is technically not the variable name (has underscores instead of dots),
+                    // but it's good enough to make getVariable work in a pre-2.104.1 agent where
+                    // the VSTS_SECRET_VARIABLES env var is not defined.
+                    knownVariableMap[getVariableKey(variableName)] = new KnownVariableInfo(variableName, true);
+                }
+            }
+
+            // store the secret
             if (process.env[envvar]) {
                 ++loaded;
                 debug('loading ' + envvar);
@@ -1126,7 +1237,33 @@ export function _loadData(): void {
         }
     }
     debug('loaded ' + loaded);
+
+    // store public variable metadata
+    let names: string[];
+    try {
+        names = JSON.parse(process.env['VSTS_PUBLIC_VARIABLES'] || '[]');
+    }
+    catch (err) {
+        throw new Error('Failed to parse VSTS_PUBLIC_VARIABLES as JSON. ' + err); // may occur during interactive testing
+    }
+
+    names.forEach((name: string) => {
+        knownVariableMap[getVariableKey(name)] = new KnownVariableInfo(name, false);
+    });
+    delete process.env['VSTS_PUBLIC_VARIABLES'];
+
+    // store secret variable metadata
+    try {
+        names = JSON.parse(process.env['VSTS_SECRET_VARIABLES'] || '[]');
+    }
+    catch (err) {
+        throw new Error('Failed to parse VSTS_SECRET_VARIABLES as JSON. ' + err); // may occur during interactive testing
+    }
+
+    names.forEach((name: string) => {
+        knownVariableMap[getVariableKey(name)] = new KnownVariableInfo(name, true);
+    });
+    delete process.env['VSTS_SECRET_VARIABLES'];
 }
 
 _loadData();
-

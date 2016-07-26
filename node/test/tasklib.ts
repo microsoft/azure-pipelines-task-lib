@@ -423,11 +423,11 @@ describe('Test vsts-task-lib', function () {
         })
 
         // setVariable tests
-        it('sets a variable', function (done) {
+        it('sets a variable as an env var', function (done) {
             this.timeout(1000);
 
             tl.setVariable('Build.Repository.Uri', 'test value');
-            var varVal = process.env['BUILD_REPOSITORY_URI'];
+            let varVal: string = process.env['BUILD_REPOSITORY_URI'];
             assert.equal(varVal, 'test value');
 
             done();
@@ -436,8 +436,179 @@ describe('Test vsts-task-lib', function () {
             this.timeout(1000);
 
             tl.setVariable('UnitTestVariable', 'test var value');
-            var varVal = tl.getVariable('UnitTestVariable');
+            let varVal: string = tl.getVariable('UnitTestVariable');
             assert.equal(varVal, 'test var value');
+
+            done();
+        })
+        it('sets and gets a secret variable', function (done) {
+            this.timeout(1000);
+
+            tl.setVariable('My.Secret.Var', 'test secret value', true);
+            let varVal: string = tl.getVariable('My.Secret.Var');
+            assert.equal(varVal, 'test secret value');
+
+            done();
+        })
+        it('does not set a secret variable as an env var', function (done) {
+            this.timeout(1000);
+
+            delete process.env['MY_SECRET_VAR'];
+            tl.setVariable('My.Secret.Var', 'test secret value', true);
+            let envVal: string = process.env['MY_SECRET_VAR'];
+            assert(!envVal, 'env var should not be set');
+
+            done();
+        })
+        it('removes env var when sets a secret variable', function (done) {
+            this.timeout(1000);
+
+            process.env['MY_SECRET_VAR'] = 'test env value';
+            tl.setVariable('My.Secret.Var', 'test secret value', true);
+            let envVal: string = process.env['MY_SECRET_VAR'];
+            assert(!envVal, 'env var should not be set');
+
+            done();
+        })
+        it('does not allow a secret variable to become a public variable', function (done) {
+            this.timeout(1000);
+
+            tl._loadData();
+            tl.setVariable('My.Secret.Var', 'test secret value', true);
+            tl.setVariable('My.Secret.Var', 'test modified value', false);
+            let vars: tl.VariableInfo[] = tl.getVariables();
+            assert.equal(vars.length, 1);
+            assert.equal(vars[0].name, 'My.Secret.Var');
+            assert.equal(vars[0].value, 'test modified value');
+            assert.equal(vars[0].secret, true);
+
+            done();
+        })
+        it('allows a public variable to become a secret variable', function (done) {
+            this.timeout(1000);
+
+            tl._loadData();
+            tl.setVariable('My.Var', 'test value', false);
+            tl.setVariable('My.Var', 'test modified value', true);
+            let vars: tl.VariableInfo[] = tl.getVariables();
+            assert.equal(vars.length, 1);
+            assert.equal(vars[0].name, 'My.Var');
+            assert.equal(vars[0].value, 'test modified value');
+            assert.equal(vars[0].secret, true);
+
+            done();
+        })
+        it('tracks known variables using env formatted name', function (done) {
+            this.timeout(1000);
+
+            tl._loadData();
+            tl.setVariable('My.Public.Var', 'test value');
+            tl.setVariable('my_public.VAR', 'test modified value');
+            let vars: tl.VariableInfo[] = tl.getVariables();
+            assert.equal(vars.length, 1);
+            assert.equal(vars[0].name, 'my_public.VAR');
+            assert.equal(vars[0].value, 'test modified value');
+
+            done();
+        })
+
+        // getVariables tests
+        it('gets public variables from initial load', function (done) {
+            this.timeout(1000);
+
+            process.env['PUBLIC_VAR_ONE'] = 'public value 1';
+            process.env['PUBLIC_VAR_TWO'] = 'public value 2';
+            process.env['VSTS_PUBLIC_VARIABLES'] = '[ "Public.Var.One", "Public.Var.Two" ]';
+            tl._loadData();
+            let vars: tl.VariableInfo[] = tl.getVariables();
+            assert(vars, 'variables should not be undefined or null');
+            assert.equal(vars.length, 2, 'exactly 2 variables should be returned');
+            vars = vars.sort((a: tl.VariableInfo, b: tl.VariableInfo) => a.name.localeCompare(b.name));
+            assert.equal(vars[0].name, 'Public.Var.One');
+            assert.equal(vars[0].value, 'public value 1');
+            assert.equal(vars[0].secret, false);
+            assert.equal(vars[1].name, 'Public.Var.Two');
+            assert.equal(vars[1].value, 'public value 2');
+            assert.equal(vars[1].secret, false);
+
+            done();
+        })
+        it('gets secret variables from initial load', function (done) {
+            this.timeout(1000);
+
+            process.env['SECRET_SECRET_VAR_ONE'] = 'secret value 1';
+            process.env['SECRET_SECRET_VAR_TWO'] = 'secret value 2';
+            process.env['VSTS_SECRET_VARIABLES'] = '[ "Secret.Var.One", "Secret.Var.Two" ]';
+            tl._loadData();
+            let vars: tl.VariableInfo[] = tl.getVariables();
+            assert(vars, 'variables should not be undefined or null');
+            assert.equal(vars.length, 2, 'exactly 2 variables should be returned');
+            vars = vars.sort((a: tl.VariableInfo, b: tl.VariableInfo) => a.name.localeCompare(b.name));
+            assert.equal(vars[0].name, 'Secret.Var.One');
+            assert.equal(vars[0].value, 'secret value 1');
+            assert.equal(vars[0].secret, true);
+            assert.equal(vars[1].name, 'Secret.Var.Two');
+            assert.equal(vars[1].value, 'secret value 2');
+            assert.equal(vars[1].secret, true);
+
+            done();
+        })
+        it('gets secret variables from initial load in pre 2.104.1 agent', function (done) {
+            this.timeout(1000);
+
+            process.env['SECRET_SECRET_VAR_ONE'] = 'secret value 1';
+            process.env['SECRET_SECRET_VAR_TWO'] = 'secret value 2';
+            tl._loadData();
+            let vars: tl.VariableInfo[] = tl.getVariables();
+            assert(vars, 'variables should not be undefined or null');
+            assert.equal(vars.length, 2, 'exactly 2 variables should be returned');
+            vars = vars.sort((a: tl.VariableInfo, b: tl.VariableInfo) => a.name.localeCompare(b.name));
+            assert.equal(vars[0].name, 'SECRET_VAR_ONE');
+            assert.equal(vars[0].value, 'secret value 1');
+            assert.equal(vars[0].secret, true);
+            assert.equal(vars[1].name, 'SECRET_VAR_TWO');
+            assert.equal(vars[1].value, 'secret value 2');
+            assert.equal(vars[1].secret, true);
+
+            done();
+        })
+        it('gets public variables from setVariable', function (done) {
+            this.timeout(1000);
+
+            process.env['INITIAL_PUBLIC_VAR'] = 'initial public value';
+            process.env['VSTS_PUBLIC_VARIABLES'] = '[ "Initial.Public.Var" ]';
+            tl._loadData();
+            tl.setVariable('Set.Public.Var', 'set public value');
+            let vars: tl.VariableInfo[] = tl.getVariables();
+            assert(vars, 'variables should not be undefined or null');
+            assert.equal(vars.length, 2, 'exactly 4 variables should be returned');
+            vars = vars.sort((a: tl.VariableInfo, b: tl.VariableInfo) => a.name.localeCompare(b.name));
+            assert.equal(vars[0].name, 'Initial.Public.Var');
+            assert.equal(vars[0].value, 'initial public value');
+            assert.equal(vars[0].secret, false);
+            assert.equal(vars[1].name, 'Set.Public.Var');
+            assert.equal(vars[1].value, 'set public value');
+            assert.equal(vars[1].secret, false);
+
+            done();
+        })
+        it('gets secret variables from setVariable', function (done) {
+            this.timeout(1000);
+
+            process.env['SECRET_INITIAL_SECRET_VAR'] = 'initial secret value';
+            process.env['VSTS_SECRET_VARIABLES'] = '[ "Initial.Secret.Var" ]';
+            tl._loadData();
+            tl.setVariable('Set.Secret.Var', 'set secret value', true);
+            let vars: tl.VariableInfo[] = tl.getVariables();
+            assert(vars, 'variables should not be undefined or null');
+            assert.equal(vars.length, 2, 'exactly 2 variables should be returned');
+            vars = vars.sort((a: tl.VariableInfo, b: tl.VariableInfo) => a.name.localeCompare(b.name));
+            assert.equal(vars[0].name, 'Initial.Secret.Var');
+            assert.equal(vars[0].value, 'initial secret value');
+            assert.equal(vars[0].secret, true);
+            assert.equal(vars[1].name, 'Set.Secret.Var');
+            assert.equal(vars[1].value, 'set secret value');
+            assert.equal(vars[1].secret, true);
 
             done();
         })
@@ -551,6 +722,7 @@ describe('Test vsts-task-lib', function () {
 
             done();
         })
+
         // getBoolInput tests
         it('gets true bool input value', function (done) {
             this.timeout(1000);
@@ -729,7 +901,6 @@ describe('Test vsts-task-lib', function () {
                 worked = true;
             }
             catch (err) {
-                console.log("Error: " + err);
                 assert(err.message.indexOf("Not found") >= 0, "error should have said Not found");
             }
             assert(!worked, 'invalid checked path should have not have worked');

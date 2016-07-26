@@ -5,8 +5,8 @@ param()
 . $PSScriptRoot\..\lib\Initialize-Test.ps1
 Invoke-VstsTaskScript -ScriptBlock {
     $variableSets = @(
-        @{ Path = 'Env:MyVar' ; Name = 'MyVar' ; Value = 'MyValue' ; IsSecret = $true ; Expected = "Set Env:MyVar = '********'" }
-        @{ Path = 'Env:MyVar' ; Name = 'MyVar' ; Value = 'MyValue' ; IsSecret = $false ; Expected = "Set Env:MyVar = 'MyValue'" }
+        @{ Name = 'MyVar1' ; Value = 'MyValue1' ; IsSecret = $true ; Expected = "Set MyVar1 = '********'" }
+        @{ Name = 'MyVar2' ; Value = 'MyValue2' ; IsSecret = $false ; Expected = "Set MyVar2 = 'MyValue2'" }
     )
     foreach ($variableSet in $variableSets) {
         # Act.

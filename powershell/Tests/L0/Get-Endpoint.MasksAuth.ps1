@@ -19,5 +19,5 @@ Invoke-VstsTaskScript -ScriptBlock {
             $_.Message -like '*AUTH*'
         }
     Assert-IsNotNullOrEmpty $verboseAuthRecord
-    Assert-AreEqual "Env:ENDPOINT_AUTH_SomeName: '********'" $verboseAuthRecord.Message
+    Assert-AreEqual "ENDPOINT_AUTH_SomeName: '********'" $verboseAuthRecord.Message
 }

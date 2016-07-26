@@ -7,14 +7,14 @@
 
 ## Where to get it
 
-```Batchfile
-npm install vsts-task-sdk
+```PowerShell
+Save-Module -Name VstsTaskSdk -Path .\
 ```
 
 or install a specific version:
 
-```Batchfile
-npm install vsts-task-sdk@0.5.0
+```PowerShell
+Save-Module -Name VstsTaskSdk -Path .\ -RequiredVersion 0.7.0
 ```
 
 ## task.json modifications
