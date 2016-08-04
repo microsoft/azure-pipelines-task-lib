@@ -31,21 +31,13 @@ Once:
 ```bash
 $ cd node
 $ npm install
-$ sudo npm install gulp -g
+$ sudo npm install tsc -g
 ```
 
-Build:
+Build and Test:
 ```bash
-$ cd node
-$ gulp
+$ npm test
 ```
-
-Test:
-```bash
-$ cd node
-$ gulp test
-```
-
 Set environment variable TASK_TEST_TRACE=1 to display test output.
 
 ### Powershell
