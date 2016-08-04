@@ -1692,5 +1692,21 @@ describe('Test vsts-task-lib', function () {
             assert(!tl.exist(fileName), "file shouldn't be existing");
             done();
         });
+
+        it('write file functionality for valid file path', function (done) {
+            this.timeout(1000);
+
+            var fileName = path.join(_testTemp, "writeFileTest.txt");
+            tl.writeFile(fileName, "testing writefile method");
+            assert(tl.exist(fileName), "writeFile should create the file");
+            done();
+        })
+
+        it('write file functionality with options', function (done) {
+            var fileName = path.join(_testTemp, "writeFileTest.txt");
+            tl.writeFile(fileName, "testing writeFile() with encoding", 'utf-8');
+            assert(fs.readFileSync(fileName, 'utf-8') === "testing writeFile() with encoding", "writeFile should create file with correct options");
+            done();
+        })
     });
 });

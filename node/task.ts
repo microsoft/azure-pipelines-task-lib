@@ -588,6 +588,16 @@ export function exist(path: string): boolean {
     return exist;
 }
 
+export interface FsOptions {
+  encoding?: string;
+  mode?: number;
+  flag?: string;
+}
+
+export function writeFile(file: string, data: string|Buffer, options? : string|FsOptions) {
+    fs.writeFileSync(file, data, options);
+}
+
 /**
  * Useful for determining the host operating system.
  * see [os.type](https://nodejs.org/api/os.html#os_os_type)
