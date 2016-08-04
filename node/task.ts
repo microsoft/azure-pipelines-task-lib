@@ -588,7 +588,13 @@ export function exist(path: string): boolean {
     return exist;
 }
 
-export function writeFileSync(file: string, data: string, options? : any) {
+export interface FsOptions {
+  encoding?: string;
+  mode?: number;
+  flag?: string;
+}
+
+export function writeFile(file: string, data: string|Buffer, options? : string|FsOptions) {
     fs.writeFileSync(file, data, options);
 }
 

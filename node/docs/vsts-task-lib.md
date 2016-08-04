@@ -64,7 +64,7 @@ import tl = require('vsts-task-lib/task')
 <a href="#taskpopd">popd</a> <br/>
 <a href="#taskresolve">resolve</a> <br/>
 <a href="#taskstats">stats</a> <br/>
-<a href="#taskwritefilesync">writeFileSync</a> <br/>
+<a href="#taskwritefile">writeFile</a> <br/>
  
 ### Localization <a href="#Localization">(v)</a>
  
@@ -591,19 +591,19 @@ path | string | path to check
 
 
 <br/>
-<div id="taskwritefilesync">
-### task.writeFileSync <a href="#index">(^)</a>
+<div id="taskwritefile">
+### task.writeFile <a href="#index">(^)</a>
 Synchronously writes data to a file, replacing the file if it already exists.
 See [fs.writeFileSync](https://nodejs.org/api/fs.html#fs_fs_writefilesync_file_data_options)
 ```javascript
-writeFileSync(file:string, data:string, options?:any)
+writeFile(file:string, data:string|Buffer, options?:string|FsOptions)
 ```
 
 Param | Type | Description
 --- | --- | ---
 file | string | full path to the file to write
-data | string | contents to be written to the file
-options | any | Optional options like encoding
+data | string or Buffer| contents to be written to the file
+options | string or FsOptions | Optional options like encoding
 
 <br/>
 <div id="Localization">
