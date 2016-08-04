@@ -588,6 +588,10 @@ export function exist(path: string): boolean {
     return exist;
 }
 
+export function writeFileSync(file: string, data: string, options? : any) {
+    fs.writeFileSync(file, data, options);
+}
+
 /**
  * Useful for determining the host operating system.
  * see [os.type](https://nodejs.org/api/os.html#os_os_type)
