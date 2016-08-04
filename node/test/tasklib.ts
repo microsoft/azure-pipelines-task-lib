@@ -912,6 +912,44 @@ describe('Test vsts-task-lib', function () {
         })
     });
 
+    describe('Disk operations', function() {
+        it('check exist functionality for existing file', function (done) {
+            this.timeout(1000);
+
+            tl.mkdirP(_testTemp);
+            var fileName = path.join(_testTemp, "test.txt");
+            fs.writeFileSync(fileName, "");
+
+            assert(tl.exist(fileName), "file should exists"); //check existance of file
+            fs.unlinkSync(fileName);
+            done();
+        });
+
+        it('check exist functionality for non existing file', function (done) {
+            this.timeout(1000);
+
+            var fileName = path.join(_testTemp, "test.txt");
+            assert(!tl.exist(fileName), "file shouldn't be existing");
+            done();
+        });
+
+        it('write file functionality for valid file path', function (done) {
+            this.timeout(1000);
+
+            var fileName = path.join(_testTemp, "writeFileTest.txt");
+            tl.writeFile(fileName, "testing writefile method");
+            assert(tl.exist(fileName), "writeFile should create the file");
+            done();
+        })
+
+        it('write file functionality with options', function (done) {
+            var fileName = path.join(_testTemp, "writeFileTest.txt");
+            tl.writeFile(fileName, "testing writeFile() with encoding", 'utf-8');
+            assert(fs.readFileSync(fileName, 'utf-8') === "testing writeFile() with encoding", "writeFile should create file with correct options");
+            done();
+        })
+    })
+
     describe('Vault', function () {
         it('Can create vault', function (done) {
             var vault: vm.Vault = new vm.Vault(process.cwd());
@@ -1464,6 +1502,97 @@ describe('Test vsts-task-lib', function () {
         })
     });
 
+    describe('Codecoverage commands', function () {
+        it('publish code coverage passes all the properties properly', function (done) {
+            this.timeout(1000);
+
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
+            var ccPublisher = new tl.CodeCoveragePublisher();
+            ccPublisher.publish("Jacoco", "\\user\\admin\\summary.xml", "\\user\\admin\\report", "\\user\\admin\\report\\t.xml,\\user\\admin\\report\\c.xml");
+
+            var output = stdStream.getContents();
+            var expectedOutput = _buildOutput(["##vso[codecoverage.publish codecoveragetool=Jacoco;summaryfile=\\user\\admin\\summary.xml;reportdirectory=\\user\\admin\\report;additionalcodecoveragefiles=\\user\\admin\\report\\t.xml,\\user\\admin\\report\\c.xml;]"]);
+            assert.equal(expectedOutput, output);
+            done();
+        })
+
+        it('publish code coverage does not pass properties when the imput parameters are empty', function (done) {
+            this.timeout(1000);
+
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
+            var ccPublisher = new tl.CodeCoveragePublisher();
+            ccPublisher.publish("", "", "", "");
+
+            var output = stdStream.getContents();
+            var expectedOutput = _buildOutput(["##vso[codecoverage.publish]"]);
+            assert.equal(expectedOutput, output);
+            done();
+        })
+
+        it('publish code coverage does not pass properties when the input parameters are null', function (done) {
+            this.timeout(1000);
+
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
+            var ccPublisher = new tl.CodeCoveragePublisher();
+            ccPublisher.publish(null, null, null, null);
+
+            var output = stdStream.getContents();
+            var expectedOutput = _buildOutput(["##vso[codecoverage.publish]"]);
+            assert.equal(expectedOutput, output);
+            done();
+        })
+
+        it('enable code coverage does not pass properties when the input parameters are null', function (done) {
+            this.timeout(1000);
+
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
+            var ccEnabler = new tl.CodeCoverageEnabler(null, null);
+            var buildProps: { [key: string]: string } = {};
+            ccEnabler.enableCodeCoverage(buildProps);
+
+            var output = stdStream.getContents();
+            var expectedOutput = _buildOutput(["##vso[codecoverage.enable ]"]);
+            assert.equal(expectedOutput, output);
+            done();
+        })
+
+        it('enable code coverage passes properties when the input parameters are existing', function (done) {
+            this.timeout(1000);
+
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
+            var ccEnabler = new tl.CodeCoverageEnabler("jacoco", "buildtool");
+            var buildProps: { [key: string]: string } = {};
+            buildProps['abc'] = 'xyz';
+            ccEnabler.enableCodeCoverage(buildProps);
+
+            var output = stdStream.getContents();
+            var expectedOutput = _buildOutput(["##vso[codecoverage.enable abc=xyz;buildtool=jacoco;codecoveragetool=buildtool;]"]);
+            assert.equal(expectedOutput, output);
+            done();
+        })
+
+        it('enable code coverage passes parameters when the input parameters are empty', function (done) {
+            this.timeout(1000);
+
+            var stdStream = new StringStream();
+            tl.setStdStream(stdStream);
+            var ccEnabler = new tl.CodeCoverageEnabler("jacoco", "buildtool");
+            var buildProps: { [key: string]: string } = {};
+            ccEnabler.enableCodeCoverage(buildProps);
+
+            var output = stdStream.getContents();
+            var expectedOutput = _buildOutput(["##vso[codecoverage.enable buildtool=jacoco;codecoveragetool=buildtool;]"]);
+            assert.equal(expectedOutput, output);
+            done();
+        })
+
+    })
+
     describe('Localization', function () {
         it('validate loc string key in lib.json', function (done) {
             this.timeout(1000);
@@ -1582,130 +1711,6 @@ describe('Test vsts-task-lib', function () {
             tl.setResourcePath(jsonPath);
             assert.equal(tl.loc('key3', 3), 'key3 3', 'key and params not return for non-exist key.');
 
-            done();
-        })
-
-        it('publish code coverage passes all the properties properly', function (done) {
-            this.timeout(1000);
-
-            var stdStream = new StringStream();
-            tl.setStdStream(stdStream);
-            var ccPublisher = new tl.CodeCoveragePublisher();
-            ccPublisher.publish("Jacoco", "\\user\\admin\\summary.xml", "\\user\\admin\\report", "\\user\\admin\\report\\t.xml,\\user\\admin\\report\\c.xml");
-
-            var output = stdStream.getContents();
-            var expectedOutput = _buildOutput(["##vso[codecoverage.publish codecoveragetool=Jacoco;summaryfile=\\user\\admin\\summary.xml;reportdirectory=\\user\\admin\\report;additionalcodecoveragefiles=\\user\\admin\\report\\t.xml,\\user\\admin\\report\\c.xml;]"]);
-            assert.equal(expectedOutput, output);
-            done();
-        })
-
-        it('publish code coverage does not pass properties when the imput parameters are empty', function (done) {
-            this.timeout(1000);
-
-            var stdStream = new StringStream();
-            tl.setStdStream(stdStream);
-            var ccPublisher = new tl.CodeCoveragePublisher();
-            ccPublisher.publish("", "", "", "");
-
-            var output = stdStream.getContents();
-            var expectedOutput = _buildOutput(["##vso[codecoverage.publish]"]);
-            assert.equal(expectedOutput, output);
-            done();
-        })
-
-        it('publish code coverage does not pass properties when the input parameters are null', function (done) {
-            this.timeout(1000);
-
-            var stdStream = new StringStream();
-            tl.setStdStream(stdStream);
-            var ccPublisher = new tl.CodeCoveragePublisher();
-            ccPublisher.publish(null, null, null, null);
-
-            var output = stdStream.getContents();
-            var expectedOutput = _buildOutput(["##vso[codecoverage.publish]"]);
-            assert.equal(expectedOutput, output);
-            done();
-        })
-
-        it('enable code coverage does not pass properties when the input parameters are null', function (done) {
-            this.timeout(1000);
-
-            var stdStream = new StringStream();
-            tl.setStdStream(stdStream);
-            var ccEnabler = new tl.CodeCoverageEnabler(null, null);
-            var buildProps: { [key: string]: string } = {};
-            ccEnabler.enableCodeCoverage(buildProps);
-
-            var output = stdStream.getContents();
-            var expectedOutput = _buildOutput(["##vso[codecoverage.enable ]"]);
-            assert.equal(expectedOutput, output);
-            done();
-        })
-
-        it('enable code coverage passes properties when the input parameters are existing', function (done) {
-            this.timeout(1000);
-
-            var stdStream = new StringStream();
-            tl.setStdStream(stdStream);
-            var ccEnabler = new tl.CodeCoverageEnabler("jacoco", "buildtool");
-            var buildProps: { [key: string]: string } = {};
-            buildProps['abc'] = 'xyz';
-            ccEnabler.enableCodeCoverage(buildProps);
-
-            var output = stdStream.getContents();
-            var expectedOutput = _buildOutput(["##vso[codecoverage.enable abc=xyz;buildtool=jacoco;codecoveragetool=buildtool;]"]);
-            assert.equal(expectedOutput, output);
-            done();
-        })
-
-        it('enable code coverage passes parameters when the input parameters are empty', function (done) {
-            this.timeout(1000);
-
-            var stdStream = new StringStream();
-            tl.setStdStream(stdStream);
-            var ccEnabler = new tl.CodeCoverageEnabler("jacoco", "buildtool");
-            var buildProps: { [key: string]: string } = {};
-            ccEnabler.enableCodeCoverage(buildProps);
-
-            var output = stdStream.getContents();
-            var expectedOutput = _buildOutput(["##vso[codecoverage.enable buildtool=jacoco;codecoveragetool=buildtool;]"]);
-            assert.equal(expectedOutput, output);
-            done();
-        })
-
-        it('check exist functionality for existing file', function (done) {
-            this.timeout(1000);
-
-            tl.mkdirP(_testTemp);
-            var fileName = path.join(_testTemp, "test.txt");
-            fs.writeFileSync(fileName, "");
-
-            assert(tl.exist(fileName), "file should exists"); //check existance of file
-            fs.unlinkSync(fileName);
-            done();
-        });
-
-        it('check exist functionality for non existing file', function (done) {
-            this.timeout(1000);
-
-            var fileName = path.join(_testTemp, "test.txt");
-            assert(!tl.exist(fileName), "file shouldn't be existing");
-            done();
-        });
-
-        it('write file functionality for valid file path', function (done) {
-            this.timeout(1000);
-
-            var fileName = path.join(_testTemp, "writeFileTest.txt");
-            tl.writeFile(fileName, "testing writefile method");
-            assert(tl.exist(fileName), "writeFile should create the file");
-            done();
-        })
-
-        it('write file functionality with options', function (done) {
-            var fileName = path.join(_testTemp, "writeFileTest.txt");
-            tl.writeFile(fileName, "testing writeFile() with encoding", 'utf-8');
-            assert(fs.readFileSync(fileName, 'utf-8') === "testing writeFile() with encoding", "writeFile should create file with correct options");
             done();
         })
     });
