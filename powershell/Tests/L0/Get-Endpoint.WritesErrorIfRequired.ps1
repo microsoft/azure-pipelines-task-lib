@@ -12,7 +12,7 @@ foreach ($global:variableSet in $variableSets) {
     $env:ENDPOINT_URL_SOMENAME = $variableSet.Url
     $env:ENDPOINT_AUTH_SOMENAME = $variableSet.Auth
     $env:ENDPOINT_DATA_SOMENAME = $variableSet.Data
-    & (Get-Module -Name VstsTaskSdk) { $secureInputs.Clear() }
+    & (Get-Module -Name VstsTaskSdk) { $vault.Clear() }
     Invoke-VstsTaskScript -ScriptBlock {
         # Act.
         $actual = Get-VstsEndpoint -Name 'SomeName' -Require -ErrorAction Continue 2>&1

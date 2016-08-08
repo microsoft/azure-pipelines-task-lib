@@ -1,5 +1,10 @@
 # Release Notes
 
+## 0.7.0
+ * Breaking changes for `Get-VstsTfsClientCredentials` and `Get-VstsVssCredentials`. See [Using the VSTS REST SDK and TFS Extended Client SDK](UsingOM.md).
+ * Added `Get-VstsTfsService` and `Get-VstsVssHttpClient`.
+ * Added `Get-VstsTaskVariableInfo` to get all task variables, secret and non-secret.
+
 ## 0.6.4
  * Updated `Get-VstsTfsClientCredentials` to fix authentication bugs.
 

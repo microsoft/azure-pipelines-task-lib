@@ -29,6 +29,7 @@ Export-ModuleMember -Function @(
         'Get-Endpoint'
         'Get-Input'
         'Get-TaskVariable'
+        'Get-TaskVariableInfo'
         'Set-TaskVariable'
         # Localization functions.
         'Get-LocString'
@@ -52,6 +53,7 @@ Export-ModuleMember -Function @(
         # Out functions.
         'Out-Default'
         # Server OM functions.
+        'Get-AssemblyReference'
         'Get-TfsClientCredentials'
         'Get-TfsService'
         'Get-VssCredentials'
@@ -129,7 +131,7 @@ $null = New-Item -Force -Path "function:\global:Invoke-VstsTaskScript" -Value ([
         # Initialize the environment.
         $vstsModule = Get-Module -Name VstsTaskSdk
         Write-Verbose "$($vstsModule.Name) $($vstsModule.Version) commit $($vstsModule.PrivateData.PSData.CommitHash)" 4>&1 | Out-Default
-        & $vstsModule Initialize-SecureInputs 4>&1 | Out-Default
+        & $vstsModule Initialize-Inputs 4>&1 | Out-Default
 
         # Remove the local variable before calling the user's script.
         Remove-Variable -Name vstsModule

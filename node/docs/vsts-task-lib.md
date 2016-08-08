@@ -27,6 +27,7 @@ import tl = require('vsts-task-lib/task')
 <a href="#taskfilePathSupplied">filePathSupplied</a> <br/>
 <a href="#taskgetDelimitedInput">getDelimitedInput</a> <br/>
 <a href="#taskgetVariable">getVariable</a> <br/>
+<a href="#taskgetVariables">getVariables</a> <br/>
 <a href="#tasksetVariable">setVariable</a> <br/>
  
 ### Execution <a href="#Execution">(v)</a>
@@ -159,9 +160,28 @@ required | boolean | whether input is required.  optional, defaults to false
 <br/>
 <div id="taskgetVariable">
 ### task.getVariable <a href="#index">(^)</a>
-Gets a variables value which is defined on the build definition or set at runtime.
+Gets a variable value that is defined on the build/release definition or set at runtime.
 ```javascript
 getVariable(name:string):string
+```
+ 
+Param | Type | Description
+--- | --- | ---
+name | string | name of the variable to get
+ 
+<div id="taskgetVariables">
+### task.getVariables <a href="#index">(^)</a>
+Gets a snapshot of the current state of all job variables available to the task.
+Requires a 2.104.1 agent or higher for full functionality.
+
+Limitations on an agent prior to 2.104.1:
+ 1) The return value does not include all public variables. Only public variables
+    that have been added using setVariable are returned.
+ 2) The name returned for each secret variable is the formatted environment variable
+    name, not the actual variable name (unless it was set explicitly at runtime using
+    setVariable).
+```javascript
+getVariables():VariableInfo[]
 ```
  
 Param | Type | Description
@@ -180,6 +200,7 @@ Param | Type | Description
 --- | --- | ---
 name | string | name of the variable to set
 val | string | value to set
+secret | boolean | whether variable is secret.  optional, defaults to false
  
  
 <br/>

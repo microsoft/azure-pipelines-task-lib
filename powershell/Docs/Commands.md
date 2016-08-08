@@ -1,4 +1,4 @@
-# Commands (v0.6.4)
+# Commands (v0.7.0)
 ## <a name="toc" />Table of Contents
  * [Find](#find)
   * [Find-VstsFiles](#find-vstsfiles)
@@ -6,6 +6,7 @@
   * [Get-VstsEndpoint](#get-vstsendpoint)
   * [Get-VstsInput](#get-vstsinput)
   * [Get-VstsTaskVariable](#get-vststaskvariable)
+  * [Get-VstsTaskVariableInfo](#get-vststaskvariableinfo)
   * [Set-VstsTaskVariable](#set-vststaskvariable)
  * [Localization](#localization)
   * [Get-VstsLocString](#get-vstslocstring)
@@ -27,8 +28,11 @@
   * [Write-VstsUploadArtifact](#write-vstsuploadartifact)
   * [Write-VstsUploadBuildLog](#write-vstsuploadbuildlog)
  * [Server OM](#serverom)
+  * [Get-VstsAssemblyReference](#get-vstsassemblyreference)
   * [Get-VstsTfsClientCredentials](#get-vststfsclientcredentials)
+  * [Get-VstsTfsService](#get-vststfsservice)
   * [Get-VstsVssCredentials](#get-vstsvsscredentials)
+  * [Get-VstsVssHttpClient](#get-vstsvsshttpclient)
  * [Tool](#tool)
   * [Assert-VstsPath](#assert-vstspath)
   * [Invoke-VstsTool](#invoke-vststool)
@@ -106,6 +110,34 @@ SYNTAX
 
 DESCRIPTION
     Gets the value for the specified task variable.
+```
+### <a name="get-vststaskvariableinfo" />Get-VstsTaskVariableInfo
+[table of contents](#toc) | [full](FullHelp/Get-VstsTaskVariableInfo.md)
+```
+NAME
+    Get-VstsTaskVariableInfo
+
+SYNOPSIS
+    Gets all job variables available to the task. Requires 2.104.1 agent or higher.
+
+SYNTAX
+    Get-VstsTaskVariableInfo [<CommonParameters>]
+
+DESCRIPTION
+    Gets a snapshot of the current state of all job variables available to the task.
+    Requires a 2.104.1 agent or higher for full functionality.
+
+    Returns an array of objects with the following properties:
+        [string]Name
+        [string]Value
+        [bool]Secret
+
+    Limitations on an agent prior to 2.104.1:
+     1) The return value does not include all public variables. Only public variables
+        that have been added using setVariable are returned.
+     2) The name returned for each secret variable is the formatted environment variable
+        name, not the actual variable name (unless it was set explicitly at runtime using
+        setVariable).
 ```
 ### <a name="set-vststaskvariable" />Set-VstsTaskVariable
 [table of contents](#toc) | [full](FullHelp/Set-VstsTaskVariable.md)
@@ -357,6 +389,33 @@ SYNTAX
     Write-VstsUploadBuildLog [-Path] <String> [-AsOutput] [<CommonParameters>]
 ```
 ## <a name="serverom" />Server OM
+### <a name="get-vstsassemblyreference" />Get-VstsAssemblyReference
+[table of contents](#toc) | [full](FullHelp/Get-VstsAssemblyReference.md)
+```
+NAME
+    Get-VstsAssemblyReference
+
+SYNOPSIS
+    Gets assembly reference information.
+
+SYNTAX
+    Get-VstsAssemblyReference [-LiteralPath] <String> [<CommonParameters>]
+
+DESCRIPTION
+    Not supported for use during task exection. This function is only intended to help developers resolve the
+    minimal set of DLLs that need to be bundled when consuming the VSTS REST SDK or TFS Extended Client SDK.
+    The interface and output may change between patch releases of the VSTS Task SDK.
+
+    Only a subset of the referenced assemblies may actually be required, depending on the functionality used
+    by your task. It is best to bundle only the DLLs required for your scenario.
+
+    Walks an assembly's references to determine all of it's dependencies. Also walks the references of the
+    dependencies, and so on until all nested dependencies have been traversed. Dependencies are searched for
+    in the directory of the specified assembly. NET Framework assemblies are omitted.
+
+    See https://github.com/Microsoft/vsts-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage
+    when working with the TFS extended client SDK from a task.
+```
 ### <a name="get-vststfsclientcredentials" />Get-VstsTfsClientCredentials
 [table of contents](#toc) | [full](FullHelp/Get-VstsTfsClientCredentials.md)
 ```
@@ -367,12 +426,38 @@ SYNOPSIS
     Gets a credentials object that can be used with the TFS extended client SDK.
 
 SYNTAX
-    Get-VstsTfsClientCredentials [<CommonParameters>]
+    Get-VstsTfsClientCredentials [[-OMDirectory] <String>] [<CommonParameters>]
 
 DESCRIPTION
     The agent job token is used to construct the credentials object. The identity associated with the token
     depends on the scope selected in the build/release definition (either the project collection
     build/release service identity, or the project build/release service identity).
+
+    Refer to Get-VstsTfsService for a more simple to get a TFS service object.
+
+    *** DO NOT USE Agent.ServerOMDirectory *** See
+    https://github.com/Microsoft/vsts-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
+    working with the TFS extended client SDK from a task.
+```
+### <a name="get-vststfsservice" />Get-VstsTfsService
+[table of contents](#toc) | [full](FullHelp/Get-VstsTfsService.md)
+```
+NAME
+    Get-VstsTfsService
+
+SYNOPSIS
+    Gets a TFS extended client service.
+
+SYNTAX
+    Get-VstsTfsService [-TypeName] <String> [[-OMDirectory] <String>] [[-Uri] <String>]
+    [[-TfsClientCredentials] <Object>] [<CommonParameters>]
+
+DESCRIPTION
+    Gets an instance of an ITfsTeamProjectCollectionObject.
+
+    *** DO NOT USE Agent.ServerOMDirectory *** See
+    https://github.com/Microsoft/vsts-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
+    working with the TFS extended client SDK from a task.
 ```
 ### <a name="get-vstsvsscredentials" />Get-VstsVssCredentials
 [table of contents](#toc) | [full](FullHelp/Get-VstsVssCredentials.md)
@@ -381,15 +466,41 @@ NAME
     Get-VstsVssCredentials
 
 SYNOPSIS
-    Gets a credentials object that can be used with the REST SDK.
+    Gets a credentials object that can be used with the VSTS REST SDK.
 
 SYNTAX
-    Get-VstsVssCredentials [<CommonParameters>]
+    Get-VstsVssCredentials [[-OMDirectory] <String>] [<CommonParameters>]
 
 DESCRIPTION
     The agent job token is used to construct the credentials object. The identity associated with the token
     depends on the scope selected in the build/release definition (either the project collection
     build/release service identity, or the project service build/release identity).
+
+    Refer to Get-VstsVssHttpClient for a more simple to get a VSS HTTP client.
+
+    *** DO NOT USE Agent.ServerOMDirectory *** See
+    https://github.com/Microsoft/vsts-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
+    working with the VSTS REST SDK from a task.
+```
+### <a name="get-vstsvsshttpclient" />Get-VstsVssHttpClient
+[table of contents](#toc) | [full](FullHelp/Get-VstsVssHttpClient.md)
+```
+NAME
+    Get-VstsVssHttpClient
+
+SYNOPSIS
+    Gets a VSS HTTP client.
+
+SYNTAX
+    Get-VstsVssHttpClient [-TypeName] <String> [[-OMDirectory] <String>] [[-Uri] <String>] [[-VssCredentials]
+    <Object>] [<CommonParameters>]
+
+DESCRIPTION
+    Gets an instance of an VSS HTTP client.
+
+    *** DO NOT USE Agent.ServerOMDirectory *** See
+    https://github.com/Microsoft/vsts-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
+    working with the VSTS REST SDK from a task.
 ```
 ## <a name="tool" />Tool
 ### <a name="assert-vstspath" />Assert-VstsPath

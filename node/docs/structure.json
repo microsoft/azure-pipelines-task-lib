@@ -8,6 +8,7 @@
             "task.filePathSupplied",
             "task.getDelimitedInput",
             "task.getVariable",
+            "task.getVariables",
             "task.setVariable"
         ]
     },
