@@ -230,7 +230,7 @@ export class ToolRunner extends events.EventEmitter {
         var runSettings;
         if (os.type().match(/^Win/)) {
             runSettings = {
-                shell: this.toolPath.indexOf(' ') !== -1, //this.toolPath.endsWith('.cmd') || this.toolPath.endsWith('.bat'),
+                shell: this.toolPath.indexOf(' ') !== -1,
                 toolPath: this.toolPath.indexOf(' ') === -1 ? this.toolPath : '"' + this.toolPath + '"',
                 args: this.args.map((arg: string) => /^[^"].* .*[^"]$/.test(arg) ? '"' + arg + '"' : arg)
             }
