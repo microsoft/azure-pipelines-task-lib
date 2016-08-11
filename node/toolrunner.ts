@@ -11,7 +11,7 @@ var run = function(cmd, callback) {
     console.log('running: ' + cmd);
     var output = '';
     try {
-      
+
     }
     catch(err) {
         console.log(err.message);
@@ -21,8 +21,8 @@ var run = function(cmd, callback) {
 
 /**
  * Interface for exec options
- * 
- * @param     cwd        optional working directory.  defaults to current 
+ *
+ * @param     cwd        optional working directory.  defaults to current
  * @param     env        optional envvar dictionary.  defaults to current processes env
  * @param     silent     optional.  defaults to false
  * @param     failOnStdErr     optional.  whether to fail if output to stderr.  defaults to false
@@ -40,7 +40,7 @@ export interface IExecOptions {
 
 /**
  * Interface for exec results returned from synchronous exec functions
- * 
+ *
  * @param     stdout      standard output
  * @param     stderr      error output
  * @param     code        return code
@@ -56,7 +56,7 @@ export interface IExecResult {
 export class ToolRunner extends events.EventEmitter {
     constructor(toolPath) {
         super();
-        
+
         this.toolPath = toolPath;
         this.args = [];
         this.silent = false;
@@ -102,7 +102,7 @@ export class ToolRunner extends events.EventEmitter {
                 }
                 continue;
             }
-            
+
             if (c === "\\" && inQuotes) {
                 escaped = true;
                 continue;
@@ -128,9 +128,9 @@ export class ToolRunner extends events.EventEmitter {
 
     /**
      * Add argument
-     * Append an argument or an array of arguments 
+     * Append an argument or an array of arguments
      * returns ToolRunner for chaining
-     * 
+     *
      * @param     val        string cmdline or array of strings
      * @returns   ToolRunner
      */
@@ -154,8 +154,8 @@ export class ToolRunner extends events.EventEmitter {
     /**
      * Append argument command line string
      * e.g. '"arg one" two -z' would append args[]=['arg one', 'two', '-z']
-     * returns ToolRunner for chaining 
-     * 
+     * returns ToolRunner for chaining
+     *
      * @param     val        string cmdline
      * @returns   ToolRunner
      */
@@ -166,9 +166,9 @@ export class ToolRunner extends events.EventEmitter {
 
         this._debug(this.toolPath + ' arg: ' + val);
         this.args = this.args.concat(this._argStringToArray(val));
-        return this;    
+        return this;
     }
-    
+
     /**
      * Add argument(s) if a condition is met
      * Wraps arg().  See arg for details
@@ -189,7 +189,7 @@ export class ToolRunner extends events.EventEmitter {
      * Exec a tool.
      * Output will be streamed to the live console.
      * Returns promise with return code
-     * 
+     *
      * @param     tool     path to tool to exec
      * @param     options  optional exec options.  See IExecOptions
      * @returns   number
@@ -224,12 +224,25 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         if (!ops.silent) {
-            ops.outStream.write('[command]' + cmdString + os.EOL);    
+            ops.outStream.write('[command]' + cmdString + os.EOL);
         }
 
+        var runSettings;
+        if (os.type().match(/^Win/)) {
+            runSettings = {
+                shell: this.toolPath.indexOf(' ') !== -1, //this.toolPath.endsWith('.cmd') || this.toolPath.endsWith('.bat'),
+                toolPath: this.toolPath.indexOf(' ') === -1 ? this.toolPath : '"' + this.toolPath + '"',
+                args: this.args.map((arg: string) => /^[^"].* .*[^"]$/.test(arg) ? '"' + arg + '"' : arg)
+            }
+        } else {
+            runSettings = {
+                shell: false,
+                toolPath: this.toolPath,
+                args: this.args
+            }
+        }
         // TODO: filter process.env
-
-        var cp = child.spawn(this.toolPath, this.args, { cwd: ops.cwd, env: ops.env });
+        var cp = child.spawn(runSettings.toolPath, runSettings.args, { cwd: ops.cwd, env: ops.env, shell: runSettings.shell });
 
         var processLineBuffer = (data: Buffer, strBuffer: string, onLine:(line: string) => void): void => {
             try {
@@ -245,7 +258,7 @@ export class ToolRunner extends events.EventEmitter {
                     n = s.indexOf(os.EOL);
                 }
 
-                strBuffer = s;                
+                strBuffer = s;
             }
             catch (err) {
                 // streaming lines to console is best effort.  Don't fail a build.
@@ -259,11 +272,11 @@ export class ToolRunner extends events.EventEmitter {
             this.emit('stdout', data);
 
             if (!ops.silent) {
-                ops.outStream.write(data);    
+                ops.outStream.write(data);
             }
 
             processLineBuffer(data, stdbuffer, (line: string) => {
-                this.emit('stdline', line);    
+                this.emit('stdline', line);
             });
         });
 
@@ -278,8 +291,8 @@ export class ToolRunner extends events.EventEmitter {
             }
 
             processLineBuffer(data, errbuffer, (line: string) => {
-                this.emit('errline', line);    
-            });            
+                this.emit('errline', line);
+            });
         });
 
         cp.on('error', (err) => {
@@ -292,7 +305,7 @@ export class ToolRunner extends events.EventEmitter {
             if (stdbuffer.length > 0) {
                 this.emit('stdline', stdbuffer);
             }
-            
+
             if (errbuffer.length > 0) {
                 this.emit('errline', errbuffer);
             }
@@ -300,25 +313,25 @@ export class ToolRunner extends events.EventEmitter {
             if (code != 0 && !ops.ignoreReturnCode) {
                 success = false;
             }
-            
+
             this._debug('success:' + success);
             if (success) {
                 defer.resolve(code);
             }
             else {
                 defer.reject(new Error(this.toolPath + ' failed with return code: ' + code));
-            }      
+            }
         });
 
         return <Q.Promise<number>>defer.promise;
     }
 
     /**
-     * Exec a tool synchronously. 
+     * Exec a tool synchronously.
      * Output will be *not* be streamed to the live console.  It will be returned after execution is complete.
-     * Appropriate for short running tools 
+     * Appropriate for short running tools
      * Returns IExecResult with output and return code
-     * 
+     *
      * @param     tool     path to tool to exec
      * @param     options  optionalexec options.  See IExecOptions
      * @returns   IExecResult
@@ -353,11 +366,11 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         if (!ops.silent) {
-            ops.outStream.write('[command]' + cmdString + os.EOL);    
+            ops.outStream.write('[command]' + cmdString + os.EOL);
         }
-        
+
         var r = child.spawnSync(this.toolPath, this.args, { cwd: ops.cwd, env: ops.env });
-        
+
         if (r.stdout && r.stdout.length > 0) {
             ops.outStream.write(r.stdout);
         }
@@ -370,5 +383,5 @@ export class ToolRunner extends events.EventEmitter {
         res.stdout = (r.stdout) ? r.stdout.toString() : null;
         res.stderr = (r.stderr) ? r.stderr.toString() : null;
         return res;
-    }   
+    }
 }

@@ -1591,7 +1591,7 @@ describe('Test vsts-task-lib', function () {
             assert.equal(node.args.length, 5, 'should have 5 args');
             assert.equal(node.args.toString(), 'one,two,three,four,five', 'should be one,two,three,four,five');
             done();
-        })        
+        })
         it('handles padded spaces', function (done) {
             this.timeout(1000);
 
@@ -1671,6 +1671,56 @@ describe('Test vsts-task-lib', function () {
             assert.equal(node.args.toString(), '--path,/bin/working folder1', 'should be --path /bin/working folder1');
             done();
         })
+        it('handles spaces in toolPath and arguments', function () {
+            this.timeout(1000);
+
+            var toolName = os.type().match(/^Win/) ? 'check-arg.cmd' : 'check-arg.sh';
+            var tool = tl.tool(path.join(__dirname, 'scripts', 'path with spaces', toolName));
+            tool.arg('arg with spaces');
+
+            var _testExecOptions: trm.IExecOptions = {
+                cwd: __dirname,
+                env: {},
+                silent: false,
+                failOnStdErr: false,
+                ignoreReturnCode: false,
+                outStream: _nullTestStream,
+                errStream: _nullTestStream
+            }
+
+            return tool.exec(_testExecOptions)
+                .then(function (code) {
+                    assert.equal(code, 0, 'return code of script should be 0');
+                })
+                .fail(function (err) {
+                    assert.fail('script failed to run: ' + err.message);
+                });
+        })
+        if (os.type().match(/^Win/)) {
+            it('handles spaces in toolPath for Windows exe', function () {
+                this.timeout(1000);
+
+                var toolDir = path.join(__dirname, 'scripts', 'path with spaces');
+                var toolPath = path.join(toolDir, 'cmd.exe');
+                tl.cp(tl.which('cmd'), toolDir);
+
+                var cmd = tl.tool(toolPath);
+                cmd.arg(['/c', 'echo hello']);
+                return cmd.exec({
+                    cwd: __dirname,
+                    env: {},
+                    silent: false,
+                    failOnStdErr: false,
+                    ignoreReturnCode: false,
+                    outStream: _nullTestStream,
+                    errStream: _nullTestStream
+                }).then(function (code) {
+                    assert.equal(code, 0, 'return code of command should be 0');
+                }).fail(function (err) {
+                    assert.fail('command failed to run: ' + err.message);
+                });
+            })
+        }
     });
 
     describe('Codecoverage commands', function () {
