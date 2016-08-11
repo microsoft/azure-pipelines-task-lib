@@ -431,13 +431,13 @@ export function setEnvVar(name: string, val: string): void {
  * @returns   string[]
  */
 export function getDelimitedInput(name: string, delim: string, required?: boolean): string[] {
-    var inval = getInput(name, required);
-    if (!inval) {
+    let inputVal = getInput(name, required);
+    if (!inputVal) {
         return [];
     }
 
-    var result = [];
-    inval.split(delim).forEach(x => {
+    let result: string[] = [];
+    inputVal.split(delim).forEach((x: string) => {
         if (x) {
             result.push(x);
         }
@@ -967,24 +967,113 @@ export function mv(source: string, dest: string, options?: string, continueOnErr
 }
 
 /**
+ * Interface for FindOptions
+ * Contains properties to control whether to follow symlinks
+ * 
+ * @param followSpecifiedSymbolicLink   Equivalent to the -H command line option. Indicates whether to traverse descendants if the specified path is a symbolic link directory. Does not cause nested symbolic link directories to be traversed.
+ * @param  followSymbolicLinks          Equivalent to the -L command line option. Indicates whether to traverse descendants of symbolic link directories.
+ */
+export interface FindOptions {
+    /**
+     * Equivalent to the -H command line option. Indicates whether to traverse descendants if
+     * the specified path is a symbolic link directory. Does not cause nested symbolic link
+     * directories to be traversed.
+     */
+    followSpecifiedSymbolicLink: boolean;
+
+    /**
+     * Equivalent to the -L command line option. Indicates whether to traverse descendants of
+     * symbolic link directories.
+     */
+    followSymbolicLinks: boolean;
+}
+
+/**
  * Find all files under a give path 
- * Returns an array of full paths
+ * Returns an array of paths
  * 
  * @param     findPath     path to find files under
+ * @param     options      options to control whether to follow symlinks
  * @returns   string[]
  */
-export function find(findPath: string): string[] {
+export function find(findPath: string, options?: FindOptions): string[] {
+    debug(`find findPath=${findPath}, options=${options}`);
+    options = options || {} as FindOptions;
+
+    // return empty if not exists
+    if (!shell.test('-e', findPath)) {
+        debug('0 results')
+        return [];
+    }
+
     try {
-        if (!shell.test('-e', findPath)) {
-            return [];
+        let result: string[] = [];
+
+        // push the first item
+        let stack: FindItem[] = [ new FindItem(findPath, 1) ];
+        let traversalChain: fs.Stats[] = []; // used to detect cycles
+
+        while (stack.length) {
+            // pop the next item and push to the result array
+            let item: FindItem = stack.pop();
+            debug(`  ${item.path}`);
+            result.push(item.path);
+
+            // stat the item.  the stat info is used further below to determine whether to traverse deeper
+            //
+            // stat returns info about the target of a symlink (or symlink chain),
+            // lstat returns info about a symlink itself
+            let stats: fs.Stats;
+            if (options.followSymbolicLinks) {
+                // use stat (following all symlinks)
+                stats = fs.statSync(item.path);
+            }
+            else if (options.followSpecifiedSymbolicLink && result.length == 1) {
+                // use stat (following symlinks for the specified path and this is the specified path)
+                stats = fs.statSync(item.path);
+            }
+            else {
+                // use lstat (not following symlinks)
+                stats = fs.lstatSync(item.path);
+            }
+
+            // note, isDirectory() returns false for the lstat of a symlink
+            if (stats.isDirectory()) {
+                // fixup the traversal chain to match the item level
+                while (traversalChain.length >= item.level) {
+                    traversalChain.pop();
+                }
+
+                // test for a cycle
+                if (traversalChain.every((x: fs.Stats) => x.ino != stats.ino || x.dev != stats.dev)) {
+                    // update the traversal chain
+                    traversalChain.push(stats);
+
+                    // push the child items in reverse onto the stack
+                    let childLevel: number = item.level + 1;
+                    let childItems: FindItem[] =
+                        fs.readdirSync(item.path)
+                        .map((childName: string) => new FindItem(path.join(item.path, childName), childLevel));
+                    stack.push(...childItems.reverse());
+                }
+            }
         }
-        var matches = shell.find(findPath);
-        debug('find ' + findPath);
-        debug(matches.length + ' matches.');
-        return matches;
+
+        debug(`${result.length} results`);
+        return result;
     }
     catch (err) {
         throw new Error(loc('LIB_OperationFailed', 'find', err.message));
+    }
+}
+
+class FindItem {
+    public path: string;
+    public level: number;
+
+    public constructor(path: string, level: number) {
+        this.path = path;
+        this.level = level;
     }
 }
 
@@ -994,7 +1083,7 @@ export function find(findPath: string): string[] {
  * 
  * @param     path     path to remove
  * @param     continueOnError optional. whether to continue on error
- * @returns   string[]
+ * @returns   void
  */
 export function rmRF(path: string, continueOnError?: boolean): void {
     debug('rm -rf ' + path);
@@ -1118,11 +1207,39 @@ export function tool(tool: string) {
 //-----------------------------------------------------
 // Matching helpers
 //-----------------------------------------------------
-export function match(list, pattern, options): string[] {
-    return minimatch.match(list, pattern, options);
+export function match(list: string[], pattern: string, options?: minimatch.IOptions): string[];
+export function match(list: string[], patterns: string[], options?: minimatch.IOptions): string[];
+export function match(list: string[], pattern: any, options?: minimatch.IOptions): string[] {
+    debug(`match patterns: ${pattern}`);
+    debug(`match options: ${options}`);
+
+    // convert pattern to an array
+    let patterns: string[];
+    if (typeof pattern == 'string') {
+        patterns = [ pattern ];
+    }
+    else {
+        patterns = pattern;
+    }
+
+    // hashtable to keep track of matches
+    let map: { [item: string]: boolean } = {};
+
+    // perform the match
+    for (let pattern of patterns) {
+        debug(`applying pattern: ${pattern}`);
+        let matches: string[] = minimatch.match(list, pattern, options);
+        debug(`matched ${matches.length} items`);
+        for (let item of matches) {
+            map[item] = true;
+        }
+    }
+
+    // return a filtered version of the original list (preserves order and prevents duplication)
+    return list.filter((item: string) => map.hasOwnProperty(item));
 }
 
-export function filter(pattern, options): (element: string, indexed: number, array: string[]) => boolean {
+export function filter(pattern: string, options?: minimatch.IOptions): (element: string, indexed: number, array: string[]) => boolean {
     return minimatch.filter(pattern, options);
 }
 
