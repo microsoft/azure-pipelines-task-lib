@@ -75,6 +75,16 @@ describe('Test vsts-task-lib', function () {
 
     });
 
+    describe('node', () => {
+        it('is expected version', (done: MochaDone) => {
+            this.timeout(1000);
+
+            assert.equal(process.version, 'v5.10.1');
+
+            done();
+        });
+    });
+
     describe('Dir Operations', function () {
         it('creates folder with mkdirP', function (done) {
             this.timeout(1000);
@@ -1268,22 +1278,21 @@ describe('Test vsts-task-lib', function () {
                 errStream: _nullTestStream
             }
 
+            var tool;
             if (plat === 'win32') {
-                var cmd = tl.tool(tl.which('cmd', true));
-                cmd.arg('/c notExist');
-
-                var ret = cmd.execSync(_testExecOptions);
-                assert.equal(ret.code, 1, 'return code of cmd should be 1 on failure');
+                tool = tl.tool(tl.which('cmd', true));
+                tool.arg('/c');
+                tool.arg('echo hello from stderr 1>&2 && exit 123');
             }
             else {
-                var ls = tl.tool(tl.which('ls', true));
-                ls.arg('-j');
-
-                var ret = ls.execSync(_testExecOptions);
-                assert.equal(ret.code, 1, 'return code of ls should be 1 on failure');
+                tool = tl.tool(tl.which('bash', true));
+                tool.arg('-c');
+                tool.arg('echo hello from stderr 1>&2 ; exit 123');
             }
 
-            assert(ret.stderr && ret.stderr.length > 0, 'should have emitted stderr');
+            var ret = tool.execSync(_testExecOptions);
+            assert.equal(ret.code, 123, 'return code of tool should be 1');
+            assert.equal(ret.stderr.toString().trim(), 'hello from stderr');
             tl.popd();
             done();
         })
@@ -1835,7 +1844,7 @@ describe('Test vsts-task-lib', function () {
             var jsonPath = path.join(tempFolder, 'task.json');
             fs.writeFileSync(jsonPath, jsonStr);
 
-            var tempLocFolder = path.join(tempFolder, 'strings', 'resources.resjson', 'zh-CN');
+            var tempLocFolder = path.join(tempFolder, 'Strings', 'resources.resjson', 'zh-CN');
             shell.mkdir('-p', tempLocFolder);
             var locJsonStr = "{\"loc.messages.key1\" : \"loc cn-string for key 1.\", \"loc.messages.key3\" : \"loc cn-string for key %%.\"}";
             var locJsonPath = path.join(tempLocFolder, 'resources.resjson');
@@ -1857,7 +1866,7 @@ describe('Test vsts-task-lib', function () {
             var jsonPath = path.join(tempFolder, 'task.json');
             fs.writeFileSync(jsonPath, jsonStr);
 
-            var tempLocFolder = path.join(tempFolder, 'strings', 'resources.resjson', 'en-US');
+            var tempLocFolder = path.join(tempFolder, 'Strings', 'resources.resjson', 'en-US');
             shell.mkdir('-p', tempLocFolder);
             var locJsonStr = "{\"loc.messages.key1\" : \"loc en-string for key 1.\", \"loc.messages.key2\" : \"loc en-string for key %d.\", \"loc.messages.key3\" : \"loc en-string for key %%.\"}";
             var locJsonPath = path.join(tempLocFolder, 'resources.resjson');
