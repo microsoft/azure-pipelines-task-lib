@@ -1,7 +1,9 @@
 
 require('shelljs/make');
-var path = require('path');
 var fs = require('fs');
+var path = require('path');
+var buildutils = require('./buildutils');
+var run = buildutils.run;
 
 var rp = function (relPath) {
     return path.join(__dirname, relPath);
@@ -9,15 +11,6 @@ var rp = function (relPath) {
 
 var buildPath = path.join(__dirname, '_build');
 var testPath = path.join(__dirname, '_test');
-
-var run = function(cl) {
-    console.log('> ' + cl);
-    var rc = exec(cl).code;
-    if (rc !== 0) {
-        echo('Exec failed with rc ' + rc);
-        exit(rc);
-    }    
-}
 
 target.clean = function () {
     rm('-Rf', buildPath);
@@ -28,7 +21,7 @@ target.build = function() {
     target.clean();
     
     run('tsc --outDir ' + buildPath);
-    cp(rp('dependencies/typings.json'), buildPath);    
+    cp(rp('dependencies/typings.json'), buildPath);
     cp(rp('package.json'), buildPath);
     cp(rp('README.md'), buildPath);
     cp(rp('../LICENSE'), buildPath);
@@ -43,6 +36,7 @@ target.build = function() {
 target.test = function() {
     target.build();
 
+    buildutils.getExternals();
     run('tsc --outDir ' + testPath + ' test/tasklib.ts');
     cp('-Rf', rp('test/scripts'), testPath);
     run('mocha ' + path.join(testPath, 'tasklib.js'));
@@ -59,7 +53,7 @@ target.loc = function() {
         }
     }
 
-    // Create the en-US resjson file.
+    // create the en-US resjson file.
     var enContents = JSON.stringify(strings, null, 2);
     fs.writeFileSync(path.join(strPath, 'resources.resjson'), enContents)
 }
