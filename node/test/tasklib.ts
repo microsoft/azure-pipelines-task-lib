@@ -5,6 +5,7 @@
 /// <reference path="../_build/task.d.ts" />
 
 import assert = require('assert');
+import child = require('child_process');
 import path = require('path');
 import fs = require('fs');
 import util = require('util');
@@ -55,6 +56,23 @@ var _buildOutput = function (lines) {
     return output;
 }
 
+/**
+ * Creates a symlink directory on OSX/Linux, and a junction point directory on Windows.
+ * A symlink directory is not created on Windows since it requires an elevated context.
+ */
+let createSymlinkDir = (real: string, link: string): void => {
+    if (plat == 'win32') {
+        let result = child.spawnSync('cmd.exe', [ '/c', 'mklink', '/J', link, real ]);
+        if (result.status != 0) {
+            let message: string = (result.output || []).join(' ').trim();
+            throw new Error(`Failed to create junction point '${link}' for directory '${real}'. ${message}`);
+        }
+    }
+    else {
+        fs.symlinkSync(real, link);
+    }
+}
+
 describe('Test vsts-task-lib', function () {
 
     before(function (done) {
@@ -86,6 +104,7 @@ describe('Test vsts-task-lib', function () {
     });
 
     describe('Dir Operations', function () {
+        // mkdirP tests
         it('creates folder with mkdirP', function (done) {
             this.timeout(1000);
 
@@ -151,6 +170,126 @@ describe('Test vsts-task-lib', function () {
             catch (err) { }
 
             assert(!worked, 'mkdirP with empty string should have not have worked');
+
+            done();
+        });
+
+        it('fails if mkdirP with conflicting file path', (done: MochaDone) => {
+            this.timeout(1000);
+
+            let testPath = path.join(_testTemp, 'mkdirP_conflicting_file_path');
+            shell.mkdir('-p', _testTemp);
+            fs.writeFileSync(testPath, '');
+            let worked: boolean = false;
+            try {
+                tl.mkdirP(testPath);
+                worked = true;
+            }
+            catch (err) { }
+
+            assert(!worked, 'mkdirP with conflicting file path should not have worked');
+
+            done();
+        });
+
+        it('fails if mkdirP with conflicting parent file path', (done: MochaDone) => {
+            this.timeout(1000);
+
+            let testPath = path.join(_testTemp, 'mkdirP_conflicting_parent_file_path', 'dir');
+            shell.mkdir('-p', _testTemp);
+            fs.writeFileSync(path.dirname(testPath), '');
+            let worked: boolean = false;
+            try {
+                tl.mkdirP(testPath);
+                worked = true;
+            }
+            catch (err) { }
+
+            assert(!worked, 'mkdirP with conflicting file path should not have worked');
+
+            done();
+        });
+
+        it('no-ops if mkdirP directory exists', (done: MochaDone) => {
+            this.timeout(1000);
+
+            let testPath = path.join(_testTemp, 'mkdirP_dir_exists');
+            shell.mkdir('-p', _testTemp);
+            fs.mkdirSync(testPath);
+
+            tl.mkdirP(testPath); // should not throw
+
+            done();
+        });
+
+        it('no-ops if mkdirP with symlink directory', (done: MochaDone) => {
+            this.timeout(1000);
+
+            // create the following layout:
+            //   real_dir
+            //   real_dir/file.txt
+            //   symlink_dir -> real_dir
+            let rootPath = path.join(_testTemp, 'mkdirP_symlink_dir');
+            let realDirPath = path.join(rootPath, 'real_dir');
+            let realFilePath = path.join(realDirPath, 'file.txt');
+            let symlinkDirPath = path.join(rootPath, 'symlink_dir');
+            shell.mkdir('-p', _testTemp);
+            fs.mkdirSync(rootPath);
+            fs.mkdirSync(realDirPath);
+            fs.writeFileSync(realFilePath, 'test real_dir/file.txt contet');
+            createSymlinkDir(realDirPath, symlinkDirPath);
+
+            tl.mkdirP(symlinkDirPath);
+
+            // the file in the real directory should still be accessible via the symlink
+            assert.equal(fs.lstatSync(symlinkDirPath).isSymbolicLink(), true);
+            assert.equal(fs.statSync(path.join(symlinkDirPath, 'file.txt')).isFile(), true);
+
+            done();
+        });
+
+        it('no-ops if mkdirP with parent symlink directory', (done: MochaDone) => {
+            this.timeout(1000);
+
+            // create the following layout:
+            //   real_dir
+            //   real_dir/file.txt
+            //   symlink_dir -> real_dir
+            let rootPath = path.join(_testTemp, 'mkdirP_parent_symlink_dir');
+            let realDirPath = path.join(rootPath, 'real_dir');
+            let realFilePath = path.join(realDirPath, 'file.txt');
+            let symlinkDirPath = path.join(rootPath, 'symlink_dir');
+            shell.mkdir('-p', _testTemp);
+            fs.mkdirSync(rootPath);
+            fs.mkdirSync(realDirPath);
+            fs.writeFileSync(realFilePath, 'test real_dir/file.txt contet');
+            createSymlinkDir(realDirPath, symlinkDirPath);
+
+            let subDirPath = path.join(symlinkDirPath, 'sub_dir');
+            tl.mkdirP(subDirPath);
+
+            // the subdirectory should be accessible via the real directory
+            assert.equal(fs.lstatSync(path.join(realDirPath, 'sub_dir')).isDirectory(), true);
+
+            done();
+        });
+
+        it('breaks if mkdirP loop out of control', (done: MochaDone) => {
+            this.timeout(1000);
+
+            process.env['TASKLIB_TEST_MKDIRP_FAILSAFE'] = '10';
+            let testPath = path.join(_testTemp, 'mkdirP_failsafe', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10');
+
+            try {
+                tl.mkdirP(testPath);
+                throw new Error("directory should not have been created");
+            }
+            catch (err) {
+                // ENOENT is expected, all other errors are not
+                if (err.code != 'ENOENT') {
+                    throw err;
+                }
+            }
 
             done();
         });

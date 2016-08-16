@@ -765,28 +765,69 @@ export function popd(): void {
 
 /**
  * Make a directory.  Creates the full path with folders in between
- * Returns whether it was successful or not
+ * Will throw if it fails
  * 
  * @param     p       path to create
+ * @returns   void
  */
-export function mkdirP(p): void {
+export function mkdirP(p: string): void {
     if (!p) {
         throw new Error(loc('LIB_ParameterIsRequired', 'p'));
     }
 
-    // certain chars like \0 will cause shelljs and fs
-    // to blow up without exception or error
-    if (p.indexOf('\0') >= 0) {
-        throw new Error(loc('LIB_PathHasNullByte'));
+    // build a stack of directories to create
+    let stack: string[] = [ ];
+    let testDir: string = p;
+    while (true) {
+        // validate the loop is not out of control
+        if (stack.length >= (process.env['TASKLIB_TEST_MKDIRP_FAILSAFE'] || 1000)) {
+            // let the framework throw
+            fs.mkdirSync(p);
+            return;
+        }
+
+        debug(`testing directory '{testDir}'`);
+        let stats: fs.Stats;
+        try {
+            stats = fs.statSync(testDir);
+        } catch (err) {
+            if (err.code == 'ENOENT') {
+                // validate the directory is not the drive root
+                let parentDir = path.dirname(testDir);
+                if (testDir == parentDir) {
+                    throw new Error(loc('LIB_MkdirFailedInvalidDriveRoot', p, testDir)); // Unable to create directory '{p}'. Root directory does not exist: '{testDir}'
+                }
+
+                // push the dir and test the parent
+                stack.push(testDir);
+                testDir = parentDir;
+                continue;
+            }
+            else if (err.code == 'UNKNOWN') {
+                throw new Error(loc('LIB_MkdirFailedInvalidShare', p, testDir)) // Unable to create directory '{p}'. Unable to verify the directory exists: '{testDir}'. If directory is a file share, please verify the share name is correct, the share is online, and the current process has permission to access the share.
+            }
+            else {
+                throw err;
+            }
+        }
+
+        if (!stats.isDirectory()) {
+            throw new Error(loc('LIB_MkdirFailedFileExists', p, testDir)); // Unable to create directory '{p}'. Conflicting file exists: '{testDir}'
+        }
+
+        // testDir exists
+        break;
     }
 
-    if (!shell.test('-d', p)) {
-        debug('creating path: ' + p);
-        shell.mkdir('-p', p);
-        checkShell('mkdirP');
-    }
-    else {
-        debug('path exists: ' + p);
+    // create each directory
+    while (stack.length) {
+        let dir = stack.pop();
+        debug(`mkdir '{dir}'`);
+        try {
+            fs.mkdirSync(dir);
+        } catch (err) {
+            throw new Error(loc('LIB_MkdirFailed', p, err.message)); // Unable to create directory '{p}'. {err.message}
+        }
     }
 }
 

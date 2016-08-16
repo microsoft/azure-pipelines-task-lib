@@ -533,7 +533,7 @@ continueOnError | boolean | optional. whether to continue on error
 Make a directory.  Creates the full path with folders in between
 Will throw if it fails
 ```javascript
-mkdirP(p:any):void
+mkdirP(p:string):void
 ```
  
 Param | Type | Description
