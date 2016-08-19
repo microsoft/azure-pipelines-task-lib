@@ -309,7 +309,7 @@ namespace VstsTaskSdk.FS
         }
     }
 
-// TODO: UPDATE THIS BASED ON: https://msdn.microsoft.com/en-us/library/windows/desktop/gg258117(v=vs.85).aspx
+    // Refer https://msdn.microsoft.com/en-us/library/windows/desktop/gg258117(v=vs.85).aspx
     [Flags]
     public enum Attributes : uint
     {
@@ -328,6 +328,9 @@ namespace VstsTaskSdk.FS
         Offline = 0x00001000,
         NotContentIndexed = 0x00002000,
         Encrypted = 0x00004000,
+        IntegrityStream = 0x00008000,
+        Virtual = 0x00010000,
+        NoScrubData = 0x00020000,
         Write_Through = 0x80000000,
         Overlapped = 0x40000000,
         NoBuffering = 0x20000000,
