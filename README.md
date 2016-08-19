@@ -7,6 +7,14 @@ Libraries for writing [Visual Studio Team Services](https://www.visualstudio.com
 
 Reference examples of our in the box tasks [are here](https://github.com/Microsoft/vsts-tasks)
 
+## Highlights
+
+ * __Breaks coupling with agent:__  This lib is decoupled and ships with the task and the agent is just an engine to run tasks.
+ * __Testability:__ Aims to offer the ability to actually run your task scripts under all scenarios without a server or an agent.
+ * __Localization:__ The lib provides a mechanism for storing your localized strings with your task, and loading the correct set at run-time.
+ * __Consistent API:__ The TypeScript and PowerShell libs are largely consistent. They only differ where it makes sense (being true to the platform).
+ * __Tracing for free:__ Tracing has been built-in to many of the commands. Use the SDK and get some debug tracing for free.
+
 ## Typescript Tasks  
 
 Cross platform tasks are written in Typescript.  It is the preferred way to write tasks once.
@@ -19,47 +27,8 @@ Documentation: [Creating Node Tasks with the Typescript API](node/README.md)
 
 A task which automates Powershell technologies can be written with our Powershell SDK.  These only run on Windows.
 
-[![NPM version][npm-sdk-image]][npm-sdk-url]
-
 Documentation: [PowerShell API](powershell/Docs/README.md)
 
-## Contributing
-
-### Node
-
-Once:
-```bash
-$ cd node
-$ npm install
-$ sudo npm install tsc -g
-```
-
-Build and Test:
-```bash
-$ npm test
-```
-Set environment variable TASK_TEST_TRACE=1 to display test output.
-
-### Powershell
-
-Once:
-```bash
-$ cd powershell
-$ npm install
-$ sudo npm install gulp -g
-```
-
-Build:
-```bash
-$ cd powershell
-$ gulp
-```
-
-Test:
-```bash
-$ cd powershell
-$ gulp test
-```
 
 [npm-lib-image]: https://img.shields.io/npm/v/vsts-task-lib.svg?style=flat
 [npm-lib-url]: https://www.npmjs.com/package/vsts-task-lib
