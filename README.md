@@ -34,5 +34,3 @@ Documentation: [PowerShell API](powershell/Docs/README.md)
 [npm-lib-url]: https://www.npmjs.com/package/vsts-task-lib
 [npm-sdk-image]: https://img.shields.io/npm/v/vsts-task-sdk.svg?style=flat
 [npm-sdk-url]: https://www.npmjs.com/package/vsts-task-sdk
-
-Set environment variable TASK_TEST_TRACE=1 to display test output.
