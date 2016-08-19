@@ -2,6 +2,10 @@
   "messages": {
     "LIB_UnhandledEx": "Unhandled: %s",
     "LIB_FailOnCode": "Failure return code: %d",
+    "LIB_LIB_MkdirFailed": "Unable to create directory '%s'. %s",
+    "LIB_LIB_MkdirFailedFileExists": "Unable to create directory '%s'. Conflicting file exists: '%s'",
+    "LIB_LIB_MkdirFailedInvalidDriveRoot": "Unable to create directory '{p}'. Root directory does not exist: '{testDir}'",
+    "LIB_LIB_MkdirFailedInvalidShare": "Unable to create directory '{p}'. Unable to verify the directory exists: '{testDir}'. If directory is a file share, please verify the share name is correct, the share is online, and the current process has permission to access the share.",
     "LIB_ReturnCode": "Return code: %d",
     "LIB_ResourceFileNotExist": "Resource file doesn\\'t exist: %s",
     "LIB_ResourceFileAlreadySet": "Resource file has already set to: %s",
