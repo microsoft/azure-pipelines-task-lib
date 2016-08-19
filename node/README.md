@@ -17,6 +17,10 @@ Step by Step: [Create Task](docs/stepbystep.md)
 
 Documentation: [Typescript API](docs/vsts-task-lib.md)
 
+## Reference Examples
+
+The [ShellScript Task](https://github.com/Microsoft/vsts-tasks/tree/master/Tasks/ShellScript) and the [XCode Task](https://github.com/Microsoft/vsts-tasks/tree/master/Tasks/Xcode) are good examples.
+
 ## Contributing
 
 ### Node
