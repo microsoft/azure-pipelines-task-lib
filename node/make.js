@@ -19,7 +19,8 @@ target.clean = function () {
 
 target.build = function() {
     target.clean();
-    
+    target.loc();
+
     run('tsc --outDir ' + buildPath);
     cp(rp('dependencies/typings.json'), buildPath);
     cp(rp('package.json'), buildPath);
@@ -29,8 +30,6 @@ target.build = function() {
     cp('-Rf', rp('Strings'), buildPath);
     // just a bootstrap file to avoid /// in final js and .d.ts file
     rm(path.join(buildPath, 'index.*'));
-
-    target.loc();
 }
 
 target.test = function() {

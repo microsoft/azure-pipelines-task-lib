@@ -18,4 +18,4 @@ Write-Verbose "Importing module: TestHelpersModule"
 Import-Module $PSScriptRoot\TestHelpersModule -Verbose:$false
 
 Write-Verbose "Importing module: VstsTaskSdk"
-Import-Module $PSScriptRoot\..\..\VstsTaskSdk\VstsTaskSdk.psd1 -ArgumentList @{ NonInteractive = $true } -Verbose:$false
+Import-Module $PSScriptRoot\..\..\_build\VstsTaskSdk\VstsTaskSdk.psd1 -ArgumentList @{ NonInteractive = $true } -Verbose:$false
