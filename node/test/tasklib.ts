@@ -2498,6 +2498,24 @@ describe('Test vsts-task-lib', function () {
     });
 
     describe('Minimatch', () => {
+        it('single pattern', (done: MochaDone) => {
+            this.timeout(1000);
+
+            let list: string[] = [
+                '/projects/myproj1/myproj1.proj',
+                '/projects/myproj2/myproj2.proj',
+                '/projects/myproj2/readme.txt'
+            ];
+            let pattern: string = '/projects/**/*.proj';
+            let options: tl.MatchOptions = { matchBase: true };
+            let result: string[] = tl.match(list, pattern, options);
+            assert.equal(result.length, 2);
+            assert.equal(result[0], '/projects/myproj1/myproj1.proj');
+            assert.equal(result[1], '/projects/myproj2/myproj2.proj');
+
+            done();
+        });
+
         it('aggregates matches', (done: MochaDone) => {
             this.timeout(1000);
 
@@ -2510,7 +2528,7 @@ describe('Test vsts-task-lib', function () {
                 '/projects/**/myproj1.proj',
                 '/projects/**/myproj2.proj'
             ];
-            let options = { matchBase: true };
+            let options: tl.MatchOptions = { matchBase: true };
             let result: string[] = tl.match(list, patterns, options);
             assert.equal(result.length, 2);
             assert.equal(result[0], '/projects/myproj1/myproj1.proj');
@@ -2531,7 +2549,7 @@ describe('Test vsts-task-lib', function () {
                 '/included/**', // both patterns match the same files
                 '/**/*.proj'
             ];
-            let options = { matchBase: true };
+            let options: tl.MatchOptions = { matchBase: true };
             let result: string[] = tl.match(list, patterns, options);
             assert.equal(result.length, 2);
             assert.equal(result[0], '/included/file1.proj');
@@ -2557,7 +2575,7 @@ describe('Test vsts-task-lib', function () {
                 '/projects/**/myproj1.proj',
                 '/projects/**/myproj4.proj',
             ];
-            let options = { matchBase: true };
+            let options: tl.MatchOptions = { matchBase: true };
             let result: string[] = tl.match(list, patterns, options);
             assert.equal(result.length, 5);
             assert.equal(result[0], '/projects/myproj1/myproj1.proj'); // should follow original list order
