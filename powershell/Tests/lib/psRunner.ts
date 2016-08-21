@@ -6,7 +6,7 @@ import events = require('events');
 import fs = require('fs');
 import path = require('path');
 import child = require('child_process');
-var shell = require('shelljs');
+let shell = require('shelljs');
 
 function debug(message: string): void {
     if (process.env['TASK_TEST_TRACE']) {

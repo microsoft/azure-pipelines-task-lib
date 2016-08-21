@@ -1,13 +1,18 @@
-# Commands (v0.7.0)
+# Commands (v0.8.0)
 ## <a name="toc" />Table of Contents
  * [Find](#find)
-  * [Find-VstsFiles](#find-vstsfiles)
+  * [Find-VstsMatch](#find-vstsmatch)
+  * [New-VstsFindOptions](#new-vstsfindoptions)
+  * [New-VstsMatchOptions](#new-vstsmatchoptions)
+  * [Select-VstsMatch](#select-vstsmatch)
  * [Input](#input)
   * [Get-VstsEndpoint](#get-vstsendpoint)
   * [Get-VstsInput](#get-vstsinput)
   * [Get-VstsTaskVariable](#get-vststaskvariable)
   * [Get-VstsTaskVariableInfo](#get-vststaskvariableinfo)
   * [Set-VstsTaskVariable](#set-vststaskvariable)
+ * [Legacy Find](#legacyfind)
+  * [Find-VstsFiles](#find-vstsfiles)
  * [Localization](#localization)
   * [Get-VstsLocString](#get-vstslocstring)
   * [Import-VstsLocStrings](#import-vstslocstrings)
@@ -42,21 +47,72 @@
   * [Trace-VstsPath](#trace-vstspath)
 
 ## <a name="find" />Find
-### <a name="find-vstsfiles" />Find-VstsFiles
-[table of contents](#toc) | [full](FullHelp/Find-VstsFiles.md)
+### <a name="find-vstsmatch" />Find-VstsMatch
+[table of contents](#toc) | [full](FullHelp/Find-VstsMatch.md)
 ```
 NAME
-    Find-VstsFiles
+    Find-VstsMatch
 
 SYNOPSIS
-    Finds files or directories.
+    Finds files using match patterns.
 
 SYNTAX
-    Find-VstsFiles [[-LiteralDirectory] <String>] [-LegacyPattern] <String> [-IncludeFiles]
-    [-IncludeDirectories] [-Force] [<CommonParameters>]
+    Find-VstsMatch [[-DefaultRoot] <String>] [[-Pattern] <String[]>] [[-FindOptions] <Object>]
+    [[-MatchOptions] <Object>] [<CommonParameters>]
 
 DESCRIPTION
-    Finds files or directories using advanced pattern matching.
+    Determines the find root from a list of patterns. Performs the find and then applies the glob patterns.
+    Supports interleaved exclude patterns. Unrooted patterns are rooted using defaultRoot, unless
+    matchOptions.matchBase is specified and the pattern is a basename only. For matchBase cases, the
+    defaultRoot is used as the find root.
+```
+### <a name="new-vstsfindoptions" />New-VstsFindOptions
+[table of contents](#toc) | [full](FullHelp/New-VstsFindOptions.md)
+```
+NAME
+    New-VstsFindOptions
+
+SYNOPSIS
+    Creates FindOptions for use with Find-VstsMatch.
+
+SYNTAX
+    New-VstsFindOptions [-FollowSpecifiedSymbolicLink] [-FollowSymbolicLinks] [<CommonParameters>]
+
+DESCRIPTION
+    Creates FindOptions for use with Find-VstsMatch. Contains switches to control whether to follow symlinks.
+```
+### <a name="new-vstsmatchoptions" />New-VstsMatchOptions
+[table of contents](#toc) | [full](FullHelp/New-VstsMatchOptions.md)
+```
+NAME
+    New-VstsMatchOptions
+
+SYNOPSIS
+    Creates MatchOptions for use with Find-VstsMatch and Select-VstsMatch.
+
+SYNTAX
+    New-VstsMatchOptions [-Dot] [-FlipNegate] [-MatchBase] [-NoBrace] [-NoCase] [-NoComment] [-NoExt]
+    [-NoGlobStar] [-NoNegate] [-NoNull] [<CommonParameters>]
+
+DESCRIPTION
+    Creates MatchOptions for use with Find-VstsMatch and Select-VstsMatch. Contains switches to control which
+    pattern matching options are applied.
+```
+### <a name="select-vstsmatch" />Select-VstsMatch
+[table of contents](#toc) | [full](FullHelp/Select-VstsMatch.md)
+```
+NAME
+    Select-VstsMatch
+
+SYNOPSIS
+    Applies match patterns against a list of files.
+
+SYNTAX
+    Select-VstsMatch [[-ItemPath] <String[]>] [[-Pattern] <String[]>] [[-Options] <Object>]
+    [<CommonParameters>]
+
+DESCRIPTION
+    Applies match patterns to a list of paths. Supports interleaved exclude patterns.
 ```
 ## <a name="input" />Input
 ### <a name="get-vstsendpoint" />Get-VstsEndpoint
@@ -154,6 +210,23 @@ SYNTAX
 DESCRIPTION
     Sets a task variable in the current task context as well as in the current job context. This allows the
     task variable to retrieved by subsequent tasks within the same job.
+```
+## <a name="legacyfind" />Legacy Find
+### <a name="find-vstsfiles" />Find-VstsFiles
+[table of contents](#toc) | [full](FullHelp/Find-VstsFiles.md)
+```
+NAME
+    Find-VstsFiles
+
+SYNOPSIS
+    Finds files or directories.
+
+SYNTAX
+    Find-VstsFiles [[-LiteralDirectory] <String>] [-LegacyPattern] <String> [-IncludeFiles]
+    [-IncludeDirectories] [-Force] [<CommonParameters>]
+
+DESCRIPTION
+    Finds files or directories using advanced pattern matching.
 ```
 ## <a name="localization" />Localization
 ### <a name="get-vstslocstring" />Get-VstsLocString

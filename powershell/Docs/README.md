@@ -13,5 +13,6 @@ The [MSBuild Task](https://github.com/Microsoft/vsts-tasks/blob/master/Tasks/MSB
 ### [Errors, warnings, and task result](ErrorsWarningsAndTaskResult.md)
 ### [Testing and debugging](TestingAndDebugging.md)
 ### [Commands](Commands.md)
-### [Using the .NET SDKs](UsingOM.md)
+### [Finding Files](FindingFiles.md)
+### [Using the VSTS .NET SDKs](UsingOM.md)
 ### [Release notes](ReleaseNotes.md)
