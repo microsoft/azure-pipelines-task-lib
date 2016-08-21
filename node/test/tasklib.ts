@@ -71,7 +71,7 @@ let createSymlinkDir = (real: string, link: string): void => {
     else {
         fs.symlinkSync(real, link);
     }
-}
+};
 
 describe('Test vsts-task-lib', function () {
 
@@ -729,84 +729,87 @@ describe('Test vsts-task-lib', function () {
             done();
         });
 
-        it('removes symlink file with rmRF', (done: MochaDone) => {
-            this.timeout(1000);
+        // creating a symlink on Windows requires elevated
+        if (plat != 'win32') {
+            it('removes symlink file with rmRF', (done: MochaDone) => {
+                this.timeout(1000);
 
-            // create the following layout:
-            //   real_file
-            //   symlink_file -> real_file
-            let root: string = path.join(_testTemp, 'rmRF_sym_file_test');
-            let realFile: string = path.join(root, 'real_file');
-            let symlinkFile: string = path.join(root, 'symlink_file');
-            tl.mkdirP(root);
-            fs.writeFileSync(realFile, 'test file content');
-            shell.ln('-s', realFile, symlinkFile);
-            assert.equal(fs.readFileSync(symlinkFile), 'test file content');
+                // create the following layout:
+                //   real_file
+                //   symlink_file -> real_file
+                let root: string = path.join(_testTemp, 'rmRF_sym_file_test');
+                let realFile: string = path.join(root, 'real_file');
+                let symlinkFile: string = path.join(root, 'symlink_file');
+                tl.mkdirP(root);
+                fs.writeFileSync(realFile, 'test file content');
+                fs.symlinkSync(realFile, symlinkFile);
+                assert.equal(fs.readFileSync(symlinkFile), 'test file content');
 
-            tl.rmRF(symlinkFile);
-            assert(shell.test('-f', realFile), 'real file should still exist');
-            assert(!shell.test('-e', symlinkFile), 'symlink file should have been deleted');
+                tl.rmRF(symlinkFile);
+                assert(shell.test('-f', realFile), 'real file should still exist');
+                assert(!shell.test('-e', symlinkFile), 'symlink file should have been deleted');
 
-            done();
-        });
+                done();
+            });
 
-        it('removes symlink file with missing source using rmRF', (done: MochaDone) => {
-            this.timeout(1000);
+            it('removes symlink file with missing source using rmRF', (done: MochaDone) => {
+                this.timeout(1000);
 
-            // create the following layout:
-            //   real_file
-            //   symlink_file -> real_file
-            let root: string = path.join(_testTemp, 'rmRF_sym_file_missing_source_test');
-            let realFile: string = path.join(root, 'real_file');
-            let symlinkFile: string = path.join(root, 'symlink_file');
-            tl.mkdirP(root);
-            fs.writeFileSync(realFile, 'test file content');
-            shell.ln('-s', realFile, symlinkFile);
-            assert.equal(fs.readFileSync(symlinkFile), 'test file content');
+                // create the following layout:
+                //   real_file
+                //   symlink_file -> real_file
+                let root: string = path.join(_testTemp, 'rmRF_sym_file_missing_source_test');
+                let realFile: string = path.join(root, 'real_file');
+                let symlinkFile: string = path.join(root, 'symlink_file');
+                tl.mkdirP(root);
+                fs.writeFileSync(realFile, 'test file content');
+                fs.symlinkSync(realFile, symlinkFile);
+                assert.equal(fs.readFileSync(symlinkFile), 'test file content');
 
-            // remove the real file
-            fs.unlink(realFile);
-            assert(fs.statSync(symlinkFile).isFile(), 'symlink file should still exist');
+                // remove the real file
+                fs.unlink(realFile);
+                assert(fs.statSync(symlinkFile).isFile(), 'symlink file should still exist');
 
-            // remove the symlink file
-            tl.rmRF(symlinkFile);
-            let errcode: string;
-            try {
-                fs.statSync(symlinkFile);
-            }
-            catch (err) {
-                errcode = err.code;
-            }
+                // remove the symlink file
+                tl.rmRF(symlinkFile);
+                let errcode: string;
+                try {
+                    fs.statSync(symlinkFile);
+                }
+                catch (err) {
+                    errcode = err.code;
+                }
 
-            assert.equal(errcode, 'ENOENT');
+                assert.equal(errcode, 'ENOENT');
 
-            done();
-        });
+                done();
+            });
 
-        it('removes symlink level 2 file with rmRF', (done: MochaDone) => {
-            this.timeout(1000);
+            it('removes symlink level 2 file with rmRF', (done: MochaDone) => {
+                this.timeout(1000);
 
-            // create the following layout:
-            //   real_file
-            //   symlink_file -> real_file
-            //   symlink_level_2_file -> symlink_file
-            let root: string = path.join(_testTemp, 'rmRF_sym_level_2_file_test');
-            let realFile: string = path.join(root, 'real_file');
-            let symlinkFile: string = path.join(root, 'symlink_file');
-            let symlinkLevel2File: string = path.join(root, 'symlink_level_2_file');
-            tl.mkdirP(root);
-            fs.writeFileSync(realFile, 'test file content');
-            shell.ln('-s', realFile, symlinkFile);
-            shell.ln('-s', symlinkFile, symlinkLevel2File);
-            assert.equal(fs.readFileSync(symlinkLevel2File), 'test file content');
+                // create the following layout:
+                //   real_file
+                //   symlink_file -> real_file
+                //   symlink_level_2_file -> symlink_file
+                let root: string = path.join(_testTemp, 'rmRF_sym_level_2_file_test');
+                let realFile: string = path.join(root, 'real_file');
+                let symlinkFile: string = path.join(root, 'symlink_file');
+                let symlinkLevel2File: string = path.join(root, 'symlink_level_2_file');
+                tl.mkdirP(root);
+                fs.writeFileSync(realFile, 'test file content');
+                fs.symlinkSync(realFile, symlinkFile);
+                fs.symlinkSync(symlinkFile, symlinkLevel2File);
+                assert.equal(fs.readFileSync(symlinkLevel2File), 'test file content');
 
-            tl.rmRF(symlinkLevel2File);
-            assert(shell.test('-f', realFile), 'real file should still exist');
-            assert(shell.test('-e', symlinkFile), 'symlink file should still exist');
-            assert(!shell.test('-e', symlinkLevel2File), 'symlink level 2 file should have been deleted');
+                tl.rmRF(symlinkLevel2File);
+                assert(shell.test('-f', realFile), 'real file should still exist');
+                assert(shell.test('-e', symlinkFile), 'symlink file should still exist');
+                assert(!shell.test('-e', symlinkLevel2File), 'symlink level 2 file should have been deleted');
 
-            done();
-        });
+                done();
+            });
+        }
 
         it('removes symlink level 2 folder with rmRF', (done: MochaDone) => {
             this.timeout(1000);
