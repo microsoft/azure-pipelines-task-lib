@@ -59,6 +59,7 @@ import tl = require('vsts-task-lib/task')
 <a href="#taskcp">cp</a> <br/>
 <a href="#taskmv">mv</a> <br/>
 <a href="#taskmkdirP">mkdirP</a> <br/>
+<a href="#taskFindOptions">FindOptions</a> <br/>
 <a href="#taskfind">find</a> <br/>
 <a href="#taskrmRF">rmRF</a> <br/>
 <a href="#taskpushd">pushd</a> <br/>
@@ -541,17 +542,29 @@ Param | Type | Description
 p | any | path to create
  
 <br/>
+<div id="taskFindOptions">
+### task.FindOptions <a href="#index">(^)</a>
+Interface for FindOptions
+Contains properties to control whether to follow symlinks
+ 
+Property | Description
+--- | ---
+followSpecifiedSymbolicLink | Equivalent to the -H command line option. Indicates whether to traverse descendants if the specified path is a symbolic link directory. Does not cause nested symbolic link directories to be traversed.
+followSymbolicLinks | Equivalent to the -L command line option. Indicates whether to traverse descendants of symbolic link directories.
+ 
+<br/>
 <div id="taskfind">
 ### task.find <a href="#index">(^)</a>
 Find all files under a give path
-Returns an array of full paths
+Returns an array of paths
 ```javascript
-find(findPath:string):string
+find(findPath:string, options?:FindOptions):string
 ```
  
 Param | Type | Description
 --- | --- | ---
 findPath | string | path to find files under
+options | FindOptions | options to control whether to follow symlinks
  
 <br/>
 <div id="taskrmRF">

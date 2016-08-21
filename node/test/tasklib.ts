@@ -104,6 +104,290 @@ describe('Test vsts-task-lib', function () {
     });
 
     describe('Dir Operations', function () {
+        // find tests
+        it('returns hidden files with find', (done: MochaDone) => {
+            this.timeout(1000);
+
+            // create the following layout:
+            //   find_hidden_files
+            //   find_hidden_files/.emptyFolder
+            //   find_hidden_files/.file
+            //   find_hidden_files/.folder
+            //   find_hidden_files/.folder/file
+            let root: string = path.join(_testTemp, 'find_hidden_files');
+            shell.mkdir('-p', path.join(root, '.emptyFolder'));
+            shell.mkdir('-p', path.join(root, '.folder'));
+            fs.writeFileSync(path.join(root, '.file'), 'test .file content');
+            fs.writeFileSync(path.join(root, '.folder', 'file'), 'test .folder/file content');
+
+            let itemPaths: string[] = tl.find(root);
+            assert.equal(5, itemPaths.length);
+            assert.equal(itemPaths[0], root);
+            assert.equal(itemPaths[1], path.join(root, '.emptyFolder'));
+            assert.equal(itemPaths[2], path.join(root, '.file'));
+            assert.equal(itemPaths[3], path.join(root, '.folder'));
+            assert.equal(itemPaths[4], path.join(root, '.folder', 'file'));
+
+            done();
+        });
+
+        it('returns depth first find', (done: MochaDone) => {
+            this.timeout(1000);
+
+            // create the following layout:
+            //   find_depth_first/a_file
+            //   find_depth_first/b_folder
+            //   find_depth_first/b_folder/a_file
+            //   find_depth_first/b_folder/b_folder
+            //   find_depth_first/b_folder/b_folder/file
+            //   find_depth_first/b_folder/c_file
+            //   find_depth_first/c_file
+            let root: string = path.join(_testTemp, 'find_depth_first');
+            shell.mkdir('-p', path.join(root, 'b_folder', 'b_folder'));
+            fs.writeFileSync(path.join(root, 'a_file'), 'test a_file content');
+            fs.writeFileSync(path.join(root, 'b_folder', 'a_file'), 'test b_folder/a_file content');
+            fs.writeFileSync(path.join(root, 'b_folder', 'b_folder', 'file'), 'test b_folder/b_folder/file content');
+            fs.writeFileSync(path.join(root, 'b_folder', 'c_file'), 'test b_folder/c_file content');
+            fs.writeFileSync(path.join(root, 'c_file'), 'test c_file content');
+
+            let itemPaths: string[] = tl.find(root);
+            assert.equal(8, itemPaths.length);
+            assert.equal(itemPaths[0], root);
+            assert.equal(itemPaths[1], path.join(root, 'a_file'));
+            assert.equal(itemPaths[2], path.join(root, 'b_folder'));
+            assert.equal(itemPaths[3], path.join(root, 'b_folder', 'a_file'));
+            assert.equal(itemPaths[4], path.join(root, 'b_folder', 'b_folder'));
+            assert.equal(itemPaths[5], path.join(root, 'b_folder', 'b_folder', 'file'));
+            assert.equal(itemPaths[6], path.join(root, 'b_folder', 'c_file'));
+            assert.equal(itemPaths[7], path.join(root, 'c_file'));
+
+            done();
+        });
+
+        it('returns empty when not exists', (done: MochaDone) => {
+            this.timeout(1000);
+
+            let itemPaths: string[] = tl.find(path.join(_testTemp, 'nosuch'));
+            assert.equal(0, itemPaths.length);
+
+            done();
+        });
+
+        it('does not follow specified symlink', (done: MochaDone) => {
+            this.timeout(1000);
+
+            // create the following layout:
+            //   realDir
+            //   realDir/file
+            //   symDir -> realDir
+            let root: string = path.join(_testTemp, 'find_no_follow_specified_symlink');
+            shell.mkdir('-p', path.join(root, 'realDir'));
+            fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
+            createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
+
+            let itemPaths: string[] = tl.find(path.join(root, 'symDir'));
+            assert.equal(itemPaths.length, 1);
+            assert.equal(itemPaths[0], path.join(root, 'symDir'));
+
+            done();
+        });
+
+        it('follows specified symlink when -H', (done: MochaDone) => {
+            this.timeout(1000);
+
+            // create the following layout:
+            //   realDir
+            //   realDir/file
+            //   symDir -> realDir
+            let root: string = path.join(_testTemp, 'find_follow_specified_symlink_when_-H');
+            shell.mkdir('-p', path.join(root, 'realDir'));
+            fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
+            createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
+
+            let options: tl.FindOptions = {} as tl.FindOptions;
+            options.followSpecifiedSymbolicLink = true; // equivalent to "find -H"
+            let itemPaths: string[] = tl.find(path.join(root, 'symDir'), options);
+            assert.equal(itemPaths.length, 2);
+            assert.equal(itemPaths[0], path.join(root, 'symDir'));
+            assert.equal(itemPaths[1], path.join(root, 'symDir', 'file'));
+
+            done();
+        });
+
+        it('follows specified symlink when -L', (done: MochaDone) => {
+            this.timeout(1000);
+
+            // create the following layout:
+            //   realDir
+            //   realDir/file
+            //   symDir -> realDir
+            let root: string = path.join(_testTemp, 'find_follow_specified_symlink_when_-L');
+            shell.mkdir('-p', path.join(root, 'realDir'));
+            fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
+            createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
+
+            let options: tl.FindOptions = {} as tl.FindOptions;
+            options.followSymbolicLinks = true; // equivalent to "find -L"
+            let itemPaths: string[] = tl.find(path.join(root, 'symDir'), options);
+            assert.equal(itemPaths.length, 2);
+            assert.equal(itemPaths[0], path.join(root, 'symDir'));
+            assert.equal(itemPaths[1], path.join(root, 'symDir', 'file'));
+
+            done();
+        });
+
+        it('does not follow symlink', (done: MochaDone) => {
+            this.timeout(1000);
+
+            // create the following layout:
+            //   <root>
+            //   <root>/realDir
+            //   <root>/realDir/file
+            //   <root>/symDir -> <root>/realDir
+            let root: string = path.join(_testTemp, 'find_no_follow_symlink');
+            shell.mkdir('-p', path.join(root, 'realDir'));
+            fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
+            createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
+
+            let itemPaths: string[] = tl.find(root);
+            assert.equal(itemPaths.length, 4);
+            assert.equal(itemPaths[0], root);
+            assert.equal(itemPaths[1], path.join(root, 'realDir'));
+            assert.equal(itemPaths[2], path.join(root, 'realDir', 'file'));
+            assert.equal(itemPaths[3], path.join(root, 'symDir'));
+
+            done();
+        });
+
+        it('does not follow symlink when -H', (done: MochaDone) => {
+            this.timeout(1000);
+
+            // create the following layout:
+            //   <root>
+            //   <root>/realDir
+            //   <root>/realDir/file
+            //   <root>/symDir -> <root>/realDir
+            let root: string = path.join(_testTemp, 'find_no_follow_symlink_when_-H');
+            shell.mkdir('-p', path.join(root, 'realDir'));
+            fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
+            createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
+
+            let options: tl.FindOptions = {} as tl.FindOptions;
+            options.followSpecifiedSymbolicLink = true;
+            let itemPaths: string[] = tl.find(root, options);
+            assert.equal(itemPaths.length, 4);
+            assert.equal(itemPaths[0], root);
+            assert.equal(itemPaths[1], path.join(root, 'realDir'));
+            assert.equal(itemPaths[2], path.join(root, 'realDir', 'file'));
+            assert.equal(itemPaths[3], path.join(root, 'symDir'));
+
+            done();
+        });
+
+        it('follows symlink when -L', (done: MochaDone) => {
+            this.timeout(1000);
+
+            // create the following layout:
+            //   <root>
+            //   <root>/realDir
+            //   <root>/realDir/file
+            //   <root>/symDir -> <root>/realDir
+            let root: string = path.join(_testTemp, 'find_follow_symlink_when_-L');
+            shell.mkdir('-p', path.join(root, 'realDir'));
+            fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
+            createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
+
+            let options: tl.FindOptions = {} as tl.FindOptions;
+            options.followSymbolicLinks = true;
+            let itemPaths: string[] = tl.find(root, options);
+            assert.equal(itemPaths.length, 5);
+            assert.equal(itemPaths[0], root);
+            assert.equal(itemPaths[1], path.join(root, 'realDir'));
+            assert.equal(itemPaths[2], path.join(root, 'realDir', 'file'));
+            assert.equal(itemPaths[3], path.join(root, 'symDir'));
+            assert.equal(itemPaths[4], path.join(root, 'symDir', 'file'));
+
+            done();
+        });
+
+        it('detects cycle', (done: MochaDone) => {
+            this.timeout(1000);
+
+            // create the following layout:
+            //   <root>
+            //   <root>/file
+            //   <root>/symDir -> <root>
+            let root: string = path.join(_testTemp, 'find_detects_cycle');
+            shell.mkdir('-p', root);
+            fs.writeFileSync(path.join(root, 'file'), 'test file content');
+            createSymlinkDir(root, path.join(root, 'symDir'));
+
+            let itemPaths: string[] = tl.find(root, { followSymbolicLinks: true } as tl.FindOptions);
+            assert.equal(itemPaths.length, 3);
+            assert.equal(itemPaths[0], root);
+            assert.equal(itemPaths[1], path.join(root, 'file'));
+            assert.equal(itemPaths[2], path.join(root, 'symDir'));
+
+            done();
+        });
+
+        it('detects cycle starting from symlink', (done: MochaDone) => {
+            this.timeout(1000);
+
+            // create the following layout:
+            //   <root>
+            //   <root>/file
+            //   <root>/symDir -> <root>
+            let root: string = path.join(_testTemp, 'find_detects_cycle_starting_from_symlink');
+            shell.mkdir('-p', root);
+            fs.writeFileSync(path.join(root, 'file'), 'test file content');
+            createSymlinkDir(root, path.join(root, 'symDir'));
+
+            let itemPaths: string[] = tl.find(path.join(root, 'symDir'), { followSymbolicLinks: true } as tl.FindOptions);
+            assert.equal(itemPaths.length, 3);
+            assert.equal(itemPaths[0], path.join(root, 'symDir'));
+            assert.equal(itemPaths[1], path.join(root, 'symDir', 'file'));
+            assert.equal(itemPaths[2], path.join(root, 'symDir', 'symDir'));
+
+            done();
+        });
+
+        it('detects deep cycle starting from middle', (done: MochaDone) => {
+            this.timeout(1000);
+
+            // create the following layout:
+            //   <root>
+            //   <root>/file_under_root
+            //   <root>/folder_a
+            //   <root>/folder_a/file_under_a
+            //   <root>/folder_a/folder_b
+            //   <root>/folder_a/folder_b/file_under_b
+            //   <root>/folder_a/folder_b/folder_c
+            //   <root>/folder_a/folder_b/folder_c/file_under_c
+            //   <root>/folder_a/folder_b/folder_c/sym_folder -> <root>
+            let root: string = path.join(_testTemp, 'find_detects_deep_cycle_starting_from_middle');
+            shell.mkdir('-p', path.join(root, 'folder_a', 'folder_b', 'folder_c'));
+            fs.writeFileSync(path.join(root, 'file_under_root'), 'test file under root contents');
+            fs.writeFileSync(path.join(root, 'folder_a', 'file_under_a'), 'test file under a contents');
+            fs.writeFileSync(path.join(root, 'folder_a', 'folder_b', 'file_under_b'), 'test file under b contents');
+            fs.writeFileSync(path.join(root, 'folder_a', 'folder_b', 'folder_c', 'file_under_c'), 'test file under c contents');
+            createSymlinkDir(root, path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder'));
+
+            let itemPaths: string[] = tl.find(path.join(root, 'folder_a', 'folder_b'), { followSymbolicLinks: true } as tl.FindOptions);
+            assert.equal(itemPaths.length, 9);
+            assert.equal(itemPaths[0], path.join(root, 'folder_a', 'folder_b'));
+            assert.equal(itemPaths[1], path.join(root, 'folder_a', 'folder_b', 'file_under_b'));
+            assert.equal(itemPaths[2], path.join(root, 'folder_a', 'folder_b', 'folder_c'));
+            assert.equal(itemPaths[3], path.join(root, 'folder_a', 'folder_b', 'folder_c', 'file_under_c'));
+            assert.equal(itemPaths[4], path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder'));
+            assert.equal(itemPaths[5], path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'file_under_root'));
+            assert.equal(itemPaths[6], path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'folder_a'));
+            assert.equal(itemPaths[7], path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'folder_a', 'file_under_a'));
+            assert.equal(itemPaths[8], path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'folder_a', 'folder_b'));
+
+            done();
+        });
+
         // mkdirP tests
         it('creates folder with mkdirP', function (done) {
             this.timeout(1000);
@@ -294,6 +578,7 @@ describe('Test vsts-task-lib', function () {
             done();
         });
 
+        // rmRF tests
         it('removes single folder with rmRF', function (done) {
             this.timeout(1000);
 
@@ -384,6 +669,184 @@ describe('Test vsts-task-lib', function () {
             done();
         });
 
+        it('removes file with rmRF', (done: MochaDone) => {
+            this.timeout(1000);
+
+            let file: string = path.join(_testTemp, 'rmRF_file');
+            fs.writeFileSync(file, 'test file content');
+            assert(shell.test('-f', file), 'file should have been created');
+            tl.rmRF(file);
+            assert(!shell.test('-e', file), 'file should not exist');
+
+            done();
+        });
+
+        it('removes hidden folder with rmRF', (done: MochaDone) => {
+            this.timeout(1000);
+
+            let directory: string = path.join(_testTemp, '.rmRF_directory');
+            tl.mkdirP(directory);
+            assert(shell.test('-d', directory), 'directory should have been created');
+            tl.rmRF(directory);
+            assert(!shell.test('-e', directory), 'directory should not exist');
+
+            done();
+        });
+
+        it('removes hidden file with rmRF', (done: MochaDone) => {
+            this.timeout(1000);
+
+            let file: string = path.join(_testTemp, '.rmRF_file');
+            fs.writeFileSync(file, 'test file content');
+            assert(shell.test('-f', file), 'file should have been created');
+            tl.rmRF(file);
+            assert(!shell.test('-e', file), 'file should not exist');
+
+            done();
+        });
+
+        it('removes symlink folder with rmRF', (done: MochaDone) => {
+            this.timeout(1000);
+
+            // create the following layout:
+            //   real_directory
+            //   real_directory/real_file
+            //   symlink_directory -> real_directory
+            let root: string = path.join(_testTemp, 'rmRF_sym_dir_test');
+            let realDirectory: string = path.join(root, 'real_directory');
+            let realFile: string = path.join(root, 'real_directory', 'real_file');
+            let symlinkDirectory: string = path.join(root, 'symlink_directory');
+            tl.mkdirP(realDirectory);
+            fs.writeFileSync(realFile, 'test file content');
+            createSymlinkDir(realDirectory, symlinkDirectory);
+            assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'symlink directory should be created correctly');
+
+            tl.rmRF(symlinkDirectory);
+            assert(shell.test('-d', realDirectory), 'real directory should still exist');
+            assert(shell.test('-f', realFile), 'file should still exist');
+            assert(!shell.test('-e', symlinkDirectory), 'symlink directory should have been deleted');
+
+            done();
+        });
+
+        it('removes symlink file with rmRF', (done: MochaDone) => {
+            this.timeout(1000);
+
+            // create the following layout:
+            //   real_file
+            //   symlink_file -> real_file
+            let root: string = path.join(_testTemp, 'rmRF_sym_file_test');
+            let realFile: string = path.join(root, 'real_file');
+            let symlinkFile: string = path.join(root, 'symlink_file');
+            tl.mkdirP(root);
+            fs.writeFileSync(realFile, 'test file content');
+            shell.ln('-s', realFile, symlinkFile);
+            assert.equal(fs.readFileSync(symlinkFile), 'test file content');
+
+            tl.rmRF(symlinkFile);
+            assert(shell.test('-f', realFile), 'real file should still exist');
+            assert(!shell.test('-e', symlinkFile), 'symlink file should have been deleted');
+
+            done();
+        });
+
+        it('removes symlink file with missing source using rmRF', (done: MochaDone) => {
+            this.timeout(1000);
+
+            // create the following layout:
+            //   real_file
+            //   symlink_file -> real_file
+            let root: string = path.join(_testTemp, 'rmRF_sym_file_missing_source_test');
+            let realFile: string = path.join(root, 'real_file');
+            let symlinkFile: string = path.join(root, 'symlink_file');
+            tl.mkdirP(root);
+            fs.writeFileSync(realFile, 'test file content');
+            shell.ln('-s', realFile, symlinkFile);
+            assert.equal(fs.readFileSync(symlinkFile), 'test file content');
+
+            // remove the real file
+            fs.unlink(realFile);
+            assert(fs.statSync(symlinkFile).isFile(), 'symlink file should still exist');
+
+            // remove the symlink file
+            tl.rmRF(symlinkFile);
+            let errcode: string;
+            try {
+                fs.statSync(symlinkFile);
+            }
+            catch (err) {
+                errcode = err.code;
+            }
+
+            assert.equal(errcode, 'ENOENT');
+
+            done();
+        });
+
+        it('removes symlink level 2 file with rmRF', (done: MochaDone) => {
+            this.timeout(1000);
+
+            // create the following layout:
+            //   real_file
+            //   symlink_file -> real_file
+            //   symlink_level_2_file -> symlink_file
+            let root: string = path.join(_testTemp, 'rmRF_sym_level_2_file_test');
+            let realFile: string = path.join(root, 'real_file');
+            let symlinkFile: string = path.join(root, 'symlink_file');
+            let symlinkLevel2File: string = path.join(root, 'symlink_level_2_file');
+            tl.mkdirP(root);
+            fs.writeFileSync(realFile, 'test file content');
+            shell.ln('-s', realFile, symlinkFile);
+            shell.ln('-s', symlinkFile, symlinkLevel2File);
+            assert.equal(fs.readFileSync(symlinkLevel2File), 'test file content');
+
+            tl.rmRF(symlinkLevel2File);
+            assert(shell.test('-f', realFile), 'real file should still exist');
+            assert(shell.test('-e', symlinkFile), 'symlink file should still exist');
+            assert(!shell.test('-e', symlinkLevel2File), 'symlink level 2 file should have been deleted');
+
+            done();
+        });
+
+        it('removes symlink level 2 folder with rmRF', (done: MochaDone) => {
+            this.timeout(1000);
+
+            // create the following layout:
+            //   real_directory
+            //   real_directory/real_file
+            //   symlink_directory -> real_directory
+            //   symlink_level_2_directory -> symlink_directory
+            let root: string = path.join(_testTemp, 'rmRF_sym_level_2_directory_test');
+            let realDirectory: string = path.join(root, 'real_directory');
+            let realFile: string = path.join(realDirectory, 'real_file');
+            let symlinkDirectory: string = path.join(root, 'symlink_directory');
+            let symlinkLevel2Directory: string = path.join(root, 'symlink_level_2_directory');
+            tl.mkdirP(realDirectory);
+            fs.writeFileSync(realFile, 'test file content');
+            createSymlinkDir(realDirectory, symlinkDirectory);
+            createSymlinkDir(symlinkDirectory, symlinkLevel2Directory);
+            assert.equal(fs.readFileSync(path.join(symlinkDirectory, 'real_file')), 'test file content');
+
+            tl.rmRF(symlinkLevel2Directory);
+            assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'real file should still exist');
+            assert(!shell.test('-e', symlinkLevel2Directory), 'symlink level 2 file should have been deleted');
+
+            done();
+        });
+
+        it('removes hidden file with rmRF', (done: MochaDone) => {
+            this.timeout(1000);
+
+            let file: string = path.join(_testTemp, '.rmRF_file');
+            fs.writeFileSync(file, 'test file content');
+            assert(shell.test('-f', file), 'file should have been created');
+            tl.rmRF(file);
+            assert(!shell.test('-e', file), 'file should not exist');
+
+            done();
+        });
+
+        // mv tests
         it('move to non existant destination', function (done) {
             this.timeout(1000);
 
@@ -2032,5 +2495,78 @@ describe('Test vsts-task-lib', function () {
 
             done();
         })
+    });
+
+    describe('Minimatch', () => {
+        it('aggregates matches', (done: MochaDone) => {
+            this.timeout(1000);
+
+            let list: string[] = [
+                '/projects/myproj1/myproj1.proj',
+                '/projects/myproj2/myproj2.proj',
+                '/projects/myproj3/myproj3.proj'
+            ];
+            let patterns: string[] = [
+                '/projects/**/myproj1.proj',
+                '/projects/**/myproj2.proj'
+            ];
+            let options = { matchBase: true };
+            let result: string[] = tl.match(list, patterns, options);
+            assert.equal(result.length, 2);
+            assert.equal(result[0], '/projects/myproj1/myproj1.proj');
+            assert.equal(result[1], '/projects/myproj2/myproj2.proj');
+
+            done();
+        });
+
+        it('does not duplicate matches', (done: MochaDone) => {
+            this.timeout(1000);
+
+            let list: string[] = [
+                '/included/file1.proj',
+                '/included/file2.proj',
+                '/not_included/readme.txt'
+            ];
+            let patterns: string[] = [
+                '/included/**', // both patterns match the same files
+                '/**/*.proj'
+            ];
+            let options = { matchBase: true };
+            let result: string[] = tl.match(list, patterns, options);
+            assert.equal(result.length, 2);
+            assert.equal(result[0], '/included/file1.proj');
+            assert.equal(result[1], '/included/file2.proj');
+
+            done();
+        });
+
+        it('preserves order', (done: MochaDone) => {
+            this.timeout(1000);
+
+            let list: string[] = [
+                '/projects/myproj1/myproj1.proj',
+                '/projects/myproj2/myproj2.proj',
+                '/projects/myproj3/myproj3.proj',
+                '/projects/myproj4/myproj4.proj',
+                '/projects/myproj5/myproj5.proj'
+            ];
+            let patterns: string[] = [
+                '/projects/**/myproj2.proj', // mix up the order
+                '/projects/**/myproj5.proj',
+                '/projects/**/myproj3.proj',
+                '/projects/**/myproj1.proj',
+                '/projects/**/myproj4.proj',
+            ];
+            let options = { matchBase: true };
+            let result: string[] = tl.match(list, patterns, options);
+            assert.equal(result.length, 5);
+            assert.equal(result[0], '/projects/myproj1/myproj1.proj'); // should follow original list order
+            assert.equal(result[1], '/projects/myproj2/myproj2.proj');
+            assert.equal(result[2], '/projects/myproj3/myproj3.proj');
+            assert.equal(result[3], '/projects/myproj4/myproj4.proj');
+            assert.equal(result[4], '/projects/myproj5/myproj5.proj');
+
+            done();
+        });
     });
 });

@@ -4,6 +4,8 @@
  * Updated `setVariable` to expose an optional boolean parameter `secret`.
  * Added `getVariables` to get an array of all variables, secret and non-secret.
  * Updated `mkdirP` to improve error messages.
+ * Updated `find` to expose options whether to follow symlinks.
+ * Updated `match` to provide an overload that accepts an array of patterns.
 
 ## 0.9.5
  * API clean up as we approach 1.0 major version
