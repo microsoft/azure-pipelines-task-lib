@@ -1,5 +1,8 @@
 # Release Notes
 
+## 0.8.0
+ * Added `Find-VstsMatch` and `Select-VstsMatch` for finding files with advanced pattern matching.
+
 ## 0.7.1
  * Updated `Find-VstsFiles` to fix error when traversing files with IntegrityStream, Virtual, or NoScrubData attribute.
 

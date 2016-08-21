@@ -1,4 +1,4 @@
-# Using the .NET SDKs
+# Using the VSTS .NET SDKs
 
 ## Bundle the SDK with your task
 Bundle the subset of the SDK required by your task.

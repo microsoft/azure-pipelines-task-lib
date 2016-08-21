@@ -68,8 +68,8 @@ $removeModule = @(Get-Module -Name VstsTaskSdk).Count -eq 0
 Write-Host "Building the module."
 Push-Location -LiteralPath $PSScriptRoot\.. -ErrorAction Stop
 try {
-    & gulp
-    Write-Host "Gulp exited with code '$LASTEXITCODE'"
+    & node make.js build
+    Write-Host "node exited with code '$LASTEXITCODE'"
     if ($LASTEXITCODE) {
         throw "Build failed."
     }
