@@ -56,6 +56,37 @@ var _buildOutput = function (lines) {
     return output;
 }
 
+let createHiddenDirectory = (dir: string): void => {
+    if (!path.basename(dir).match(/^\./)) {
+        throw new Error(`Expected dir '${dir}' to start with '.'.`);
+    }
+
+    shell.mkdir('-p', dir);
+    if (plat == 'win32') {
+        let result = child.spawnSync('attrib.exe', [ '+H', dir ]);
+        if (result.status != 0) {
+            let message: string = (result.output || []).join(' ').trim();
+            throw new Error(`Failed to set hidden attribute for directory '${dir}'. ${message}`);
+        }
+    }
+};
+
+let createHiddenFile = (file: string, content: string): void => {
+    if (!path.basename(file).match(/^\./)) {
+        throw new Error(`Expected dir '${file}' to start with '.'.`);
+    }
+
+    shell.mkdir('-p', path.dirname(file));
+    fs.writeFileSync(file, content);
+    if (plat == 'win32') {
+        let result = child.spawnSync('attrib.exe', [ '+H', file ]);
+        if (result.status != 0) {
+            let message: string = (result.output || []).join(' ').trim();
+            throw new Error(`Failed to set hidden attribute for file '${file}'. ${message}`);
+        }
+    }
+};
+
 /**
  * Creates a symlink directory on OSX/Linux, and a junction point directory on Windows.
  * A symlink directory is not created on Windows since it requires an elevated context.
@@ -115,9 +146,9 @@ describe('Test vsts-task-lib', function () {
             //   find_hidden_files/.folder
             //   find_hidden_files/.folder/file
             let root: string = path.join(_testTemp, 'find_hidden_files');
-            shell.mkdir('-p', path.join(root, '.emptyFolder'));
-            shell.mkdir('-p', path.join(root, '.folder'));
-            fs.writeFileSync(path.join(root, '.file'), 'test .file content');
+            createHiddenDirectory(path.join(root, '.emptyFolder'));
+            createHiddenDirectory(path.join(root, '.folder'));
+            createHiddenFile(path.join(root, '.file'), 'test .file content');
             fs.writeFileSync(path.join(root, '.folder', 'file'), 'test .folder/file content');
 
             let itemPaths: string[] = tl.find(root);
@@ -685,7 +716,7 @@ describe('Test vsts-task-lib', function () {
             this.timeout(1000);
 
             let directory: string = path.join(_testTemp, '.rmRF_directory');
-            tl.mkdirP(directory);
+            createHiddenDirectory(directory);
             assert(shell.test('-d', directory), 'directory should have been created');
             tl.rmRF(directory);
             assert(!shell.test('-e', directory), 'directory should not exist');
@@ -841,7 +872,7 @@ describe('Test vsts-task-lib', function () {
             this.timeout(1000);
 
             let file: string = path.join(_testTemp, '.rmRF_file');
-            fs.writeFileSync(file, 'test file content');
+            createHiddenFile(file, 'test file content');
             assert(shell.test('-f', file), 'file should have been created');
             tl.rmRF(file);
             assert(!shell.test('-e', file), 'file should not exist');
