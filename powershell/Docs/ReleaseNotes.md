@@ -1,5 +1,8 @@
 # Release Notes
 
+## 0.7.1
+ * Updated `Find-VstsFiles` to fix error when traversing files with IntegrityStream, Virtual, or NoScrubData attribute.
+
 ## 0.7.0
  * Breaking changes for `Get-VstsTfsClientCredentials` and `Get-VstsVssCredentials`. See [Using the VSTS REST SDK and TFS Extended Client SDK](UsingOM.md).
  * Added `Get-VstsTfsService` and `Get-VstsVssHttpClient`.
