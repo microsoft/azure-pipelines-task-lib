@@ -1207,9 +1207,12 @@ export function tool(tool: string) {
 //-----------------------------------------------------
 // Matching helpers
 //-----------------------------------------------------
-export function match(list: string[], pattern: string, options?: minimatch.IOptions): string[];
-export function match(list: string[], patterns: string[], options?: minimatch.IOptions): string[];
-export function match(list: string[], pattern: any, options?: minimatch.IOptions): string[] {
+export interface MatchOptions extends minimatch.IOptions {
+}
+
+export function match(list: string[], pattern: string, options?: MatchOptions): string[];
+export function match(list: string[], patterns: string[], options?: MatchOptions): string[];
+export function match(list: string[], pattern: any, options?: MatchOptions): string[] {
     debug(`match patterns: ${pattern}`);
     debug(`match options: ${options}`);
 
