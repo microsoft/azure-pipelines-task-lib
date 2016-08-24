@@ -799,13 +799,13 @@ describe('Test vsts-task-lib', function () {
 
                 // remove the real file
                 fs.unlinkSync(realFile);
-                assert(fs.statSync(symlinkFile).isFile(), 'symlink file should still exist');
+                assert(fs.lstatSync(symlinkFile).isSymbolicLink(), 'symlink file should still exist');
 
                 // remove the symlink file
                 tl.rmRF(symlinkFile);
                 let errcode: string;
                 try {
-                    fs.statSync(symlinkFile);
+                    fs.lstatSync(symlinkFile);
                 }
                 catch (err) {
                     errcode = err.code;
