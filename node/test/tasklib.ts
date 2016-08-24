@@ -798,7 +798,7 @@ describe('Test vsts-task-lib', function () {
                 assert.equal(fs.readFileSync(symlinkFile), 'test file content');
 
                 // remove the real file
-                fs.unlink(realFile);
+                fs.unlinkSync(realFile);
                 assert(fs.statSync(symlinkFile).isFile(), 'symlink file should still exist');
 
                 // remove the symlink file
