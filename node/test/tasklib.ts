@@ -2455,6 +2455,77 @@ describe('Test vsts-task-lib', function () {
 
             done();
         })
+        it('get loc string from module resources.json', function (done) {
+            this.timeout(1000);
+            tl.resetLocResources();
+
+            var tempFolder = path.join(__dirname, Math.floor(Math.random() * 100).toString());
+            shell.mkdir('-p', tempFolder);
+            var jsonStr = "{\"messages\": {\"key1\" : \"string for key 1.\", \"key2\" : \"string for key %d.\", \"key3\" : \"string for key %%.\"}}";
+            var jsonPath = path.join(tempFolder, 'module.json');
+            fs.writeFileSync(jsonPath, jsonStr);
+
+            var tempLocFolder = path.join(tempFolder, 'Strings', 'resources.resjson', 'zh-CN');
+            shell.mkdir('-p', tempLocFolder);
+            var locJsonStr = "{\"loc.messages.key1\" : \"loc cn-string for key 1.\", \"loc.messages.key2\" : \"loc cn-string for key %d.\", \"loc.messages.key3\" : \"loc cn-string for key %%.\"}";
+            var locJsonPath = path.join(tempLocFolder, 'resources.resjson');
+            fs.writeFileSync(locJsonPath, locJsonStr);
+
+            process.env['SYSTEM_CULTURE'] = 'ZH-cn'; // Lib should handle casing differences for culture.
+
+            const loc = tl.loadModuleResources(jsonPath);
+
+            assert.equal(loc.getString('key1'), 'loc cn-string for key 1.', 'string not found for key.');
+            assert.equal(loc.formatString('key2', 2), 'loc cn-string for key 2.', 'string not found for key.');
+            assert.equal(loc.getString('key3'), 'loc cn-string for key %%.', 'string not found for key.');
+
+            done();
+        })
+        it('get loc string from two modules resources.json', function (done) {
+            this.timeout(1000);
+            tl.resetLocResources();
+
+            // module 1
+            const tempFolder = path.join(__dirname, Math.floor(Math.random() * 100).toString());
+            shell.mkdir('-p', tempFolder);
+            const jsonStr = "{\"messages\": {\"key1\" : \"string for key 1 in module 1.\", \"key2\" : \"string for key %d in module 1.\", \"key3\" : \"string for key %% in module 1.\"}}";
+            const jsonPath = path.join(tempFolder, 'module.json');
+            fs.writeFileSync(jsonPath, jsonStr);
+
+            const tempLocFolder = path.join(tempFolder, 'Strings', 'resources.resjson', 'zh-CN');
+            shell.mkdir('-p', tempLocFolder);
+            const locJsonStr = "{\"loc.messages.key1\" : \"loc cn-string for key 1 in module 1.\", \"loc.messages.key2\" : \"loc cn-string for key %d in module 1.\", \"loc.messages.key3\" : \"loc cn-string for key %% in module 1.\"}";
+            const locJsonPath = path.join(tempLocFolder, 'resources.resjson');
+            fs.writeFileSync(locJsonPath, locJsonStr);
+
+            // module 2
+            const tempFolder2 = path.join(__dirname, Math.floor(Math.random() * 100).toString());
+            shell.mkdir('-p', tempFolder2);
+            const jsonStr2 = "{\"messages\": {\"key1\" : \"string for key 1 in module 2.\", \"key2\" : \"string for key %d in module 2.\", \"key4\" : \"string for key %% in module 2.\"}}";
+            const jsonPath2 = path.join(tempFolder2, 'module.json');
+            fs.writeFileSync(jsonPath2, jsonStr2);
+
+            const tempLocFolder2 = path.join(tempFolder2, 'Strings', 'resources.resjson', 'zh-CN');
+            shell.mkdir('-p', tempLocFolder2);
+            const locJsonStr2 = "{\"loc.messages.key1\" : \"loc cn-string for key 1 in module 2.\", \"loc.messages.key2\" : \"loc cn-string for key %d in module 2.\", \"loc.messages.key4\" : \"loc cn-string for key %% in module 2.\"}";
+            const locJsonPath2 = path.join(tempLocFolder2, 'resources.resjson');
+            fs.writeFileSync(locJsonPath2, locJsonStr2);
+
+            process.env['SYSTEM_CULTURE'] = 'ZH-cn'; // Lib should handle casing differences for culture.
+
+            const loc1 = tl.loadModuleResources(jsonPath);
+            const loc2 = tl.loadModuleResources(jsonPath2);
+
+            assert.equal(loc1.getString('key1'), 'loc cn-string for key 1 in module 1.', 'string not found for key.');
+            assert.equal(loc1.formatString('key2', 2), 'loc cn-string for key 2 in module 1.', 'string not found for key.');
+            assert.equal(loc1.getString('key3'), 'loc cn-string for key %% in module 1.', 'string not found for key.');
+
+            assert.equal(loc2.getString('key1'), 'loc cn-string for key 1 in module 2.', 'string not found for key.');
+            assert.equal(loc2.formatString('key2', 2), 'loc cn-string for key 2 in module 2.', 'string not found for key.');
+            assert.equal(loc2.getString('key4'), 'loc cn-string for key %% in module 2.', 'string not found for key.');
+
+            done();
+        })
         it('fallback to current string if culture resources.resjson not found', function (done) {
             this.timeout(1000);
 
