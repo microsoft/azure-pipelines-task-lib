@@ -64,7 +64,6 @@ export function setErrStream(errStream): void {
     _errStream = errStream;
 }
 
-
 //-----------------------------------------------------
 // Results
 //-----------------------------------------------------
@@ -93,18 +92,138 @@ export function setResult(result: TaskResult, message: string): void {
 // Catching all exceptions
 //
 process.on('uncaughtException', (err) => {
-    setResult(TaskResult.Failed, loc('LIB_UnhandledEx', err.message));
+    setResult(TaskResult.Failed, _loc('LIB_UnhandledEx', err.message));
 });
 
 //-----------------------------------------------------
 // Loc Helpers
 //-----------------------------------------------------
-var locStringCache: {
-    [key: string]: string
-} = {};
-var resourceFile: string;
-var libResourceFileLoaded: boolean = false;
-var resourceCulture: string = 'en-US';
+export interface ILocTable {
+    /**
+     * Gets the localized string from the json resource file and formats with additional params.
+     * 
+     * @param     key      key of the resources string in the resource file
+     * @param     param    additional params for formatting the string
+     * @returns   string
+     */
+    formatString(key: string, ...param: any[]): string;
+
+    /**
+     * Gets the localized string from the json resource file.
+     * 
+     * @param     key      key of the resources string in the resource file
+     * @returns   string
+     */
+    getString(key: string): string;
+}
+
+let locModules: {
+    [moduleKey: string]: {
+        moduleJsonPath: string;
+        culture: string;
+        table: ILocTable;
+    }
+};
+
+let libResources: ILocTable;
+const fallbackResourceCulture = 'en-us'
+const defaultResourceModuleName = "<default>";
+
+resetLocResources();
+
+/**
+ * reset localization state for testing purposes.
+ */
+export function resetLocResources() {
+    locModules = {};
+    libResources = null;
+}
+
+/** 
+ * internal helper to do loc inside this library. Makes sure the resources are loaded even if they've been reset.
+ * 
+ * @param     key      key of the resources string in the resource file
+ * @param     param    additional params for formatting the string
+ * @returns   string
+ */
+function _loc(key: string, ...param: any[]): string {
+    if (!libResources) {
+        libResources = loadModuleResourcesInternal(path.join(__dirname, "lib.json"), null, true);
+    }
+
+    if (param.length > 0) {
+        return libResources.formatString(key, ...param);
+    }
+    else {
+        return libResources.getString(key);
+    }
+}
+
+class LocTable implements ILocTable {
+    constructor(private strings: { [key: string]: string }, private avoidRecursion: boolean = false) {
+    }
+
+    public getString(key: string): string {
+        if (!this.strings.hasOwnProperty(key)) {
+            if (!this.avoidRecursion) {
+                warning(_loc('LIB_LocStringNotFound', key));
+            }
+            return key;
+        }
+
+        return this.strings[key];
+    }
+
+    public formatString(key: string, ...param: any[]): string {
+        return util.format(this.getString(key), ...param);
+    }
+}
+
+/**
+ * Loads localization resources from a JSON file, This is typically the task.json or module.json file.
+ * 
+ * @param     path          Full path to the json.
+ * @returns   ILocTable     The resources loaded from the JSON file.
+ */
+export function loadModuleResources(path: string): ILocTable {
+    return loadModuleResourcesInternal(path);
+}
+
+/**
+ * Loads localization resources from a JSON file (with some internal-only options), 
+ * 
+ * @param     moduleJsonPath    Full path to the json.
+ * @param     moduleKey         key into the module table. By default uses a combination of moduleJsonPath and the current culture.
+ * @param     avoidRecursion    If true, the returned object's getXxx methods will avoid recusion. Used by the library to avoid infinite recursion in error cases if the library's resources couldn't be loaded.
+ * @returns   ILocTable         The resources loaded from the JSON file.
+ */
+function loadModuleResourcesInternal(moduleJsonPath: string, moduleKey?: string, avoidRecursion: boolean = false): ILocTable {
+    // make sure modules with subdirectories can reference this like
+    //  loadModuleResources(path.join(__dirname, "../module.json"));
+    // and still get counted as the same module
+    moduleJsonPath = path.resolve(moduleJsonPath)
+
+
+    const culture = getVariable('system.culture') || fallbackResourceCulture;
+    moduleKey = moduleKey || `${moduleJsonPath}#${culture}`
+    if (locModules.hasOwnProperty(moduleKey)) {
+        const module = locModules[moduleKey];
+
+        if (module.moduleJsonPath !== moduleJsonPath && !avoidRecursion) {
+            warning(_loc('LIB_ResourceFileAlreadySetWithPath', moduleKey, module.moduleJsonPath, moduleJsonPath));
+        }
+
+        if (module.culture !== culture && !avoidRecursion) {
+            warning(_loc('LIB_ResourceFileAlreadySetWithCulture', moduleKey, module.culture, culture));
+        }
+
+        return module.table;
+    }
+
+    const table = new LocTable(loadLocStrings(moduleJsonPath, culture), avoidRecursion);
+    locModules[moduleKey] = { moduleJsonPath, culture, table };
+    return table;
+}
 
 function loadResJson(resjsonFile: string): any {
     var resJson: {} = null;
@@ -168,13 +287,15 @@ function loadLocStrings(resourceFile: string, culture: string): { [key: string]:
         }
     }
     else {
-        warning(loc('LIB_ResourceFileNotExist', resourceFile));
+        warning(_loc('LIB_ResourceFileNotExist', resourceFile));
     }
 
     return locStrings;
 }
 
 /**
+ * @deprecated Use loadModuleResources instead
+ * 
  * Sets the location of the resources json.  This is typically the task.json file.
  * Call once at the beginning of the script before any calls to loc.
  * 
@@ -183,31 +304,15 @@ function loadLocStrings(resourceFile: string, culture: string): { [key: string]:
  */
 export function setResourcePath(path: string): void {
     if (process.env['TASKLIB_INPROC_UNITS']) {
-        resourceFile = null;
-        libResourceFileLoaded = false;
-        locStringCache = {};
-        resourceCulture = 'en-US';
+        resetLocResources();
     }
 
-    if (!resourceFile) {
-        checkPath(path, 'resource file path');
-        resourceFile = path;
-        debug('set resource file to: ' + resourceFile);
-
-        resourceCulture = getVariable('system.culture') || resourceCulture;
-        var locStrs = loadLocStrings(resourceFile, resourceCulture);
-        for (var key in locStrs) {
-            //cache loc string
-            locStringCache[key] = locStrs[key];
-        }
-
-    }
-    else {
-        warning(loc('LIB_ResourceFileAlreadySet', resourceFile));
-    }
+    loadModuleResourcesInternal(path, defaultResourceModuleName);
 }
 
 /**
+ * @deprecated use loadModuleResources and ILocTable.formatString instead
+ * 
  * Gets the localized string from the json resource file.  Optionally formats with additional params.
  * 
  * @param     key      key of the resources string in the resource file
@@ -215,38 +320,18 @@ export function setResourcePath(path: string): void {
  * @returns   string
  */
 export function loc(key: string, ...param: any[]): string {
-    if (!libResourceFileLoaded) {
-        // merge loc strings from vsts-task-lib.
-        var libResourceFile = path.join(__dirname, 'lib.json');
-        var libLocStrs = loadLocStrings(libResourceFile, resourceCulture);
-        for (var libKey in libLocStrs) {
-            //cache vsts-task-lib loc string
-            locStringCache[libKey] = libLocStrs[libKey];
-        }
-
-        libResourceFileLoaded = true;
-    }
-
-    var locString;;
-    if (locStringCache.hasOwnProperty(key)) {
-        locString = locStringCache[key];
-    }
-    else {
-        if (!resourceFile) {
-            warning(loc('LIB_ResourceFileNotSet', key));
+    if (locModules.hasOwnProperty(defaultResourceModuleName)) {
+        const table = locModules[defaultResourceModuleName].table;
+        if (param.length > 0) {
+            return table.formatString(key, ...param);
         }
         else {
-            warning(loc('LIB_LocStringNotFound', key));
+            return table.getString(key);
         }
-
-        locString = key;
-    }
-
-    if (param.length > 0) {
-        return util.format.apply(this, [locString].concat(param));
     }
     else {
-        return locString;
+        warning(_loc('LIB_ResourceFileNotSet', key));
+        return undefined;
     }
 }
 
@@ -342,7 +427,7 @@ export function setVariable(name: string, val: string, secret: boolean = false):
 
 function getVariableKey(name: string): string {
     if (!name) {
-        throw new Error(loc('LIB_ParameterIsRequired', 'name'));
+        throw new Error(_loc('LIB_ParameterIsRequired', 'name'));
     }
 
     return name.replace(/\./g, '_').toUpperCase();
@@ -391,7 +476,7 @@ export function getInput(name: string, required?: boolean): string {
     }
 
     if (required && !inval) {
-        throw new Error(loc('LIB_InputRequired', name));
+        throw new Error(_loc('LIB_InputRequired', name));
     }
 
     debug(name + '=' + inval);
@@ -502,7 +587,7 @@ export function getEndpointUrl(id: string, optional: boolean): string {
     var urlval = process.env['ENDPOINT_URL_' + id];
 
     if (!optional && !urlval) {
-        throw new Error(loc('LIB_EndpointNotExist', id));
+        throw new Error(_loc('LIB_EndpointNotExist', id));
     }
 
     debug(id + '=' + urlval);
@@ -522,7 +607,7 @@ export function getEndpointDataParameter(id: string, key: string, optional: bool
     var dataParamVal = process.env['ENDPOINT_DATA_' + id + '_' + key.toUpperCase()];
 
     if(!optional && !dataParamVal) {
-        throw new Error(loc('LIB_EndpointDataNotExist', id, key));
+        throw new Error(_loc('LIB_EndpointDataNotExist', id, key));
     }
 
     debug(id + ' data ' + key + ' = ' + dataParamVal);
@@ -541,7 +626,7 @@ export function getEndpointAuthorizationScheme(id: string, optional: boolean) : 
     var authScheme = vault.retrieveSecret('ENDPOINT_AUTH_SCHEME_' + id);
 
     if(!optional && !authScheme) {
-        throw new Error(loc('LIB_EndpointAuthNotExist', id));
+        throw new Error(_loc('LIB_EndpointAuthNotExist', id));
     }
 
     debug(id + ' auth scheme = ' + authScheme);
@@ -561,7 +646,7 @@ export function getEndpointAuthorizationParameter(id: string, key: string, optio
     var authParam = vault.retrieveSecret('ENDPOINT_AUTH_PARAMETER_' + id + '_' + key.toUpperCase());
 
     if(!optional && !authParam) {
-        throw new Error(loc('LIB_EndpointAuthNotExist', id));
+        throw new Error(_loc('LIB_EndpointAuthNotExist', id));
     }
 
     debug(id + ' auth param ' + key + ' = ' + authParam);
@@ -593,7 +678,7 @@ export function getEndpointAuthorization(id: string, optional: boolean): Endpoin
     var aval = vault.retrieveSecret('ENDPOINT_AUTH_' + id);
 
     if (!optional && !aval) {
-        setResult(TaskResult.Failed, loc('LIB_EndpointAuthNotExist', id));
+        setResult(TaskResult.Failed, _loc('LIB_EndpointAuthNotExist', id));
     }
 
     console.log(id + ' exists ' + (aval !== null));
@@ -604,7 +689,7 @@ export function getEndpointAuthorization(id: string, optional: boolean): Endpoin
         auth = <EndpointAuthorization>JSON.parse(aval);
     }
     catch (err) {
-        throw new Error(loc('LIB_InvalidEndpointAuth', aval));
+        throw new Error(_loc('LIB_InvalidEndpointAuth', aval));
     }
 
     return auth;
@@ -639,7 +724,7 @@ function checkShell(cmd: string, continueOnError?: boolean) {
 
     if (se) {
         debug(cmd + ' failed');
-        var errMsg = loc('LIB_OperationFailed', cmd, se);
+        var errMsg = _loc('LIB_OperationFailed', cmd, se);
         debug(errMsg);
 
         if (!continueOnError) {
@@ -725,7 +810,7 @@ export function cwd() : string {
 export function checkPath(p: string, name: string): void {
     debug('check path : ' + p);
     if (!exist(p)) {
-        throw new Error(loc('LIB_PathNotFound', name, p));
+        throw new Error(_loc('LIB_PathNotFound', name, p));
     }
 }
 
@@ -772,7 +857,7 @@ export function popd(): void {
  */
 export function mkdirP(p: string): void {
     if (!p) {
-        throw new Error(loc('LIB_ParameterIsRequired', 'p'));
+        throw new Error(_loc('LIB_ParameterIsRequired', 'p'));
     }
 
     // build a stack of directories to create
@@ -795,7 +880,7 @@ export function mkdirP(p: string): void {
                 // validate the directory is not the drive root
                 let parentDir = path.dirname(testDir);
                 if (testDir == parentDir) {
-                    throw new Error(loc('LIB_MkdirFailedInvalidDriveRoot', p, testDir)); // Unable to create directory '{p}'. Root directory does not exist: '{testDir}'
+                    throw new Error(_loc('LIB_MkdirFailedInvalidDriveRoot', p, testDir)); // Unable to create directory '{p}'. Root directory does not exist: '{testDir}'
                 }
 
                 // push the dir and test the parent
@@ -804,7 +889,7 @@ export function mkdirP(p: string): void {
                 continue;
             }
             else if (err.code == 'UNKNOWN') {
-                throw new Error(loc('LIB_MkdirFailedInvalidShare', p, testDir)) // Unable to create directory '{p}'. Unable to verify the directory exists: '{testDir}'. If directory is a file share, please verify the share name is correct, the share is online, and the current process has permission to access the share.
+                throw new Error(_loc('LIB_MkdirFailedInvalidShare', p, testDir)) // Unable to create directory '{p}'. Unable to verify the directory exists: '{testDir}'. If directory is a file share, please verify the share name is correct, the share is online, and the current process has permission to access the share.
             }
             else {
                 throw err;
@@ -812,7 +897,7 @@ export function mkdirP(p: string): void {
         }
 
         if (!stats.isDirectory()) {
-            throw new Error(loc('LIB_MkdirFailedFileExists', p, testDir)); // Unable to create directory '{p}'. Conflicting file exists: '{testDir}'
+            throw new Error(_loc('LIB_MkdirFailedFileExists', p, testDir)); // Unable to create directory '{p}'. Conflicting file exists: '{testDir}'
         }
 
         // testDir exists
@@ -826,7 +911,7 @@ export function mkdirP(p: string): void {
         try {
             fs.mkdirSync(dir);
         } catch (err) {
-            throw new Error(loc('LIB_MkdirFailed', p, err.message)); // Unable to create directory '{p}'. {err.message}
+            throw new Error(_loc('LIB_MkdirFailed', p, err.message)); // Unable to create directory '{p}'. {err.message}
         }
     }
 }
@@ -907,7 +992,7 @@ export function which(tool: string, check?: boolean): string {
         return toolPath;
     }
     catch (err) {
-        throw new Error(loc('LIB_OperationFailed', 'which', err.message));
+        throw new Error(_loc('LIB_OperationFailed', 'which', err.message));
     }
 }
 
@@ -1063,7 +1148,7 @@ export function find(findPath: string, options?: FindOptions): string[] {
         return result;
     }
     catch (err) {
-        throw new Error(loc('LIB_OperationFailed', 'find', err.message));
+        throw new Error(_loc('LIB_OperationFailed', 'find', err.message));
     }
 }
 
@@ -1094,7 +1179,7 @@ export function rmRF(path: string, continueOnError?: boolean): void {
     // if you try to delete a file that doesn't exist, desired result is achieved
     // other errors are valid
     if (errMsg && !(errMsg.indexOf('ENOENT') === 0)) {
-        throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
+        throw new Error(_loc('LIB_OperationFailed', 'rmRF', errMsg));
     }
 }
 
@@ -1123,7 +1208,7 @@ export function globFirst(pattern: string): string {
     var matches = glob(pattern);
 
     if (matches.length > 1) {
-        warning(loc('LIB_UseFirstGlobMatch'));
+        warning(_loc('LIB_UseFirstGlobMatch'));
     }
 
     debug('found ' + matches.length + ' matches');
