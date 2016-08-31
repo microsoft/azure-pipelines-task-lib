@@ -361,7 +361,7 @@ export function execSync(tool: string, args: any, options?: trm.IExecOptions): t
     return tr.execSync(options);
 }
 
-export function tool(tool: string) {
+export function tool(tool: string): trm.ToolRunner {
     var tr: trm.ToolRunner = new trm.ToolRunner(tool);
     tr.on('debug', (message: string) => {
         module.exports.debug(message);

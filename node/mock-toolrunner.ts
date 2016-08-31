@@ -205,9 +205,7 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         // TODO: filter process.env
-        
         var res = mock.getResponse('exec', cmdString);
-        //console.log(JSON.stringify(res, null, 2));
         if (res.stdout) {
             this.emit('stdout', res.stdout);
 

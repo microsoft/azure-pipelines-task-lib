@@ -6,6 +6,7 @@
 
 import assert = require('assert');
 import * as mt from '../_build/mock-task';
+import * as mtr from '../_build/mock-toolrunner';
 import * as ma from '../_build/mock-answer';
 import * as tl from '../_build/task';
 
@@ -115,5 +116,32 @@ describe('Mock Tests', function () {
         assert.equal(matches[0], "/user/build/fun/test-123.xml");
 
         done();
-    })        
+    })
+
+    it('Mock returns toolRunner', (done) => {
+        let tool = mt.tool('atool');
+        assert(tool, "tool should not be null");
+
+        done();
+    })
+
+    it('Mock toolRunner returns success code', async () => {
+        var a: ma.TaskLibAnswers = <ma.TaskLibAnswers>{
+            "exec": {
+                "/usr/local/bin/atool --arg foo": {
+                    "code": 0,
+                    "stdout": "atool output here",
+                    "stderr": "atool with this stderr output"
+                }
+            }
+        };
+
+        mt.setAnswers(a);
+
+        let tool: mtr.ToolRunner = mt.tool('/usr/local/bin/atool');
+        tool.arg('--arg');
+        tool.arg('foo');
+        let rc: number = await tool.exec(<mtr.IExecOptions>{});
+        assert(tool, "tool should not be null");
+    })                
 });
