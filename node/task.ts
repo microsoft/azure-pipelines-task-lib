@@ -786,7 +786,7 @@ export function mkdirP(p: string): void {
             return;
         }
 
-        debug(`testing directory '{testDir}'`);
+        debug(`testing directory '${testDir}'`);
         let stats: fs.Stats;
         try {
             stats = fs.statSync(testDir);
@@ -822,7 +822,7 @@ export function mkdirP(p: string): void {
     // create each directory
     while (stack.length) {
         let dir = stack.pop();
-        debug(`mkdir '{dir}'`);
+        debug(`mkdir '${dir}'`);
         try {
             fs.mkdirSync(dir);
         } catch (err) {
