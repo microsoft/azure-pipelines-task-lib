@@ -7,13 +7,13 @@ import util = require('util');
 import task = require('./task');
 import tcm = require('./taskcommand');
 import trm = require('./mock-toolrunner');
-import mm = require('./mock-answer');
+import ma = require('./mock-answer');
 
-let mock: mm.MockAnswers = new mm.MockAnswers();
+let mock: ma.MockAnswers = new ma.MockAnswers();
 
-export function setAnswerFile(answerFile: string) {
-    mock.initialize(answerFile);
-    trm.setAnswerFile(answerFile);
+export function setAnswers(answers: ma.TaskLibAnswers) {
+    mock.initialize(answers);
+    trm.setAnswers(answers);
 }
 
 export enum TaskResult {
@@ -245,7 +245,7 @@ export function popd(): void {
 export function checkPath(p: string, name: string): void {
     module.exports.debug('check path : ' + p);
     if (!p || !mock.getResponse('checkPath', p)) {
-        module.exports.setResult(TaskResult.Failed, 'not found ' + name + ': ' + p);  // exit
+        throw new Error('Not found ' + p);
     }
 }
 

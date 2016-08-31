@@ -5,19 +5,7 @@
 /// <reference path="../_build/task.d.ts" />
 
 import assert = require('assert');
-// import child = require('child_process');
-// import path = require('path');
-// import fs = require('fs');
-// import util = require('util');
-// import stream = require('stream');
-// import shell = require('shelljs');
-// import os = require('os');
-
 import * as tl from '../_build/task';
-// import * as vm from '../_build/vault';
-// import * as tcm from '../_build/taskcommand';
-// import * as trm from '../_build/toolrunner';
-
 import testutil = require('./testutil');
 
 describe('Result Tests', function () {

@@ -16,6 +16,7 @@
         "toolrunnertests.ts",
         "cctests",
         "loctests",
-        "matchtests"
+        "matchtests",
+        "mocktests"
     ]
 }

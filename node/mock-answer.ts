@@ -1,21 +1,33 @@
 import path = require('path');
 import fs = require('fs');
 
+export interface TaskLibAnswerExecResult {
+    code: number,
+    stdout: string,
+    stderr: string
+}
+
+export interface TaskLibAnswers {
+    which?: { [key: string]: string; },
+    exec?: { [ key: string]: TaskLibAnswerExecResult },
+    checkPath?: { [key: string]: boolean },
+    exist?: { [key: string]: boolean },
+    match?: { [key: string]: string[] },
+    getVariable?: { [key: string]: string; }
+}
+
 export class MockAnswers {
-    private _answerFile: string;
-    private _answers: any;
+    private _answers: TaskLibAnswers;
 
-    public initialize(answerFile: string) {
-        this._answerFile = answerFile;
-
-        if (!answerFile || !fs.existsSync(answerFile)) {
-            throw new Error('Answer file not found: ' + answerFile);
+    public initialize(answers: TaskLibAnswers) {
+        if (!answers) {
+            throw new Error('Answers not supplied');
         }
-        this._answers = require(answerFile);
+        this._answers = answers;
     }
 
     public getResponse(cmd: string, key: string): any {
-        if (!this._answerFile) {
+        if (!this._answers) {
             throw new Error('Must initialize');
         }
 

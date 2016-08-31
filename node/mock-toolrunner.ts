@@ -3,12 +3,12 @@ import Q = require('q');
 import os = require('os');
 import path = require('path');
 import events = require('events');
-import mm = require('./mock-answer');
+import ma = require('./mock-answer');
 
-let mock: mm.MockAnswers = new mm.MockAnswers();
+let mock: ma.MockAnswers = new ma.MockAnswers();
 
-export function setAnswerFile(answerFile: string) {
-    mock.initialize(answerFile);
+export function setAnswers(answers: ma.TaskLibAnswers) {
+    mock.initialize(answers);
 }
 
 var run = function(cmd, callback) {
