@@ -37,9 +37,9 @@ target.test = function() {
     target.build();
 
     buildutils.getExternals();
-    run('tsc --outDir ' + testPath + ' test/tasklib.ts');
+    run('tsc -p ./test');
     cp('-Rf', rp('test/scripts'), testPath);
-    run('mocha ' + path.join(testPath, 'tasklib.js'));
+    run('mocha ' + testPath + ' --recursive');
 }
 
 target.loc = function() {

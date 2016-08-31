@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "target": "ES5",
+        "module": "commonjs",
+        "declaration": false,
+        "outDir": "../_test",
+        "moduleResolution": "node"      
+    },
+    "files": [
+        "dirtests.ts",
+        "inputtests.ts",
+        "commandtests.ts",
+        "resulttests.ts",
+        "disktests.ts",
+        "vaulttests.ts",
+        "toolrunnertests.ts",
+        "cctests",
+        "loctests",
+        "matchtests"
+    ]
+}
