@@ -27,7 +27,7 @@ describe('Mock Tests', function () {
 
     });
 
-    it('Mock Which Success', (done) => {
+    it('Mocks which and returns path on exists', (done) => {
         var a: ma.TaskLibAnswers = <ma.TaskLibAnswers>{
             "which": {
                 "foo": "/bar/baz"
@@ -39,7 +39,7 @@ describe('Mock Tests', function () {
 
         done();
     })
-    it('Mock Which is Null', (done) => {
+    it('Mock which and returns null on not exist', (done) => {
         var a: ma.TaskLibAnswers = <ma.TaskLibAnswers>{
             "which": {
                 "foo": "/bar/baz"
@@ -51,7 +51,7 @@ describe('Mock Tests', function () {
 
         done();
     })
-    it('Mock Exist Success', (done) => {
+    it('Mocks exist and returns true on exists', (done) => {
         var a: ma.TaskLibAnswers = <ma.TaskLibAnswers>{
             "exist": {
                 "/foo/bar": true
@@ -63,7 +63,7 @@ describe('Mock Tests', function () {
 
         done();
     })
-    it('Mock Exist is false', (done) => {
+    it('Mocks exist and returns false on not exists', (done) => {
         var a: ma.TaskLibAnswers = <ma.TaskLibAnswers>{
             "exist": {
                 "/foo/bar": true
@@ -75,7 +75,7 @@ describe('Mock Tests', function () {
 
         done();
     })
-    it('Mock CheckPath Success', (done) => {
+    it('Mocks CheckPath with Success', (done) => {
         var a: ma.TaskLibAnswers = <ma.TaskLibAnswers>{
             "checkPath": {
                 "/foo/bar": true
@@ -98,5 +98,22 @@ describe('Mock Tests', function () {
         assert.throws(() => { mt.checkPath('/foo/bar', 'bar')});
 
         done();
-    })    
+    })
+
+    it('Mocks matches item in list', (done) => {
+        var a: ma.TaskLibAnswers = <ma.TaskLibAnswers>{
+            "match": {
+                "**/TEST-*.xml": [
+                    "/user/build/fun/test-123.xml"
+                ]
+            }
+        };
+
+        mt.setAnswers(a);
+        var matches: string[] = mt.match([], "**/TEST-*.xml", {});
+        assert.equal(matches.length, 1);
+        assert.equal(matches[0], "/user/build/fun/test-123.xml");
+
+        done();
+    })        
 });
