@@ -436,6 +436,16 @@ describe('Test Inputs', function () {
 
         done();
     })
+    it('defaults to false bool input value', function(done) {
+        this.timeout(1000);
+
+        tl._loadData();
+
+        var outVal = tl.getBoolInput('no_such_env_var', /*required=*/ false);
+        assert(!outVal, 'should default to false');
+
+        done();
+    })
 
     // getDelimitedInput tests
     it('gets delimited input values removes empty values', function (done) {
