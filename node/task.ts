@@ -407,7 +407,7 @@ export function getInput(name: string, required?: boolean): string {
  * @returns   string
  */
 export function getBoolInput(name: string, required?: boolean): boolean {
-    return getInput(name, required) == "true";
+    return (getInput(name, required) || '').toUpperCase() == "TRUE";
 }
 
 // deprecated - use  setVariable

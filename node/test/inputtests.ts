@@ -412,10 +412,10 @@ describe('Test Inputs', function () {
     })
 
     // getBoolInput tests
-    it('gets true bool input value', function (done) {
+    it('gets case insensitive true bool input value', function (done) {
         this.timeout(1000);
 
-        var inputValue = 'true';
+        var inputValue = 'tRuE';
         process.env['INPUT_ABOOL'] = inputValue;
         tl._loadData();
 
