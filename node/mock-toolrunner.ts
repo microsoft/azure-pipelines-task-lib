@@ -119,7 +119,7 @@ export class ToolRunner extends events.EventEmitter {
         return args;
     }
 
-    public arg(val: any) {
+    public arg(val: any): ToolRunner {
         if (!val) {
             return;
         }
@@ -132,27 +132,38 @@ export class ToolRunner extends events.EventEmitter {
             this._debug(this.toolPath + ' arg: ' + val);
             this.args = this.args.concat(this._argStringToArray(val));
         }
+
+        return this;
     }
 
-    public argString(val: string) {
+    public argString(val: string): ToolRunner {
         if (!val) {
             return;
         }
 
         this._debug(this.toolPath + ' arg: ' + val);
-        this.args = this.args.concat(this._argStringToArray(val));    
-    }
+        this.args = this.args.concat(this._argStringToArray(val));
 
-    public pathArg(val: string) {
-        this._debug(this.toolPath + ' pathArg: ' + val);
-        this.arg(val);
+        return this;    
     }
     
-    public argIf(condition: any, val: any) {
+    public argIf(condition: any, val: any): ToolRunner {
         if (condition) {
             this.arg(val);
         }
+
+        return this;
     }
+
+    public line(val: string): ToolRunner {
+        if (!val) {
+            return;
+        }
+
+        this._debug(this.toolPath + ' arg: ' + val);
+        this.args = this.args.concat(this._argStringToArray(val));
+        return this;    
+    }    
 
     private ignoreTempPath(cmdString: string): string {
         this._debug('ignoreTempPath=' + process.env['MOCK_IGNORE_TEMP_PATH']);
