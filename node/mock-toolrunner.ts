@@ -130,21 +130,10 @@ export class ToolRunner extends events.EventEmitter {
         }
         else if (typeof(val) === 'string') {
             this._debug(this.toolPath + ' arg: ' + val);
-            this.args = this.args.concat(this._argStringToArray(val));
+            this.args = this.args.concat(val.trim());
         }
 
         return this;
-    }
-
-    public argString(val: string): ToolRunner {
-        if (!val) {
-            return;
-        }
-
-        this._debug(this.toolPath + ' arg: ' + val);
-        this.args = this.args.concat(this._argStringToArray(val));
-
-        return this;    
     }
     
     public argIf(condition: any, val: any): ToolRunner {
