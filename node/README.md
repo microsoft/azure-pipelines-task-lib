@@ -29,7 +29,6 @@ Once:
 ```bash
 $ cd node
 $ npm install
-$ sudo npm install tsc -g
 ```
 
 Build and Test:
