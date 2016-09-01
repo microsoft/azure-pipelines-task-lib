@@ -8,6 +8,7 @@
     "files": [
         "extensions.ts",
     	"index.ts",
-        "mock-task.ts"
+        "mock-task.ts",
+        "mock-run.ts"
     ]
 }

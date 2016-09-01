@@ -6,6 +6,7 @@
     "glob": "registry:dt/glob#5.0.10+20160317120654",
     "minimatch": "registry:dt/minimatch#2.0.8+20160317120654",
     "mocha": "registry:dt/mocha#2.2.5+20160619032855",
+    "mockery": "registry:dt/mockery#1.4.0+20160316155526",
     "node": "registry:dt/node#6.0.0+20160709114037",
     "q": "registry:dt/q#0.0.0+20160613154756",
     "semver": "registry:dt/semver#4.3.4+20160608054219",
