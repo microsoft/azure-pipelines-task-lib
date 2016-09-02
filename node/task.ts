@@ -1087,14 +1087,40 @@ class FindItem {
  */
 export function rmRF(path: string, continueOnError?: boolean): void {
     debug('rm -rf ' + path);
-    shell.rm('-rf', path);
 
-    var errMsg: string = shell.error();
+    // get the lstats in order to workaround a bug in shelljs@0.3.0 where symlinks
+    // with missing targets are not handled correctly by "rm('-rf', path)"
+    let lstats: fs.Stats;
+    try {
+        lstats = fs.lstatSync(path);
+    }
+    catch (err) {
+        // if you try to delete a file that doesn't exist, desired result is achieved
+        // other errors are valid
+        if (err.code == 'ENOENT') {
+            return;
+        }
 
-    // if you try to delete a file that doesn't exist, desired result is achieved
-    // other errors are valid
-    if (errMsg && !(errMsg.indexOf('ENOENT') === 0)) {
-        throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
+        throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
+    }
+
+    if (lstats.isDirectory()) {
+        debug('removing directory');
+        shell.rm('-rf', path);
+        var errMsg: string = shell.error();
+        if (errMsg) {
+            throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
+        }
+
+        return;
+    }
+
+    debug('removing file');
+    try {
+        fs.unlinkSync(path);
+    }
+    catch (err) {
+        throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
     }
 }
 

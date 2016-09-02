@@ -25,6 +25,17 @@ describe('Test Dir Operations', function () {
 
     });
 
+    // this test verifies the expected version of node is being used to run the tests.
+    // 5.10.1 is what ships in the 1.x and 2.x agent.
+    it('is expected version', (done: MochaDone) => {
+        this.timeout(1000);
+
+        assert.equal(process.version, 'v5.10.1');
+
+        done();
+    });
+
+    // which tests
     it('which() on windows return file with Extension', function (done) {
         this.timeout(1000);
 
@@ -51,14 +62,7 @@ describe('Test Dir Operations', function () {
         done();
     });
 
-    it('is expected version', (done: MochaDone) => {
-        this.timeout(1000);
-
-        assert.equal(process.version, 'v5.10.1');
-
-        done();
-    });
-
+    // find tests
     it('returns hidden files with find', (done: MochaDone) => {
         this.timeout(1000);
 
@@ -708,9 +712,6 @@ describe('Test Dir Operations', function () {
             done();
         });
 
-/*
-FIX Product Bug
-
         it('removes symlink file with missing source using rmRF', (done: MochaDone) => {
             this.timeout(1000);
 
@@ -743,7 +744,6 @@ FIX Product Bug
 
             done();
         });
-*/
 
         it('removes symlink level 2 file with rmRF', (done: MochaDone) => {
             this.timeout(1000);
@@ -771,6 +771,42 @@ FIX Product Bug
         });
     }
 
+    it('removes symlink folder with missing source using rmRF', (done: MochaDone) => {
+        this.timeout(1000);
+
+        // create the following layout:
+        //   real_directory
+        //   real_directory/real_file
+        //   symlink_directory -> real_directory
+        let root: string = path.join(testutil.getTestTemp(), 'rmRF_sym_dir_test');
+        let realDirectory: string = path.join(root, 'real_directory');
+        let realFile: string = path.join(root, 'real_directory', 'real_file');
+        let symlinkDirectory: string = path.join(root, 'symlink_directory');
+        tl.mkdirP(realDirectory);
+        fs.writeFileSync(realFile, 'test file content');
+        testutil.createSymlinkDir(realDirectory, symlinkDirectory);
+        assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'symlink directory should be created correctly');
+
+        // remove the real directory
+        fs.unlinkSync(realFile);
+        fs.rmdirSync(realDirectory);
+        assert.throws(() => { fs.statSync(symlinkDirectory) }, (err) => err.code == 'ENOENT', 'stat should throw');
+
+        // remove the symlink directory
+        tl.rmRF(symlinkDirectory);
+        let errcode: string;
+        try {
+            fs.lstatSync(symlinkDirectory);
+        }
+        catch (err) {
+            errcode = err.code;
+        }
+
+        assert.equal(errcode, 'ENOENT');
+
+        done();
+    });
+
     it('removes symlink level 2 folder with rmRF', (done: MochaDone) => {
         this.timeout(1000);
 
@@ -789,6 +825,7 @@ FIX Product Bug
         testutil.createSymlinkDir(realDirectory, symlinkDirectory);
         testutil.createSymlinkDir(symlinkDirectory, symlinkLevel2Directory);
         assert.equal(fs.readFileSync(path.join(symlinkDirectory, 'real_file')), 'test file content');
+        assert.equal(fs.readlinkSync(symlinkLevel2Directory), symlinkDirectory);
 
         tl.rmRF(symlinkLevel2Directory);
         assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'real file should still exist');
@@ -880,5 +917,22 @@ FIX Product Bug
         assert(shell.test('-e', destFile), 'dest file does not exist after mv -f');
 
         done();
-    });        
+    });
+
+    // cp tests
+    it('copies file using -f', (done: MochaDone) => {
+        this.timeout(1000);
+
+        let root: string = path.join(testutil.getTestTemp(), 'cp_with_-f');
+        let sourceFile: string = path.join(root, 'cp_source');
+        let targetFile: string = path.join(root, 'cp_target');
+        tl.mkdirP(root);
+        fs.writeFileSync(sourceFile, 'test file content');
+
+        tl.cp(sourceFile, targetFile, '-f');
+
+        assert.equal('test file content', fs.readFileSync(targetFile));
+
+        done();
+    });
 });
