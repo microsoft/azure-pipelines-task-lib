@@ -1233,7 +1233,19 @@ export function tool(tool: string) {
 //-----------------------------------------------------
 // Matching helpers
 //-----------------------------------------------------
-export interface MatchOptions extends minimatch.IOptions {
+// redefine to avoid folks having to typings install minimatch
+export interface MatchOptions {
+    debug?: boolean;
+    nobrace?: boolean;
+    noglobstar?: boolean;
+    dot?: boolean;
+    noext?: boolean;
+    nocase?: boolean;
+    nonull?: boolean;
+    matchBase?: boolean;
+    nocomment?: boolean;
+    nonegate?: boolean;
+    flipNegate?: boolean;
 }
 
 export function match(list: string[], pattern: string, options?: MatchOptions): string[];

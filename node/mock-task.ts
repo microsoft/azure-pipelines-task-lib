@@ -373,7 +373,23 @@ export function tool(tool: string): trm.ToolRunner {
 //-----------------------------------------------------
 // Matching helpers
 //-----------------------------------------------------
-export function match(list, pattern, options): string[] {
+// redefine to avoid folks having to typings install minimatch
+export interface MatchOptions {
+    debug?: boolean;
+    nobrace?: boolean;
+    noglobstar?: boolean;
+    dot?: boolean;
+    noext?: boolean;
+    nocase?: boolean;
+    nonull?: boolean;
+    matchBase?: boolean;
+    nocomment?: boolean;
+    nonegate?: boolean;
+    flipNegate?: boolean;
+}
+export function match(list: string[], pattern: string, options?: MatchOptions): string[];
+export function match(list: string[], patterns: string[], options?: MatchOptions): string[];
+export function match(list: string[], pattern: any, options?: MatchOptions): string[] {
     return mock.getResponse('match', pattern) || [];
 }
 

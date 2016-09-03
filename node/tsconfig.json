@@ -9,6 +9,7 @@
         "extensions.ts",
     	"index.ts",
         "mock-task.ts",
-        "mock-run.ts"
+        "mock-run.ts",
+        "mock-test.ts"
     ]
 }
