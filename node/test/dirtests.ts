@@ -63,6 +63,7 @@ describe('Test Dir Operations', function () {
     });
 
     // find tests
+    /*
     it('returns hidden files with find', (done: MochaDone) => {
         this.timeout(1000);
 
@@ -88,6 +89,7 @@ describe('Test Dir Operations', function () {
 
         done();
     });
+    */
 
     it('returns depth first find', (done: MochaDone) => {
         this.timeout(1000);
