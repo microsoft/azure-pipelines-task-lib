@@ -97,11 +97,7 @@ export function createHiddenFile(file: string, content: string): void {
  */
 export function createSymlinkDir(real: string, link: string): void {
     if (os.platform() == 'win32') {
-        let result = child.spawnSync('cmd.exe', [ '/c', 'mklink', '/J', link, real ]);
-        if (result.status != 0) {
-            let message: string = (result.output || []).join(' ').trim();
-            throw new Error(`Failed to create junction point '${link}' for directory '${real}'. ${message}`);
-        }
+        fs.symlinkSync(real, link, 'junction');
     }
     else {
         fs.symlinkSync(real, link);

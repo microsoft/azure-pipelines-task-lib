@@ -312,7 +312,6 @@ describe('Test Dir Operations', function () {
         done();
     });
 
-/*
     it('detects deep cycle starting from middle', (done: MochaDone) => {
         this.timeout(1000);
 
@@ -348,7 +347,6 @@ describe('Test Dir Operations', function () {
 
         done();
     });
-*/
 
     // mkdirP tests
     it('creates folder with mkdirP', function (done) {
@@ -827,7 +825,7 @@ describe('Test Dir Operations', function () {
         testutil.createSymlinkDir(realDirectory, symlinkDirectory);
         testutil.createSymlinkDir(symlinkDirectory, symlinkLevel2Directory);
         assert.equal(fs.readFileSync(path.join(symlinkDirectory, 'real_file')), 'test file content');
-        assert.equal(fs.readlinkSync(symlinkLevel2Directory), symlinkDirectory);
+        assert.equal(fs.readlinkSync(symlinkLevel2Directory), symlinkDirectory + '\\');
 
         tl.rmRF(symlinkLevel2Directory);
         assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'real file should still exist');
