@@ -112,4 +112,50 @@ describe('Test vsts-task-lib', function () {
 
         done();
     });
+
+    it('exclude pattern', (done: MochaDone) => {
+        this.timeout(1000);
+
+        let list: string[] = [
+            '/projects/myproj1/myproj1.proj',
+            '/projects/myproj2/myproj2.proj',
+            '/projects/myproj2/readme.txt'
+        ];
+        let pattern: string[] = ['/projects/**/*.proj','!**/myproj2.proj'];
+        let options: tl.MatchOptions = { matchBase: true };
+        let result: string[] = tl.match(list, pattern, options);
+        assert.equal(result.length, 1);
+        assert.equal(result[0], '/projects/myproj1/myproj1.proj');
+
+        done();
+    });
+
+    it('exclude pattern with multiple excludes', (done: MochaDone) => {
+        this.timeout(1000);
+
+        let list: string[] = [
+            '/projects/myproj1/myproj1.proj',
+            '/projects/myproj1/myproj1.txt',
+            '/projects/myproj2/myproj2.proj',
+            '/projects/myproj2/myproj2.txt',
+            '/projects/myproj3/myproj3.proj',
+            '/projects/myproj3/myproj3.txt',
+            '/projects/myproj4/myproj4.proj',
+            '/projects/myproj4/myproj4.txt',
+        ];
+        let patterns: string[] = [
+            '**/myproj*.proj', // mix up the order
+            '!**/*.txt'
+        ];
+        let options: tl.MatchOptions = { matchBase: true };
+        let result: string[] = tl.match(list, patterns, options);
+        assert.equal(result.length, 4);
+        // should follow original list order
+        assert.equal(result[0], '/projects/myproj1/myproj1.proj'); 
+        assert.equal(result[1], '/projects/myproj2/myproj2.proj');
+        assert.equal(result[2], '/projects/myproj3/myproj3.proj');
+        assert.equal(result[3], '/projects/myproj4/myproj4.proj');
+
+        done();
+    });
 });
