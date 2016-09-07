@@ -825,7 +825,12 @@ describe('Test Dir Operations', function () {
         testutil.createSymlinkDir(realDirectory, symlinkDirectory);
         testutil.createSymlinkDir(symlinkDirectory, symlinkLevel2Directory);
         assert.equal(fs.readFileSync(path.join(symlinkDirectory, 'real_file')), 'test file content');
-        assert.equal(fs.readlinkSync(symlinkLevel2Directory), symlinkDirectory + '\\');
+        if (os.platform() == 'win32') {
+            assert.equal(fs.readlinkSync(symlinkLevel2Directory), symlinkDirectory + '\\');
+        }
+        else {
+            assert.equal(fs.readlinkSync(symlinkLevel2Directory), symlinkDirectory);
+        }
 
         tl.rmRF(symlinkLevel2Directory);
         assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'real file should still exist');
