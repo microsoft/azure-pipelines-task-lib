@@ -90,27 +90,35 @@ The code is straight forward.  As a reference:
 ```javascript
 import tl = require('vsts-task-lib/task');
 import trm = require('vsts-task-lib/toolrunner');
+import mod = require('./taskmod');
 
 async function run() {
     try {
-        // easy chaining of arguments
-        let rc1: number = await tl.tool('echo').arg(tl.getInput('samplestring', true)).exec();
+        console.log(process.env["INPUT_SAMPLESTRING"]);
+        let echoPath = tl.which('echo');
+        let rc1: number = await tl.tool(echoPath).arg(tl.getInput('samplestring', true)).exec();
         
-        let rc2: number = -1;
-        if (tl.getBoolInput('samplebool')) {
-            // linear async coding
-            rc2 = await tl.tool('echo').arg(tl.getInput('samplepathinput', true)).exec();    
+        // call some module which does external work
+        if (rc1 == 0) {
+            mod.sayHello();
         }
         
-        console.log('Task done! ' + rc1 + ',' + rc2);
+        console.log('Task done! ' + rc1);
     }
     catch (err) {
-        // handle failures in one place
         tl.setResult(tl.TaskResult.Failed, err.message);
     }
 }
 
 run();
+```
+
+taskmod.ts:
+
+```javascript
+export function sayHello() {
+    console.log('Hello World!');
+}
 ```
 
 Key Points:
@@ -221,6 +229,148 @@ undefined
 ## Debugging
 
 Coming soon
+
+## Unit testing your task scripts
+
+This requires vsts-task-lib 0.9.15 or greater.
+
+
+### Goals:  
+
+- Unit test the script, not the external tools it's calling.
+- Run subsecond (often < 200 ms)
+- Validate all arcs of the script, including failure paths.
+- Run your task script unaltered the exact way the agent does (envvar as contract, run node against your script)
+- Assert all aspects of the execution (succeeded, issues, std/errout etc...) by intercepting command output
+
+### Install test tools
+
+We will use mocha as the test driver in this examples.  Others exist.
+```bash
+npm install mocha --save-dev -g
+typings install dt~mocha --save --global
+```
+
+### Create test suite
+
+Creates tests folder and _suite.ts.  Example here.
+
+### Success test
+
+The success test will validate that the task will succeed if the tool returns 0.  It also confirms that no error or warning issues are added to the build summary.  Finally it validates that the task module is called if the tool succeeds.
+
+The success test [from _suite.ts](https://gist.github.com/bryanmacfarlane/154f14dd8cb11a71ef04b0c836e5be6e#file-_suite-ts) looks like:
+
+```javascript
+    it('should succeed with simple inputs', (done: MochaDone) => {
+        this.timeout(1000);
+
+        let tp = path.join(__dirname, 'success.js');
+        let tr: ttm.MockTestRunner = new ttm.MockTestRunner(tp);
+
+        tr.Run();
+        assert(tr.succeeded, 'should have succeeded');
+        assert.equal(tr.invokedToolCount, 1);
+        assert.equal(tr.warningIssues.length, 0, "should have no warnings");
+        assert.equal(tr.errorIssues.length, 0, "should have no errors");
+        assert(tr.stdout.indexOf('atool output here') >= 0, "tool stdout");
+        assert(tr.stdout.indexOf('Hello Mock!') >= 0, "task module is called");
+
+        done();
+    });
+```
+
+key code from [success.ts test file](https://gist.github.com/bryanmacfarlane/154f14dd8cb11a71ef04b0c836e5be6e#file-success-ts)
+
+```javascript
+
+let taskPath = path.join(__dirname, '..', 'index.js');
+let tmr: tmrm.TaskMockRunner = new tmrm.TaskMockRunner(taskPath);
+
+tmr.setInput('samplestring', "Hello, from task!");
+tmr.setInput('samplebool', 'true');
+
+// provide answers for task mock
+let a: ma.TaskLibAnswers = <ma.TaskLibAnswers>{
+    "which": {
+        "echo": "/mocked/tools/echo"
+    },
+    "exec": {
+        "/mocked/tools/echo Hello, from task!": {
+            "code": 0,
+            "stdout": "atool output here",
+            "stderr": "atool with this stderr output"            
+        }
+    }
+};
+tmr.setAnswers(a);
+
+// mock a specific module function called in task 
+tmr.registerMock('./taskmod', {
+    sayHello: function() {
+        console.log('Hello Mock!');
+    }
+});
+
+tmr.run();
+
+```
+
+### Fail test
+
+This test validates that the task will fail if the tool returns 1.  It also validates that an error issue will be added to the build summary.  Finally, it validated that the task module is not called if the tool fails.
+
+The fail test [from _suite.ts](https://gist.github.com/bryanmacfarlane/154f14dd8cb11a71ef04b0c836e5be6e#file-_suite-ts) looks like:
+
+```javascript
+    it('it should fail if tool returns 1', (done: MochaDone) => {
+        this.timeout(1000);
+
+        let tp = path.join(__dirname, 'failrc.js');
+        let tr: ttm.MockTestRunner = new ttm.MockTestRunner(tp);
+
+        tr.Run();
+        assert(!tr.succeeded, 'should have failed');
+        assert.equal(tr.invokedToolCount, 1);
+        assert.equal(tr.warningIssues, 0, "should have no warnings");
+        assert.equal(tr.errorIssues.length, 1, "should have 1 error issue");
+        assert.equal(tr.errorIssues[0], '/mocked/tools/echo failed with return code: 1', 'error issue output');
+        assert(tr.stdout.indexOf('atool output here') >= 0, "tool stdout");
+        assert.equal(tr.stdout.indexOf('Hello Mock!'), -1, "task module should have never been called");
+
+        done();
+    });
+```
+
+The [failrc.ts test file is here](https://gist.github.com/bryanmacfarlane/154f14dd8cb11a71ef04b0c836e5be6e#file-failrc-ts)
+
+### Fail on required inputs
+
+We also typically write tests to confirm the task fails with proper actionable guidance if required inputs are not supplied.  Give it a try.
+
+### Running the tests
+
+```bash
+mocha tests/_suite.js
+```
+
+```bash
+$ mocha tests/_suite.js
+
+
+  Sample task tests
+    ✓ should succeed with simple inputs (127ms)
+    ✓ it should fail if tool returns 1 (121ms)
+
+
+  2 passing (257ms)
+```
+
+If you want to run tests with verbose task output (what you would see in the build console) set envvar TASK_TEST_TRACE=1
+
+```bash
+export TASK_TEST_TRACE=1
+```
 
 ## Add Task to an Extension
 
