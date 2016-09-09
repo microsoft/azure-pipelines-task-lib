@@ -253,7 +253,7 @@ typings install dt~mocha --save --global
 
 ### Create test suite
 
-Creates tests folder and _suite.ts.  Example here.
+Creates tests folder and _suite.ts.  [Example here](https://gist.github.com/bryanmacfarlane/154f14dd8cb11a71ef04b0c836e5be6e#file-_suite-ts)
 
 ### Success test
 
