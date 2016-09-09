@@ -258,12 +258,15 @@ export class ToolRunner extends events.EventEmitter {
         if(this.pipeOutputToTool) {
             toolPath = this.pipeOutputToTool.toolPath;
             toolPathFirst = this.toolPath;
-        }
 
-        if(this.pipeOutputToTool) {
+            // Following node documentation example from this link on how to pipe output of one process to another
+            // https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options
+
+            //start the child process for both tools
             var cpFirst = child.spawn(toolPathFirst, this.args, {cwd: ops.cwd, env: ops.env});
             cp = child.spawn(toolPath, this.pipeOutputToTool.args, {cwd: ops.cwd, env: ops.env});
 
+            //pipe stdout of first tool to stdin of second tool
             cpFirst.stdout.on('data', (data: Buffer) => {
                 try {
                     cp.stdin.write(data);
@@ -367,7 +370,7 @@ export class ToolRunner extends events.EventEmitter {
             }
 
             this._debug('success:' + success);
-            if(!successFirst) {
+            if(!successFirst) { //in the case output is piped to another tool, check exit code of both tools
                 defer.reject(new Error(toolPathFirst + ' failed with return code: ' + returnCodeFirst));
             } else if (!success) {
                 defer.reject(new Error(toolPath + ' failed with return code: ' + code));
