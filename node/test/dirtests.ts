@@ -63,7 +63,6 @@ describe('Test Dir Operations', function () {
     });
 
     // find tests
-    /*
     it('returns hidden files with find', (done: MochaDone) => {
         this.timeout(1000);
 
@@ -89,7 +88,6 @@ describe('Test Dir Operations', function () {
 
         done();
     });
-    */
 
     it('returns depth first find', (done: MochaDone) => {
         this.timeout(1000);
@@ -103,7 +101,7 @@ describe('Test Dir Operations', function () {
         //   find_depth_first/b_folder/c_file
         //   find_depth_first/c_file
         let root: string = path.join(testutil.getTestTemp(), 'find_depth_first');
-        shell.mkdir('-p', path.join(root, 'b_folder', 'b_folder'));
+        tl.mkdirP(path.join(root, 'b_folder', 'b_folder'));
         fs.writeFileSync(path.join(root, 'a_file'), 'test a_file content');
         fs.writeFileSync(path.join(root, 'b_folder', 'a_file'), 'test b_folder/a_file content');
         fs.writeFileSync(path.join(root, 'b_folder', 'b_folder', 'file'), 'test b_folder/b_folder/file content');
@@ -141,7 +139,7 @@ describe('Test Dir Operations', function () {
         //   realDir/file
         //   symDir -> realDir
         let root: string = path.join(testutil.getTestTemp(), 'find_no_follow_specified_symlink');
-        shell.mkdir('-p', path.join(root, 'realDir'));
+        tl.mkdirP(path.join(root, 'realDir'));
         fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
         testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
 
@@ -160,7 +158,7 @@ describe('Test Dir Operations', function () {
         //   realDir/file
         //   symDir -> realDir
         let root: string = path.join(testutil.getTestTemp(), 'find_follow_specified_symlink_when_-H');
-        shell.mkdir('-p', path.join(root, 'realDir'));
+        tl.mkdirP(path.join(root, 'realDir'));
         fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
         testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
 
@@ -182,7 +180,7 @@ describe('Test Dir Operations', function () {
         //   realDir/file
         //   symDir -> realDir
         let root: string = path.join(testutil.getTestTemp(), 'find_follow_specified_symlink_when_-L');
-        shell.mkdir('-p', path.join(root, 'realDir'));
+        tl.mkdirP(path.join(root, 'realDir'));
         fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
         testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
 
@@ -205,7 +203,7 @@ describe('Test Dir Operations', function () {
         //   <root>/realDir/file
         //   <root>/symDir -> <root>/realDir
         let root: string = path.join(testutil.getTestTemp(), 'find_no_follow_symlink');
-        shell.mkdir('-p', path.join(root, 'realDir'));
+        tl.mkdirP(path.join(root, 'realDir'));
         fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
         testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
 
@@ -228,7 +226,7 @@ describe('Test Dir Operations', function () {
         //   <root>/realDir/file
         //   <root>/symDir -> <root>/realDir
         let root: string = path.join(testutil.getTestTemp(), 'find_no_follow_symlink_when_-H');
-        shell.mkdir('-p', path.join(root, 'realDir'));
+        tl.mkdirP(path.join(root, 'realDir'));
         fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
         testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
 
@@ -253,7 +251,7 @@ describe('Test Dir Operations', function () {
         //   <root>/realDir/file
         //   <root>/symDir -> <root>/realDir
         let root: string = path.join(testutil.getTestTemp(), 'find_follow_symlink_when_-L');
-        shell.mkdir('-p', path.join(root, 'realDir'));
+        tl.mkdirP(path.join(root, 'realDir'));
         fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
         testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
 
@@ -278,7 +276,7 @@ describe('Test Dir Operations', function () {
         //   <root>/file
         //   <root>/symDir -> <root>
         let root: string = path.join(testutil.getTestTemp(), 'find_detects_cycle');
-        shell.mkdir('-p', root);
+        tl.mkdirP(root);
         fs.writeFileSync(path.join(root, 'file'), 'test file content');
         testutil.createSymlinkDir(root, path.join(root, 'symDir'));
 
@@ -299,7 +297,7 @@ describe('Test Dir Operations', function () {
         //   <root>/file
         //   <root>/symDir -> <root>
         let root: string = path.join(testutil.getTestTemp(), 'find_detects_cycle_starting_from_symlink');
-        shell.mkdir('-p', root);
+        tl.mkdirP(root);
         fs.writeFileSync(path.join(root, 'file'), 'test file content');
         testutil.createSymlinkDir(root, path.join(root, 'symDir'));
 
@@ -326,12 +324,15 @@ describe('Test Dir Operations', function () {
         //   <root>/folder_a/folder_b/folder_c/file_under_c
         //   <root>/folder_a/folder_b/folder_c/sym_folder -> <root>
         let root: string = path.join(testutil.getTestTemp(), 'find_detects_deep_cycle_starting_from_middle');
-        shell.mkdir('-p', path.join(root, 'folder_a', 'folder_b', 'folder_c'));
+        tl.mkdirP(path.join(root, 'folder_a', 'folder_b', 'folder_c'));
         fs.writeFileSync(path.join(root, 'file_under_root'), 'test file under root contents');
         fs.writeFileSync(path.join(root, 'folder_a', 'file_under_a'), 'test file under a contents');
         fs.writeFileSync(path.join(root, 'folder_a', 'folder_b', 'file_under_b'), 'test file under b contents');
         fs.writeFileSync(path.join(root, 'folder_a', 'folder_b', 'folder_c', 'file_under_c'), 'test file under c contents');
         testutil.createSymlinkDir(root, path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder'));
+        assert.doesNotThrow(
+            () => fs.statSync(path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'file_under_root')),
+            'symlink_folder should be created properly');
 
         let itemPaths: string[] = tl.find(path.join(root, 'folder_a', 'folder_b'), { followSymbolicLinks: true } as tl.FindOptions);
         assert.equal(itemPaths.length, 9);
@@ -843,6 +844,7 @@ describe('Test Dir Operations', function () {
         this.timeout(1000);
 
         let file: string = path.join(testutil.getTestTemp(), '.rmRF_file');
+        tl.mkdirP(path.dirname(file));
         testutil.createHiddenFile(file, 'test file content');
         assert(shell.test('-f', file), 'file should have been created');
         tl.rmRF(file);

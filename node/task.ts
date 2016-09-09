@@ -1011,7 +1011,7 @@ export function find(findPath: string, options?: FindOptions): string[] {
 
         // push the first item
         let stack: FindItem[] = [ new FindItem(findPath, 1) ];
-        let traversalChain: fs.Stats[] = []; // used to detect cycles
+        let traversalChain: string[] = []; // used to detect cycles
 
         while (stack.length) {
             // pop the next item and push to the result array
@@ -1039,23 +1039,36 @@ export function find(findPath: string, options?: FindOptions): string[] {
 
             // note, isDirectory() returns false for the lstat of a symlink
             if (stats.isDirectory()) {
-                // fixup the traversal chain to match the item level
-                while (traversalChain.length >= item.level) {
-                    traversalChain.pop();
-                }
+                debug('    is a directory');
 
-                // test for a cycle
-                if (traversalChain.every((x: fs.Stats) => x.ino != stats.ino || x.dev != stats.dev)) {
+                if (options.followSymbolicLinks) {
+                    // get the realpath
+                    let realPath: string = fs.realpathSync(item.path);
+
+                    // fixup the traversal chain to match the item level
+                    while (traversalChain.length >= item.level) {
+                        traversalChain.pop();
+                    }
+
+                    // test for a cycle
+                    if (traversalChain.some((x: string) => x == realPath)) {
+                        debug('    cycle detected');
+                        continue;
+                    }
+
                     // update the traversal chain
-                    traversalChain.push(stats);
-
-                    // push the child items in reverse onto the stack
-                    let childLevel: number = item.level + 1;
-                    let childItems: FindItem[] =
-                        fs.readdirSync(item.path)
-                        .map((childName: string) => new FindItem(path.join(item.path, childName), childLevel));
-                    stack.push(...childItems.reverse());
+                    traversalChain.push(realPath);
                 }
+
+                // push the child items in reverse onto the stack
+                let childLevel: number = item.level + 1;
+                let childItems: FindItem[] =
+                    fs.readdirSync(item.path)
+                    .map((childName: string) => new FindItem(path.join(item.path, childName), childLevel));
+                stack.push(...childItems.reverse());
+            }
+            else {
+                debug('    is a file');
             }
         }
 
