@@ -410,7 +410,7 @@ describe('Toolrunner Tests', function () {
                 done();
             })
     })
-    it('Exec pipe to another tool, succeeds if both tools succeed', function(done) {
+    it('Exec pipe output to another tool, succeeds if both tools succeed', function(done) {
         this.timeout(1000);
 
         tl.pushd(__dirname);
@@ -427,6 +427,28 @@ describe('Toolrunner Tests', function () {
 
         var output = '';
         if (os.platform() === 'win32') {
+            var find = tl.tool(tl.which('FIND', true));
+            find.arg('"cmd"');
+
+            var tasklist = tl.tool(tl.which('tasklist', true));
+            tasklist.pipeExecOutputToTool(find);
+
+            tasklist.on('stdout', (data) => {
+                output += data.toString();
+            });
+
+            tasklist.exec(_testExecOptions)
+            .then(function (code) {
+                assert.equal(code, 0, 'return code of exec should be 0');
+                assert(output && output.length > 0 && output.indexOf('ssh') >= 0, 'should have emitted stdout ' + output);
+            })
+            .fail(function (err) {
+                assert.fail('tasklist | FIND "cmd" failed to run: ' + err.message);
+            })
+            .fin(function () {
+                tl.popd();
+                done();
+            })
         }
         else {
             var grep = tl.tool(tl.which('grep', true));
@@ -454,7 +476,7 @@ describe('Toolrunner Tests', function () {
             })
         }
     })
-    it('Exec pipe to another tool, fails if first tool fails', function(done) {
+    it('Exec pipe output to another tool, fails if first tool fails', function(done) {
         this.timeout(1000);
 
         tl.pushd(__dirname);
@@ -472,6 +494,34 @@ describe('Toolrunner Tests', function () {
         var output = '';
         var errOut = '';
         if (os.platform() === 'win32') {
+            var find = tl.tool(tl.which('FIND', true));
+            find.arg('"cmd"');
+
+            var tasklist = tl.tool(tl.which('tasklist', true));
+            tasklist.arg('bad');
+            tasklist.pipeExecOutputToTool(find);
+
+            tasklist.on('stdout', (data) => {
+                output += data.toString();
+            });
+
+            tasklist.on('stderr', (data) => {
+                errOut += data.toString();
+            });
+
+            tasklist.exec(_testExecOptions)
+            .then(function (code) {
+                    assert.fail('tasklist bad | find "cmd" was a bad command and it did not fail');
+                })
+                .fail(function (err) {
+                    assert(errOut && errOut.length > 0 && errOut.indexOf('ERROR: Invalid argument/option') >= 0, 'error output from tasklist command is expected');
+                    assert(err && err.message && err.message.indexOf('tasklist.exe') >=0, 'error from tasklist is not reported');
+                })
+            .fin(function () {
+                tl.popd();
+                done();
+            })
+
         }
         else {
             var grep = tl.tool(tl.which('grep', true));
@@ -503,7 +553,7 @@ describe('Toolrunner Tests', function () {
                 })
         }
     })
-    it('Exec pipe to another tool, fails if second tool fails', function(done) {
+    it('Exec pipe output to another tool, fails if second tool fails', function(done) {
         this.timeout(1000);
 
         tl.pushd(__dirname);
@@ -521,6 +571,33 @@ describe('Toolrunner Tests', function () {
         var output = '';
         var errOut = '';
         if (os.platform() === 'win32') {
+            var find = tl.tool(tl.which('FIND', true));
+            find.arg('bad');
+
+            var tasklist = tl.tool(tl.which('tasklist', true));
+            tasklist.pipeExecOutputToTool(find);
+
+            tasklist.on('stdout', (data) => {
+                output += data.toString();
+            });
+
+            tasklist.on('stderr', (data) => {
+                errOut += data.toString();
+            });
+
+            tasklist.exec(_testExecOptions)
+            .then(function (code) {
+                    assert.fail('tasklist bad | find "cmd" was a bad command and it did not fail');
+                })
+                .fail(function (err) {
+                    assert(errOut && errOut.length > 0 && errOut.indexOf('FIND: Parameter format not correct') >= 0, 'error output from FIND command is expected');
+                    assert(err && err.message && err.message.indexOf('find.exe') >=0, 'error from find is not reported');
+                })
+            .fin(function () {
+                tl.popd();
+                done();
+            })
+
         }
         else {
             var grep = tl.tool(tl.which('grep', true));
