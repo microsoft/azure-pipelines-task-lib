@@ -66,7 +66,7 @@ export class ToolRunner extends events.EventEmitter {
     public toolPath: string;
     public args: string[];
     public silent: boolean;
-    public pipeOutputToTool: ToolRunner;
+    private pipeOutputToTool: ToolRunner;
 
     private _debug(message) {
         if (!this.silent) {
@@ -243,21 +243,34 @@ export class ToolRunner extends events.EventEmitter {
                 if(pipeToolArgString) {
                     pipeToolCmdString += (' ' + pipeToolArgString);
                 }
-                ops.outStream.write('[command]' + cmdString + '|' + pipeToolCmdString + os.EOL)
+                ops.outStream.write('[command]' + cmdString + ' | ' + pipeToolCmdString + os.EOL)
             }
         }
 
         // TODO: filter process.env
-
         var cp;
+        var toolPath = this.toolPath;
+
+        var toolPathFirst;
         var successFirst = true;
         var returnCodeFirst;
+
         if(this.pipeOutputToTool) {
-            var cpFirst = child.spawn(this.toolPath, this.args, {cwd: ops.cwd, env: ops.env});
-            cp = child.spawn(this.pipeOutputToTool.toolPath, this.pipeOutputToTool.args, {cwd: ops.cwd, env: ops.env});
+            toolPath = this.pipeOutputToTool.toolPath;
+            toolPathFirst = this.toolPath;
+        }
+
+        if(this.pipeOutputToTool) {
+            var cpFirst = child.spawn(toolPathFirst, this.args, {cwd: ops.cwd, env: ops.env});
+            cp = child.spawn(toolPath, this.pipeOutputToTool.args, {cwd: ops.cwd, env: ops.env});
 
             cpFirst.stdout.on('data', (data: Buffer) => {
-                cp.stdin.write(data);
+                try {
+                    cp.stdin.write(data);
+                } catch (err) {
+                    this._debug('Failed to pipe output of ' + toolPathFirst + ' to ' + toolPath);
+                    this._debug(toolPath + ' might have exited due to errors prematurely. Verify the arguments passed are valid.');
+                }
             });
             cpFirst.stderr.on('data', (data: Buffer) => {
                 successFirst = !ops.failOnStdErr;
@@ -265,6 +278,10 @@ export class ToolRunner extends events.EventEmitter {
                     var s = ops.failOnStdErr ? ops.errStream : ops.outStream;
                     s.write(data);
                 }
+            });
+            cpFirst.on('error', (err) => {
+                cp.stdin.end();
+                defer.reject(new Error(toolPathFirst + ' failed. ' + err.message));
             });
             cpFirst.on('close', (code, signal) => {
                 if (code != 0 && !ops.ignoreReturnCode) {
@@ -276,7 +293,7 @@ export class ToolRunner extends events.EventEmitter {
             });
 
         } else {
-            cp = child.spawn(this.toolPath, this.args, {cwd: ops.cwd, env: ops.env});
+            cp = child.spawn(toolPath, this.args, {cwd: ops.cwd, env: ops.env});
         }
 
         var processLineBuffer = (data: Buffer, strBuffer: string, onLine:(line: string) => void): void => {
@@ -331,7 +348,7 @@ export class ToolRunner extends events.EventEmitter {
         });
 
         cp.on('error', (err) => {
-            defer.reject(new Error(this.toolPath + ' failed. ' + err.message));
+            defer.reject(new Error(toolPath + ' failed. ' + err.message));
         });
 
         cp.on('close', (code, signal) => {
@@ -351,10 +368,9 @@ export class ToolRunner extends events.EventEmitter {
 
             this._debug('success:' + success);
             if(!successFirst) {
-                defer.reject(new Error(this.toolPath + ' failed with return code: ' + returnCodeFirst));
+                defer.reject(new Error(toolPathFirst + ' failed with return code: ' + returnCodeFirst));
             } else if (!success) {
-                var pathToTool = this.pipeOutputToTool ? this.pipeOutputToTool.toolPath : this.toolPath;
-                defer.reject(new Error(pathToTool + ' failed with return code: ' + code));
+                defer.reject(new Error(toolPath + ' failed with return code: ' + code));
             }
             else {
                 defer.resolve(code);

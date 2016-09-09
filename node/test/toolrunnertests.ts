@@ -410,6 +410,148 @@ describe('Toolrunner Tests', function () {
                 done();
             })
     })
+    it('Exec pipe to another tool, succeeds if both tools succeed', function(done) {
+        this.timeout(1000);
+
+        tl.pushd(__dirname);
+
+        var _testExecOptions: trm.IExecOptions = {
+            cwd: __dirname,
+            env: {},
+            silent: false,
+            failOnStdErr: false,
+            ignoreReturnCode: false,
+            outStream: testutil.getNullStream(),
+            errStream: testutil.getNullStream()
+        }
+
+        var output = '';
+        if (os.platform() === 'win32') {
+        }
+        else {
+            var grep = tl.tool(tl.which('grep', true));
+            grep.arg('ssh');
+
+            var ps = tl.tool(tl.which('ps', true));
+            ps.arg('ax');
+            ps.pipeExecOutputToTool(grep);
+
+            ps.on('stdout', (data) => {
+                output += data.toString();
+            });
+
+            ps.exec(_testExecOptions)
+            .then(function (code) {
+                assert.equal(code, 0, 'return code of exec should be 0');
+                assert(output && output.length > 0 && output.indexOf('ssh') >= 0, 'should have emitted stdout ' + output);
+            })
+            .fail(function (err) {
+                assert.fail('ps ax | grep ssh failed to run: ' + err.message);
+            })
+            .fin(function () {
+                tl.popd();
+                done();
+            })
+        }
+    })
+    it('Exec pipe to another tool, fails if first tool fails', function(done) {
+        this.timeout(1000);
+
+        tl.pushd(__dirname);
+
+        var _testExecOptions: trm.IExecOptions = {
+            cwd: __dirname,
+            env: {},
+            silent: false,
+            failOnStdErr: false,
+            ignoreReturnCode: false,
+            outStream: testutil.getNullStream(),
+            errStream: testutil.getNullStream()
+        }
+
+        var output = '';
+        var errOut = '';
+        if (os.platform() === 'win32') {
+        }
+        else {
+            var grep = tl.tool(tl.which('grep', true));
+            grep.arg('ssh');
+
+            var ps = tl.tool(tl.which('ps', true));
+            ps.arg('bad');
+            ps.pipeExecOutputToTool(grep);
+
+            ps.on('stdout', (data) => {
+                output += data.toString();
+            });
+
+            ps.on('stderr', (data) => {
+                errOut += data.toString();
+            })
+
+            ps.exec(_testExecOptions)
+                .then(function (code) {
+                    assert.fail('ps bad | grep ssh was a bad command and it did not fail');
+                })
+                .fail(function (err) {
+                    assert(errOut && errOut.length > 0 && errOut.indexOf('ps: illegal option') >= 0, 'error output from ps command is expected');
+                    assert(err && err.message && err.message.indexOf('/bin/ps') >=0, 'error from ps is not reported');
+                })
+                .fin(function () {
+                    tl.popd();
+                    done();
+                })
+        }
+    })
+    it('Exec pipe to another tool, fails if second tool fails', function(done) {
+        this.timeout(1000);
+
+        tl.pushd(__dirname);
+
+        var _testExecOptions: trm.IExecOptions = {
+            cwd: __dirname,
+            env: {},
+            silent: false,
+            failOnStdErr: false,
+            ignoreReturnCode: false,
+            outStream: testutil.getNullStream(),
+            errStream: testutil.getNullStream()
+        }
+
+        var output = '';
+        var errOut = '';
+        if (os.platform() === 'win32') {
+        }
+        else {
+            var grep = tl.tool(tl.which('grep', true));
+            grep.arg('--?');
+
+            var ps = tl.tool(tl.which('ps', true));
+            ps.arg('ax');
+            ps.pipeExecOutputToTool(grep);
+
+            ps.on('stdout', (data) => {
+                output += data.toString();
+            });
+
+            ps.on('stderr', (data) => {
+                errOut += data.toString();
+            })
+
+            ps.exec(_testExecOptions)
+                .then(function (code) {
+                    assert.fail('ps ax | grep --? was a bad command and it did not fail');
+                })
+                .fail(function (err) {
+                    assert(errOut && errOut.length > 0 && errOut.indexOf('grep: unrecognized option') >= 0, 'error output from ps command is expected');
+                    assert(err && err.message && err.message.indexOf('/user/bin/grep') >=0, 'error from grep is not reported');
+                })
+                .fin(function () {
+                    tl.popd();
+                    done();
+                })
+        }
+    })
     it('handles single args', function (done) {
         this.timeout(1000);
 
