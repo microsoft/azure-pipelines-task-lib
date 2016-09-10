@@ -1,5 +1,8 @@
 # VSTS-TASK-LIB RELEASES
 
+## 0.9.16
+ * Fixed bug in `find` in introduced in 0.9.8. On Windows all subdirectories were not always traversed. Loss of precision in inode was interfering with cyclical-symlink detection logic.
+
 ## 0.9.8
  * Updated `setVariable` to expose an optional boolean parameter `secret`.
  * Added `getVariables` to get an array of all variables, secret and non-secret.
