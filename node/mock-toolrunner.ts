@@ -58,6 +58,7 @@ export class ToolRunner extends events.EventEmitter {
     public toolPath: string;
     public args: string[];
     public silent: boolean;
+    private pipeOutputToTool: ToolRunner;
 
     private _debug(message) {
         if (!this.silent) {
@@ -152,7 +153,12 @@ export class ToolRunner extends events.EventEmitter {
         this._debug(this.toolPath + ' arg: ' + val);
         this.args = this.args.concat(this._argStringToArray(val));
         return this;    
-    }    
+    }
+
+    public pipeExecOutputToTool(tool: ToolRunner) : ToolRunner {
+        this.pipeOutputToTool = tool;
+        return this;
+    }
 
     private ignoreTempPath(cmdString: string): string {
         this._debug('ignoreTempPath=' + process.env['MOCK_IGNORE_TEMP_PATH']);
@@ -210,7 +216,17 @@ export class ToolRunner extends events.EventEmitter {
             this.emit('stdout', res.stdout);
 
             if (!ops.silent) {
-                ops.outStream.write(res.stdout + os.EOL);
+                if(this.pipeOutputToTool) {
+                    var pipeToolArgString = this.pipeOutputToTool.args.join(' ') || '';
+                    var pipeToolCmdString = this.ignoreTempPath(this.pipeOutputToTool.toolPath);
+                    if(pipeToolArgString) {
+                        pipeToolCmdString += (' ' + pipeToolArgString);
+                    }
+
+                    cmdString += ' | ' + pipeToolCmdString;
+                }
+
+                ops.outStream.write('[command]' + cmdString + os.EOL);
             }
         }
 
