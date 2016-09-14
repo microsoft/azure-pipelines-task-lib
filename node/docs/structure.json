@@ -16,9 +16,11 @@
         "Summary": "Tasks typically execute a series of tools (cli) and set the result of the task based on the outcome of those",
         "Sample": "samples/toolrunner.src",
         "Document": [
-            "task.createToolRunner",
+            "task.tool",
             "toolrunner.ToolRunner.arg",
+            "toolrunner.ToolRunner.line",
             "toolrunner.ToolRunner.argIf",
+            "toolrunner.ToolRunner.pipeExecOutputToTool",
             "toolrunner.IExecOptions",
             "toolrunner.ToolRunner.exec",
             "toolrunner.ToolRunner.execSync",
@@ -46,11 +48,14 @@
             "task.cp",
             "task.mv",
             "task.mkdirP",
+            "task.FindOptions",
             "task.find",
             "task.rmRF",
             "task.pushd",
             "task.popd",
-            "task.stats"   
+            "task.resolve",
+            "task.stats",
+            "task.writeFile"
         ]
     },
     "Localization": {

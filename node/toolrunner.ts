@@ -66,6 +66,7 @@ export class ToolRunner extends events.EventEmitter {
     public toolPath: string;
     public args: string[];
     public silent: boolean;
+    private pipeOutputToTool: ToolRunner;
 
     private _debug(message) {
         if (!this.silent) {
@@ -186,6 +187,16 @@ export class ToolRunner extends events.EventEmitter {
     }
 
     /**
+     * Pipe output of exec() to another tool
+     * @param tool
+     * @returns {ToolRunner}
+     */
+    public pipeExecOutputToTool(tool: ToolRunner) : ToolRunner {
+        this.pipeOutputToTool = tool;
+        return this;
+    }
+
+    /**
      * Exec a tool.
      * Output will be streamed to the live console.
      * Returns promise with return code
@@ -224,12 +235,69 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         if (!ops.silent) {
-            ops.outStream.write('[command]' + cmdString + os.EOL);    
+            if(!this.pipeOutputToTool) {
+                ops.outStream.write('[command]' + cmdString + os.EOL);
+            } else {
+                var pipeToolArgString = this.pipeOutputToTool.args.join(' ') || '';
+                var pipeToolCmdString = this.pipeOutputToTool.toolPath;
+                if(pipeToolArgString) {
+                    pipeToolCmdString += (' ' + pipeToolArgString);
+                }
+                ops.outStream.write('[command]' + cmdString + ' | ' + pipeToolCmdString + os.EOL)
+            }
         }
 
         // TODO: filter process.env
+        var cp;
+        var toolPath = this.toolPath;
 
-        var cp = child.spawn(this.toolPath, this.args, { cwd: ops.cwd, env: ops.env });
+        var toolPathFirst;
+        var successFirst = true;
+        var returnCodeFirst;
+
+        if(this.pipeOutputToTool) {
+            toolPath = this.pipeOutputToTool.toolPath;
+            toolPathFirst = this.toolPath;
+
+            // Following node documentation example from this link on how to pipe output of one process to another
+            // https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options
+
+            //start the child process for both tools
+            var cpFirst = child.spawn(toolPathFirst, this.args, {cwd: ops.cwd, env: ops.env});
+            cp = child.spawn(toolPath, this.pipeOutputToTool.args, {cwd: ops.cwd, env: ops.env});
+
+            //pipe stdout of first tool to stdin of second tool
+            cpFirst.stdout.on('data', (data: Buffer) => {
+                try {
+                    cp.stdin.write(data);
+                } catch (err) {
+                    this._debug('Failed to pipe output of ' + toolPathFirst + ' to ' + toolPath);
+                    this._debug(toolPath + ' might have exited due to errors prematurely. Verify the arguments passed are valid.');
+                }
+            });
+            cpFirst.stderr.on('data', (data: Buffer) => {
+                successFirst = !ops.failOnStdErr;
+                if (!ops.silent) {
+                    var s = ops.failOnStdErr ? ops.errStream : ops.outStream;
+                    s.write(data);
+                }
+            });
+            cpFirst.on('error', (err) => {
+                cp.stdin.end();
+                defer.reject(new Error(toolPathFirst + ' failed. ' + err.message));
+            });
+            cpFirst.on('close', (code, signal) => {
+                if (code != 0 && !ops.ignoreReturnCode) {
+                    successFirst = false;
+                    returnCodeFirst = code;
+                }
+                this._debug('success of first tool:' + successFirst);
+                cp.stdin.end();
+            });
+
+        } else {
+            cp = child.spawn(toolPath, this.args, {cwd: ops.cwd, env: ops.env});
+        }
 
         var processLineBuffer = (data: Buffer, strBuffer: string, onLine:(line: string) => void): void => {
             try {
@@ -283,7 +351,7 @@ export class ToolRunner extends events.EventEmitter {
         });
 
         cp.on('error', (err) => {
-            defer.reject(new Error(this.toolPath + ' failed. ' + err.message));
+            defer.reject(new Error(toolPath + ' failed. ' + err.message));
         });
 
         cp.on('close', (code, signal) => {
@@ -300,14 +368,16 @@ export class ToolRunner extends events.EventEmitter {
             if (code != 0 && !ops.ignoreReturnCode) {
                 success = false;
             }
-            
+
             this._debug('success:' + success);
-            if (success) {
-                defer.resolve(code);
+            if(!successFirst) { //in the case output is piped to another tool, check exit code of both tools
+                defer.reject(new Error(toolPathFirst + ' failed with return code: ' + returnCodeFirst));
+            } else if (!success) {
+                defer.reject(new Error(toolPath + ' failed with return code: ' + code));
             }
             else {
-                defer.reject(new Error(this.toolPath + ' failed with return code: ' + code));
-            }      
+                defer.resolve(code);
+            }
         });
 
         return <Q.Promise<number>>defer.promise;
