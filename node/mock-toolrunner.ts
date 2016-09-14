@@ -207,6 +207,16 @@ export class ToolRunner extends events.EventEmitter {
         cmdString = this.ignoreTempPath(cmdString);
 
         if (!ops.silent) {
+            if(this.pipeOutputToTool) {
+                var pipeToolArgString = this.pipeOutputToTool.args.join(' ') || '';
+                var pipeToolCmdString = this.ignoreTempPath(this.pipeOutputToTool.toolPath);
+                if(pipeToolArgString) {
+                    pipeToolCmdString += (' ' + pipeToolArgString);
+                }
+
+                cmdString += ' | ' + pipeToolCmdString;
+            }
+
             ops.outStream.write('[command]' + cmdString + os.EOL);
         }
 
@@ -214,19 +224,8 @@ export class ToolRunner extends events.EventEmitter {
         var res = mock.getResponse('exec', cmdString);
         if (res.stdout) {
             this.emit('stdout', res.stdout);
-
             if (!ops.silent) {
-                if(this.pipeOutputToTool) {
-                    var pipeToolArgString = this.pipeOutputToTool.args.join(' ') || '';
-                    var pipeToolCmdString = this.ignoreTempPath(this.pipeOutputToTool.toolPath);
-                    if(pipeToolArgString) {
-                        pipeToolCmdString += (' ' + pipeToolArgString);
-                    }
-
-                    cmdString += ' | ' + pipeToolCmdString;
-                }
-
-                ops.outStream.write('[command]' + cmdString + os.EOL);
+                ops.outStream.write(res.stdout + os.EOL);
             }
         }
 
