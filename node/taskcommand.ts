@@ -24,6 +24,7 @@ export class TaskCommand {
     public properties: {[key: string]: string};
 
     public toString() {
+        var containsSecret = false;
         var cmdStr = CMD_PREFIX + this.command;
 
         if (this.properties && Object.keys(this.properties).length > 0) {
@@ -33,12 +34,16 @@ export class TaskCommand {
                     var val = this.properties[key];
                     if (val) {
                         cmdStr += key + '=' + val + ';';
+                        if(key === 'secret' && val === 'true') {
+                            containsSecret = true;
+                        }
                     }                    
                 }
             }
         }
 
-        cmdStr += ']' + this.message;
+        cmdStr += ']';
+        cmdStr += containsSecret? '********' : this.message;
         return cmdStr;
     }
 }
