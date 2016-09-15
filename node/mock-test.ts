@@ -21,22 +21,35 @@ export class MockTestRunner {
     public errorIssues: string[];
     public warningIssues: string[];
 
-    public Ran(cmdline: string): boolean {
+    get failed(): boolean {
+        return !this.succeeded;
+    }
+    
+    public ran(cmdline: string): boolean {
         return this.cmdlines.hasOwnProperty(cmdline.trim());
     }
 
-    public CreatedErrorIssue(message: string): boolean {
+    public createdErrorIssue(message: string): boolean {
         return this.errorIssues.indexOf(message.trim()) >= 0;
     }
 
-    public CreatedWarningIssue(message: string): boolean {
+    public createdWarningIssue(message: string): boolean {
         return this.warningIssues.indexOf(message.trim()) >= 0;
     }    
 
-    public Run(): void {
+    public stdOutContained(message: string): boolean {
+        return this.stdout && this.stdout.indexOf(message) > 0;
+    }
+
+    public stdErrContained(message: string): boolean {
+        return this.stderr && this.stderr.indexOf(message) > 0;
+    }
+
+    public run(): void {
         this.cmdlines = {};
         this.invokedToolCount = 0;
         this.succeeded = true;
+
         this.errorIssues = [];
         this.warningIssues = [];
 

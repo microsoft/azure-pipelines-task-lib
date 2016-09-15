@@ -6,6 +6,7 @@
 
 import assert = require('assert');
 import * as mt from '../_build/mock-task';
+import * as mtm from '../_build/mock-test';
 import * as mtr from '../_build/mock-toolrunner';
 import * as ma from '../_build/mock-answer';
 import * as tl from '../_build/task';
@@ -142,6 +143,8 @@ describe('Mock Tests', function () {
         tool.arg('--arg');
         tool.arg('foo');
         let rc: number = await tool.exec(<mtr.IExecOptions>{});
+        
         assert(tool, "tool should not be null");
+        assert(rc == 0, "rc is 0");
     })                
 });
