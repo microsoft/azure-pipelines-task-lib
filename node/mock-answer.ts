@@ -12,8 +12,8 @@ export interface TaskLibAnswers {
     exec?: { [ key: string]: TaskLibAnswerExecResult },
     checkPath?: { [key: string]: boolean },
     exist?: { [key: string]: boolean },
-	filter?: { [key: string]: string[] },
-	find?: { [key: string]: string[] },
+    filter?: { [key: string]: string[] },
+    find?: { [key: string]: string[] },
     match?: { [key: string]: string[] }
 }
 
