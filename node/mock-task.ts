@@ -103,7 +103,7 @@ module.exports.getPathInput = getPathInput;
 //-----------------------------------------------------
 // Endpoint Helpers
 //-----------------------------------------------------
-module.exports.getEndPointUrl = task.getEndpointUrl;
+module.exports.getEndpointUrl = task.getEndpointUrl;
 module.exports.getEndpointDataParameter = task.getEndpointDataParameter;
 module.exports.getEndpointAuthorizationScheme = task.getEndpointAuthorizationScheme;
 module.exports.getEndpointAuthorizationParameter = task.getEndpointAuthorizationParameter;
@@ -406,9 +406,12 @@ export function matchFile(list, pattern, options): string[] {
     return mock.getResponse('match', pattern) || [];
 }
 
-export function filter(pattern, options): string[] {
-    return mock.getResponse('filter', pattern) || [];
-}    
+export function filter(pattern, options): any {
+    var filterList = mock.getResponse('filter', pattern) || [];
+	return function(pattern, i, arr) {
+		return filterList.indexOf(pattern) >= 0;
+	}
+}
 
 //-----------------------------------------------------
 // Test Publisher
