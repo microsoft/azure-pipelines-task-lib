@@ -516,6 +516,7 @@ export function getEndpointUrl(id: string, optional: boolean): string {
  * @param id name of the service endpoint
  * @param key of the parameter
  * @param optional whether the endpoint data is optional
+ * @param secret, optional, if set to true, will store the value as a secret variable so it will be masked in the build logs
  * @returns {string} value of the endpoint data parameter
  */
 export function getEndpointDataParameter(id: string, key: string, optional: boolean, secret?: boolean): string {
