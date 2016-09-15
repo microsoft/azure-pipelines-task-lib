@@ -88,8 +88,17 @@ module.exports.getBoolInput = task.getBoolInput;
 module.exports.setEnvVar = task.setEnvVar;
 module.exports.getDelimitedInput = task.getDelimitedInput;
 module.exports.filePathSupplied = task.filePathSupplied;
-module.exports.getPathInput = task.getPathInput;
 
+function getPathInput(name, required, check) {
+    var inval = module.exports.getInput(name, required);
+    if (inval) {
+        if (check) {
+            checkPath(inval, name);
+        }
+    }
+    return inval;
+}
+module.exports.getPathInput = getPathInput;
 
 //-----------------------------------------------------
 // Endpoint Helpers

@@ -3,8 +3,8 @@ import fs = require('fs');
 
 export interface TaskLibAnswerExecResult {
     code: number,
-    stdout: string,
-    stderr: string
+    stdout?: string,
+    stderr?: string
 }
 
 export interface TaskLibAnswers {
