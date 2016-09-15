@@ -518,11 +518,17 @@ export function getEndpointUrl(id: string, optional: boolean): string {
  * @param optional whether the endpoint data is optional
  * @returns {string} value of the endpoint data parameter
  */
-export function getEndpointDataParameter(id: string, key: string, optional: boolean): string {
-    var dataParamVal = process.env['ENDPOINT_DATA_' + id + '_' + key.toUpperCase()];
+export function getEndpointDataParameter(id: string, key: string, optional: boolean, secret?: boolean): string {
+    var dataVariable = 'ENDPOINT_DATA_' + id + '_' + key.toUpperCase();
+    var dataParamVal = process.env[dataVariable];
 
     if(!optional && !dataParamVal) {
         throw new Error(loc('LIB_EndpointDataNotExist', id, key));
+    }
+
+    if(secret) {
+        setVariable(dataVariable, dataParamVal, true);
+        dataParamVal = vault.retrieveSecret('SECRET_' + dataVariable);
     }
 
     debug(id + ' data ' + key + ' = ' + dataParamVal);
