@@ -12,8 +12,9 @@ export interface TaskLibAnswers {
     exec?: { [ key: string]: TaskLibAnswerExecResult },
     checkPath?: { [key: string]: boolean },
     exist?: { [key: string]: boolean },
-    match?: { [key: string]: string[] },
-    getVariable?: { [key: string]: string; }
+	filter?: { [key: string]: string[] },
+	find?: { [key: string]: string[] },
+    match?: { [key: string]: string[] }
 }
 
 export class MockAnswers {
