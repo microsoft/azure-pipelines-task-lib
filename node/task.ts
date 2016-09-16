@@ -516,16 +516,23 @@ export function getEndpointUrl(id: string, optional: boolean): string {
  * @param id name of the service endpoint
  * @param key of the parameter
  * @param optional whether the endpoint data is optional
+ * @param secret, optional, if set to true, value will be masked in the logs
  * @returns {string} value of the endpoint data parameter
  */
-export function getEndpointDataParameter(id: string, key: string, optional: boolean): string {
+export function getEndpointDataParameter(id: string, key: string, optional: boolean, secret?: boolean): string {
     var dataParamVal = process.env['ENDPOINT_DATA_' + id + '_' + key.toUpperCase()];
 
     if(!optional && !dataParamVal) {
         throw new Error(loc('LIB_EndpointDataNotExist', id, key));
     }
 
-    debug(id + ' data ' + key + ' = ' + dataParamVal);
+    if (secret) {
+        debug(id + ' data ' + key + ' hasValue = ' + (dataParamVal ? 'true' : 'false'));
+    }
+    else {
+        debug(id + ' data ' + key + ' = ' + dataParamVal);
+    }
+
     return dataParamVal;
 }
 
