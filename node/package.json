@@ -31,7 +31,6 @@
     "q": "^1.1.2",
     "semver": "^5.1.0",
     "shelljs": "^0.3.0",
-    "typescript": "^2.0.3",
     "vso-node-api": "^0.6.1"
   },
   "devDependencies": {
@@ -41,6 +40,7 @@
     "merge2": "^0.3.6",
     "mocha": "^2.2.5",
     "semver": "^5.1.0",
-    "sync-request": "3.0.1"
+    "sync-request": "3.0.1",
+    "typescript": "^2.0.3"
   }
 }
