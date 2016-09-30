@@ -1,6 +1,10 @@
 {
   "loc.messages.LIB_UnhandledEx": "Не обработано: %s",
   "loc.messages.LIB_FailOnCode": "Код возврата при сбое: %d.",
+  "loc.messages.LIB_MkdirFailed": "Не удается создать каталог \"%s\". %s",
+  "loc.messages.LIB_MkdirFailedFileExists": "Не удается создать каталог \"%s\". Существует конфликтующий файл: \"%s\"",
+  "loc.messages.LIB_MkdirFailedInvalidDriveRoot": "Не удается создать каталог \"{p}\". Корневой каталог не существует: \"{testDir}\"",
+  "loc.messages.LIB_MkdirFailedInvalidShare": "Не удается создать каталог \"{p}\". Не удается проверить, существует ли каталог \"{testDir}\". Если каталог является общей папкой, убедитесь, что имя общей папки указано правильно, она подключена к сети и текущий процесс имеет разрешение на доступ к общей папке.",
   "loc.messages.LIB_ReturnCode": "Код возврата: %d",
   "loc.messages.LIB_ResourceFileNotExist": "Файл ресурсов не существует: %s.",
   "loc.messages.LIB_ResourceFileAlreadySet": "Файл ресурсов уже задан: %s.",

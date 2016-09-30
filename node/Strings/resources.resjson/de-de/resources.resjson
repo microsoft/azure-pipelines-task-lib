@@ -1,6 +1,10 @@
 {
   "loc.messages.LIB_UnhandledEx": "Ausnahmefehler: %s",
   "loc.messages.LIB_FailOnCode": "Fehler beim Rückgabecode: %d",
+  "loc.messages.LIB_MkdirFailed": "Das Verzeichnis \"%s\" kann nicht erstellt werden. %s",
+  "loc.messages.LIB_MkdirFailedFileExists": "Das Verzeichnis \"%s\" kann nicht erstellt werden. Eine in Konflikt stehende Datei ist vorhanden: \"%s\"",
+  "loc.messages.LIB_MkdirFailedInvalidDriveRoot": "Das Verzeichnis \"{p}\" kann nicht erstellt werden. Das Stammverzeichnis ist nicht vorhanden: \"{testDir}\"",
+  "loc.messages.LIB_MkdirFailedInvalidShare": "Das Verzeichnis \"{p}\" kann nicht erstellt werden. Es kann nicht überprüft werden, ob das Verzeichnis vorhanden ist: \"{testDir}\". Wenn das Verzeichnis eine Dateifreigabe ist, stellen Sie sicher, dass der Freigabename richtig, die Freigabe online und der aktuelle Prozess berechtigt ist, auf die Freigabe zuzugreifen.",
   "loc.messages.LIB_ReturnCode": "Rückgabecode: %d",
   "loc.messages.LIB_ResourceFileNotExist": "Die Ressourcendatei ist nicht vorhanden: %s",
   "loc.messages.LIB_ResourceFileAlreadySet": "Die Ressourcendatei wurde bereits festgelegt auf: %s",

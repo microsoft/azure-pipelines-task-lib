@@ -1,6 +1,10 @@
 {
   "loc.messages.LIB_UnhandledEx": "未処理: %s",
   "loc.messages.LIB_FailOnCode": "失敗のリターン コード: %d",
+  "loc.messages.LIB_MkdirFailed": "ディレクトリ '%s' を作成できません。%s",
+  "loc.messages.LIB_MkdirFailedFileExists": "ディレクトリ '%s' を作成できません。競合するファイルが存在します: '%s'",
+  "loc.messages.LIB_MkdirFailedInvalidDriveRoot": "ディレクトリ '{p}' を作成できません。ルート ディレクトリが存在しません: '{testDir}'",
+  "loc.messages.LIB_MkdirFailedInvalidShare": "ディレクトリ '{p}' を作成できません。ディレクトリが存在することを確認できません: '{testDir}'。ディレクトリがファイル共有である場合、その共有名が正しいこと、その共有がオンラインであること、そして現在のプロセスにその共有へのアクセス許可があることを確認してください。",
   "loc.messages.LIB_ReturnCode": "リターン コード: %d",
   "loc.messages.LIB_ResourceFileNotExist": "リソース ファイルが存在しません: %s",
   "loc.messages.LIB_ResourceFileAlreadySet": "リソース ファイルは既に %s に設定されています",

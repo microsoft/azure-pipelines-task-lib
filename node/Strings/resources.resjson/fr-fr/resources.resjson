@@ -1,6 +1,10 @@
 {
   "loc.messages.LIB_UnhandledEx": "Non géré : %s",
   "loc.messages.LIB_FailOnCode": "Code de retour de l'échec : %d",
+  "loc.messages.LIB_MkdirFailed": "Impossible de créer le répertoire '%s'. %s",
+  "loc.messages.LIB_MkdirFailedFileExists": "Impossible de créer le répertoire '%s'. Présence d'un fichier en conflit : '%s'",
+  "loc.messages.LIB_MkdirFailedInvalidDriveRoot": "Impossible de créer le répertoire '{p}'. Le répertoire racine n'existe pas : '{testDir}'",
+  "loc.messages.LIB_MkdirFailedInvalidShare": "Impossible de créer le répertoire '{p}'. Impossible de vérifier l'existence du répertoire '{testDir}'. Si le répertoire est un partage de fichiers, vérifiez que le nom du partage est correct, que le partage est en ligne, et que le processus actuel est autorisé à accéder au partage.",
   "loc.messages.LIB_ReturnCode": "Code de retour : %d",
   "loc.messages.LIB_ResourceFileNotExist": "Le fichier de ressources n'existe pas : %s",
   "loc.messages.LIB_ResourceFileAlreadySet": "Le fichier de ressources est déjà défini : %s",

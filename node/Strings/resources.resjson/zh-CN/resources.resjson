@@ -1,6 +1,10 @@
 {
   "loc.messages.LIB_UnhandledEx": "未处理: %s",
   "loc.messages.LIB_FailOnCode": "故障返回代码: %d",
+  "loc.messages.LIB_MkdirFailed": "无法创建目录“%s”。%s",
+  "loc.messages.LIB_MkdirFailedFileExists": "无法创建目录“%s”。存在冲突文件:“%s”",
+  "loc.messages.LIB_MkdirFailedInvalidDriveRoot": "无法创建目录“{p}”。根目录不存在:“{testDir}”",
+  "loc.messages.LIB_MkdirFailedInvalidShare": "无法创建目录“{p}”。无法验证该目录存在:“{testDir}”。如果目录是文件共享，请确认共享名称正确、共享已联机并且当前进程有权访问该共享。",
   "loc.messages.LIB_ReturnCode": "返回代码: %d",
   "loc.messages.LIB_ResourceFileNotExist": "资源文件不存在: %s",
   "loc.messages.LIB_ResourceFileAlreadySet": "资源文件已被设置为 %s",

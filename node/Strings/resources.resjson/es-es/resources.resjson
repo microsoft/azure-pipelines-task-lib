@@ -1,6 +1,10 @@
 {
   "loc.messages.LIB_UnhandledEx": "No controlada: %s",
   "loc.messages.LIB_FailOnCode": "Código de retorno de error: %d",
+  "loc.messages.LIB_MkdirFailed": "No se puede crear el directorio '%s'. %s",
+  "loc.messages.LIB_MkdirFailedFileExists": "No se puede crear el directorio '%s'. Hay un conflicto entre archivos: '%s'",
+  "loc.messages.LIB_MkdirFailedInvalidDriveRoot": "No se puede crear el directorio '{p}'. El directorio raíz no existe: '{testDir}'",
+  "loc.messages.LIB_MkdirFailedInvalidShare": "No se puede crear el directorio '{p}'. No se puede comprobar si el directorio existe: '{testDir}'. Si el directorio es un recurso compartido de archivos, compruebe que su nombre es correcto, que está en línea y que el proceso actual tiene permiso de acceso a él.",
   "loc.messages.LIB_ReturnCode": "Código de retorno: %d",
   "loc.messages.LIB_ResourceFileNotExist": "El archivo de recursos no existe: %s",
   "loc.messages.LIB_ResourceFileAlreadySet": "El archivo de recursos se ha establecido ya en: %s",
