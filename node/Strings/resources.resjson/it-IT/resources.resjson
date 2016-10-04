@@ -1,6 +1,10 @@
 {
   "loc.messages.LIB_UnhandledEx": "Eccezione non gestita: %s",
   "loc.messages.LIB_FailOnCode": "Codice restituito dell'errore: %d",
+  "loc.messages.LIB_MkdirFailed": "Non è possibile creare la directory '%s'. %s",
+  "loc.messages.LIB_MkdirFailedFileExists": "Non è possibile creare la directory '%s'. Esiste un file in conflitto: '%s'",
+  "loc.messages.LIB_MkdirFailedInvalidDriveRoot": "Unable to create directory '%s'. Root directory does not exist: '%s'",
+  "loc.messages.LIB_MkdirFailedInvalidShare": "Unable to create directory '%s'. Unable to verify the directory exists: '%s'. If directory is a file share, please verify the share name is correct, the share is online, and the current process has permission to access the share.",
   "loc.messages.LIB_ReturnCode": "Codice restituito: %d",
   "loc.messages.LIB_ResourceFileNotExist": "Il file di risorse non esiste: %s",
   "loc.messages.LIB_ResourceFileAlreadySet": "Il file di risorse è già stato impostato su %s",
