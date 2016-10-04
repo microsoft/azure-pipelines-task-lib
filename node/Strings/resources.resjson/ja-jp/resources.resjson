@@ -1,6 +1,10 @@
 {
   "loc.messages.LIB_UnhandledEx": "未処理: %s",
   "loc.messages.LIB_FailOnCode": "失敗のリターン コード: %d",
+  "loc.messages.LIB_MkdirFailed": "ディレクトリ '%s' を作成できません。%s",
+  "loc.messages.LIB_MkdirFailedFileExists": "ディレクトリ '%s' を作成できません。競合するファイルが存在します: '%s'",
+  "loc.messages.LIB_MkdirFailedInvalidDriveRoot": "Unable to create directory '%s'. Root directory does not exist: '%s'",
+  "loc.messages.LIB_MkdirFailedInvalidShare": "Unable to create directory '%s'. Unable to verify the directory exists: '%s'. If directory is a file share, please verify the share name is correct, the share is online, and the current process has permission to access the share.",
   "loc.messages.LIB_ReturnCode": "リターン コード: %d",
   "loc.messages.LIB_ResourceFileNotExist": "リソース ファイルが存在しません: %s",
   "loc.messages.LIB_ResourceFileAlreadySet": "リソース ファイルは既に %s に設定されています",
