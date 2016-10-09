@@ -1,6 +1,10 @@
 {
   "loc.messages.LIB_UnhandledEx": "Eccezione non gestita: %s",
   "loc.messages.LIB_FailOnCode": "Codice restituito dell'errore: %d",
+  "loc.messages.LIB_MkdirFailed": "Non è possibile creare la directory '%s'. %s",
+  "loc.messages.LIB_MkdirFailedFileExists": "Non è possibile creare la directory '%s'. Esiste un file in conflitto: '%s'",
+  "loc.messages.LIB_MkdirFailedInvalidDriveRoot": "Unable to create directory '%s'. Root directory does not exist: '%s'",
+  "loc.messages.LIB_MkdirFailedInvalidShare": "Unable to create directory '%s'. Unable to verify the directory exists: '%s'. If directory is a file share, please verify the share name is correct, the share is online, and the current process has permission to access the share.",
   "loc.messages.LIB_ReturnCode": "Codice restituito: %d",
   "loc.messages.LIB_ResourceFileNotExist": "Il file di risorse non esiste: %s",
   "loc.messages.LIB_ResourceFileAlreadySet": "Il file di risorse è già stato impostato su %s",
@@ -9,10 +13,12 @@
   "loc.messages.LIB_ParameterIsRequired": "Parametro %s non fornito",
   "loc.messages.LIB_InputRequired": "Input richiesto: %s",
   "loc.messages.LIB_EndpointNotExist": "Endpoint non presente: %s",
+  "loc.messages.LIB_EndpointDataNotExist": "Il parametro %s dei dati dell'endpoint non è presente: %s",
+  "loc.messages.LIB_EndpointAuthNotExist": "I dati di autenticazione endpoint non sono presenti: %s",
   "loc.messages.LIB_InvalidEndpointAuth": "Autenticazione endpoint non valida: %s",
   "loc.messages.LIB_PathNotFound": "Percorso %s non trovato: %s",
   "loc.messages.LIB_PathHasNullByte": "Il percorso non può contenere byte Null",
   "loc.messages.LIB_OperationFailed": "Operazione %s non riuscita: %s",
   "loc.messages.LIB_UseFirstGlobMatch": "Sono presenti più corrispondenze dell'area di lavoro. Verrà usata la prima.",
-  "loc.messages.LIB_MergeTestResultNotSupported": "L'unione di più file di risultati del test in un'unica esecuzione dei test non è supportata in questa versione dell'agente di compilazione per OS X/Linux. Ogni file dei risultati del test verrà pubblicato come esecuzione dei test separata in VSO/TFS."
+  "loc.messages.LIB_MergeTestResultNotSupported": "L'unione di più file risultanti da un'unica esecuzione dei test non è supportata in questa versione dell'agente di compilazione per OS X/Linux. Ogni file dei risultati del test verrà pubblicato come esecuzione dei test separata in VSO/TFS."
 }

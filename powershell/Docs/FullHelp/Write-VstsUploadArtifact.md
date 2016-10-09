@@ -5,7 +5,7 @@ NAME
     Write-VstsUploadArtifact
 
 SYNOPSIS
-    See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 SYNTAX
     Write-VstsUploadArtifact [-ContainerFolder] <String> [-Name] <String> [-Path] <String> [-AsOutput]
@@ -49,5 +49,5 @@ PARAMETERS
         This cmdlet supports the common parameters: Verbose, Debug,
         ErrorAction, ErrorVariable, WarningAction, WarningVariable,
         OutBuffer, PipelineVariable, and OutVariable. For more information, see
-        about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+        about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
 ```

@@ -1,16 +1,16 @@
 # Errors, warnings, and task result
 
 ## Error action preference
-The Invoke-VstsTaskScript command sets the error action preference to stop before running the scriptblock.
+The `Invoke-VstsTaskScript` command globally sets the error action preference to stop before running the scriptblock.
 
-This will cause error records in the task script's scope to be terminating errors. When errors are written to the error pipeline, it will cause the statement to throw the error record. The Invoke-VstsTaskScript command will catch the terminating error record, log it as an error issue on the task, and set the task result to failed.
+This will cause error records to be terminating errors. When errors are written to the error pipeline, it will cause the statement to throw the error record. The `Invoke-VstsTaskScript` command will catch the terminating error record, log it as an error issue on the task, and set the task result to failed.
 
-Alternatively, the error action preference can be overidden by the task script. For example it can be set to Continue. With an error action preference of Continue, error records will still be logged as error issues. However, the task result would not automatically be set to failed. In this case, merely creating an error issue would not indicate task failure.
+Alternatively, the global error action preference can be overidden by the task script. For example, `$global:ErrorActionPreference = 'Continue'`. With an error action preference of `Continue`, error records will still be logged as error issues. However, the task result would not automatically be set to failed. In this case, merely creating an error issue would not indicate task failure.
 
 ## Error/Warning pipelines
-Messages written to the error pipeline (Write-Error) are written as error logging commands. This instructs the agent to create an error issue asssociated with the task.
+Messages written to the error pipeline (`Write-Error`) are written as error logging commands. This instructs the agent to create an error issue asssociated with the task.
 
-Messages written to the warning pipeline (Write-Warning) are written as warning logging commands. This instructs the agent to create a warning issue associated with the task. 
+Messages written to the warning pipeline (`Write-Warning`) are written as warning logging commands. This instructs the agent to create a warning issue associated with the task. 
 
 ## External commands and STDERR
 When the agent invokes the task script, by default STDERR from external commands and will not produce an error record. Many programs treat the STDERR stream simply as an alternate stream. So this behavior is appropriate for many external commands.
@@ -24,7 +24,7 @@ However, depending upon how the pipelines are manipulated, error records may be 
 ```PowerShell
 & cmd.exe /c nosuchcommand
 ```
-* When redirection is applied indirectly to the external command and the output is (naturally or directly) piped to Out-Default. Examples:
+* When redirection is applied indirectly to the external command and the output is (naturally or directly) piped to `Out-Default`. Examples:
 ```PowerShell
 . { & cmd.exe /c nosuchcommand } 2>&1
 . { & cmd.exe /c nosuchcommand } 2>&1 | Out-Default
@@ -35,7 +35,7 @@ However, depending upon how the pipelines are manipulated, error records may be 
 ```PowerShell
 & cmd.exe /c nosuchcommand 2>&1
 ```
-* When redirection is applied indirectly to the external command, and the output is piped to any command before it is (naturally or directly) piped to Out-Default. Examples:
+* When redirection is applied indirectly to the external command, and the output is piped to any command before it is (naturally or directly) piped to `Out-Default`. Examples:
 ```PowerShell
 . { & cmd.exe /c nosuchcommand } 2>&1 | Foreach-Object { $_ }
 . { & cmd.exe /c nosuchcommand } 2>&1 | Foreach-Object { $_ } | Out-Default

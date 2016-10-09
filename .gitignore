@@ -1,5 +1,7 @@
 # Build
 _build
+_download
+_test
 
 # Logs
 logs
@@ -31,3 +33,6 @@ node_modules
 
 # Docs intermediate files
 node/docs/vsotask.json
+
+# tests
+node/.taskKey

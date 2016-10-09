@@ -5,7 +5,7 @@ NAME
     Write-VstsAssociateArtifact
 
 SYNOPSIS
-    See https://github.com/Microsoft/vso-agent-tasks/blob/master/docs/authoring/commands.md
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
 
 SYNTAX
     Write-VstsAssociateArtifact [-Name] <String> [-Path] <String> [-Type] <String> [[-Properties]
@@ -57,5 +57,5 @@ PARAMETERS
         This cmdlet supports the common parameters: Verbose, Debug,
         ErrorAction, ErrorVariable, WarningAction, WarningVariable,
         OutBuffer, PipelineVariable, and OutVariable. For more information, see
-        about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+        about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
 ```

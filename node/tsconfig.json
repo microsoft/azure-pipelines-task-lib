@@ -1,6 +1,15 @@
 {
     "compilerOptions": {
         "target": "ES5",
-        "module": "commonjs"
-    }
+        "module": "commonjs",
+        "declaration": true,
+        "moduleResolution": "node"      
+    },
+    "files": [
+        "extensions.ts",
+    	"index.ts",
+        "mock-task.ts",
+        "mock-run.ts",
+        "mock-test.ts"
+    ]
 }

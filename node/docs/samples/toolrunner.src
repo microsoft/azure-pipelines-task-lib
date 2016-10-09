@@ -1,0 +1,13 @@
+/// <reference path="../definitions/vsts-task-lib.d.ts" />
+import tl = require('vsts-task-lib/task');
+import tr = require('vsts-task-lib/toolrunner');
+
+try {
+    var toolPath = tl.which('atool');
+    var atool:tr.ToolRunner = tl.tool(toolPath).arg('--afile').line('arguments');
+    var code: number = await tr.exec();
+    console.log('rc=' + code);
+}
+catch (err) {
+    tl.setResult(tl.TaskResult.Failed, err.message);
+}

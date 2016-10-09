@@ -19,10 +19,12 @@ function Trace-EnteringInvocation {
     $OFS = ", "
     if ($InvocationInfo.BoundParameters.Count -and $Parameter.Count) {
         if ($Parameter.Count -eq 1 -and $Parameter[0] -eq '*') {
+            # Trace all parameters.
             foreach ($key in $InvocationInfo.BoundParameters.Keys) {
                 Write-Verbose " $($key): '$($InvocationInfo.BoundParameters[$key])'"
             }
         } else {
+            # Trace matching parameters.
             foreach ($key in $InvocationInfo.BoundParameters.Keys) {
                 foreach ($p in $Parameter) {
                     if ($key -like $p) {
@@ -34,6 +36,7 @@ function Trace-EnteringInvocation {
         }
     }
 
+    # Trace all unbound arguments.
     if (@($InvocationInfo.UnboundArguments).Count) {
         for ($i = 0 ; $i -lt $InvocationInfo.UnboundArguments.Count ; $i++) {
             Write-Verbose " args[$i]: '$($InvocationInfo.UnboundArguments[$i])'"

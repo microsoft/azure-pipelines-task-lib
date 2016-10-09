@@ -11,8 +11,10 @@ SYNTAX
     Get-VstsEndpoint [-Name] <String> [-Require] [<CommonParameters>]
 
 DESCRIPTION
-    Gets an endpoint object for the specified endpoint name. The endpoint is returned as an object with two
-    properties: Auth and Url.
+    Gets an endpoint object for the specified endpoint name. The endpoint is returned as an object with three
+    properties: Auth, Data, and Url.
+
+    The Data property requires a 1.97 agent or higher.
 
 PARAMETERS
     -Name <String>
@@ -36,5 +38,5 @@ PARAMETERS
         This cmdlet supports the common parameters: Verbose, Debug,
         ErrorAction, ErrorVariable, WarningAction, WarningVariable,
         OutBuffer, PipelineVariable, and OutVariable. For more information, see
-        about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+        about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
 ```

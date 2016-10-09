@@ -1,5 +1,8 @@
 # VSTS-TASK-LIB TYPESCRIPT API
  
+## Dependencies
+A [cross platform agent](https://github.com/Microsoft/vso-agent) OR a TFS 2015 Update 2 Windows agent (or higher) is required to run a Node task end-to-end. However, an agent is not required for interactively testing the task.
+ 
 ## Importing
 For now, the built vsts-task-lib (in _build) should be packaged with your task in a node_modules folder
  
@@ -10,6 +13,8 @@ In the example below, it is in a folder named definitions above the tasks lib
 /// <reference path="../definitions/vsts-task-lib.d.ts" />
 import tl = require('vsts-task-lib/task')
 ```
+ 
+## [Release notes](releases.md)
  
 <div id="index">
 ## Index
@@ -22,13 +27,16 @@ import tl = require('vsts-task-lib/task')
 <a href="#taskfilePathSupplied">filePathSupplied</a> <br/>
 <a href="#taskgetDelimitedInput">getDelimitedInput</a> <br/>
 <a href="#taskgetVariable">getVariable</a> <br/>
+<a href="#taskgetVariables">getVariables</a> <br/>
 <a href="#tasksetVariable">setVariable</a> <br/>
  
 ### Execution <a href="#Execution">(v)</a>
  
-<a href="#taskcreateToolRunner">createToolRunner</a> <br/>
+<a href="#tasktool">tool</a> <br/>
 <a href="#toolrunnerToolRunnerarg">ToolRunner.arg</a> <br/>
+<a href="#toolrunnerToolRunnerline">ToolRunner.line</a> <br/>
 <a href="#toolrunnerToolRunnerargIf">ToolRunner.argIf</a> <br/>
+<a href="#toolrunnerToolRunnerpipeExecOutputToTool">ToolRunner.pipeExecOutputToTool</a> <br/>
 <a href="#toolrunnerIExecOptions">IExecOptions</a> <br/>
 <a href="#toolrunnerToolRunnerexec">ToolRunner.exec</a> <br/>
 <a href="#toolrunnerToolRunnerexecSync">ToolRunner.execSync</a> <br/>
@@ -52,11 +60,14 @@ import tl = require('vsts-task-lib/task')
 <a href="#taskcp">cp</a> <br/>
 <a href="#taskmv">mv</a> <br/>
 <a href="#taskmkdirP">mkdirP</a> <br/>
+<a href="#taskFindOptions">FindOptions</a> <br/>
 <a href="#taskfind">find</a> <br/>
 <a href="#taskrmRF">rmRF</a> <br/>
 <a href="#taskpushd">pushd</a> <br/>
 <a href="#taskpopd">popd</a> <br/>
+<a href="#taskresolve">resolve</a> <br/>
 <a href="#taskstats">stats</a> <br/>
+<a href="#taskwriteFile">writeFile</a> <br/>
  
 ### Localization <a href="#Localization">(v)</a>
  
@@ -132,9 +143,11 @@ name | string | name of the path input to check
 <br/>
 <div id="taskgetDelimitedInput">
 ### task.getDelimitedInput <a href="#index">(^)</a>
-Gets the value of an input and splits the values by a delimiter (space, comma, etc...)
-Useful for splitting an input with simple list of items like targets
-IMPORTANT: Do not use for splitting additional args!  Instead use arg() - it will split and handle
+Gets the value of an input and splits the value using a delimiter (space, comma, etc).
+Empty values are removed.  This function is useful for splitting an input containing a simple
+list of items - such as build targets.
+IMPORTANT: Do not use this function for splitting additional args!  Instead use argString(), which
+follows normal argument splitting rules and handles values encapsulated by quotes.
 If required is true and the value is not set, the task will fail with an error.  Execution halts.
 ```javascript
 getDelimitedInput(name:string, delim:string, required?:boolean):string
@@ -149,7 +162,7 @@ required | boolean | whether input is required.  optional, defaults to false
 <br/>
 <div id="taskgetVariable">
 ### task.getVariable <a href="#index">(^)</a>
-Gets a variables value which is defined on the build definition or set at runtime.
+Gets a variable value that is defined on the build/release definition or set at runtime.
 ```javascript
 getVariable(name:string):string
 ```
@@ -159,17 +172,33 @@ Param | Type | Description
 name | string | name of the variable to get
  
 <br/>
+<div id="taskgetVariables">
+### task.getVariables <a href="#index">(^)</a>
+Gets a snapshot of the current state of all job variables available to the task.
+Requires a 2.104.1 agent or higher for full functionality.
+
+Limitations on an agent prior to 2.104.1:
+ 1) The return value does not include all public variables. Only public variables
+    that have been added using setVariable are returned.
+ 2) The name returned for each secret variable is the formatted environment variable
+    name, not the actual variable name (unless it was set explicitly at runtime using
+    setVariable).
+```javascript
+getVariables():VariableInfo[]
+```
+<br/>
 <div id="tasksetVariable">
 ### task.setVariable <a href="#index">(^)</a>
-Sets a variables which will be available to subsequent tasks as well.
+Sets a variable which will be available to subsequent tasks as well.
 ```javascript
-setVariable(name:string, val:string):void
+setVariable(name:string, val:string, secret:boolean):void
 ```
  
 Param | Type | Description
 --- | --- | ---
 name | string | name of the variable to set
 val | string | value to set
+secret | boolean | whether variable is secret.  optional, defaults to false
  
  
 <br/>
@@ -183,33 +212,24 @@ Tasks typically execute a series of tools (cli) and set the result of the task b
 ```javascript
 /// <reference path="../definitions/vsts-task-lib.d.ts" />
 import tl = require('vsts-task-lib/task');
+import tr = require('vsts-task-lib/toolrunner');
 
-var toolPath = tl.which('atool');
-var tool = tl.createToolRunner(toolPath);
-
-tool.arg('--afile');
-tool.arg(tl.getPathInput('afile', true));
-
-// NOTE: arg function handles complex additional args with double quotes like
-//       "arg one" arg2 -x
-//
-tool.arg(tl.getInput('arguments', false));
-
-tool.exec()
-.then((code) => {
-    tl.setResult(tl.TaskResult.Succeeded, "tool returned " + code);
-})
-.fail((err) => {
-    tl.debug('toolRunner fail');
+try {
+    var toolPath = tl.which('atool');
+    var atool:tr.ToolRunner = tl.tool(toolPath).arg('--afile').line('arguments');
+    var code: number = await tr.exec();
+    console.log('rc=' + code);
+}
+catch (err) {
     tl.setResult(tl.TaskResult.Failed, err.message);
-})
+}
 ```
 <br/>
-<div id="taskcreateToolRunner">
-### task.createToolRunner <a href="#index">(^)</a>
+<div id="tasktool">
+### task.tool <a href="#index">(^)</a>
 Convenience factory to create a ToolRunner.
 ```javascript
-createToolRunner(tool:string):ToolRunner
+tool(tool:string):ToolRunner
 ```
  
 Param | Type | Description
@@ -219,30 +239,57 @@ tool | string | path to tool to exec
 <br/>
 <div id="toolrunnerToolRunnerarg">
 ### toolrunner.ToolRunner.arg <a href="#index">(^)</a>
-Add arguments
-Accepts a full string command line and a string array as well
-Will handle double quoted args. E.g. '"arg one" two -z'
+Add argument
+Append an argument or an array of arguments
+returns ToolRunner for chaining
 ```javascript
-arg(val:any):void
+arg(val:string | string[]):ToolRunner
 ```
  
 Param | Type | Description
 --- | --- | ---
-val | any | string cmdline or array of strings
+val | string or string[]
+
+<br/>
+<div id="toolrunnerToolRunnerline">
+### toolrunner.ToolRunner.line <a href="#index">(^)</a>
+Append argument command line string
+e.g. '"arg one" two -z' would append args[]=['arg one', 'two', '-z']
+returns ToolRunner for chaining
+```javascript
+line(val:string):ToolRunner
+```
+ 
+Param | Type | Description
+--- | --- | ---
+val | string | string cmdline
  
 <br/>
 <div id="toolrunnerToolRunnerargIf">
 ### toolrunner.ToolRunner.argIf <a href="#index">(^)</a>
 Add argument(s) if a condition is met
 Wraps arg().  See arg for details
+returns ToolRunner for chaining
 ```javascript
-argIf(condition:any, val:any):void
+argIf(condition:any, val:any):this
 ```
  
 Param | Type | Description
 --- | --- | ---
 condition | any | boolean condition
 val | any | string cmdline or array of strings
+ 
+<br/>
+<div id="toolrunnerToolRunnerpipeExecOutputToTool">
+### toolrunner.ToolRunner.pipeExecOutputToTool <a href="#index">(^)</a>
+Pipe output of exec() to another tool
+```javascript
+pipeExecOutputToTool(tool:ToolRunner):ToolRunner
+```
+ 
+Param | Type | Description
+--- | --- | ---
+tool | ToolRunner |  - 
  
 <br/>
 <div id="toolrunnerIExecOptions">
@@ -337,6 +384,7 @@ options | IExecOptions | optionalexec options.  See IExecOptions
 <div id="tasksetResult">
 ### task.setResult <a href="#index">(^)</a>
 Sets the result of the task.
+If multiple calls are made to setResult the most pessimistic call wins (Failed) regardless of the order of calls.
 
 ```javascript
 setResult(result:TaskResult, message:string):void
@@ -345,8 +393,7 @@ setResult(result:TaskResult, message:string):void
 Param | Type | Description
 --- | --- | ---
 result | TaskResult | TaskResult enum of Success or Failed.
-message | string |  - 
- 
+message | string | A message which will be logged as an error issue if the result is Failed. 
  
 <br/>
 <div id="ServiceEndpoints">
@@ -462,15 +509,16 @@ Returns path of a tool had the tool actually been invoked.  Resolves via paths.
 If you check and the tool does not exist, the task will fail with an error message and halt execution.
 Returns whether the copy was successful
 ```javascript
-cp(options:any, source:string, dest:string, continueOnError?:boolean):boolean
+cp(source:string, dest:string, options?:string, continueOnError?:boolean):void
 ```
  
 Param | Type | Description
 --- | --- | ---
-options | any | string -r, -f or -rf for recursive and force
 source | string | source path
 dest | string | destination path
+options | string | string -r, -f or -rf for recursive and force
 continueOnError | boolean | optional. whether to continue on error
+
  
 <br/>
 <div id="taskmv">
@@ -478,41 +526,55 @@ continueOnError | boolean | optional. whether to continue on error
 Moves a path.
 Returns whether the copy was successful
 ```javascript
-mv(source:string, dest:string, force:boolean, continueOnError?:boolean):boolean
+mv(source:string, dest:string, options?:string, continueOnError?:boolean):void
 ```
  
 Param | Type | Description
 --- | --- | ---
 source | string | source path
 dest | string | destination path
-force | boolean | whether to force and overwrite
+options | string | string -f or -n for force and no clobber
 continueOnError | boolean | optional. whether to continue on error
+
  
 <br/>
 <div id="taskmkdirP">
 ### task.mkdirP <a href="#index">(^)</a>
 Make a directory.  Creates the full path with folders in between
-Returns whether it was successful or not
+Will throw if it fails
 ```javascript
-mkdirP(p:any):boolean
+mkdirP(p:string):void
 ```
  
 Param | Type | Description
 --- | --- | ---
-p | any | path to create
+p | string | path to create
+ 
+<br/>
+<div id="taskFindOptions">
+### task.FindOptions <a href="#index">(^)</a>
+Interface for FindOptions
+Contains properties to control whether to follow symlinks
+ 
+Property | Description
+--- | ---
+followSpecifiedSymbolicLink | Equivalent to the -H command line option. Indicates whether to traverse descendants if the specified path is a symbolic link directory. Does not cause nested symbolic link directories to be traversed.
+followSymbolicLinks | Equivalent to the -L command line option. Indicates whether to traverse descendants of symbolic link directories.
+
  
 <br/>
 <div id="taskfind">
 ### task.find <a href="#index">(^)</a>
 Find all files under a give path
-Returns an array of full paths
+Returns an array of paths
 ```javascript
-find(findPath:string):string
+find(findPath:string, options?:FindOptions):string
 ```
  
 Param | Type | Description
 --- | --- | ---
 findPath | string | path to find files under
+options | FindOptions | options to control whether to follow symlinks
  
 <br/>
 <div id="taskrmRF">
@@ -520,7 +582,7 @@ findPath | string | path to find files under
 Remove a path recursively with force
 Returns whether it succeeds
 ```javascript
-rmRF(path:string, continueOnError?:boolean):boolean
+rmRF(path:string, continueOnError?:boolean):void
 ```
  
 Param | Type | Description
@@ -548,6 +610,20 @@ Change working directory back to previously pushed directory
 popd():void
 ```
 <br/>
+<div id="taskresolve">
+### task.resolve <a href="#index">(^)</a>
+Resolves a sequence of paths or path segments into an absolute path.
+Calls node.js path.resolve()
+Allows L0 testing with consistent path formats on Mac/Linux and Windows in the mock implementation
+```javascript
+resolve(pathSegments:any):string
+```
+ 
+Param | Type | Description
+--- | --- | ---
+pathSegments | any |  - 
+ 
+<br/>
 <div id="taskstats">
 ### task.stats <a href="#index">(^)</a>
 Get's stat on a path.
@@ -561,7 +637,21 @@ Param | Type | Description
 --- | --- | ---
 path | string | path to check
  
+<br/>
+<div id="taskwriteFile">
+### task.writeFile <a href="#index">(^)</a>
+Synchronously writes data to a file, replacing the file if it already exists.
+See [fs.writeFileSync](https://nodejs.org/api/fs.html#fs_fs_writefilesync_file_data_options)
+```javascript
+writeFile(file:string, data:string|Buffer, options?:string|FsOptions)
+```
  
+Param | Type | Description
+--- | --- | ---
+file | string | full path to the file to write
+data | string or Buffer| contents to be written to the file
+options | string or FsOptions | Optional options like encoding
+
 <br/>
 <div id="Localization">
 ## Localization

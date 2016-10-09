@@ -6,7 +6,7 @@ var minimist = require('minimist');
 var semver = require('semver');
 var tsc = require('gulp-tsc');
 var mocha = require('gulp-mocha');
-var spawn = require('child_process').spawn;
+var child_process = require('child_process');
 var shell = require('shelljs');
 var mopts = {
     boolean: 'ci',
@@ -65,8 +65,7 @@ gulp.task('build:lib', ['copy:manifest'], function () {
 });
 
 gulp.task('version:lib', ['build:lib'], function () {
-    // Stamp the version number from the package.json onto the
-    // PowerShell module definition.
+    // Stamp the version number from the package.json onto the PowerShell module definition.
     var targetPsd1 = path.join(buildRoot, 'VstsTaskSdk', 'VstsTaskSdk.psd1');
     var psd1Contents = fs.readFileSync(targetPsd1, 'ucs2'); // UCS-2 is a subset of UTF-16. UTF-16 is not supported by node.
     var token = "ModuleVersion = '0.1'";
@@ -78,6 +77,20 @@ gulp.task('version:lib', ['build:lib'], function () {
 
     var packageJson = require('./package.json');
     psd1Contents = psd1Contents.substring(0, tokenStart) + "ModuleVersion = '" + packageJson.version + "'" + psd1Contents.substring(tokenStart + token.length);
+
+    // Stamp the commit hash onto the PowerShell module definition.
+    token = "_COMMIT_HASH_"
+    tokenStart = psd1Contents.indexOf(token);
+    if (tokenStart < 0) {
+        console.error('Commit hash token not found in PSD1.');
+        process.exit(1);
+    }
+
+    var git = child_process.spawnSync('git', ['rev-parse', 'HEAD'])
+    var commitHash = ('' + git.stdout).trim();
+    psd1Contents = psd1Contents.substring(0, tokenStart) + commitHash + psd1Contents.substring(tokenStart + token.length);
+
+    // Save the updated psd1 file.
     fs.writeFileSync(targetPsd1, psd1Contents, 'ucs2');
     return;
 });
@@ -125,8 +138,10 @@ gulp.task('prepublish', function (done) {
 });
 
 gulp.task('publish', ['prepublish'], function (done) {
-    shell.pushd(buildRoot);
-    spawn('npm', ['publish'], { stdio: 'inherit' }).on('close', done);
-    shell.popd();
+    child_process
+        .spawn('npm', ['publish'], {
+            cwd: buildRoot,
+            stdio: 'inherit'
+        }).on('close', done);
 });
 
