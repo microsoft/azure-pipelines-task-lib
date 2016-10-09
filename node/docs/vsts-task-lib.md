@@ -337,14 +337,14 @@ options | IExecOptions | optionalexec options.  See IExecOptions
 <div id="tasksetResult">
 ### task.setResult <a href="#index">(^)</a>
 Sets the result of the task.
-If the result is Failed (1), then execution will halt.
+
 ```javascript
 setResult(result:TaskResult, message:string):void
 ```
  
 Param | Type | Description
 --- | --- | ---
-result | TaskResult | TaskResult enum of Success or Failed.  If the result is Failed (1), then execution will halt.
+result | TaskResult | TaskResult enum of Success or Failed.
 message | string |  - 
  
  

@@ -61,9 +61,8 @@ export function setErrStream(errStream): void {
 
 /**
  * Sets the result of the task.
- * If the result is Failed (1), then execution will halt.  
  * 
- * @param result    TaskResult enum of Success or Failed.  If the result is Failed (1), then execution will halt.
+ * @param result    TaskResult enum of Success or Failed.  
  * @param messages  A message which will be logged and added as an issue if an failed
  * @returns         void
  */
