@@ -2,6 +2,9 @@
 _build
 _download
 _test
+node/*.d.ts
+node/*.js
+node/docs/temp
 
 # Logs
 logs

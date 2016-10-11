@@ -5,7 +5,18 @@ var os = require('os');
 
 var mdpath = path.join(__dirname, 'vsts-task-lib.md');
 var jsonpath = path.join(__dirname, 'task.json');
-var libpath = path.join(__dirname, '..', 'lib');
+var typingspath = path.join(__dirname, '..', 'typings', 'index.d.ts');
+
+var srctemp = path.join(__dirname, 'temp');
+shell.rm('-rf', srctemp);
+shell.mkdir('-p', srctemp);
+shell.cp('../*.ts', srctemp);
+shell.cp('../tsconfig.json', srctemp);
+shell.cp('-r', '../typings', srctemp);
+shell.rm(path.join(srctemp, '*.d.ts'));
+//process.exit();
+
+
 
 //--------------------------------------------------------------
 // Util
@@ -18,8 +29,6 @@ var header = function(line) {
 var writeLine = function(line) {
     fs.appendFileSync(mdpath, (line || ' ') + os.EOL);
 }
-
-var apiData = require(jsonpath);
 
 var getChild = function(curr, parts) {
     if (!curr || !curr.children) {
@@ -51,7 +60,12 @@ var getChild = function(curr, parts) {
 }
 
 var cache = {};
+var apiData;
 var get = function(id) {
+    if (!apiData) {
+        apiData = require(jsonpath);
+    }
+    
     if (cache.hasOwnProperty(id)) {
         return cache[id];
     }
@@ -73,13 +87,12 @@ var get = function(id) {
 //--------------------------------------------------------------
 header('Generating api json');
 
-var tdpath = shell.which('typedoc');
-if (!tdpath) {
-    console.error('could not find typedoc.  install via npm globally');
-}
+var tdpath = path.join(__dirname, '..', 'node_modules', 'typedoc', 'bin', 'typedoc');
+console.log('using', tdpath);
 
-shell.rm('-rf', jsonpath);
-var c = shell.exec(tdpath + " --module commonjs --json \"" + jsonpath + "\" \"" + libpath + "\"");
+shell.rm('-rf', jsonpath); 
+// --moduleResolution node
+var c = shell.exec(tdpath + " --target ES5 --module commonjs --json \"" + jsonpath + "\" \"" + srctemp + "\"");
 if (c.code !== 0) {
     console.log('failed');
     process.exit(1);

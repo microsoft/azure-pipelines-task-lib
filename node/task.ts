@@ -71,6 +71,8 @@ export function setErrStream(errStream): void {
 
 /**
  * Sets the result of the task.
+ * Execution will continue.
+ * If not set, task will be Succeeded.
  * If multiple calls are made to setResult the most pessimistic call wins (Failed) regardless of the order of calls.
  * 
  * @param result    TaskResult enum of Success or Failed.  
@@ -378,7 +380,7 @@ export class VariableInfo {
 
 /**
  * Gets the value of an input.  The value is also trimmed.
- * If required is true and the value is not set, the task will fail with an error.  Execution halts.
+ * If required is true and the value is not set, it will throw.
  * 
  * @param     name     name of the input to get
  * @param     required whether input is required.  optional, defaults to false
@@ -400,7 +402,7 @@ export function getInput(name: string, required?: boolean): string {
 
 /**
  * Gets the value of an input and converts to a bool.  Convenience.
- * If required is true and the value is not set, the task will fail with an error.  Execution halts.
+ * If required is true and the value is not set, it will throw.
  * 
  * @param     name     name of the bool input to get
  * @param     required whether input is required.  optional, defaults to false
@@ -423,7 +425,7 @@ export function setEnvVar(name: string, val: string): void {
  * list of items - such as build targets.
  * IMPORTANT: Do not use this function for splitting additional args!  Instead use argString(), which
  * follows normal argument splitting rules and handles values encapsulated by quotes.
- * If required is true and the value is not set, the task will fail with an error.  Execution halts.
+ * If required is true and the value is not set, it will throw.
  * 
  * @param     name     name of the input to get
  * @param     delim    delimiter to split on
@@ -457,7 +459,7 @@ export function getDelimitedInput(name: string, delim: string, required?: boolea
 export function filePathSupplied(name: string): boolean {
     // normalize paths
     var pathValue = this.resolve(this.getPathInput(name) || '');
-    var repoRoot = this.resolve(this.getVariable('build.sourcesDirectory') || '');
+    var repoRoot = this.resolve(this.getVariable('build.sourcesDirectory') || this.getVariable('system.defaultWorkingDirectory') || '');
 
     var supplied = pathValue !== repoRoot;
     debug(name + 'path supplied :' + supplied);
@@ -467,8 +469,8 @@ export function filePathSupplied(name: string): boolean {
 /**
  * Gets the value of a path input
  * It will be quoted for you if it isn't already and contains spaces
- * If required is true and the value is not set, the task will fail with an error.  Execution halts.
- * If check is true and the path does not exist, the task will fail with an error.  Execution halts.
+ * If required is true and the value is not set, it will throw.
+ * If check is true and the path does not exist, it will throw.
  * 
  * @param     name      name of the input to get
  * @param     required  whether input is required.  optional, defaults to false
@@ -492,7 +494,7 @@ export function getPathInput(name: string, required?: boolean, check?: boolean):
 
 /**
  * Gets the url for a service endpoint
- * If the url was not set and is not optional, the task will fail with an error message. Execution will halt.
+ * If the url was not set and is not optional, it will throw.
  * 
  * @param     id        name of the service endpoint
  * @param     optional  whether the url is optional
@@ -511,7 +513,7 @@ export function getEndpointUrl(id: string, optional: boolean): string {
 
 /*
  * Gets the endpoint data parameter value with specified key for a service endpoint
- * If the endpoint data parameter was not set and is not optional, the task will fail with an error message. Execution will halt.
+ * If the endpoint data parameter was not set and is not optional, it will throw.
  *
  * @param id name of the service endpoint
  * @param key of the parameter
@@ -531,7 +533,7 @@ export function getEndpointDataParameter(id: string, key: string, optional: bool
 
 /**
  * Gets the endpoint authorization scheme for a service endpoint
- * If the endpoint authorization scheme is not set and is not optional, the task will fail with an error message. Execution will halt.
+ * If the endpoint authorization scheme is not set and is not optional, it will throw.
  *
  * @param id name of the service endpoint
  * @param optional whether the endpoint authorization scheme is optional
@@ -550,7 +552,7 @@ export function getEndpointAuthorizationScheme(id: string, optional: boolean) : 
 
 /**
  * Gets the endpoint authorization parameter value for a service endpoint with specified key
- * If the endpoint authorization parameter is not set and is not optional, the task will fail with an error message. Execution will halt.
+ * If the endpoint authorization parameter is not set and is not optional, it will throw.
  *
  * @param id name of the service endpoint
  * @param key key to find the endpoint authorization parameter
@@ -583,7 +585,7 @@ export interface EndpointAuthorization {
 
 /**
  * Gets the authorization details for a service endpoint
- * If the authorization was not set and is not optional, the task will fail with an error message. Execution will halt.
+ * If the authorization was not set and is not optional, it will throw.
  * 
  * @param     id        name of the service endpoint
  * @param     optional  whether the url is optional
@@ -716,7 +718,7 @@ export function cwd() : string {
 
 /**
  * Checks whether a path exists.
- * If the path does not exist, the task will fail with an error message. Execution will halt.
+ * If the path does not exist, it will throw.
  * 
  * @param     p         path to check
  * @param     name      name only used in error message to identify the path
@@ -846,7 +848,7 @@ export function resolve(...pathSegments: any[]): string {
 
 /**
  * Returns path of a tool had the tool actually been invoked.  Resolves via paths.
- * If you check and the tool does not exist, the task will fail with an error message and halt execution.
+ * If you check and the tool does not exist, it will throw.
  * 
  * @param     tool       name of the tool
  * @param     check      whether to check if tool exists
@@ -927,7 +929,7 @@ export function ls(options: string, paths: string[]): string[] {
 
 /**
  * Returns path of a tool had the tool actually been invoked.  Resolves via paths.
- * If you check and the tool does not exist, the task will fail with an error message and halt execution.
+ * If you check and the tool does not exist, it will throw.
  * Returns whether the copy was successful
  * 
  * @param     source     source path

@@ -85,7 +85,7 @@ Functions for retrieving inputs for the task
 <div id="taskgetInput">
 ### task.getInput <a href="#index">(^)</a>
 Gets the value of an input.  The value is also trimmed.
-If required is true and the value is not set, the task will fail with an error.  Execution halts.
+If required is true and the value is not set, it will throw.
 ```javascript
 getInput(name:string, required?:boolean):string
 ```
@@ -99,7 +99,7 @@ required | boolean | whether input is required.  optional, defaults to false
 <div id="taskgetBoolInput">
 ### task.getBoolInput <a href="#index">(^)</a>
 Gets the value of an input and converts to a bool.  Convenience.
-If required is true and the value is not set, the task will fail with an error.  Execution halts.
+If required is true and the value is not set, it will throw.
 ```javascript
 getBoolInput(name:string, required?:boolean):boolean
 ```
@@ -114,8 +114,8 @@ required | boolean | whether input is required.  optional, defaults to false
 ### task.getPathInput <a href="#index">(^)</a>
 Gets the value of a path input
 It will be quoted for you if it isn't already and contains spaces
-If required is true and the value is not set, the task will fail with an error.  Execution halts.
-If check is true and the path does not exist, the task will fail with an error.  Execution halts.
+If required is true and the value is not set, it will throw.
+If check is true and the path does not exist, it will throw.
 ```javascript
 getPathInput(name:string, required?:boolean, check?:boolean):string
 ```
@@ -148,7 +148,7 @@ Empty values are removed.  This function is useful for splitting an input contai
 list of items - such as build targets.
 IMPORTANT: Do not use this function for splitting additional args!  Instead use argString(), which
 follows normal argument splitting rules and handles values encapsulated by quotes.
-If required is true and the value is not set, the task will fail with an error.  Execution halts.
+If required is true and the value is not set, it will throw.
 ```javascript
 getDelimitedInput(name:string, delim:string, required?:boolean):string
 ```
@@ -176,13 +176,6 @@ name | string | name of the variable to get
 ### task.getVariables <a href="#index">(^)</a>
 Gets a snapshot of the current state of all job variables available to the task.
 Requires a 2.104.1 agent or higher for full functionality.
-
-Limitations on an agent prior to 2.104.1:
- 1) The return value does not include all public variables. Only public variables
-    that have been added using setVariable are returned.
- 2) The name returned for each secret variable is the formatted environment variable
-    name, not the actual variable name (unless it was set explicitly at runtime using
-    setVariable).
 ```javascript
 getVariables():VariableInfo[]
 ```
@@ -248,8 +241,8 @@ arg(val:string | string[]):ToolRunner
  
 Param | Type | Description
 --- | --- | ---
-val | string or string[]
-
+val | string or string[] | string cmdline or array of strings
+ 
 <br/>
 <div id="toolrunnerToolRunnerline">
 ### toolrunner.ToolRunner.line <a href="#index">(^)</a>
@@ -371,21 +364,22 @@ Output will be *not* be streamed to the live console.  It will be returned after
 Appropriate for short running tools
 Returns IExecResult with output and return code
 ```javascript
-execSync(tool:string, args:any, options?:IExecOptions):IExecResult
+execSync(tool:string, args:string | string[], options?:IExecOptions):IExecResult
 ```
  
 Param | Type | Description
 --- | --- | ---
 tool | string | path to tool to exec
-args | any | an arg string or array of args
+args | string or string[] | an arg string or array of args
 options | IExecOptions | optionalexec options.  See IExecOptions
  
 <br/>
 <div id="tasksetResult">
 ### task.setResult <a href="#index">(^)</a>
 Sets the result of the task.
+Execution will continue.
+If not set, task will be Succeeded.
 If multiple calls are made to setResult the most pessimistic call wins (Failed) regardless of the order of calls.
-
 ```javascript
 setResult(result:TaskResult, message:string):void
 ```
@@ -393,7 +387,8 @@ setResult(result:TaskResult, message:string):void
 Param | Type | Description
 --- | --- | ---
 result | TaskResult | TaskResult enum of Success or Failed.
-message | string | A message which will be logged as an error issue if the result is Failed. 
+message | string | A message which will be logged as an error issue if the result is Failed.
+ 
  
 <br/>
 <div id="ServiceEndpoints">
@@ -406,7 +401,7 @@ Retrieve service endpoints and authorization details
 <div id="taskgetEndpointUrl">
 ### task.getEndpointUrl <a href="#index">(^)</a>
 Gets the url for a service endpoint
-If the url was not set and is not optional, the task will fail with an error message. Execution will halt.
+If the url was not set and is not optional, it will throw.
 ```javascript
 getEndpointUrl(id:string, optional:boolean):string
 ```
@@ -432,7 +427,7 @@ scheme | auth scheme such as OAuth or username/password etc...
 <div id="taskgetEndpointAuthorization">
 ### task.getEndpointAuthorization <a href="#index">(^)</a>
 Gets the authorization details for a service endpoint
-If the authorization was not set and is not optional, the task will fail with an error message. Execution will halt.
+If the authorization was not set and is not optional, it will throw.
 ```javascript
 getEndpointAuthorization(id:string, optional:boolean):EndpointAuthorization
 ```
@@ -454,7 +449,7 @@ Functions for disk operations
 <div id="taskwhich">
 ### task.which <a href="#index">(^)</a>
 Returns path of a tool had the tool actually been invoked.  Resolves via paths.
-If you check and the tool does not exist, the task will fail with an error message and halt execution.
+If you check and the tool does not exist, it will throw.
 ```javascript
 which(tool:string, check?:boolean):string
 ```
@@ -468,7 +463,7 @@ check | boolean | whether to check if tool exists
 <div id="taskcheckPath">
 ### task.checkPath <a href="#index">(^)</a>
 Checks whether a path exists.
-If the path does not exist, the task will fail with an error message. Execution will halt.
+If the path does not exist, it will throw.
 ```javascript
 checkPath(p:string, name:string):void
 ```
@@ -506,7 +501,7 @@ path | string | new working directory path
 <div id="taskcp">
 ### task.cp <a href="#index">(^)</a>
 Returns path of a tool had the tool actually been invoked.  Resolves via paths.
-If you check and the tool does not exist, the task will fail with an error message and halt execution.
+If you check and the tool does not exist, it will throw.
 Returns whether the copy was successful
 ```javascript
 cp(source:string, dest:string, options?:string, continueOnError?:boolean):void
@@ -643,15 +638,16 @@ path | string | path to check
 Synchronously writes data to a file, replacing the file if it already exists.
 See [fs.writeFileSync](https://nodejs.org/api/fs.html#fs_fs_writefilesync_file_data_options)
 ```javascript
-writeFile(file:string, data:string|Buffer, options?:string|FsOptions)
+writeFile(file:string, data:undefined, options?:undefined):void
 ```
  
 Param | Type | Description
 --- | --- | ---
-file | string | full path to the file to write
-data | string or Buffer| contents to be written to the file
-options | string or FsOptions | Optional options like encoding
-
+file | string |  - 
+data | undefined |  - 
+options | undefined |  - 
+ 
+ 
 <br/>
 <div id="Localization">
 ## Localization
