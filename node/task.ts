@@ -457,7 +457,8 @@ export function getDelimitedInput(name: string, delim: string, required?: boolea
 export function filePathSupplied(name: string): boolean {
     // normalize paths
     var pathValue = this.resolve(this.getPathInput(name) || '');
-    var repoRoot = this.resolve(this.getVariable('build.sourcesDirectory') || '');
+    var repoRoot = this.resolve(this.getVariable('build.sourcesDirectory') ||
+                        this.getVariable('system.defaultworkingdirectory') || '');
 
     var supplied = pathValue !== repoRoot;
     debug(name + 'path supplied :' + supplied);
