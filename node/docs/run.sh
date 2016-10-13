@@ -1,0 +1,2 @@
+tsc
+node gendocs.js
