@@ -1,0 +1,217 @@
+import * as ts from 'typescript';
+var path = require('path');
+
+// https://github.com/Microsoft/TypeScript/wiki/Using-the-Compiler-API
+
+export interface DocEntry {
+    name?: string,
+    documentation?: string,
+    kind?: string,
+    signatures?: DocEntry[],
+    parameters?: DocEntry[],
+    functions?: DocEntry[],
+    return?: string,
+    constructors?: DocEntry[],
+    members?: { string: [DocEntry]};
+};
+
+let program: ts.Program;
+let checker: ts.TypeChecker;
+
+export function generate(filePaths: string[], options: ts.CompilerOptions): DocEntry {
+    program = ts.createProgram(filePaths, options);
+    checker = program.getTypeChecker();
+    
+
+    let files: ts.SourceFile[] = program.getSourceFiles();
+    for (const sourceFile of program.getSourceFiles()) {
+        
+        
+        // only document files we specified. dependency files may be in program
+        if (filePaths.indexOf(sourceFile.fileName) >= 0) {
+            let name = path.basename(sourceFile.fileName, '.ts'); 
+            console.log('Processing:', name);
+
+            let fd: DocEntry = {
+                name: name,
+                kind: 'file',
+                members: {} as { string: [DocEntry]}
+            };
+            
+            doc.members[name] = fd;
+            push(fd);
+
+            ts.forEachChild(sourceFile, visit);
+        }
+    }
+    
+    return doc;
+}
+
+let inClass = false;
+
+function visit(node: ts.Node): void {
+
+    if (node.kind == ts.SyntaxKind.ClassDeclaration) {
+        if (!isNodeExported(node)) {
+            return;
+        }
+
+        let cd: ts.ClassDeclaration = <ts.ClassDeclaration>node;
+        let symbol = checker.getSymbolAtLocation(cd.name);
+        if (symbol) {
+
+            let doc: DocEntry = getDockEntryFromSymbol(symbol);
+            doc.kind = 'class';
+
+            if (inClass) {
+                pop();
+            }
+            inClass = true;
+
+            let constructorType = checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration);
+            doc.constructors = constructorType.getConstructSignatures().map(getDockEntryFromSignature);
+            current.members[doc.name] = doc;
+            
+            push(doc);                 
+        }
+    }
+    else if (node.kind == ts.SyntaxKind.InterfaceDeclaration) {
+        if (!isNodeExported(node)) {
+            return;
+        }        
+        let id: ts.InterfaceDeclaration = <ts.InterfaceDeclaration>node;
+        let symbol = checker.getSymbolAtLocation(id.name);
+        if (symbol) {
+            let doc: DocEntry = getDockEntryFromSymbol(symbol);
+            doc.kind = 'interface';
+
+            if (inClass) {
+                pop();
+            }
+            inClass = true;
+
+            let types = checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration);
+
+            let st: ts.SymbolTable = symbol.members;
+            for (var item in st) {
+                var s: ts.Symbol = st[item];
+                let decls: ts.Declaration[] = s.getDeclarations();
+                if (decls.length > 0) {
+                    let md: DocEntry = {};
+                    md.name = item;
+                    
+                    let itemtd: ts.Declaration = s.getDeclarations()[0];
+                    md.return = checker.typeToString(checker.getTypeAtLocation(itemtd))
+                    doc.members[item] = md;
+                }
+            }
+
+            current.members[doc.name] = doc;            
+            push(doc);                 
+        }        
+    }
+    if (node.kind == ts.SyntaxKind.EndOfFileToken) {
+        inClass = false;
+        current = doc;
+    }
+    else if (node.kind == ts.SyntaxKind.MethodDeclaration) {
+        let m: ts.MethodDeclaration = <ts.MethodDeclaration>node;
+        let symbol = checker.getSymbolAtLocation(m.name);
+        
+        if (symbol) {
+            let doc: DocEntry = getDockEntryFromSymbol(symbol);
+            doc.kind = 'method';
+            doc.name = symbol.getName();
+            let types = checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration);
+            let sigs = types.getCallSignatures();
+            doc.signatures = sigs.map(getDockEntryFromSignature);
+
+            current.members[doc.name] = doc;
+        }
+    }
+    else if (node.kind === ts.SyntaxKind.FunctionDeclaration) {
+        if (!isNodeExported(node)) {
+            return;
+        }
+
+        let f: ts.FunctionDeclaration = <ts.FunctionDeclaration>node;
+
+        if (inClass) {
+            pop();
+        }
+        inClass = false;
+
+        let symbol = checker.getSymbolAtLocation(f.name);
+        if (symbol) {
+            let doc: DocEntry = getDockEntryFromSymbol(symbol);
+            doc.kind = 'function';
+            doc.name = symbol.getName();
+
+            let types = checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration);
+            let sigs = types.getCallSignatures();
+            doc.signatures = sigs.map(getDockEntryFromSignature);
+
+            current.members[doc.name] = doc;
+        }
+    }
+    // else if (node.kind === ts.SyntaxKind.ModuleDeclaration) {
+    //     // This is a namespace, visit its children
+    //     console.log('*********** module **************');
+    //     let f: ts.ModuleDeclaration = <ts.ModuleDeclaration>node;
+    //     let symbol = checker.getSymbolAtLocation(f.name);
+    //     if (symbol) {
+    //         console.log('module', symbol.getName());
+    //     }          
+    // }
+
+    
+    ts.forEachChild(node, visit);      
+}
+
+function getDockEntryFromSignature(signature: ts.Signature): DocEntry {
+    let e: DocEntry = {
+        parameters: signature.parameters.map(getDockEntryFromSymbol),
+        members: {} as { string: [DocEntry]},
+        return: checker.typeToString(signature.getReturnType()),
+        documentation: ts.displayPartsToString(signature.getDocumentationComment())
+    };
+
+    return e;
+}
+
+function getDockEntryFromSymbol(symbol: ts.Symbol): DocEntry {
+    return {
+        name: symbol.getName(),
+        members: {} as { string: [DocEntry]},
+        documentation: ts.displayPartsToString(symbol.getDocumentationComment()),
+        
+        //type: checker.typeToString(checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration))
+    };
+}
+
+    /** True if this is visible outside this file, false otherwise */
+function isNodeExported(node: ts.Node): boolean {
+    return (node.flags & ts.NodeFlags.Export) !== 0 || (node.parent && node.parent.kind === ts.SyntaxKind.SourceFile);
+}   
+
+//
+// convenience stack 
+//
+
+let push = function(entry: DocEntry) {
+    stack.push(entry);
+    current = entry;
+}
+
+let pop = function(): DocEntry {
+    current = stack.pop();
+    current = stack[stack.length - 1];
+    return current;
+}
+
+let doc: DocEntry = {};
+doc.members = {} as { string: [DocEntry]};
+let stack: DocEntry[] = [];
+let current: DocEntry = doc;
+push(doc);
