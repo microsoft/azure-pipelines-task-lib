@@ -7,18 +7,6 @@ import child = require('child_process');
 import stream = require('stream');
 import tcm = require('./taskcommand');
 
-var run = function(cmd, callback) {
-    console.log('running: ' + cmd);
-    var output = '';
-    try {
-      
-    }
-    catch(err) {
-        console.log(err.message);
-    }
-
-}
-
 /**
  * Interface for exec options
  * 
@@ -27,6 +15,7 @@ var run = function(cmd, callback) {
  * @param     silent     optional.  defaults to false
  * @param     failOnStdErr     optional.  whether to fail if output to stderr.  defaults to false
  * @param     ignoreReturnCode     optional.  defaults to failing on non zero.  ignore will not fail leaving it up to the caller
+ * @param     windowsVerbatimArguments     optional.  whether to skip quoting/escaping arguments if needed.  defaults to false.
  */
 export interface IExecOptions {
     cwd: string;
@@ -36,6 +25,7 @@ export interface IExecOptions {
     ignoreReturnCode: boolean;
     outStream: stream.Writable;
     errStream: stream.Writable;
+    windowsVerbatimArguments: boolean;
 };
 
 /**
@@ -56,7 +46,11 @@ export interface IExecResult {
 export class ToolRunner extends events.EventEmitter {
     constructor(toolPath) {
         super();
-        
+
+        if (!toolPath) {
+            throw new Error('Parameter \'toolPath\' cannot be null or empty.');
+        }
+
         this.toolPath = toolPath;
         this.args = [];
         this.silent = false;
@@ -127,6 +121,338 @@ export class ToolRunner extends events.EventEmitter {
         return args;
     }
 
+    private _getCommandString(options: IExecOptions, noPrefix?: boolean): string {
+        let toolPath: string = this._getSpawnFileName(options);
+        let args: string[] = this._getSpawnArgs(options);
+        let cmd = noPrefix ? '' : '[command]'; // omit prefix when piped to a second tool
+        if (process.platform == 'win32') {
+            // Windows + cmd file
+            if (this._isCmdFile()) {
+                cmd += toolPath;
+                args.forEach((a: string): void => {
+                    cmd += ` ${a}`;
+                });
+            }
+            // Windows + verbatim
+            else if (options.windowsVerbatimArguments) {
+                cmd += `"${toolPath}"`;
+                args.forEach((a: string): void => {
+                    cmd += ` ${a}`;
+                });
+            }
+            // Windows (regular)
+            else {
+                cmd += this._windowsQuoteCmdArg(toolPath);
+                args.forEach((a: string): void => {
+                    cmd += ` ${this._windowsQuoteCmdArg(a)}`;
+                });
+            }
+        }
+        else {
+            // OSX/Linux - this can likely be improved with some form of quoting.
+            // creating processes on Unix is fundamentally different than Windows.
+            // on Unix, execvp() takes an arg array.
+            cmd += toolPath;
+            args.forEach((a: string): void => {
+                cmd += ` ${a}`;
+            });
+        }
+
+        // append second tool
+        if (this.pipeOutputToTool) {
+            cmd += ' | ' + this.pipeOutputToTool._getCommandString(options, /*noPrefix:*/true);
+        }
+
+        return cmd;
+    }
+
+    private _getSpawnFileName(options: IExecOptions): string {
+        if (process.platform == 'win32') {
+             if (this._isCmdFile()) {
+                 return process.env['COMSPEC'] || 'cmd.exe';
+             }
+        }
+
+        return this.toolPath;
+    }
+
+    private _getSpawnArgs(options: IExecOptions): string[] {
+        if (process.platform == 'win32') {
+            if (this._isCmdFile()) {
+                let argline: string = `/D /S /C "${this._windowsQuoteCmdArg(this.toolPath)}`;
+                for (let i = 0 ; i < this.args.length ; i++) {
+                    argline += ' ';
+                    argline += options.windowsVerbatimArguments ? this.args[i] : this._windowsQuoteCmdArg(this.args[i]);
+                }
+
+                argline += '"';
+                return [ argline ];
+            }
+
+            if (options.windowsVerbatimArguments) {
+                let args = this.args.slice(0); // copy the array
+
+                // Override slice to prevent Node from creating a copy of the arg array.
+                // We need Node to use the "unshift" override below.
+                args.slice = function () {
+                    if (arguments.length != 1 || arguments[0] != 0) {
+                        throw new Error('Unexpected arguments passed to args.slice when windowsVerbatimArguments flag is set.');
+                    }
+
+                    return args;
+                };
+
+                // Override unshift.
+                //
+                // When using the windowsVerbatimArguments option, Node does not quote the tool path when building
+                // the cmdline parameter for the win32 function CreateProcess(). An unquoted space in the tool path
+                // causes problems for tools when attempting to parse their own command line args. Tools typically
+                // assume their arguments begin after arg 0.
+                //
+                // By hijacking unshift, we can quote the tool path when it pushed onto the args array. Node builds
+                // the cmdline parameter from the args array.
+                //
+                // Note, we can't simply pass a quoted tool path to Node for multiple reasons:
+                //   1) Node verifies the file exists (calls win32 function GetFileAttributesW) and the check returns
+                //      false if the path is quoted.
+                //   2) Node passes the tool path as the application parameter to CreateProcess, which expects the
+                //      path to be unquoted.
+                //
+                // Also note, in addition to the tool path being embedded within the cmdline parameter, Node also
+                // passes the tool path to CreateProcess via the application parameter (optional parameter). When
+                // present, Windows uses the application parameter to determine which file to run, instead of
+                // interpreting the file from the cmdline parameter.
+                args.unshift = function () {
+                    if (arguments.length != 1) {
+                        throw new Error('Unexpected arguments passed to args.unshift when windowsVerbatimArguments flag is set.');
+                    }
+
+                    return Array.prototype.unshift.call(args, `"${arguments[0]}"`); // quote the file name
+                };
+                return args;
+            }
+        }
+
+        return this.args;
+    }
+
+    private _isCmdFile(): boolean {
+        let upperToolPath: string = this.toolPath.toUpperCase();
+        return upperToolPath.endsWith('.CMD') || upperToolPath.endsWith('.BAT');
+    }
+
+    private _windowsQuoteCmdArg(arg: string): string {
+        // for .exe, apply the normal quoting rules that libuv applies
+        if (!this._isCmdFile()) {
+            return this._uv_quote_cmd_arg(arg);
+        }
+
+        // otherwise apply quoting rules specific to the cmd.exe command line parser.
+        // the libuv rules are generic and are not designed specifically for cmd.exe
+        // command line parser.
+        //
+        // for a detailed description of the cmd.exe command line parser, refer to
+        // http://stackoverflow.com/questions/4094699/how-does-the-windows-command-interpreter-cmd-exe-parse-scripts/7970912#7970912
+
+        // need quotes for empty arg
+        if (!arg) {
+            return '""';
+        }
+
+        // determine whether the arg needs to be quoted
+        const cmdSpecialChars = [ ' ', '\t', '&', '(', ')', '[', ']', '{', '}', '^', '=', ';', '!', '\'', '+', ',', '`', '~', '|', '<', '>', '"' ];
+        let needsQuotes = false;
+        for (let char of arg) {
+            if (cmdSpecialChars.some(x => x == char)) {
+                needsQuotes = true;
+                break;
+            }
+        }
+
+        // short-circuit if quotes not needed
+        if (!needsQuotes) {
+            return arg;
+        }
+
+        // the following quoting rules are very similar to the rules that by libuv applies.
+        //
+        // 1) wrap the string in quotes
+        //
+        // 2) double-up quotes - i.e. " => ""
+        //
+        //    this is different from the libuv quoting rules. libuv replaces " with \", which unfortunately
+        //    doesn't work well with a cmd.exe command line.
+        //
+        //    note, replacing " with "" also works well if the arg is passed to a downstream .NET console app.
+        //    for example, the command line:
+        //          foo.exe "myarg:""my val"""
+        //    is parsed by a .NET console app into an arg array:
+        //          [ "myarg:\"my val\"" ]
+        //    which is the same end result when applying libuv quoting rules. although the actual
+        //    command line from libuv quoting rules would look like:
+        //          foo.exe "myarg:\"my val\""
+        //
+        // 3) double-up slashes that preceed a quote,
+        //    e.g.  hello \world    => "hello \world"
+        //          hello\"world    => "hello\\""world"
+        //          hello\\"world   => "hello\\\\""world"
+        //          hello world\    => "hello world\\"
+        //
+        //    technically this is not required for a cmd.exe command line, or the batch argument parser.
+        //    the reasons for including this as a .cmd quoting rule are:
+        //
+        //    a) this is optimized for the scenario where the argument is passed from the .cmd file to an
+        //       external program. many programs (e.g. .NET console apps) rely on the slash-doubling rule.
+        //
+        //    b) it's what we've been doing previously (by deferring to node default behavior) and we
+        //       haven't heard any complaints about that aspect.
+        //
+        // note, a weakness of the quoting rules chosen here, is that % is not escaped. in fact, % cannot be
+        // escaped when used on the command line directly - even though within a .cmd file % can be escaped
+        // by using %%.
+        //
+        // the saving grace is, on the command line, %var% is left as-is if var is not defined. this contrasts
+        // the line parsing rules within a .cmd file, where if var is not defined it is replaced with nothing.
+        //
+        // one option that was explored was replacing % with ^% - i.e. %var% => ^%var^%. this hack would
+        // often work, since it is unlikely that var^ would exist, and the ^ character is removed when the
+        // variable is used. the problem, however, is that ^ is not removed when %* is used to pass the args
+        // to an external program.
+        //
+        // an unexplored potential solution for the % escaping problem, is to create a wrapper .cmd file.
+        // % can be escaped within a .cmd file.
+        let reverse: string = '"';
+        let quote_hit = true;
+        for (let i = arg.length ; i > 0 ; i--) { // walk the string in reverse
+            reverse += arg[i - 1];
+            if (quote_hit && arg[i - 1] == '\\') {
+                reverse += '\\'; // double the slash
+            }
+            else if (arg[i - 1] == '"') {
+                quote_hit = true;
+                reverse += '"'; // double the quote
+            }
+            else {
+                quote_hit = false;
+            }
+        }
+
+        reverse += '"';
+        return reverse.split('').reverse().join('');
+    }
+
+    private _uv_quote_cmd_arg(arg: string): string {
+        // Tool runner wraps child_process.spawn() and needs to apply the same quoting as
+        // Node in certain cases where the undocumented spawn option windowsVerbatimArguments
+        // is used.
+        //
+        // Since this function is a port of quote_cmd_arg from Node 4.x (technically, lib UV,
+        // see https://github.com/nodejs/node/blob/v4.x/deps/uv/src/win/process.c for details),
+        // pasting copyright notice from Node within this function:
+        //
+        //      Copyright Joyent, Inc. and other Node contributors. All rights reserved.
+        //
+        //      Permission is hereby granted, free of charge, to any person obtaining a copy
+        //      of this software and associated documentation files (the "Software"), to
+        //      deal in the Software without restriction, including without limitation the
+        //      rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+        //      sell copies of the Software, and to permit persons to whom the Software is
+        //      furnished to do so, subject to the following conditions:
+        //
+        //      The above copyright notice and this permission notice shall be included in
+        //      all copies or substantial portions of the Software.
+        //
+        //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        //      IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        //      FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        //      AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        //      LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+        //      FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+        //      IN THE SOFTWARE.
+
+        if (!arg) {
+            // Need double quotation for empty argument
+            return '""';
+        }
+
+        if (arg.indexOf(' ') < 0 && arg.indexOf('\t') < 0 && arg.indexOf('"') < 0) {
+            // No quotation needed
+            return arg;
+        }
+
+        if (arg.indexOf('"') < 0 && arg.indexOf('\\') < 0) {
+            // No embedded double quotes or backslashes, so I can just wrap
+            // quote marks around the whole thing.
+            return `"${arg}"`;
+        }
+
+        // Expected input/output:
+        //   input : hello"world
+        //   output: "hello\"world"
+        //   input : hello""world
+        //   output: "hello\"\"world"
+        //   input : hello\world
+        //   output: hello\world
+        //   input : hello\\world
+        //   output: hello\\world
+        //   input : hello\"world
+        //   output: "hello\\\"world"
+        //   input : hello\\"world
+        //   output: "hello\\\\\"world"
+        //   input : hello world\
+        //   output: "hello world\\" - note the comment in libuv actually reads "hello world\"
+        //                             but it appears the comment is wrong, it should be "hello world\\"
+        let reverse: string = '"';
+        let quote_hit = true;
+        for (let i = arg.length ; i > 0 ; i--) { // walk the string in reverse
+            reverse += arg[i - 1];
+            if (quote_hit && arg[i - 1] == '\\') {
+                reverse += '\\';
+            }
+            else if (arg[i - 1] == '"') {
+                quote_hit = true;
+                reverse += '\\';
+            }
+            else {
+                quote_hit = false;
+            }
+        }
+
+        reverse += '"';
+        return reverse.split('').reverse().join('');
+    }
+
+    private _cloneExecOptions(options: IExecOptions): IExecOptions {
+        options = options || <IExecOptions>{};
+        let result: IExecOptions = <IExecOptions>{
+            cwd: options.cwd || process.cwd(),
+            env: options.env || process.env,
+            silent: options.silent || false,
+            failOnStdErr: options.failOnStdErr || false,
+            ignoreReturnCode: options.ignoreReturnCode || false,
+            windowsVerbatimArguments: options.windowsVerbatimArguments || false
+        };
+        result.outStream = options.outStream || <stream.Writable>process.stdout;
+        result.errStream = options.errStream || <stream.Writable>process.stderr;
+        return result;
+    }
+
+    private _getSpawnOptions(options: IExecOptions): child.SpawnOptions {
+        let result = <child.SpawnOptions>{};
+        result.cwd = options.cwd;
+        result.env = options.env;
+        result['windowsVerbatimArguments'] = options.windowsVerbatimArguments || this._isCmdFile();
+        return result;
+    }
+
+    private _getSpawnSyncOptions(options: IExecOptions): child.SpawnSyncOptions {
+        let result = <child.SpawnSyncOptions>{};
+        result.cwd = options.cwd;
+        result.env = options.env;
+        result['windowsVerbatimArguments'] = options.windowsVerbatimArguments || this._isCmdFile();
+        return result;
+    }
+
     /**
      * Add argument
      * Append an argument or an array of arguments 
@@ -153,11 +479,11 @@ export class ToolRunner extends events.EventEmitter {
     }
 
     /**
-     * Append argument command line string
-     * e.g. '"arg one" two -z' would append args[]=['arg one', 'two', '-z']
-     * returns ToolRunner for chaining 
+     * Parses an argument line into one or more arguments
+     * e.g. .line('"arg one" two -z') is equivalent to .arg(['arg one', 'two', '-z'])
+     * returns ToolRunner for chaining
      * 
-     * @param     val        string cmdline
+     * @param     val        string argument line
      * @returns   ToolRunner
      */
     public line(val: string): ToolRunner {
@@ -214,46 +540,19 @@ export class ToolRunner extends events.EventEmitter {
             this._debug('   ' + arg);
         });
 
-        var success = true;
-        options = options || <IExecOptions>{};
+        let success = true;
+        options = this._cloneExecOptions(options);
 
-        var ops: IExecOptions = <IExecOptions>{
-            cwd: options.cwd || process.cwd(),
-            env: options.env || process.env,
-            silent: options.silent || false,
-            failOnStdErr: options.failOnStdErr || false,
-            ignoreReturnCode: options.ignoreReturnCode || false
-        };
-
-        ops.outStream = options.outStream || <stream.Writable>process.stdout;
-        ops.errStream = options.errStream || <stream.Writable>process.stderr;
-
-        var argString = this.args.join(' ') || '';
-        var cmdString = this.toolPath;
-        if (argString) {
-            cmdString += (' ' + argString);
-        }
-
-        if (!ops.silent) {
-            if(!this.pipeOutputToTool) {
-                ops.outStream.write('[command]' + cmdString + os.EOL);
-            } else {
-                var pipeToolArgString = this.pipeOutputToTool.args.join(' ') || '';
-                var pipeToolCmdString = this.pipeOutputToTool.toolPath;
-                if(pipeToolArgString) {
-                    pipeToolCmdString += (' ' + pipeToolArgString);
-                }
-                ops.outStream.write('[command]' + cmdString + ' | ' + pipeToolCmdString + os.EOL)
-            }
+        if (!options.silent) {
+            options.outStream.write(this._getCommandString(options) + os.EOL);
         }
 
         // TODO: filter process.env
-        var cp;
-        var toolPath = this.toolPath;
-
-        var toolPathFirst;
-        var successFirst = true;
-        var returnCodeFirst;
+        let cp;
+        let toolPath: string = this.toolPath;
+        let toolPathFirst: string;
+        let successFirst = true;
+        let returnCodeFirst: number;
 
         if(this.pipeOutputToTool) {
             toolPath = this.pipeOutputToTool.toolPath;
@@ -263,8 +562,14 @@ export class ToolRunner extends events.EventEmitter {
             // https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options
 
             //start the child process for both tools
-            var cpFirst = child.spawn(toolPathFirst, this.args, {cwd: ops.cwd, env: ops.env});
-            cp = child.spawn(toolPath, this.pipeOutputToTool.args, {cwd: ops.cwd, env: ops.env});
+            var cpFirst = child.spawn(
+                this._getSpawnFileName(options),
+                this._getSpawnArgs(options),
+                this._getSpawnOptions(options));
+            cp = child.spawn(
+                this.pipeOutputToTool._getSpawnFileName(options),
+                this.pipeOutputToTool._getSpawnArgs(options),
+                this.pipeOutputToTool._getSpawnOptions(options));
 
             //pipe stdout of first tool to stdin of second tool
             cpFirst.stdout.on('data', (data: Buffer) => {
@@ -276,9 +581,9 @@ export class ToolRunner extends events.EventEmitter {
                 }
             });
             cpFirst.stderr.on('data', (data: Buffer) => {
-                successFirst = !ops.failOnStdErr;
-                if (!ops.silent) {
-                    var s = ops.failOnStdErr ? ops.errStream : ops.outStream;
+                successFirst = !options.failOnStdErr;
+                if (!options.silent) {
+                    var s = options.failOnStdErr ? options.errStream : options.outStream;
                     s.write(data);
                 }
             });
@@ -287,7 +592,7 @@ export class ToolRunner extends events.EventEmitter {
                 defer.reject(new Error(toolPathFirst + ' failed. ' + err.message));
             });
             cpFirst.on('close', (code, signal) => {
-                if (code != 0 && !ops.ignoreReturnCode) {
+                if (code != 0 && !options.ignoreReturnCode) {
                     successFirst = false;
                     returnCodeFirst = code;
                 }
@@ -296,7 +601,7 @@ export class ToolRunner extends events.EventEmitter {
             });
 
         } else {
-            cp = child.spawn(toolPath, this.args, {cwd: ops.cwd, env: ops.env});
+            cp = child.spawn(this._getSpawnFileName(options), this._getSpawnArgs(options), this._getSpawnOptions(options));
         }
 
         var processLineBuffer = (data: Buffer, strBuffer: string, onLine:(line: string) => void): void => {
@@ -326,8 +631,8 @@ export class ToolRunner extends events.EventEmitter {
         cp.stdout.on('data', (data: Buffer) => {
             this.emit('stdout', data);
 
-            if (!ops.silent) {
-                ops.outStream.write(data);    
+            if (!options.silent) {
+                options.outStream.write(data);
             }
 
             processLineBuffer(data, stdbuffer, (line: string) => {
@@ -339,9 +644,9 @@ export class ToolRunner extends events.EventEmitter {
         cp.stderr.on('data', (data: Buffer) => {
             this.emit('stderr', data);
 
-            success = !ops.failOnStdErr;
-            if (!ops.silent) {
-                var s = ops.failOnStdErr ? ops.errStream : ops.outStream;
+            success = !options.failOnStdErr;
+            if (!options.silent) {
+                var s = options.failOnStdErr ? options.errStream : options.outStream;
                 s.write(data);
             }
 
@@ -365,7 +670,7 @@ export class ToolRunner extends events.EventEmitter {
                 this.emit('errline', errbuffer);
             }
 
-            if (code != 0 && !ops.ignoreReturnCode) {
+            if (code != 0 && !options.ignoreReturnCode) {
                 success = false;
             }
 
@@ -403,42 +708,25 @@ export class ToolRunner extends events.EventEmitter {
         });
 
         var success = true;
-        options = options || <IExecOptions>{};
+        options = this._cloneExecOptions(options);
 
-        var ops: IExecOptions = <IExecOptions>{
-            cwd: options.cwd || process.cwd(),
-            env: options.env || process.env,
-            silent: options.silent || false,
-            failOnStdErr: options.failOnStdErr || false,
-            ignoreReturnCode: options.ignoreReturnCode || false
-        };
-
-        ops.outStream = options.outStream || <stream.Writable>process.stdout;
-        ops.errStream = options.errStream || <stream.Writable>process.stderr;
-
-        var argString = this.args.join(' ') || '';
-        var cmdString = this.toolPath;
-        if (argString) {
-            cmdString += (' ' + argString);
+        if (!options.silent) {
+            options.outStream.write(this._getCommandString(options) + os.EOL);
         }
 
-        if (!ops.silent) {
-            ops.outStream.write('[command]' + cmdString + os.EOL);    
-        }
-        
-        var r = child.spawnSync(this.toolPath, this.args, { cwd: ops.cwd, env: ops.env });
-        
+        var r = child.spawnSync(this._getSpawnFileName(options), this._getSpawnArgs(options), this._getSpawnSyncOptions(options));
+
         if (r.stdout && r.stdout.length > 0) {
-            ops.outStream.write(r.stdout);
+            options.outStream.write(r.stdout);
         }
 
         if (r.stderr && r.stderr.length > 0) {
-            ops.errStream.write(r.stderr);
+            options.errStream.write(r.stderr);
         }
 
         var res:IExecResult = <IExecResult>{ code: r.status, error: r.error };
         res.stdout = (r.stdout) ? r.stdout.toString() : null;
         res.stderr = (r.stderr) ? r.stderr.toString() : null;
         return res;
-    }   
+    }
 }

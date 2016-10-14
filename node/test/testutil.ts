@@ -32,20 +32,23 @@ export function getNullStream() {
     return new NullStream();    
 }
 
-var StringStream = function () {
-    var contents = '';
+export class StringStream extends stream.Writable {
+    constructor() {
+        super();
+        stream.Writable.call(this);
+    }
 
-    stream.Writable.call(this);
-    this._write = function (data, encoding, next) {
-        contents += data;
+    private contents = '';
+
+    public _write(data, encoding, next) {
+        this.contents += data;
         next();
     }
 
-    this.getContents = function () {
-        return contents.toString();
+    public getContents() {
+        return this.contents;
     }
 }
-util.inherits(StringStream, stream.Writable);
 
 export function createStringStream() {
     return new StringStream();    
