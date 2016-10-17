@@ -50,7 +50,7 @@ describe('Test vsts-task-lib', function () {
     it('get loc string from loc resources.json', function (done) {
         this.timeout(1000);
 
-        var tempFolder = path.join(__dirname, Math.floor(Math.random() * 100).toString());
+        var tempFolder = path.join(testutil.getTestTemp(), 'loc-str-from-loc-res-json');
         shell.mkdir('-p', tempFolder);
         var jsonStr = "{\"messages\": {\"key1\" : \"string for key 1.\", \"key2\" : \"string for key %d.\", \"key3\" : \"string for key %%.\"}}";
         var jsonPath = path.join(tempFolder, 'task.json');
@@ -75,7 +75,7 @@ describe('Test vsts-task-lib', function () {
     it('fallback to current string if culture resources.resjson not found', function (done) {
         this.timeout(1000);
 
-        var tempFolder = path.join(__dirname, Math.floor(Math.random() * 100).toString());
+        var tempFolder = path.join(testutil.getTestTemp(), 'loc-fallback-culture-resjson-not-found');
         shell.mkdir('-p', tempFolder);
         var jsonStr = "{\"messages\": {\"key1\" : \"string for key 1.\", \"key2\" : \"string for key %d.\", \"key3\" : \"string for key %%.\"}}";
         var jsonPath = path.join(tempFolder, 'task.json');
@@ -91,7 +91,7 @@ describe('Test vsts-task-lib', function () {
     it('fallback to current string if loc string not found in culture resources.resjson', function (done) {
         this.timeout(1000);
 
-        var tempFolder = path.join(__dirname, Math.floor(Math.random() * 100).toString());
+        var tempFolder = path.join(testutil.getTestTemp(), 'loc-fallback-culture-string-not-found');
         shell.mkdir('-p', tempFolder);
         var jsonStr = "{\"messages\": {\"key1\" : \"string for key 1.\", \"key2\" : \"string for key %d.\", \"key3\" : \"string for key %%.\"}}";
         var jsonPath = path.join(tempFolder, 'task.json');
@@ -113,7 +113,7 @@ describe('Test vsts-task-lib', function () {
     it('fallback to en-US if culture not set', function (done) {
         this.timeout(1000);
 
-        var tempFolder = path.join(__dirname, Math.floor(Math.random() * 100).toString());
+        var tempFolder = path.join(testutil.getTestTemp(), 'loc-default-to-en-US');
         shell.mkdir('-p', tempFolder);
         var jsonStr = "{\"messages\": {\"key1\" : \"string for key 1.\", \"key2\" : \"string for key %d.\", \"key3\" : \"string for key %%.\"}}";
         var jsonPath = path.join(tempFolder, 'task.json');
@@ -135,7 +135,7 @@ describe('Test vsts-task-lib', function () {
     it('return key and params if key is not in task.json', function (done) {
         this.timeout(1000);
 
-        var tempFolder = path.join(__dirname, Math.floor(Math.random() * 100).toString());
+        var tempFolder = path.join(testutil.getTestTemp(), 'loc-key-not-found-returns-key-plus-args');
         shell.mkdir('-p', tempFolder);
         var jsonStr = "{\"messages\": {\"key1\" : \"string for key 1.\", \"key2\" : \"string for key %d.\"}}";
         var jsonPath = path.join(tempFolder + 'task.json');

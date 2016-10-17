@@ -32,8 +32,6 @@ describe('Toolrunner Tests', function () {
     it('ExecSync convenience with stdout', function (done) {
         this.timeout(1000);
 
-        tl.pushd(__dirname);
-
         var _testExecOptions: trm.IExecOptions = {
             cwd: __dirname,
             env: {},
@@ -54,13 +52,10 @@ describe('Toolrunner Tests', function () {
         }
 
         assert(ret.stdout && ret.stdout.length > 0, 'should have emitted stdout');
-        tl.popd();
         done();
     })
     it('ExecSync with stdout', function (done) {
         this.timeout(1000);
-
-        tl.pushd(__dirname);
 
         var _testExecOptions: trm.IExecOptions = {
             cwd: __dirname,
@@ -89,13 +84,10 @@ describe('Toolrunner Tests', function () {
         }
 
         assert(ret.stdout && ret.stdout.length > 0, 'should have emitted stdout');
-        tl.popd();
         done();
     })
     it('ExecSync fails with rc 1 and stderr', function (done) {
         this.timeout(1000);
-
-        tl.pushd(__dirname);
 
         var _testExecOptions: trm.IExecOptions = {
             cwd: __dirname,
@@ -122,13 +114,10 @@ describe('Toolrunner Tests', function () {
         var ret = tool.execSync(_testExecOptions);
         assert.equal(ret.code, 123, 'return code of tool should be 1');
         assert.equal(ret.stderr.toString().trim(), 'hello from stderr');
-        tl.popd();
         done();
     })
     it('Exec convenience with stdout', function (done) {
         this.timeout(1000);
-
-        tl.pushd(__dirname);
 
         var _testExecOptions: trm.IExecOptions = {
             cwd: __dirname,
@@ -144,33 +133,25 @@ describe('Toolrunner Tests', function () {
             tl.exec('cmd', '/c echo \'vsts-task-lib\'', _testExecOptions)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code of cmd should be 0');
-                })
-                .fail(function (err) {
-                    assert.fail('cmd failed to run: ' + err.message);
-                })
-                .fin(function () {
-                    tl.popd();
                     done();
                 })
+                .fail(function (err) {
+                    done(err);
+                });
         }
         else {
             tl.exec('ls', '-l -a', _testExecOptions)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code of ls should be 0');
-                })
-                .fail(function (err) {
-                    assert.fail('ls failed to run: ' + err.message);
-                })
-                .fin(function () {
-                    tl.popd();
                     done();
                 })
+                .fail(function (err) {
+                    done(err);
+                });
         }
     })
     it('ToolRunner writes debug', function (done) {
         this.timeout(1000);
-
-        tl.pushd(__dirname);
 
         var stdStream = testutil.createStringStream();
         tl.setStdStream(stdStream);
@@ -195,14 +176,11 @@ describe('Toolrunner Tests', function () {
                     var contents = stdStream.getContents();
                     assert(contents.indexOf('exec tool: ' + cmdPath) >= 0, 'should exec cmd');
                     assert.equal(code, 0, 'return code of cmd should be 0');
-                })
-                .fail(function (err) {
-                    assert.fail('ls failed to run: ' + err.message);
-                })
-                .fin(function () {
-                    tl.popd();
                     done();
                 })
+                .fail(function (err) {
+                    done(err);
+                });
         }
         else {
             var ls = tl.tool(tl.which('ls', true));
@@ -214,20 +192,15 @@ describe('Toolrunner Tests', function () {
                     var contents = stdStream.getContents();
                     assert(contents.indexOf('exec tool: /bin/ls') >= 0, 'should exec ls');
                     assert.equal(code, 0, 'return code of ls should be 0');
-                })
-                .fail(function (err) {
-                    assert.fail('ls failed to run: ' + err.message);
-                })
-                .fin(function () {
-                    tl.popd();
                     done();
                 })
+                .fail(function (err) {
+                    done(err);
+                });
         }
     })
     it('Execs with stdout', function (done) {
         this.timeout(1000);
-
-        tl.pushd(__dirname);
 
         var _testExecOptions: trm.IExecOptions = {
             cwd: __dirname,
@@ -252,14 +225,11 @@ describe('Toolrunner Tests', function () {
                 .then(function (code) {
                     assert.equal(code, 0, 'return code of cmd should be 0');
                     assert(output && output.length > 0, 'should have emitted stdout');
-                })
-                .fail(function (err) {
-                    assert.fail('cmd failed to run: ' + err.message);
-                })
-                .fin(function () {
-                    tl.popd();
                     done();
                 })
+                .fail(function (err) {
+                    done(err);
+                });
         }
         else {
             var ls = tl.tool(tl.which('ls', true));
@@ -274,20 +244,15 @@ describe('Toolrunner Tests', function () {
                 .then(function (code) {
                     assert.equal(code, 0, 'return code of ls should be 0');
                     assert(output && output.length > 0, 'should have emitted stdout');
-                })
-                .fail(function (err) {
-                    assert.fail('ls failed to run: ' + err.message);
-                })
-                .fin(function () {
-                    tl.popd();
                     done();
                 })
+                .fail(function (err) {
+                    done(err);
+                });
         }
     })
     it('Fails on return code 1 with stderr', function (done) {
         this.timeout(1000);
-
-        var failed = false;
 
         var _testExecOptions: trm.IExecOptions = {
             cwd: __dirname,
@@ -299,56 +264,63 @@ describe('Toolrunner Tests', function () {
             errStream: testutil.getNullStream()
         }
 
-        var output = '';
         if (os.platform() === 'win32') {
             var cmd = tl.tool(tl.which('cmd', true));
             cmd.arg('/c notExist');
 
+            var output = '';
             cmd.on('stderr', (data) => {
                 output = data.toString();
             });
 
+            var succeeded = false;
             cmd.exec(_testExecOptions)
                 .then(function (code) {
-                    assert(code === 1, 'return code of cmd should be 1');
-                    assert(output && output.length > 0, 'should have emitted stderr');
+                    succeeded = true;
+                    assert.fail('should not have succeeded');
                 })
                 .fail(function (err) {
-                    failed = true;
-                })
-                .fin(function () {
-                    if (!failed) {
-                        done(new Error('cmd should have failed'));
-                        return;
+                    if (succeeded) {
+                        done(err);
                     }
-
-                    done();
+                    else {
+                        assert(err.message.indexOf('return code: 1') >= 0, `expected error message to indicate "return code: 1". actual error message: "${err}"`);
+                        assert(output && output.length > 0, 'should have emitted stderr');
+                        done();
+                    }
                 })
+                .fail(function (err) {
+                    done(err);
+                });
         }
         else {
             var ls = tl.tool(tl.which('ls', true));
             ls.arg('-j');
 
+            var output = '';
             ls.on('stderr', (data) => {
                 output = data.toString();
             });
 
+            var succeeded = false;
             ls.exec(_testExecOptions)
-                .then(function (code) {
-                    assert.equal(code, 1, 'return code of ls -j should be 1');
-                    assert(output && output.length > 0, 'should have emitted stderr');
+                .then(function () {
+                    succeeded = true;
+                    assert.fail('should not have succeeded');
                 })
                 .fail(function (err) {
-                    failed = true;
-                })
-                .fin(function () {
-                    if (!failed) {
-                        done(new Error('ls should have failed'));
-                        return;
+                    if (succeeded) {
+                        done(err);
                     }
-
-                    done();
+                    else {
+                        assert(err.message.indexOf('return code: 1') >= 0, `expected error message to indicate "return code: 1". actual error message: "${err}"`);
+                        assert(output && output.length > 0, 'should have emitted stderr');
+                        done();
+                    }
                 })
+                .fail(function (err) {
+                    done(err);
+                });
         }
     })
     it('Succeeds on stderr by default', function (done) {
@@ -379,11 +351,9 @@ describe('Toolrunner Tests', function () {
     it('Fails on stderr if specified', function (done) {
         this.timeout(1000);
 
-        var failed = false;
-
         var scriptPath = path.join(__dirname, 'scripts', 'stderrOutput.js');
-        var ls = tl.tool(tl.which('node', true));
-        ls.arg(scriptPath);
+        var node = tl.tool(tl.which('node', true))
+            .arg(scriptPath);
 
         var _testExecOptions: trm.IExecOptions = {
             cwd: __dirname,
@@ -394,26 +364,34 @@ describe('Toolrunner Tests', function () {
             outStream: testutil.getNullStream(),
             errStream: testutil.getNullStream()
         }
-        ls.exec(_testExecOptions)
-            .then(function (code) {
-                assert.equal(code, 0, 'should have succeeded on stderr');
+
+        var output = '';
+        node.on('stderr', (data) => {
+            output = data.toString();
+        });
+
+        var succeeded = false;
+        node.exec(_testExecOptions)
+            .then(function () {
+                succeeded = true;
+                assert.fail('should not have succeeded');
             })
             .fail(function (err) {
-                failed = true;
-            })
-            .fin(function () {
-                if (!failed) {
-                    done(new Error('should have failed on stderr'));
-                    return;
+                if (succeeded) {
+                    done(err);
                 }
-
-                done();
+                else {
+                    assert(err.message.indexOf('return code: 0') >= 0, `expected error message to indicate "return code: 0". actual error message: "${err}"`);
+                    assert(output && output.length > 0, 'should have emitted stderr');
+                    done();
+                }
             })
+            .fail(function (err) {
+                done(err);
+            });
     })
     it('Exec pipe output to another tool, succeeds if both tools succeed', function(done) {
         this.timeout(1000);
-
-        tl.pushd(__dirname);
 
         var _testExecOptions: trm.IExecOptions = {
             cwd: __dirname,
@@ -425,30 +403,27 @@ describe('Toolrunner Tests', function () {
             errStream: testutil.getNullStream()
         }
 
-        var output = '';
         if (os.platform() === 'win32') {
-            var find = tl.tool(tl.which('FIND', true));
-            find.arg('"cmd"');
+            var find = tl.tool(tl.which('FINDSTR', true));
+            find.arg('cmd');
 
             var tasklist = tl.tool(tl.which('tasklist', true));
             tasklist.pipeExecOutputToTool(find);
 
+            var output = '';
             tasklist.on('stdout', (data) => {
                 output += data.toString();
             });
 
             tasklist.exec(_testExecOptions)
-            .then(function (code) {
-                assert.equal(code, 0, 'return code of exec should be 0');
-                assert(output && output.length > 0 && output.indexOf('ssh') >= 0, 'should have emitted stdout ' + output);
-            })
-            .fail(function (err) {
-                assert.fail('tasklist | FIND "cmd" failed to run: ' + err.message);
-            })
-            .fin(function () {
-                tl.popd();
-                done();
-            })
+                .then(function (code) {
+                    assert.equal(code, 0, 'return code of exec should be 0');
+                    assert(output && output.length > 0 && output.indexOf('cmd') >= 0, 'should have emitted stdout ' + output);
+                    done();
+                })
+                .fail(function (err) {
+                    done(err);
+                });
         }
         else {
             var grep = tl.tool(tl.which('grep', true));
@@ -458,28 +433,24 @@ describe('Toolrunner Tests', function () {
             ps.arg('ax');
             ps.pipeExecOutputToTool(grep);
 
+            var output = '';
             ps.on('stdout', (data) => {
                 output += data.toString();
             });
 
             ps.exec(_testExecOptions)
-            .then(function (code) {
-                assert.equal(code, 0, 'return code of exec should be 0');
-                assert(output && output.length > 0 && output.indexOf('ssh') >= 0, 'should have emitted stdout ' + output);
-            })
-            .fail(function (err) {
-                assert.fail('ps ax | grep ssh failed to run: ' + err.message);
-            })
-            .fin(function () {
-                tl.popd();
-                done();
-            })
+                .then(function (code) {
+                    assert.equal(code, 0, 'return code of exec should be 0');
+                    assert(output && output.length > 0 && output.indexOf('ssh') >= 0, 'should have emitted stdout ' + output);
+                    done();
+                })
+                .fail(function (err) {
+                    done(err);
+                });
         }
     })
     it('Exec pipe output to another tool, fails if first tool fails', function(done) {
         this.timeout(1000);
-
-        tl.pushd(__dirname);
 
         var _testExecOptions: trm.IExecOptions = {
             cwd: __dirname,
@@ -491,37 +462,38 @@ describe('Toolrunner Tests', function () {
             errStream: testutil.getNullStream()
         }
 
-        var output = '';
-        var errOut = '';
         if (os.platform() === 'win32') {
-            var find = tl.tool(tl.which('FIND', true));
-            find.arg('"cmd"');
+            var find = tl.tool(tl.which('FINDSTR', true));
+            find.arg('cmd');
 
             var tasklist = tl.tool(tl.which('tasklist', true));
             tasklist.arg('bad');
             tasklist.pipeExecOutputToTool(find);
 
+            var output = '';
             tasklist.on('stdout', (data) => {
                 output += data.toString();
             });
 
-            tasklist.on('stderr', (data) => {
-                errOut += data.toString();
-            });
-
+            var succeeded = false;
             tasklist.exec(_testExecOptions)
-            .then(function (code) {
-                    assert.fail('tasklist bad | find "cmd" was a bad command and it did not fail');
+                .then(function () {
+                    succeeded = true;
+                    assert.fail('tasklist bad | findstr cmd was a bad command and it did not fail');
                 })
                 .fail(function (err) {
-                    assert(errOut && errOut.length > 0 && errOut.indexOf('ERROR: Invalid argument/option') >= 0, 'error output from tasklist command is expected');
-                    assert(err && err.message && err.message.indexOf('tasklist.exe') >=0, 'error from tasklist is not reported');
+                    if (succeeded) {
+                        done(err);
+                    }
+                    else {
+                        //assert(output && output.length > 0 && output.indexOf('ERROR: Invalid argument/option') >= 0, 'error output from tasklist command does not match expected. actual: ' + output);
+                        assert(err && err.message && err.message.indexOf('tasklist.exe') >=0, 'error from tasklist is not reported');
+                        done();
+                    }
                 })
-            .fin(function () {
-                tl.popd();
-                done();
-            })
-
+                .fail(function (err) {
+                    done(err);
+                });
         }
         else {
             var grep = tl.tool(tl.which('grep', true));
@@ -531,32 +503,34 @@ describe('Toolrunner Tests', function () {
             ps.arg('bad');
             ps.pipeExecOutputToTool(grep);
 
+            var output = '';
             ps.on('stdout', (data) => {
                 output += data.toString();
             });
 
-            ps.on('stderr', (data) => {
-                errOut += data.toString();
-            })
-
+            var succeeded = false;
             ps.exec(_testExecOptions)
-                .then(function (code) {
+                .then(function () {
+                    succeeded = true;
                     assert.fail('ps bad | grep ssh was a bad command and it did not fail');
                 })
                 .fail(function (err) {
-                    assert(errOut && errOut.length > 0 && errOut.indexOf('ps: illegal option') >= 0, 'error output from ps command is expected');
-                    assert(err && err.message && err.message.indexOf('/bin/ps') >=0, 'error from ps is not reported');
+                    if (succeeded) {
+                        done(err);
+                    }
+                    else {
+                        //assert(output && output.length > 0 && output.indexOf('ps: illegal option') >= 0, `error output "ps: illegal option" is expected. actual "${output}"`);
+                        assert(err && err.message && err.message.indexOf('/bin/ps') >=0, 'error from ps is not reported');
+                        done();
+                    }
                 })
-                .fin(function () {
-                    tl.popd();
-                    done();
+                .fail(function (err) {
+                    done(err);
                 })
         }
     })
     it('Exec pipe output to another tool, fails if second tool fails', function(done) {
         this.timeout(1000);
-
-        tl.pushd(__dirname);
 
         var _testExecOptions: trm.IExecOptions = {
             cwd: __dirname,
@@ -568,8 +542,6 @@ describe('Toolrunner Tests', function () {
             errStream: testutil.getNullStream()
         }
 
-        var output = '';
-        var errOut = '';
         if (os.platform() === 'win32') {
             var find = tl.tool(tl.which('FIND', true));
             find.arg('bad');
@@ -577,27 +549,35 @@ describe('Toolrunner Tests', function () {
             var tasklist = tl.tool(tl.which('tasklist', true));
             tasklist.pipeExecOutputToTool(find);
 
+            var output = '';
             tasklist.on('stdout', (data) => {
                 output += data.toString();
             });
 
+            var errOut = '';
             tasklist.on('stderr', (data) => {
                 errOut += data.toString();
             });
 
+            var succeeded = false;
             tasklist.exec(_testExecOptions)
-            .then(function (code) {
+                .then(function (code) {
+                    succeeded = true;
                     assert.fail('tasklist bad | find "cmd" was a bad command and it did not fail');
                 })
                 .fail(function (err) {
-                    assert(errOut && errOut.length > 0 && errOut.indexOf('FIND: Parameter format not correct') >= 0, 'error output from FIND command is expected');
-                    assert(err && err.message && err.message.indexOf('find.exe') >=0, 'error from find is not reported');
+                    if (succeeded) {
+                        done(err);
+                    }
+                    else {
+                        assert(errOut && errOut.length > 0 && errOut.indexOf('FIND: Parameter format not correct') >= 0, 'error output from FIND command is expected');
+                        assert(err && err.message && err.message.indexOf('FIND.exe') >=0, 'error from find does not match expeced. actual: ' + err.message);
+                        done();
+                    }
                 })
-            .fin(function () {
-                tl.popd();
-                done();
-            })
-
+                .fail(function (err) {
+                    done(err);
+                });
         }
         else {
             var grep = tl.tool(tl.which('grep', true));
@@ -607,26 +587,35 @@ describe('Toolrunner Tests', function () {
             ps.arg('ax');
             ps.pipeExecOutputToTool(grep);
 
+            var output = '';
             ps.on('stdout', (data) => {
                 output += data.toString();
             });
 
+            var errOut = '';
             ps.on('stderr', (data) => {
                 errOut += data.toString();
             })
 
+            var succeeded = false;
             ps.exec(_testExecOptions)
                 .then(function (code) {
+                    succeeded = true;
                     assert.fail('ps ax | grep --? was a bad command and it did not fail');
                 })
                 .fail(function (err) {
-                    assert(errOut && errOut.length > 0 && errOut.indexOf('grep: unrecognized option') >= 0, 'error output from ps command is expected');
-                    assert(err && err.message && err.message.indexOf('/user/bin/grep') >=0, 'error from grep is not reported');
+                    if (succeeded) {
+                        done(err);
+                    }
+                    else {
+                        assert(errOut && errOut.length > 0 && errOut.indexOf('grep: unrecognized option') >= 0, 'error output from ps command is expected');
+                        assert(err && err.message && err.message.indexOf('/usr/bin/grep') >=0, 'error from grep is not reported. actual: ' + err.message);
+                        done();
+                    }
                 })
-                .fin(function () {
-                    tl.popd();
-                    done();
-                })
+                .fail(function (err) {
+                    done(err);
+                });
         }
     })
     it('handles single args', function (done) {
