@@ -294,16 +294,18 @@ describe('Toolrunner Tests', function () {
                 });
         }
         else {
-            var ls = tl.tool(tl.which('ls', true));
-            ls.arg('-j');
-
+            var bash = tl.tool(tl.which('bash', true));
+            bash.arg('--noprofile');
+            bash.arg('--norc');
+            bash.arg('-c');
+            bash.arg('echo hello from STDERR 1>&2 ; exit 123');
             var output = '';
-            ls.on('stderr', (data) => {
+            bash.on('stderr', (data) => {
                 output = data.toString();
             });
 
             var succeeded = false;
-            ls.exec(_testExecOptions)
+            bash.exec(_testExecOptions)
                 .then(function () {
                     succeeded = true;
                     assert.fail('should not have succeeded');
@@ -313,7 +315,7 @@ describe('Toolrunner Tests', function () {
                         done(err);
                     }
                     else {
-                        assert(err.message.indexOf('return code: 1') >= 0, `expected error message to indicate "return code: 1". actual error message: "${err}"`);
+                        assert(err.message.indexOf('return code: 123') >= 0, `expected error message to indicate "return code: 123". actual error message: "${err}"`);
                         assert(output && output.length > 0, 'should have emitted stderr');
                         done();
                     }
@@ -351,7 +353,7 @@ describe('Toolrunner Tests', function () {
     it('Fails on stderr if specified', function (done) {
         this.timeout(1000);
 
-        var scriptPath = path.join(__dirname, 'scripts', 'stderrOutput.js');
+        var scriptPath = path.join(__dirname, 'scripts', 'stderroutput.js');
         var node = tl.tool(tl.which('node', true))
             .arg(scriptPath);
 
