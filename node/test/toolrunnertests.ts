@@ -429,7 +429,7 @@ describe('Toolrunner Tests', function () {
         }
         else {
             var grep = tl.tool(tl.which('grep', true));
-            grep.arg('ssh');
+            grep.arg('node');
 
             var ps = tl.tool(tl.which('ps', true));
             ps.arg('ax');
@@ -443,7 +443,7 @@ describe('Toolrunner Tests', function () {
             ps.exec(_testExecOptions)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code of exec should be 0');
-                    assert(output && output.length > 0 && output.indexOf('ssh') >= 0, 'should have emitted stdout ' + output);
+                    assert(output && output.length > 0 && output.indexOf('node') >= 0, 'should have emitted stdout ' + output);
                     done();
                 })
                 .fail(function (err) {
@@ -611,7 +611,8 @@ describe('Toolrunner Tests', function () {
                     }
                     else {
                         assert(errOut && errOut.length > 0 && errOut.indexOf('grep: unrecognized option') >= 0, 'error output from ps command is expected');
-                        assert(err && err.message && err.message.indexOf('/usr/bin/grep') >=0, 'error from grep is not reported. actual: ' + err.message);
+                        // grep is /bin/grep on Linux and /usr/bin/grep on OSX
+                        assert(err && err.message && err.message.match(/\/[usr\/]?bin\/grep/), 'error from grep is not reported. actual: ' + err.message);
                         done();
                     }
                 })
