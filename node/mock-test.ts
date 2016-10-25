@@ -99,5 +99,9 @@ export class MockTestRunner {
                 this.invokedToolCount++;
             }
         });
+
+        if (this.stderr && process.env['TASK_TEST_TRACE']) {
+            console.log('STDERR: ' + this.stderr);
+        }
     }
 }
