@@ -5,6 +5,7 @@
 /// <reference path="../_build/task.d.ts" />
 
 import assert = require('assert');
+import mockery = require('mockery');
 import * as mt from '../_build/mock-task';
 import * as mtm from '../_build/mock-test';
 import * as mtr from '../_build/mock-toolrunner';
@@ -146,5 +147,35 @@ describe('Mock Tests', function () {
         
         assert(tool, "tool should not be null");
         assert(rc == 0, "rc is 0");
-    })                
+    })
+    it('MockTestRunner passes arguments to executed scripts', async() => {
+        var calledArgs: string[];
+        try {
+            // Fake out the 'child_process' module so we can trap the call to spawnSync
+            mockery.enable({ useCleanCache: true, warnOnUnregistered: false });
+            mockery.registerMock('child_process', {
+                spawnSync: (nodePath, args) => {
+                    calledArgs = args;
+                    return { pid: 123, output: [], stdout: "", stderr: "", status: 0 };
+                }
+            });
+
+            var scriptName = "foo.js";
+            var arg1 = "bar";
+            var arg2 = "car";
+            var mtmLocal = require('../_build/mock-test'); // get the mock-test module again (from mockery) 
+            var mtr = new mtmLocal.MockTestRunner(scriptName);
+
+            mtr.run(arg1, arg2);
+
+            assert.equal(calledArgs.length, 3, "additional args should be passed to the script");
+            assert.equal(calledArgs[0], scriptName, `expected '${scriptName}' to be passed to node. Got '${calledArgs[0]}'`);
+            assert.equal(calledArgs[1], arg1, `expected '${arg1}' to be passed to the script. Got '${calledArgs[1]}'`);
+            assert.equal(calledArgs[2], arg2, `expected '${arg2}' to be passed to the script. Got '${calledArgs[2]}'`);
+        }
+        finally {
+            mockery.deregisterMock('child_process');
+            mockery.disable();
+        }
+    })
 });

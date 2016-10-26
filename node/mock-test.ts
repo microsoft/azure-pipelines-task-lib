@@ -45,7 +45,7 @@ export class MockTestRunner {
         return this.stderr && this.stderr.indexOf(message) > 0;
     }
 
-    public run(): void {
+    public run(...args: string[]): void {
         this.cmdlines = {};
         this.invokedToolCount = 0;
         this.succeeded = true;
@@ -61,7 +61,11 @@ export class MockTestRunner {
             return;            
         }
 
-        let spawn = cp.spawnSync(nodePath, [this._testPath]);
+        // Prepend the script name to any arguments supplied by the caller.
+        // node will pass the additional arguments on to the invoked script.
+        args.unshift(this._testPath);
+
+        let spawn = cp.spawnSync(nodePath, args);
         if (spawn.error) {
             console.error('Running test failed');
             console.error(spawn.error.message);
