@@ -293,7 +293,7 @@ export function ls(options: string, paths: string[]): string[] {
     return response;
 }
 
-export function cp(options, source: string, dest: string): void {
+export function cp(source: string, dest: string): void {
     console.log('###copying###');
     module.exports.debug('copying ' + source + ' to ' + dest);
 }
@@ -303,6 +303,7 @@ export function find(findPath: string): string[] {
 }
 
 export function rmRF(path: string): void {
+    module.exports.debug('rmRF ' + path);
     var response = mock.getResponse('rmRF', path);
     if (!response['success']) {
         module.exports.setResult(1, response['message']);
