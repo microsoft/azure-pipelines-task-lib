@@ -222,6 +222,10 @@ export class ToolRunner extends events.EventEmitter {
 
         // TODO: filter process.env
         var res = mock.getResponse('exec', cmdString);
+        if (!res) {
+            // exec call not mocked correctly?
+            this._debug(`'exec' call not mocked: ${cmdString}`);
+        }
         if (res.stdout) {
             this.emit('stdout', res.stdout);
             if (!ops.silent) {
@@ -300,6 +304,10 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         var r = mock.getResponse('exec', cmdString);
+        if (!r) {
+            // exec call not mocked correctly?
+            this._debug(`'exec' call not mocked: ${cmdString}`);
+        }
         if (r.stdout && r.stdout.length > 0) {
             ops.outStream.write(r.stdout);
         }
