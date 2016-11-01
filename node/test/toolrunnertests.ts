@@ -776,8 +776,10 @@ describe('Toolrunner Tests', function () {
             }
 
             let sourceFile = path.join(__dirname, 'scripts', 'print-args-exe.cs');
+            let cscPath = 'C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe';
+            fs.statSync(cscPath);
             child_process.execFileSync(
-                'C:\\Windows\\Microsoft.NET\\Framework64\\v2.0.50727\\csc.exe',
+                cscPath,
                 [
                     '/target:exe',
                     `/out:${exePath}`,
