@@ -1295,7 +1295,7 @@ export function match(list: string[], pattern: any, options?: MatchOptions): str
     return list.filter((item: string) => map.hasOwnProperty(item));
 }
 
-export function filter(pattern: string, options?: MatchOptions): (element: string, indexed: number, array: string[]) => boolean {
+export function filter(pattern: string, options?: MatchOptions): (element: string, index: number, array: string[]) => boolean {
     return minimatch.filter(pattern, options);
 }
 

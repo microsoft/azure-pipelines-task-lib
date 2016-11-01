@@ -407,11 +407,13 @@ export function matchFile(list, pattern, options): string[] {
     return mock.getResponse('match', pattern) || [];
 }
 
-export function filter(pattern, options): any {
-    var filterList = mock.getResponse('filter', pattern) || [];
-	return function(pattern, i, arr) {
-		return filterList.indexOf(pattern) >= 0;
-	}
+export function filter(pattern, options): (element: string, index: number, array: string[]) => boolean {
+    var filterList: string[] = mock.getResponse('filter', pattern);
+    if (filterList) {
+        return (element, index, array) => (filterList.indexOf(element) !== -1);
+    }
+    // default back to the built-in behavior
+    return task.filter(pattern, options);
 }
 
 //-----------------------------------------------------
