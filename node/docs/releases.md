@@ -1,5 +1,8 @@
 # VSTS-TASK-LIB RELEASES
 
+## 1.0.0
+ * Updated `ToolRunner` to provide better arg quoting for .cmd/.bat files on Windows and also enable specifying exact command lines on Windows.
+
 ## 0.9.16
  * Fixed bug in `find` in introduced in 0.9.8. On Windows all subdirectories were not always traversed. Loss of precision in inode was interfering with cyclical-symlink detection logic.
 
