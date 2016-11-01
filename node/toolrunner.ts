@@ -190,10 +190,13 @@ export class ToolRunner extends events.EventEmitter {
             }
 
             if (options.windowsVerbatimArguments) {
+                // note, in Node 6.x options.argv0 can be used instead of overriding args.slice and args.unshift.
+                // for more details, refer to https://github.com/nodejs/node/blob/v6.x/lib/child_process.js
+
                 let args = this.args.slice(0); // copy the array
 
-                // Override slice to prevent Node from creating a copy of the arg array.
-                // We need Node to use the "unshift" override below.
+                // override slice to prevent Node from creating a copy of the arg array.
+                // we need Node to use the "unshift" override below.
                 args.slice = function () {
                     if (arguments.length != 1 || arguments[0] != 0) {
                         throw new Error('Unexpected arguments passed to args.slice when windowsVerbatimArguments flag is set.');
@@ -202,24 +205,24 @@ export class ToolRunner extends events.EventEmitter {
                     return args;
                 };
 
-                // Override unshift.
+                // override unshift
                 //
-                // When using the windowsVerbatimArguments option, Node does not quote the tool path when building
-                // the cmdline parameter for the win32 function CreateProcess(). An unquoted space in the tool path
-                // causes problems for tools when attempting to parse their own command line args. Tools typically
+                // when using the windowsVerbatimArguments option, Node does not quote the tool path when building
+                // the cmdline parameter for the win32 function CreateProcess(). an unquoted space in the tool path
+                // causes problems for tools when attempting to parse their own command line args. tools typically
                 // assume their arguments begin after arg 0.
                 //
-                // By hijacking unshift, we can quote the tool path when it pushed onto the args array. Node builds
+                // by hijacking unshift, we can quote the tool path when it pushed onto the args array. Node builds
                 // the cmdline parameter from the args array.
                 //
-                // Note, we can't simply pass a quoted tool path to Node for multiple reasons:
+                // note, we can't simply pass a quoted tool path to Node for multiple reasons:
                 //   1) Node verifies the file exists (calls win32 function GetFileAttributesW) and the check returns
                 //      false if the path is quoted.
                 //   2) Node passes the tool path as the application parameter to CreateProcess, which expects the
                 //      path to be unquoted.
                 //
-                // Also note, in addition to the tool path being embedded within the cmdline parameter, Node also
-                // passes the tool path to CreateProcess via the application parameter (optional parameter). When
+                // also note, in addition to the tool path being embedded within the cmdline parameter, Node also
+                // passes the tool path to CreateProcess via the application parameter (optional parameter). when
                 // present, Windows uses the application parameter to determine which file to run, instead of
                 // interpreting the file from the cmdline parameter.
                 args.unshift = function () {
