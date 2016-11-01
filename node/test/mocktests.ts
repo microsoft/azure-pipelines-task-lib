@@ -146,5 +146,42 @@ describe('Mock Tests', function () {
         
         assert(tool, "tool should not be null");
         assert(rc == 0, "rc is 0");
-    })                
+    })
+
+    it('Unmocked filter returns underlying task behavior', (done) => {
+        var a: ma.TaskLibAnswers = <ma.TaskLibAnswers>{};
+
+        mt.setAnswers(a);
+
+        let filter = mt.filter("*ab*", null);
+
+        let filteredValues = ["cat", "lab", "foo"].filter(filter);
+
+        assert.equal(filteredValues.length, 1);
+        assert.equal(filteredValues[0], "lab");
+
+        done();
+    })
+
+    it('Mocked filter returns true for mocked paths', (done) => {
+        let paths = [
+            'C:\\path\\foo.txt',
+            'C:\\path\\foo.exe',
+            'C:\\path\\foo.exe.config',
+        ];
+        let a: ma.TaskLibAnswers = <ma.TaskLibAnswers>{
+            filter: {
+                '*.exe': ['C:\\path\\foo.exe']
+            }
+        };
+        mt.setAnswers(a);
+
+        let filter = mt.filter("*.exe", null);
+        let filteredPaths = paths.filter(filter);
+
+        assert.equal(filteredPaths.length, 1);
+        assert.equal(filteredPaths[0], 'C:\\path\\foo.exe');
+
+        done();
+    })
 });
