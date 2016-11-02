@@ -5,6 +5,7 @@ var path = require('path');
 
 export interface DocEntry {
     name?: string,
+    type?: string,
     documentation?: string,
     kind?: string,
     signatures?: DocEntry[],
@@ -170,8 +171,21 @@ function visit(node: ts.Node): void {
 }
 
 function getDockEntryFromSignature(signature: ts.Signature): DocEntry {
+    let paramEntries: DocEntry[] = [];
+    let params: ts.Symbol[] = signature.parameters;
+    params.forEach((ps: ts.Symbol) => {
+        let de = {} as DocEntry;
+        de.name = ps.getName();
+
+        let decls: ts.Declaration[] = ps.declarations;
+        let paramType: ts.Type = checker.getTypeAtLocation(decls[0]);
+        de.type = checker.typeToString(paramType);
+        de.documentation = ts.displayPartsToString(ps.getDocumentationComment());
+        paramEntries.push(de);
+    });
+
     let e: DocEntry = {
-        parameters: signature.parameters.map(getDockEntryFromSymbol),
+        parameters: paramEntries,
         members: {} as { string: [DocEntry]},
         return: checker.typeToString(signature.getReturnType()),
         documentation: ts.displayPartsToString(signature.getDocumentationComment())
