@@ -42,27 +42,92 @@ function anchorName(name) {
 }
 
 shell.rm('-rf', mdpath);
-var ds = docs.structure;
+var docsStructure = docs.structure;
 var aliasCache = {} as { string : [ts2json.DocEntry]};
 
-function getItem(item: string): ts2json.DocEntry {
+function getDocEntry(namespace: string): ts2json.DocEntry {
     let d: ts2json.DocEntry;
 
-    let parts: string[] =  item.split('.');
-    let alias: string = parts[0];
-    let stmt: string = 'doc.' + docs.aliases[alias];
+    let parts: string[] =  namespace.split('.');
+    if (parts.length != 2) {
+        console.error(namespace + ' invalid.  doc entry must have two parts.  alias.itemName');
+    }
 
+    let alias: string = parts[0];
+    let entryName: string = parts[1];
+    let stmt: string = 'doc.' + docs.aliases[alias];
+    
     if (!aliasCache[alias]) {
         aliasCache[alias] = eval(stmt);
     }
-
-    d = aliasCache[alias];
+    d = aliasCache[alias][entryName];
 
     if (!d) {
-        console.error('Could not evaluate: ' + item + '(' + stmt + ')');
+        console.error('Could not evaluate: ' + namespace + '(' + stmt + ')');
     }
 
     return d;
+}
+
+// TODO: enums
+// TODO: isOptional on params
+// TODO: params type
+
+var writeFunction = function(name: string, item: ts2json.DocEntry) {
+    writeLine("<br/>");
+    writeLine('<div id="' + anchorName(name) + '">');
+    writeLine('### ' + name + ' <a href="#index">(^)</a>');
+
+    var sigs = item.signatures;
+    sigs.forEach((sig: ts2json.DocEntry) => {
+        // comments
+        var comment = sig.documentation;
+        if (comment) {
+            writeLine(comment);
+        }
+
+        // signature
+
+        var sigLine = item.name + '(';
+
+        if (sig.parameters) {
+            for (var i = 0; i < sig.parameters.length; i++) {
+                var param = sig.parameters[i];
+                sigLine += param.name;
+
+                // if (param.flags.isOptional) {
+                //     sigLine += '?';
+                // }
+
+                sigLine += (':' + param.type);
+
+                if (i < (sig.parameters.length - 1)) {
+                    sigLine += ', ';
+                }
+            }
+        }
+
+        sigLine += '):' + sig.return; 
+
+        writeLine('```javascript');
+        writeLine(sigLine);
+        writeLine('```');
+
+        // params table
+
+        if (sig.parameters) {
+            writeLine();
+            writeLine('Param | Type | Description');
+            writeLine('--- | --- | ---');
+            for (var i = 0; i < sig.parameters.length; i++) {
+                var param = sig.parameters[i];
+
+                var pc = param.documentation ? param.documentation || ' - ' : ' - ';
+                writeLine(param.name + ' | ' + param.type + ' | ' + pc);
+            }
+            writeLine();
+        }                       
+    });
 }
 
 writeLine('# VSTS-TASK-LIB TYPESCRIPT API');
@@ -89,19 +154,81 @@ writeLine();
 //
 writeLine('<div id="index">');
 writeLine('## Index');
-for (var secName in ds) {
+for (var sectionName in docsStructure) {
     writeLine();
-    writeLine('### ' + secName + ' <a href="#' + anchorName(secName) + '">(v)</a>');
+    writeLine('### ' + sectionName + ' <a href="#' + anchorName(sectionName) + '">(v)</a>');
     writeLine();
 
-    var sec = ds[secName];
-    var docLabels: string[] = sec.Document as string[];
-    docLabels.forEach((docItem: string) => {
-        var item: ts2json.DocEntry  = getItem(docItem);
+    var section = docsStructure[sectionName];
+    var docItems: string[] = section.Document as string[];
+    docItems.forEach((docItem: string) => {
+        var docEntry: ts2json.DocEntry  = getDocEntry(docItem);
 
-        if (item) {
-            let idxTitle = docItem.substring(docItem.indexOf('.') + 1); 
-            writeLine('<a href="#' + anchorName(docItem) + '">' + idxTitle + '</a><br/>');           
+        if (docEntry) {
+            writeLine('<a href="#' + anchorName(docItem) + '">' + docEntry.name + '</a><br/>');           
         }
     })
 }
+
+//
+// Docs
+//
+for (var sectionName in docsStructure) {
+    writeLine();
+    writeLine("<br/>");
+    writeLine('<div id="' + anchorName(sectionName) + '">');
+    writeLine('## ' + sectionName);
+    writeLine();
+    writeLine('---');
+    writeLine();
+
+    var sec = docsStructure[sectionName];
+    if (sec.Summary) {
+        writeLine(sec.Summary);
+    }
+
+    if (sec.Sample) {
+        try {
+            writeLine();
+            var contents = fs.readFileSync(path.join(__dirname, sec.Sample));    
+            writeLine("```javascript");
+            if (!contents || contents.length == 0) {
+                writeLine('No content');
+            }
+            writeLine(contents.toString());
+            writeLine("```");
+        }
+        catch(err) {
+            console.error(err);
+        }
+    }
+
+    var documents = sec.Document;
+    documents.forEach((docItem) => {
+        console.log('docItem', docItem);
+        var item: ts2json.DocEntry = getDocEntry(docItem);
+
+        if (item) {
+            switch (item.kind) {
+                case "Constructor":
+                case "method":
+                //case "Enumeration":
+                case "function":
+                    writeFunction(docItem, item);
+                    break;
+
+                case "interface":
+                    //writeInterface(doc, item);
+                    break;
+
+                default:
+                    console.log('warning: skipping ' + item.kind);
+                    console.log(item);
+                    process.exit();
+            }             
+        }
+    })
+}
+
+console.log('Done');
+
