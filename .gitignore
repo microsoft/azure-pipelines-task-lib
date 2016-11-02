@@ -5,6 +5,7 @@ _test
 node/*.d.ts
 node/*.js
 node/docs/temp
+node/docs/*.js
 
 # Logs
 logs
