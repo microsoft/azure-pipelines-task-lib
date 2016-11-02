@@ -9,7 +9,7 @@ import * as tcm from '../_build/taskcommand';
 
 import testutil = require('./testutil');
 
-describe('Test vsts-task-lib', function () {
+describe('Command Tests', function () {
 
     before(function (done) {
         try {

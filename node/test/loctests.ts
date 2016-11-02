@@ -11,7 +11,7 @@ import shell = require('shelljs');
 import * as tl from '../_build/task';
 import testutil = require('./testutil');
 
-describe('Test vsts-task-lib', function () {
+describe('Loc Tests', function () {
 
     before(function (done) {
         try {

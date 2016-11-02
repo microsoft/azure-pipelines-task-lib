@@ -12,7 +12,7 @@ import * as trm from '../_build/toolrunner';
 
 import testutil = require('./testutil');
 
-describe('Disk Tests', function () {
+describe('Disk Operation Tests', function () {
 
     before(function (done) {
         try {

@@ -111,6 +111,10 @@ function Find-Files {
         [switch]$IncludeDirectories,
         [switch]$Force)
 
+    # Note, due to subtle implementation details of Get-PathPrefix/Get-PathIterator,
+    # this function does not appear to be able to search the root of a drive and other
+    # cases where Path.GetDirectoryName() returns empty. More details in Get-PathPrefix.
+
     Trace-EnteringInvocation $MyInvocation
     if (!$IncludeFiles -and !$IncludeDirectories) {
         $IncludeFiles = $true
@@ -160,6 +164,7 @@ function Convert-PatternToRegex {
         Replace('/\*\*/', '((/.+/)|(/))'). # Replace directory globstar.
         Replace('\*\*', '.*'). # Replace remaining globstars with a wildcard that can span directory separators.
         Replace('\*', '[^/]*'). # Replace asterisks with a wildcard that cannot span directory separators.
+        # bug: should be '[^/]' instead of '.'
         Replace('\?', '.') # Replace single character wildcards.
     New-Object regex -ArgumentList "^$Pattern`$", ([System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
 }
@@ -176,6 +181,7 @@ function Get-FileNameFilter {
         return '*'
     }
 
+    # bug? is this supposed to do substring?
     return $Pattern
 }
 
@@ -201,7 +207,8 @@ function Get-MatchingItems {
                 $normalizedPath = $_.Replace('\', '/')
                 # **/times/** will not match C:/fun/times because there isn't a trailing slash.
                 # So try both if including directories.
-                $alternatePath = "$normalizedPath/"
+                $alternatePath = "$normalizedPath/" # potential bug: it looks like this will result in a false
+                                                    # positive if the item is a regular file and not a directory
 
                 $isMatch = $false
                 if ($patternRegex.IsMatch($normalizedPath) -or ($IncludeDirectories -and $patternRegex.IsMatch($alternatePath))) {
@@ -239,6 +246,7 @@ function Get-PathIterator {
         return
     }
 
+    # bug: this returns the dir without verifying whether exists
     if ($IncludeDirectories) {
         $Path
     }
@@ -258,6 +266,26 @@ function Get-PathIterator {
 function Get-PathPrefix {
     [CmdletBinding()]
     param([string]$Pattern)
+
+    # Note, unable to search root directories is a limitation due to subtleties of this function
+    # and downstream code in Get-PathIterator that short-circuits when the path prefix is empty.
+    # This function uses Path.GetDirectoryName() to determine the path prefix, which will yield
+    # empty in some cases. See the following examples of Path.GetDirectoryName() input => output:
+    #       C:/             =>
+    #       C:/hello        => C:\
+    #       C:/hello/       => C:\hello
+    #       C:/hello/world  => C:\hello
+    #       C:/hello/world/ => C:\hello\world
+    #       C:              =>
+    #       C:hello         => C:
+    #       C:hello/        => C:hello
+    #       /               =>
+    #       /hello          => \
+    #       /hello/         => \hello
+    #       //hello         =>
+    #       //hello/        =>
+    #       //hello/world   =>
+    #       //hello/world/  => \\hello\world
 
     $index = $Pattern.IndexOfAny([char[]]@('*'[0], '?'[0]))
     if ($index -eq -1) {

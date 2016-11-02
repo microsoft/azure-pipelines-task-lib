@@ -12,6 +12,7 @@
         "commandtests.ts",
         "resulttests.ts",
         "disktests.ts",
+        "legacyfindfilestests.ts",
         "vaulttests.ts",
         "toolrunnertests.ts",
         "cctests",

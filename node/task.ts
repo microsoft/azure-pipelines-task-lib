@@ -1018,8 +1018,10 @@ export function find(findPath: string, options?: FindOptions): string[] {
         while (stack.length) {
             // pop the next item and push to the result array
             let item: FindItem = stack.pop();
-            debug(`  ${item.path}`);
-            result.push(item.path);
+            result.push(item.path); // todo: fix inconsistency on Windows when findPath contains '/'. the findPath
+                                    // is returned as part of the result array, and child paths are constructed using
+                                    // path.join(). path.join() converts to backslashes, so the first result only will
+                                    // have '/' - inconsistent with the rest of the results.
 
             // stat the item.  the stat info is used further below to determine whether to traverse deeper
             //
@@ -1041,7 +1043,7 @@ export function find(findPath: string, options?: FindOptions): string[] {
 
             // note, isDirectory() returns false for the lstat of a symlink
             if (stats.isDirectory()) {
-                debug('    is a directory');
+                debug(`  ${item.path} (directory)`);
 
                 if (options.followSymbolicLinks) {
                     // get the realpath
@@ -1070,7 +1072,7 @@ export function find(findPath: string, options?: FindOptions): string[] {
                 stack.push(...childItems.reverse());
             }
             else {
-                debug('    is a file');
+                debug(`  ${item.path} (file)`);
             }
         }
 
@@ -1091,6 +1093,305 @@ class FindItem {
         this.level = level;
     }
 }
+
+/**
+ * Prefer tl.find() and tl.match() instead. This function is for backward compatibility
+ * when porting tasks to Node from the PowerShell or PowerShell3 execution handler.
+ *
+ * @param    rootDirectory      path to root unrooted patterns with
+ * @param    pattern            include and exclude patterns
+ * @param    includeFiles       whether to include files in the result. defaults to true when includeFiles and includeDirectories are both false
+ * @param    includeDirectories whether to include directories in the result
+ * @returns  string[]
+ */
+export function legacyFindFiles(
+        rootDirectory: string,
+        pattern: string,
+        includeFiles?: boolean,
+        includeDirectories?: boolean): string[] {
+
+    if (!pattern) {
+        throw new Error('pattern parameter cannot be empty');
+    }
+
+    debug(`legacyFindFiles rootDirectory: '${rootDirectory}'`);
+    debug(`pattern: '${pattern}'`);
+    debug(`includeFiles: '${includeFiles}'`);
+    debug(`includeDirectories: '${includeDirectories}'`);
+    if (!includeFiles && !includeDirectories) {
+        includeFiles = true;
+    }
+
+    // organize the patterns into include patterns and exclude patterns
+    let includePatterns: string[] = [];
+    let excludePatterns: RegExp[] = [];
+    pattern = pattern.replace(/;;/g, '\0');
+    for (let pat of pattern.split(';')) {
+        if (!pat) {
+            continue;
+        }
+
+        pat = pat.replace(/\0/g, ';');
+
+        // determine whether include pattern and remove any include/exclude prefix.
+        // include patterns start with +: or anything other than -:
+        // exclude patterns start with -:
+        let isIncludePattern: boolean;
+        if (pat.startsWith('+:')) {
+            pat = pat.substring(2);
+            isIncludePattern = true;
+        }
+        else if (pat.startsWith('-:')) {
+            pat = pat.substring(2);
+            isIncludePattern = false;
+        }
+        else {
+            isIncludePattern = true;
+        }
+
+        // validate pattern does not end with a slash
+        if (pat.endsWith('/') || (process.platform == 'win32' && pat.endsWith('\\'))) {
+            throw new Error(loc('LIB_InvalidPattern', pat));
+        }
+
+        // root the pattern
+        if (rootDirectory && !path.isAbsolute(pat)) {
+            pat = path.join(rootDirectory, pat);
+
+            // remove trailing slash sometimes added by path.join() on Windows, e.g.
+            //      path.join('\\\\hello', 'world') => '\\\\hello\\world\\'
+            //      path.join('//hello', 'world') => '\\\\hello\\world\\'
+            if (pat.endsWith('\\')) {
+                pat = pat.substring(0, pat.length - 1);
+            }
+        }
+
+        if (isIncludePattern) {
+            includePatterns.push(pat);
+        }
+        else {
+            excludePatterns.push(legacyFindFiles_convertPatternToRegExp(pat));
+        }
+    }
+
+    // find and apply patterns
+    let count = 0;
+    let result: string[] = legacyFindFiles_getMatchingItems(includePatterns, excludePatterns, !!includeFiles, !!includeDirectories);
+    debug('all matches:');
+    for (let resultItem of result) {
+        debug(' ' + resultItem);
+    }
+
+    debug('total matched: ' + result.length);
+    return result;
+}
+
+function legacyFindFiles_convertPatternToRegExp(pattern: string): RegExp {
+    pattern = (process.platform == 'win32' ? pattern.replace(/\\/g, '/') : pattern) // normalize separator on Windows
+        .replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') // regex escape - from http://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
+        .replace(/\\\/\\\*\\\*\\\//g, '((\/.+/)|(\/))') // replace directory globstar, e.g. /hello/**/world
+        .replace(/\\\*\\\*/g, '.*') // replace remaining globstars with a wildcard that can span directory separators, e.g. /hello/**dll
+        .replace(/\\\*/g, '[^\/]*') // replace asterisks with a wildcard that cannot span directory separators, e.g. /hello/*.dll
+        .replace(/\\\?/g, '[^\/]') // replace single character wildcards, e.g. /hello/log?.dll
+    pattern = `^${pattern}$`;
+    let flags = process.platform == 'win32' ? 'i' : '';
+    return new RegExp(pattern, flags);
+}
+legacyFindFiles['legacyFindFiles_convertPatternToRegExp'] = legacyFindFiles_convertPatternToRegExp; // for unit testing
+
+function legacyFindFiles_getMatchingItems(
+    includePatterns: string[],
+    excludePatterns: RegExp[],
+    includeFiles: boolean,
+    includeDirectories: boolean) {
+
+    debug('getMatchingItems()');
+    for (let pattern of includePatterns) {
+        debug(`includePattern: '${pattern}'`);
+    }
+
+    for (let pattern of excludePatterns) {
+        debug(`excludePattern: ${pattern}`);
+    }
+
+    debug('includeFiles: ' + includeFiles);
+    debug('includeDirectories: ' + includeDirectories);
+
+    let allFiles = {} as { [k: string]: string };
+    for (let pattern of includePatterns) {
+        // determine the directory to search
+        //
+        // note, getDirectoryName removes redundant path separators
+        let findPath: string;
+        let starIndex = pattern.indexOf('*');
+        let questionIndex = pattern.indexOf('?');
+        if (starIndex < 0 && questionIndex < 0) {
+            // if no wildcards are found, use the directory name portion of the path.
+            // if there is no directory name (file name only in pattern or drive root),
+            // this will return empty string.
+            findPath = legacyFindFiles_getDirectoryName(pattern);
+        }
+        else {
+            // extract the directory prior to the first wildcard
+            let index = Math.min(
+                starIndex >= 0 ? starIndex : questionIndex,
+                questionIndex >= 0 ? questionIndex : starIndex);
+            findPath = legacyFindFiles_getDirectoryName(pattern.substring(0, index));
+        }
+
+        // note, due to this short-circuit and the above usage of getDirectoryName, this
+        // function has the same limitations regarding drive roots as the powershell
+        // implementation.
+        //
+        // also note, since getDirectoryName eliminates slash redundancies, some additional
+        // work may be required if removal of this limitation is attempted.
+        if (!findPath) {
+            continue;
+        }
+
+        let patternRegex: RegExp = legacyFindFiles_convertPatternToRegExp(pattern);
+
+        // todo: remove after inconsistency in find() is fixed.
+        // workaround for issue with find() on Windows where findPath contains '/'. the findPath
+        // is returned as part of the result, all child paths are constructed using path.join(),
+        // which converts to backslashes.
+        findPath = process.platform == 'win32' ? findPath.replace(/\//g, '\\') : findPath;
+
+        // find files/directories
+        let items = find(findPath, <FindOptions>{ followSymbolicLinks: true })
+            .filter((item: string) => {
+                if (includeFiles && includeDirectories) {
+                    return true;
+                }
+
+                let isDir = fs.statSync(item).isDirectory();
+                return (includeFiles && !isDir) || (includeDirectories && isDir);
+            })
+            .forEach((item: string) => {
+                let normalizedPath = process.platform == 'win32' ? item.replace(/\\/g, '/') : item; // normalize separators
+                // **/times/** will not match C:/fun/times because there isn't a trailing slash
+                // so try both if including directories
+                let alternatePath = `${normalizedPath}/`;   // potential bug: it looks like this will result in a false
+                                                            // positive if the item is a regular file and not a directory
+
+                let isMatch = false;
+                if (patternRegex.test(normalizedPath) || (includeDirectories && patternRegex.test(alternatePath))) {
+                    isMatch = true;
+
+                    // test whether the path should be excluded
+                    for (let regex of excludePatterns) {
+                        if (regex.test(normalizedPath) || (includeDirectories && regex.test(alternatePath))) {
+                            isMatch = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (isMatch) {
+                    allFiles[item] = item;
+                }
+            });
+    }
+
+    return Object.keys(allFiles).sort();
+}
+
+function legacyFindFiles_getDirectoryName(p: string): string {
+    // legacyFindFiles is a port of the powershell implementation and carries the same
+    // quirks and limitations searching drive roots
+
+    // short-circuit if empty
+    if (!p) {
+        return '';
+    }
+
+    // convert slashes on Windows
+    p = process.platform == 'win32' ? p.replace(/\\/g, '/') : p;
+
+    // remove redundant slashes since Path.GetDirectoryName() does
+    let isUnc = process.platform == 'win32' && /^\/\/+[^\/]/.test(p); // e.g. //hello
+    p = (isUnc ? '/' : '') + p.replace(/\/\/+/g, '/'); // preserve leading // for UNC on Windows
+
+    // on Windows, the goal of this function is to match the behavior of
+    // [System.IO.Path]::GetDirectoryName(), e.g.
+    //      C:/             =>
+    //      C:/hello        => C:\
+    //      C:/hello/       => C:\hello
+    //      C:/hello/world  => C:\hello
+    //      C:/hello/world/ => C:\hello\world
+    //      C:              =>
+    //      C:hello         => C:
+    //      C:hello/        => C:hello
+    //      /               =>
+    //      /hello          => \
+    //      /hello/         => \hello
+    //      //hello         =>
+    //      //hello/        =>
+    //      //hello/world   =>
+    //      //hello/world/  => \\hello\world
+    //
+    // unfortunately, path.dirname() can't simply be used. for example, on Windows
+    // it yields different results from Path.GetDirectoryName:
+    //      C:/             => C:/
+    //      C:/hello        => C:/
+    //      C:/hello/       => C:/
+    //      C:/hello/world  => C:/hello
+    //      C:/hello/world/ => C:/hello
+    //      C:              => C:
+    //      C:hello         => C:
+    //      C:hello/        => C:
+    //      /               => /
+    //      /hello          => /
+    //      /hello/         => /
+    //      //hello         => /
+    //      //hello/        => /
+    //      //hello/world   => //hello/world
+    //      //hello/world/  => //hello/world/
+    //      //hello/world/again => //hello/world/
+    //      //hello/world/again/ => //hello/world/
+    //      //hello/world/again/again => //hello/world/again
+    //      //hello/world/again/again/ => //hello/world/again
+    if (process.platform == 'win32') {
+        if (/^[A-Z]:\/?[^\/]+$/i.test(p)) { // e.g. C:/hello or C:hello
+            return p.charAt(2) == '/' ? p.substring(0, 3) : p.substring(0, 2);
+        }
+        else if (/^[A-Z]:\/?$/i.test(p)) { // e.g. C:/ or C:
+            return '';
+        }
+
+        let lastSlashIndex = p.lastIndexOf('/');
+        if (lastSlashIndex < 0) { // file name only
+            return '';
+        }
+        else if (p == '/') { // relative root
+            return '';
+        }
+        else if (lastSlashIndex == 0) { // e.g. /hello
+            return '/';
+        }
+        else if (/^\/\/[^\/]+(\/[^\/]*)?$/.test(p)) { // UNC root, e.g. //hello or //hello/ or //hello/world
+            return '';
+        }
+
+        return p.substring(0, lastSlashIndex);  // e.g. hello/world => hello or hello/world/ => hello/world
+                                                // note, this means trailing slashes for non-root directories
+                                                // (i.e. not C:/, /, or //unc/) will simply be removed.
+    }
+
+    // OSX/Linux
+    if (p.indexOf('/') < 0) { // file name only
+        return '';
+    }
+    else if (p == '/') {
+        return '';
+    }
+    else if (p.endsWith('/')) {
+        return p.substring(0, p.length - 1);
+    }
+
+    return path.dirname(p);
+}
+legacyFindFiles['legacyFindFiles_getDirectoryName'] = legacyFindFiles_getDirectoryName; // for unit testing
 
 /**
  * Remove a path recursively with force
