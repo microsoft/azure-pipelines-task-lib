@@ -10,7 +10,7 @@ import * as tl from '../_build/task';
 
 import * as testutil from './testutil';
 
-describe('Test Dir Operations', function () {
+describe('Dir Operation Tests', function () {
     before(function (done) {
         try {
             testutil.initialize();

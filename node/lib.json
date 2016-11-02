@@ -13,6 +13,7 @@
     "LIB_LocStringNotFound": "Can\\'t find loc string for key: %s",
     "LIB_ParameterIsRequired": "%s not supplied",
     "LIB_InputRequired": "Input required: %s",
+    "LIB_InvalidPattern": "Invalid pattern: '%s'",
     "LIB_EndpointNotExist": "Endpoint not present: %s",
     "LIB_EndpointDataNotExist": "Endpoint data parameter %s not present: %s",
     "LIB_EndpointAuthNotExist": "Endpoint auth data not present: %s",

@@ -12,6 +12,7 @@
   "loc.messages.LIB_LocStringNotFound": "Can\\'t find loc string for key: %s",
   "loc.messages.LIB_ParameterIsRequired": "%s not supplied",
   "loc.messages.LIB_InputRequired": "Input required: %s",
+  "loc.messages.LIB_InvalidPattern": "Invalid pattern: '%s'",
   "loc.messages.LIB_EndpointNotExist": "Endpoint not present: %s",
   "loc.messages.LIB_EndpointDataNotExist": "Endpoint data parameter %s not present: %s",
   "loc.messages.LIB_EndpointAuthNotExist": "Endpoint auth data not present: %s",

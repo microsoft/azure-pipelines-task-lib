@@ -10,7 +10,7 @@ import os = require('os');
 import * as tl from '../_build/task';
 import testutil = require('./testutil');
 
-describe('Test Inputs', function () {
+describe('Input Tests', function () {
 
     before(function (done) {
         try {

@@ -8,7 +8,7 @@ import assert = require('assert');
 import * as tl from '../_build/task';
 import testutil = require('./testutil');
 
-describe('Test vsts-task-lib', function () {
+describe('Match Tests', function () {
 
     before(function (done) {
         try {
