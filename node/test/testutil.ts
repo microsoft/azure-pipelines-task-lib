@@ -8,11 +8,17 @@ import fs = require('fs');
 
 import * as tl from '../_build/task';
 
-export function initialize() {
-    tl.setStdStream(this.getNullStream());
-    tl.setErrStream(this.getNullStream());
-    tl.setEnvVar('TASKLIB_INPROC_UNITS', '1');
+export function initialize(useRealStreams?: boolean) {
+    if (useRealStreams) {
+        tl.setStdStream(process.stdout);
+        tl.setErrStream(process.stderr);
+    }
+    else {
+        tl.setStdStream(this.getNullStream());
+        tl.setErrStream(this.getNullStream());
+    }
 
+    tl.setEnvVar('TASKLIB_INPROC_UNITS', '1');
     tl.mkdirP(this.getTestTemp());
 }
 

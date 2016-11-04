@@ -17,6 +17,8 @@ export enum TaskResult {
     Failed = 1
 }
 
+export var _internal = {};
+
 /**
  * Hash table of known variable info. The formatted env var name is the lookup key.
  *
@@ -63,7 +65,6 @@ export function setStdStream(stdStream): void {
 export function setErrStream(errStream): void {
     _errStream = errStream;
 }
-
 
 //-----------------------------------------------------
 // Results
@@ -784,6 +785,7 @@ export function mkdirP(p: string): void {
         // validate the loop is not out of control
         if (stack.length >= (process.env['TASKLIB_TEST_MKDIRP_FAILSAFE'] || 1000)) {
             // let the framework throw
+            debug('loop is out of control');
             fs.mkdirSync(p);
             return;
         }
@@ -991,16 +993,16 @@ export interface FindOptions {
 }
 
 /**
- * Find all files under a give path 
- * Returns an array of paths
- * 
- * @param     findPath     path to find files under
- * @param     options      options to control whether to follow symlinks
+ * Recursively finds all paths a given path. Returns an array of paths.
+ *
+ * @param     findPath  path to search
+ * @param     options   optional. defaults to { followSymbolicLinks: true }. following soft links is generally appropriate unless deleting files.
  * @returns   string[]
  */
 export function find(findPath: string, options?: FindOptions): string[] {
-    debug(`find findPath=${findPath}, options=${options}`);
-    options = options || {} as FindOptions;
+    debug(`findPath: '${findPath}'`);
+    options = options || getDefaultFindOptions();
+    debugFindOptions(options)
 
     // return empty if not exists
     if (!shell.test('-e', findPath)) {
@@ -1092,6 +1094,18 @@ class FindItem {
         this.path = path;
         this.level = level;
     }
+}
+
+function debugFindOptions(options: FindOptions): void {
+    debug(`findOptions.followSpecifiedSymbolicLink: '${options.followSpecifiedSymbolicLink}'`);
+    debug(`findOptions.followSymbolicLinks: '${options.followSymbolicLinks}'`);
+}
+
+function getDefaultFindOptions(): FindOptions {
+    return <FindOptions>{
+        followSpecifiedSymbolicLink: true,
+        followSymbolicLinks: true
+    };
 }
 
 /**
@@ -1229,14 +1243,14 @@ function legacyFindFiles_getMatchingItems(
             // if no wildcards are found, use the directory name portion of the path.
             // if there is no directory name (file name only in pattern or drive root),
             // this will return empty string.
-            findPath = legacyFindFiles_getDirectoryName(pattern);
+            findPath = getDirectoryName(pattern);
         }
         else {
             // extract the directory prior to the first wildcard
             let index = Math.min(
                 starIndex >= 0 ? starIndex : questionIndex,
                 questionIndex >= 0 ? questionIndex : starIndex);
-            findPath = legacyFindFiles_getDirectoryName(pattern.substring(0, index));
+            findPath = getDirectoryName(pattern.substring(0, index));
         }
 
         // note, due to this short-circuit and the above usage of getDirectoryName, this
@@ -1250,12 +1264,6 @@ function legacyFindFiles_getMatchingItems(
         }
 
         let patternRegex: RegExp = legacyFindFiles_convertPatternToRegExp(pattern);
-
-        // todo: remove after inconsistency in find() is fixed.
-        // workaround for issue with find() on Windows where findPath contains '/'. the findPath
-        // is returned as part of the result, all child paths are constructed using path.join(),
-        // which converts to backslashes.
-        findPath = process.platform == 'win32' ? findPath.replace(/\//g, '\\') : findPath;
 
         // find files/directories
         let items = find(findPath, <FindOptions>{ followSymbolicLinks: true })
@@ -1295,103 +1303,6 @@ function legacyFindFiles_getMatchingItems(
 
     return Object.keys(allFiles).sort();
 }
-
-function legacyFindFiles_getDirectoryName(p: string): string {
-    // legacyFindFiles is a port of the powershell implementation and carries the same
-    // quirks and limitations searching drive roots
-
-    // short-circuit if empty
-    if (!p) {
-        return '';
-    }
-
-    // convert slashes on Windows
-    p = process.platform == 'win32' ? p.replace(/\\/g, '/') : p;
-
-    // remove redundant slashes since Path.GetDirectoryName() does
-    let isUnc = process.platform == 'win32' && /^\/\/+[^\/]/.test(p); // e.g. //hello
-    p = (isUnc ? '/' : '') + p.replace(/\/\/+/g, '/'); // preserve leading // for UNC on Windows
-
-    // on Windows, the goal of this function is to match the behavior of
-    // [System.IO.Path]::GetDirectoryName(), e.g.
-    //      C:/             =>
-    //      C:/hello        => C:\
-    //      C:/hello/       => C:\hello
-    //      C:/hello/world  => C:\hello
-    //      C:/hello/world/ => C:\hello\world
-    //      C:              =>
-    //      C:hello         => C:
-    //      C:hello/        => C:hello
-    //      /               =>
-    //      /hello          => \
-    //      /hello/         => \hello
-    //      //hello         =>
-    //      //hello/        =>
-    //      //hello/world   =>
-    //      //hello/world/  => \\hello\world
-    //
-    // unfortunately, path.dirname() can't simply be used. for example, on Windows
-    // it yields different results from Path.GetDirectoryName:
-    //      C:/             => C:/
-    //      C:/hello        => C:/
-    //      C:/hello/       => C:/
-    //      C:/hello/world  => C:/hello
-    //      C:/hello/world/ => C:/hello
-    //      C:              => C:
-    //      C:hello         => C:
-    //      C:hello/        => C:
-    //      /               => /
-    //      /hello          => /
-    //      /hello/         => /
-    //      //hello         => /
-    //      //hello/        => /
-    //      //hello/world   => //hello/world
-    //      //hello/world/  => //hello/world/
-    //      //hello/world/again => //hello/world/
-    //      //hello/world/again/ => //hello/world/
-    //      //hello/world/again/again => //hello/world/again
-    //      //hello/world/again/again/ => //hello/world/again
-    if (process.platform == 'win32') {
-        if (/^[A-Z]:\/?[^\/]+$/i.test(p)) { // e.g. C:/hello or C:hello
-            return p.charAt(2) == '/' ? p.substring(0, 3) : p.substring(0, 2);
-        }
-        else if (/^[A-Z]:\/?$/i.test(p)) { // e.g. C:/ or C:
-            return '';
-        }
-
-        let lastSlashIndex = p.lastIndexOf('/');
-        if (lastSlashIndex < 0) { // file name only
-            return '';
-        }
-        else if (p == '/') { // relative root
-            return '';
-        }
-        else if (lastSlashIndex == 0) { // e.g. /hello
-            return '/';
-        }
-        else if (/^\/\/[^\/]+(\/[^\/]*)?$/.test(p)) { // UNC root, e.g. //hello or //hello/ or //hello/world
-            return '';
-        }
-
-        return p.substring(0, lastSlashIndex);  // e.g. hello/world => hello or hello/world/ => hello/world
-                                                // note, this means trailing slashes for non-root directories
-                                                // (i.e. not C:/, /, or //unc/) will simply be removed.
-    }
-
-    // OSX/Linux
-    if (p.indexOf('/') < 0) { // file name only
-        return '';
-    }
-    else if (p == '/') {
-        return '';
-    }
-    else if (p.endsWith('/')) {
-        return p.substring(0, p.length - 1);
-    }
-
-    return path.dirname(p);
-}
-legacyFindFiles['legacyFindFiles_getDirectoryName'] = legacyFindFiles_getDirectoryName; // for unit testing
 
 /**
  * Remove a path recursively with force
@@ -1438,39 +1349,6 @@ export function rmRF(path: string, continueOnError?: boolean): void {
     catch (err) {
         throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
     }
-}
-
-export function glob(pattern: string): string[] {
-    debug('glob ' + pattern);
-    var matches: string[] = globm.sync(pattern);
-    debug('found ' + matches.length + ' matches');
-
-    if (matches.length > 0) {
-        var m = Math.min(matches.length, 10);
-        debug('matches:');
-        if (m == 10) {
-            debug('listing first 10 matches as samples');
-        }
-
-        for (var i = 0; i < m; i++) {
-            debug(matches[i]);
-        }
-    }
-
-    return matches;
-}
-
-export function globFirst(pattern: string): string {
-    debug('globFirst ' + pattern);
-    var matches = glob(pattern);
-
-    if (matches.length > 1) {
-        warning(loc('LIB_UseFirstGlobMatch'));
-    }
-
-    debug('found ' + matches.length + ' matches');
-
-    return matches[0];
 }
 
 /**
@@ -1564,11 +1442,20 @@ export interface MatchOptions {
     flipNegate?: boolean;
 }
 
+/**
+ * Applies glob patterns to a list of paths. Supports interleaved exclude patterns.
+ *
+ * @param  list      array of paths
+ * @param  pattern   pattern to apply
+ * @param  patterns  patterns to apply. supports interleaved exclude patterns.
+ * @param  options   optional. defaults to { dot: true, nobrace: true, nocase: process.platform == 'win32' }.
+ */
 export function match(list: string[], pattern: string, options?: MatchOptions): string[];
 export function match(list: string[], patterns: string[], options?: MatchOptions): string[];
 export function match(list: string[], pattern: any, options?: MatchOptions): string[] {
-    debug(`match patterns: ${pattern}`);
-    debug(`match options: ${options}`);
+    // get default options
+    options = options || getDefaultMatchOptions();
+    debugMatchOptions(options);
 
     // convert pattern to an array
     let patterns: string[];
@@ -1582,23 +1469,467 @@ export function match(list: string[], pattern: any, options?: MatchOptions): str
     // hashtable to keep track of matches
     let map: { [item: string]: boolean } = {};
 
-    // perform the match
+    let originalOptions = options;
     for (let pattern of patterns) {
-        debug(`applying pattern: ${pattern}`);
-        let matches: string[] = minimatch.match(list, pattern, options);
-        debug(`matched ${matches.length} items`);
-        for (let item of matches) {
-            map[item] = true;
+        debug(`pattern: '${pattern}'`);
+
+        // trim and skip empty
+        pattern = (pattern || '').trim();
+        if (!pattern) {
+            debug('skipping empty pattern');
+            continue;
+        }
+
+        // clone match options
+        let options = cloneMatchOptions(originalOptions);
+
+        // skip comments
+        if (!options.nocomment && pattern.startsWith('#')) {
+            debug('skipping comment');
+            continue;
+        }
+
+        // set nocomment
+        options.nocomment = true;
+
+        // determine whether pattern is include or exclude
+        let negateCount = 0;
+        if (!options.nonegate) {
+            while (pattern.charAt(negateCount) == '!') {
+                negateCount++;
+            }
+
+            pattern = pattern.substring(negateCount); // trim leading '!'
+            if (negateCount) {
+                debug(`trimmed leading '!'. pattern: '${pattern}'`);
+            }
+        }
+
+        let isIncludePattern = negateCount == 0 ||
+            (negateCount % 2 == 0 && !options.flipNegate) ||
+            (negateCount % 2 == 1 && options.flipNegate);
+
+        // set nonegate - brace expansion could result in a leading '!'
+        options.nonegate = true;
+        options.flipNegate = false;
+
+        // trim and skip empty
+        pattern = (pattern || '').trim();
+        if (!pattern) {
+            debug('skipping empty pattern');
+            continue;
+        }
+
+        if (isIncludePattern) {
+            // apply the pattern
+            debug('applying include pattern against original list');
+            let matchResults: string[] = minimatch.match(list, pattern, options);
+            debug(matchResults.length + ' matches');
+
+            // union the results
+            for (let matchResult of matchResults) {
+                map[matchResult] = true;
+            }
+        }
+        else {
+            // apply the pattern
+            debug('applying exclude pattern against original list');
+            let matchResults: string[] = minimatch.match(list, pattern, options);
+            debug(matchResults.length + ' matches');
+
+            // substract the results
+            for (let matchResult of matchResults) {
+                delete map[matchResult];
+            }
         }
     }
 
     // return a filtered version of the original list (preserves order and prevents duplication)
-    return list.filter((item: string) => map.hasOwnProperty(item));
+    let result: string[] = list.filter((item: string) => map.hasOwnProperty(item));
+    debug(result.length + ' final results');
+    return result;
 }
 
+/**
+ * Filter to apply glob patterns
+ *
+ * @param  pattern  pattern to apply
+ * @param  options  optional. defaults to { dot: true, nobrace: true, nocase: process.platform == 'win32' }.
+ */
 export function filter(pattern: string, options?: MatchOptions): (element: string, indexed: number, array: string[]) => boolean {
+    options = options || getDefaultMatchOptions();
     return minimatch.filter(pattern, options);
 }
+
+function cloneMatchOptions(matchOptions: MatchOptions): MatchOptions {
+    return <MatchOptions>{
+        debug: matchOptions.debug,
+        nobrace: matchOptions.nobrace,
+        noglobstar: matchOptions.noglobstar,
+        dot: matchOptions.dot,
+        noext: matchOptions.noext,
+        nocase: matchOptions.nocase,
+        nonull: matchOptions.nonull,
+        matchBase: matchOptions.matchBase,
+        nocomment: matchOptions.nocomment,
+        nonegate: matchOptions.nonegate,
+        flipNegate: matchOptions.flipNegate
+    };
+}
+
+function debugMatchOptions(options: MatchOptions): void {
+    debug(`matchOptions.debug: '${options.debug}'`);
+    debug(`matchOptions.nobrace: '${options.nobrace}'`);
+    debug(`matchOptions.noglobstar: '${options.noglobstar}'`);
+    debug(`matchOptions.dot: '${options.dot}'`);
+    debug(`matchOptions.noext: '${options.noext}'`);
+    debug(`matchOptions.nocase: '${options.nocase}'`);
+    debug(`matchOptions.nonull: '${options.nonull}'`);
+    debug(`matchOptions.matchBase: '${options.matchBase}'`);
+    debug(`matchOptions.nocomment: '${options.nocomment}'`);
+    debug(`matchOptions.nonegate: '${options.nonegate}'`);
+    debug(`matchOptions.flipNegate: '${options.flipNegate}'`);
+}
+
+function getDefaultMatchOptions(): MatchOptions {
+    return <MatchOptions>{
+        debug: false,
+        nobrace: true,
+        noglobstar: false,
+        dot: true,
+        noext: false,
+        nocase: process.platform == 'win32',
+        nonull: false,
+        matchBase: false,
+        nocomment: false,
+        nonegate: false,
+        flipNegate: false
+    };
+}
+
+/**
+ * Determines the find root from a list of patterns. Performs the find and then applies the glob patterns.
+ * Supports interleaved exclude patterns. Unrooted patterns are rooted using defaultRoot, unless
+ * matchOptions.matchBase is specified and the pattern is a basename only. For matchBase cases, the
+ * defaultRoot is used as the find root.
+ *
+ * @param  defaultRoot   default path to root unrooted patterns. falls back to System.DefaultWorkingDirectory or process.cwd().
+ * @param  patterns      pattern or array of patterns to apply
+ * @param  findOptions   defaults to { followSymbolicLinks: true }. following soft links is generally appropriate unless deleting files.
+ * @param  matchOptions  defaults to { dot: true, nobrace: true, nocase: process.platform == 'win32' }
+ */
+export function findMatch(defaultRoot: string, patterns: string[] | string, findOptions?: FindOptions, matchOptions?: MatchOptions) : string[] {
+
+    // apply defaults for parameters and trace
+    defaultRoot = defaultRoot || this.getVariable('system.defaultWorkingDirectory') || process.cwd();
+    debug(`defaultRoot: '${defaultRoot}'`);
+    patterns = patterns || [];
+    patterns = typeof patterns == 'string' ? [ patterns ] as string[] : patterns;
+    findOptions = findOptions || getDefaultFindOptions();
+    debugFindOptions(findOptions);
+    matchOptions = matchOptions || getDefaultMatchOptions();
+    debugMatchOptions(matchOptions);
+
+    // normalize slashes for root dir
+    defaultRoot = normalizeSeparators(defaultRoot);
+
+    let results: { [key: string]: string } = { };
+    let originalMatchOptions = matchOptions;
+    for (let pattern of (patterns || [])) {
+        debug(`pattern: '${pattern}'`);
+
+        // trim and skip empty
+        pattern = (pattern || '').trim();
+        if (!pattern) {
+            debug('skipping empty pattern');
+            continue;
+        }
+
+        // clone match options
+        let matchOptions = cloneMatchOptions(originalMatchOptions);
+
+        // skip comments
+        if (!matchOptions.nocomment && pattern.startsWith('#')) {
+            debug('skipping comment');
+            continue;
+        }
+
+        // set nocomment - brace expansion could result in a leading '#'
+        matchOptions.nocomment = true;
+
+        // determine whether pattern is include or exclude
+        let negateCount = 0;
+        if (!matchOptions.nonegate) {
+            while (pattern.charAt(negateCount) == '!') {
+                negateCount++;
+            }
+
+            pattern = pattern.substring(negateCount); // trim leading '!'
+            if (negateCount) {
+                debug(`trimmed leading '!'. pattern: '${pattern}'`);
+            }
+        }
+
+        let isIncludePattern = negateCount == 0 ||
+            (negateCount % 2 == 0 && !matchOptions.flipNegate) ||
+            (negateCount % 2 == 1 && matchOptions.flipNegate);
+
+        // set nonegate - brace expansion could result in a leading '!'
+        matchOptions.nonegate = true;
+        matchOptions.flipNegate = false;
+
+        // expand braces - required to accurately interpret findPath
+        let expanded: string[];
+        let preExpanded: string = pattern;
+        if (matchOptions.nobrace) {
+            expanded = [ pattern ];
+        }
+        else {
+            // convert slashes on Windows before calling braceExpand(). unfortunately this means braces cannot
+            // be escaped on Windows, this limitation is consistent with current limitations of minimatch (3.0.3).
+            debug('expanding braces');
+            let convertedPattern = process.platform == 'win32' ? pattern.replace(/\\/g, '/') : pattern;
+            expanded = (minimatch as any).braceExpand(convertedPattern);
+        }
+
+        // set nobrace
+        matchOptions.nobrace = true;
+
+        for (let pattern of expanded) {
+            if (expanded.length != 1 || pattern != preExpanded) {
+                debug(`pattern: '${pattern}'`);
+            }
+
+            // trim and skip empty
+            pattern = (pattern || '').trim();
+            if (!pattern) {
+                debug('skipping empty pattern');
+                continue;
+            }
+
+            if (isIncludePattern) {
+                // determine the findPath
+                let findInfo: PatternFindInfo = getFindInfoFromPattern(defaultRoot, pattern, matchOptions);
+                let findPath: string = findInfo.findPath;
+                debug(`findPath: '${findPath}'`);
+
+                if (!findPath) {
+                    debug('skipping empty path');
+                    continue;
+                }
+
+                // perform the find
+                debug(`statOnly: '${findInfo.statOnly}'`);
+                let findResults: string[] = [];
+                if (findInfo.statOnly) {
+                    // simply stat the path - all path segments were used to build the path
+                    try {
+                        fs.statSync(findPath);
+                        findResults.push(findPath);
+                    }
+                    catch (err) {
+                        if (err.code != 'ENOENT') {
+                            throw err;
+                        }
+
+                        debug('ENOENT');
+                    }
+                }
+                else {
+                    findResults = find(findPath, findOptions);
+                }
+
+                debug(`found ${findResults.length} paths`);
+
+                // apply the pattern
+                debug('applying include pattern');
+                if (findInfo.adjustedPattern != pattern) {
+                    debug(`adjustedPattern: '${findInfo.adjustedPattern}'`);
+                    pattern = findInfo.adjustedPattern;
+                }
+
+                let matchResults: string[] = minimatch.match(findResults, pattern, matchOptions);
+                debug(matchResults.length + ' matches');
+
+                // union the results
+                for (let matchResult of matchResults) {
+                    let key = process.platform == 'win32' ? matchResult.toUpperCase() : matchResult;
+                    results[key] = matchResult;
+                }
+            }
+            else {
+                // check if basename only and matchBase=true
+                if (matchOptions.matchBase &&
+                    !isRooted(pattern) &&
+                    (process.platform == 'win32' ? pattern.replace(/\\/g, '/') : pattern).indexOf('/') < 0) {
+
+                    // do not root the pattern
+                    debug('matchBase and basename only');
+                }
+                else {
+                    // root the exclude pattern
+                    pattern = ensurePatternRooted(defaultRoot, pattern);
+                    debug(`after ensurePatternRooted, pattern: '${pattern}'`);
+                }
+
+                // apply the pattern
+                debug('applying exclude pattern');
+                let matchResults: string[] = minimatch.match(
+                    Object.keys(results).map((key: string) => results[key]),
+                    pattern,
+                    matchOptions);
+                debug(matchResults.length + ' matches');
+
+                // substract the results
+                for (let matchResult of matchResults) {
+                    let key = process.platform == 'win32' ? matchResult.toUpperCase() : matchResult;
+                    delete results[key];
+                }
+            }
+        }
+    }
+
+    let finalResult: string[] = Object.keys(results)
+        .map((key: string) => results[key])
+        .sort();
+    debug(finalResult.length + ' final results');
+    return finalResult;
+}
+
+interface PatternFindInfo {
+    /** Adjusted pattern to use. Unrooted patterns are typically rooted using the default info, although this is not true for match-base scenarios. */
+    adjustedPattern: string,
+
+    /** Path interpreted from the pattern to call find() on. */
+    findPath: string,
+
+    /** Indicates whether to call stat() or find(). When all path segemnts in the pattern are literal, there is no need to call find(). */
+    statOnly: boolean,
+}
+
+function getFindInfoFromPattern(defaultRoot: string, pattern: string, matchOptions: MatchOptions): PatternFindInfo {
+    // parameter validation
+    if (!defaultRoot) {
+        throw new Error('getFindRootFromPattern() parameter defaultRoot cannot be empty');
+    }
+
+    if (!pattern) {
+        throw new Error('getFindRootFromPattern() parameter pattern cannot be empty');
+    }
+
+    if (!matchOptions.nobrace) {
+        throw new Error('getFindRootFromPattern() expected matchOptions.nobrace to be true');
+    }
+
+    // for the sake of determining the findPath, pretend nocase=false
+    matchOptions = cloneMatchOptions(matchOptions);
+    matchOptions.nocase = false;
+
+    // check if basename only and matchBase=true
+    if (matchOptions.matchBase &&
+        !isRooted(pattern) &&
+        (process.platform == 'win32' ? pattern.replace(/\\/g, '/') : pattern).indexOf('/') < 0) {
+
+        return <PatternFindInfo>{
+            adjustedPattern: pattern, // for basename only scenarios, do not root the pattern
+            findPath: defaultRoot,
+            statOnly: false,
+        };
+    }
+
+    // the technique applied by this function is to use the information on the Minimatch object determine
+    // the findPath. Minimatch breaks the pattern into path segments, and exposes information about which
+    // segments are literal vs patterns.
+    //
+    // note, the technique currently imposes a limitation for drive-relative paths with a glob in the
+    // first segment, e.g. C:hello*/world. it's feasible to overcome this limitation, but is left unsolved
+    // for now.
+    let minimatchObj = new minimatch.Minimatch(pattern, matchOptions);
+
+    // the "set" property is an array of arrays of parsed path segment info. the outer array should only
+    // contain one item, otherwise something went wrong. brace expansion can result in multiple arrays,
+    // but that should be turned off by the time this function is reached.
+    if (minimatchObj.set.length != 1) {
+        throw new Error('getFindRootFromPattern() expected Minimatch(...).set.length to be 1. Actual: ' + minimatchObj.set.length);
+    }
+
+    let literalSegments: string[] = [];
+    for (let parsedSegment of minimatchObj.set[0]) {
+        if (typeof parsedSegment == 'string') {
+            // the item is a string when the original input for the path segment does not contain any
+            // unescaped glob characters.
+            //
+            // note, the string here is already unescaped (i.e. glob escaping removed), so it is ready
+            // to pass to find() as-is. for example, an input string 'hello\\*world' => 'hello*world'.
+            literalSegments.push(parsedSegment);
+            continue;
+        }
+
+        break;
+    }
+
+    // join the literal segments back together. Minimatch converts '\' to '/' on Windows, then squashes
+    // consequetive slashes, and finally splits on slash. this means that UNC format is lost, but can
+    // be detected from the original pattern.
+    let joinedSegments = literalSegments.join('/');
+    if (joinedSegments && process.platform == 'win32' && pattern.replace(/\\/g, '/').startsWith('//')) {
+        joinedSegments = '/' + joinedSegments; // restore UNC format
+    }
+
+    // determine the find path
+    let findPath: string;
+    if (isRooted(pattern)) { // the pattern was rooted
+        findPath = joinedSegments;
+    }
+    else if (joinedSegments) { // the pattern was not rooted, and literal segments were found
+        findPath = ensureRooted(defaultRoot, joinedSegments);
+    }
+    else { // the pattern was not rooted, and no literal segments were found
+        findPath = defaultRoot;
+    }
+
+    // clean up the path
+    if (findPath) {
+        findPath = getDirectoryName(ensureRooted(findPath, '_')); // hack to remove unnecessary trailing slash
+        findPath = normalizeSeparators(findPath); // normalize slashes
+    }
+
+    return <PatternFindInfo>{
+        adjustedPattern: ensurePatternRooted(defaultRoot, pattern),
+        findPath: findPath,
+        statOnly: literalSegments.length == minimatchObj.set[0].length,
+    };
+}
+_internal['getFindInfoFromPattern'] = getFindInfoFromPattern;
+
+function ensurePatternRooted(root: string, p: string) {
+    if (!root) {
+        throw new Error('ensurePatternRooted() parameter "root" cannot be empty');
+    }
+
+    if (!p) {
+        throw new Error('ensurePatternRooted() parameter "p" cannot be empty');
+    }
+
+    if (isRooted(p)) {
+        return p;
+    }
+
+    // normalize root
+    root = normalizeSeparators(root);
+
+    // escape special glob characters
+    root = (process.platform == 'win32' ? root : root.replace(/\\/g, '\\\\')) // escape '\' on OSX/Linux
+        .replace(/(\[)(?=[^\/]+\])/g, '[[]') // escape '[' when ']' follows within the path segment
+        .replace(/\?/g, '[?]') // escape '?'
+        .replace(/\*/g, '[*]') // escape '*'
+        .replace(/\+\(/g, '[+](') // escape '+('
+        .replace(/@\(/g, '[@](') // escape '@('
+        .replace(/!\(/g, '[!]('); // escape '!('
+
+    return ensureRooted(root, p);
+}
+_internal['ensurePatternRooted'] = ensurePatternRooted;
 
 //-----------------------------------------------------
 // Test Publisher
@@ -1782,3 +2113,166 @@ export function _loadData(): void {
 }
 
 _loadData();
+
+//--------------------------------------------------------------------------------
+// Internal path helpers.
+//--------------------------------------------------------------------------------
+function ensureRooted(root: string, p: string) {
+    if (!root) {
+        throw new Error('ensureRooted() parameter "root" cannot be empty');
+    }
+
+    if (!p) {
+        throw new Error('ensureRooted() parameter "p" cannot be empty');
+    }
+
+    if (isRooted(p)) {
+        return p;
+    }
+
+    if (process.platform == 'win32' && root.match(/^[A-Z]:$/i)) { // e.g. C:
+        return root + p;
+    }
+
+    // ensure root ends with a separator
+    if (root.endsWith('/') || (process.platform == 'win32' && root.endsWith('\\'))) {
+        // root already ends with a separator
+    }
+    else {
+        root += path.sep; // append separator
+    }
+
+    return root + p;
+}
+_internal['ensureRooted'] = ensureRooted;
+
+/**
+ * Determines the parent path and trims trailing slashes (when safe). Path separators are normalized
+ * in the result. This function works similar to the .NET System.IO.Path.GetDirectoryName() method.
+ * For example, C:\hello\world\ returns C:\hello\world (trailing slash removed). Returns empty when
+ * no higher directory can be determined.
+ */
+function getDirectoryName(p: string): string {
+    // short-circuit if empty
+    if (!p) {
+        return '';
+    }
+
+    // normalize separators
+    p = normalizeSeparators(p);
+
+    // on Windows, the goal of this function is to match the behavior of
+    // [System.IO.Path]::GetDirectoryName(), e.g.
+    //      C:/             =>
+    //      C:/hello        => C:\
+    //      C:/hello/       => C:\hello
+    //      C:/hello/world  => C:\hello
+    //      C:/hello/world/ => C:\hello\world
+    //      C:              =>
+    //      C:hello         => C:
+    //      C:hello/        => C:hello
+    //      /               =>
+    //      /hello          => \
+    //      /hello/         => \hello
+    //      //hello         =>
+    //      //hello/        =>
+    //      //hello/world   =>
+    //      //hello/world/  => \\hello\world
+    //
+    // unfortunately, path.dirname() can't simply be used. for example, on Windows
+    // it yields different results from Path.GetDirectoryName:
+    //      C:/             => C:/
+    //      C:/hello        => C:/
+    //      C:/hello/       => C:/
+    //      C:/hello/world  => C:/hello
+    //      C:/hello/world/ => C:/hello
+    //      C:              => C:
+    //      C:hello         => C:
+    //      C:hello/        => C:
+    //      /               => /
+    //      /hello          => /
+    //      /hello/         => /
+    //      //hello         => /
+    //      //hello/        => /
+    //      //hello/world   => //hello/world
+    //      //hello/world/  => //hello/world/
+    //      //hello/world/again => //hello/world/
+    //      //hello/world/again/ => //hello/world/
+    //      //hello/world/again/again => //hello/world/again
+    //      //hello/world/again/again/ => //hello/world/again
+    if (process.platform == 'win32') {
+        if (/^[A-Z]:\\?[^\\]+$/i.test(p)) { // e.g. C:\hello or C:hello
+            return p.charAt(2) == '\\' ? p.substring(0, 3) : p.substring(0, 2);
+        }
+        else if (/^[A-Z]:\\?$/i.test(p)) { // e.g. C:\ or C:
+            return '';
+        }
+
+        let lastSlashIndex = p.lastIndexOf('\\');
+        if (lastSlashIndex < 0) { // file name only
+            return '';
+        }
+        else if (p == '\\') { // relative root
+            return '';
+        }
+        else if (lastSlashIndex == 0) { // e.g. \\hello
+            return '\\';
+        }
+        else if (/^\\\\[^\\]+(\\[^\\]*)?$/.test(p)) { // UNC root, e.g. \\hello or \\hello\ or \\hello\world
+            return '';
+        }
+
+        return p.substring(0, lastSlashIndex);  // e.g. hello\world => hello or hello\world\ => hello\world
+                                                // note, this means trailing slashes for non-root directories
+                                                // (i.e. not C:\, \, or \\unc\) will simply be removed.
+    }
+
+    // OSX/Linux
+    if (p.indexOf('/') < 0) { // file name only
+        return '';
+    }
+    else if (p == '/') {
+        return '';
+    }
+    else if (p.endsWith('/')) {
+        return p.substring(0, p.length - 1);
+    }
+
+    return path.dirname(p);
+}
+_internal['getDirectoryName'] = getDirectoryName;
+
+/**
+ * On OSX/Linux, true if path starts with '/'. On Windows, true for paths like:
+ * \, \hello, \\hello\share, C:, and C:\hello (and corresponding alternate separator cases).
+ */
+function isRooted(p: string): boolean {
+    p = normalizeSeparators(p);
+    if (!p) {
+        throw new Error('isRooted() parameter "p" cannot be empty');
+    }
+
+    if (process.platform == 'win32') {
+        return p.startsWith('\\') || // e.g. \ or \hello or \\hello
+            /^[A-Z]:/i.test(p);      // e.g. C: or C:\hello
+    }
+
+    return p.startsWith('/'); // e.g. /hello
+}
+_internal['isRooted'] = isRooted;
+
+function normalizeSeparators(p: string): string {
+    p = p || '';
+    if (process.platform == 'win32') {
+        // convert slashes on Windows
+        p = p.replace(/\//g, '\\');
+
+        // remove redundant slashes
+        let isUnc = /^\\\\+[^\\]/.test(p); // e.g. \\hello
+        return (isUnc ? '\\' : '') + p.replace(/\\\\+/g, '\\'); // preserve leading // for UNC
+    }
+
+    // remove redundant slashes
+    return p.replace(/\/\/+/g, '/');
+}
+_internal['normalizeSeparators'] = normalizeSeparators;
