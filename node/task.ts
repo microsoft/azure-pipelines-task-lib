@@ -1170,6 +1170,50 @@ export function globFirst(pattern: string): string {
     return matches[0];
 }
 
+export function findFiles(pattern: string){
+    var filesList : string [];
+    if (pattern.indexOf('*') == -1 && pattern.indexOf('?') == -1) {
+        // No pattern found, check literal path to a single file
+        checkPath(pattern, 'files');
+        // Use the specified single file
+        filesList = [pattern];
+    } else {
+        var firstWildcardIndex = function(str) {
+            var idx = str.indexOf('*');
+            var idxOfWildcard = str.indexOf('?');
+            if (idxOfWildcard > -1) {
+                return (idx > -1) ?
+                    Math.min(idx, idxOfWildcard) : idxOfWildcard;
+            }
+            return idx;
+        }
+
+        // Find app files matching the specified pattern
+        debug('Matching glob pattern: ' + pattern);
+        // First find the most complete path without any matching patterns
+        var idx = firstWildcardIndex(pattern);
+        debug('Index of first wildcard: ' + idx);
+        var slicedPath = pattern.slice(0, idx);
+        var findPathRoot = path.dirname(slicedPath);
+        if(slicedPath.indexOf('\\') == (slicedPath.length - 1)  || slicedPath.indexOf("/") == (slicedPath.length - 1)){
+            findPathRoot = slicedPath;
+        }
+
+        debug('find root dir: ' + findPathRoot);
+        // Now we get a list of all files under this root
+        var allFiles = find(findPathRoot);
+
+        // Now matching the pattern against all files
+        filesList = match(allFiles, pattern, {matchBase: true});
+
+        // Fail if no matching files were found
+        if (!filesList || filesList.length == 0) {
+            debug('No matching files were found with search pattern: ' + pattern);
+        }
+    }
+    return filesList;
+}
+
 /**
  * Exec a tool.  Convenience wrapper over ToolRunner to exec with args in one call.
  * Output will be streamed to the live console.
