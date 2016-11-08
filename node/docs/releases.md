@@ -1,5 +1,8 @@
 # VSTS-TASK-LIB RELEASES
 
+## 1.1.0
+ * Added `legacyFindFiles` for tasks porting from the PowerShell or PowerShell3 execution handler.
+
 ## 1.0.0
  * Updated `ToolRunner` to provide better arg quoting for .cmd/.bat files on Windows and also enable specifying exact command lines on Windows.
 
