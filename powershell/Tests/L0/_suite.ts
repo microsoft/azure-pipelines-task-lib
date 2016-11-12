@@ -7,25 +7,25 @@ import assert = require('assert');
 import psRunner = require('../lib/psRunner');
 import path = require('path');
 import fs = require('fs');
-var shell = require('shelljs');
-var ps = shell.which('powershell.exe');
+let shell = require('shelljs');
+let ps: string = shell.which('powershell.exe');
 describe('VstsTaskSdk Suite', function () {
     this.timeout(20000);
 
-    before((done) => {
+    before((done: MochaDone): void => {
         done();
     });
 
-    after(() => {
+    after((): void => {
         psRunner.ensureStopped();
     });
 
     if (ps) {
         fs.readdirSync(__dirname).forEach((file: string) => {
-            let fullPath = path.join(__dirname, file);
+            let fullPath: string = path.join(__dirname, file);
             if (file.match(/.ps1$/)) {
                 let description: string = path.basename(file, '.ps1');
-                it(description, (done) => {
+                it(description, (done: MochaDone) => {
                     psRunner.run(fullPath, done);
                 });
             }
