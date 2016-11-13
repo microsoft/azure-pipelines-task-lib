@@ -10,6 +10,8 @@ import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
 import vm = require('./vault');
 import semver = require('semver');
+
+let loadash = require('lodash');
 require('./extensions');
 
 export enum TaskResult {
@@ -1567,30 +1569,47 @@ export interface MatchOptions {
 export function match(list: string[], pattern: string, options?: MatchOptions): string[];
 export function match(list: string[], patterns: string[], options?: MatchOptions): string[];
 export function match(list: string[], pattern: any, options?: MatchOptions): string[] {
-    debug(`match patterns: ${pattern}`);
+    let includePatterns: string[] = [];
+    let excludePatterns: string[] = [];
+
+    debug(`match pattern: ${pattern}`);
     debug(`match options: ${options}`);
 
     // convert pattern to an array
     let patterns: string[];
     if (typeof pattern == 'string') {
-        patterns = [ pattern ];
+        patterns = [pattern];
     }
     else {
         patterns = pattern;
     }
 
-    // hashtable to keep track of matches
-    let map: { [item: string]: boolean } = {};
+    // minimatch pattern standard [exclusion pattern must be sent with Negate]
+    patterns.forEach(p => p.startsWith('!') ? excludePatterns.push(p.slice(1)) : includePatterns.push(p));
+    debug(`match patterns include: ${includePatterns.length} exclude: ${excludePatterns.length}`);
+
+    let matches: string[] = [];
 
     // perform the match
-    for (let pattern of patterns) {
-        debug(`applying pattern: ${pattern}`);
-        let matches: string[] = minimatch.match(list, pattern, options);
-        debug(`matched ${matches.length} items`);
-        for (let item of matches) {
-            map[item] = true;
-        }
+    for (let inclPattern of includePatterns) {
+        console.log(`applying pattern: ${inclPattern}`);
+        let patternMatches: string[] = minimatch.match(list, inclPattern, options);
+        console.log(`matched ${patternMatches.length} items`);
+        matches = matches.concat(patternMatches);
     }
+
+    //perform filter for excludedPatterns
+    for (let exclPattern of excludePatterns) {
+        console.log(`applying exclusion pattern: ${exclPattern}`);
+        let filterMatches = matches.filter(minimatch.filter(exclPattern, options));
+        console.log(`filtered matches ${filterMatches} items`);
+        matches = loadash.difference(matches, filterMatches); //ES6 exclusion fits better
+    }
+
+    // hashtable to keep track of matches -- should use SET with ES6
+    let map: { [item: string]: boolean } = {};
+    matches.forEach(item => map[item] = true);
+    debug("matches length: " + matches.length);
 
     // return a filtered version of the original list (preserves order and prevents duplication)
     return list.filter((item: string) => map.hasOwnProperty(item));
