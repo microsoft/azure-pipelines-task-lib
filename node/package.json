@@ -1,6 +1,6 @@
 {
   "name": "vsts-task-lib",
-  "version": "1.1.0",
+  "version": "2.0.0-preview",
   "description": "VSTS Task SDK",
   "main": "./task.js",
   "typings": "./task.d.ts",
@@ -24,7 +24,6 @@
   },
   "homepage": "https://github.com/Microsoft/vsts-task-lib",
   "dependencies": {
-    "glob": "^6.0.1",
     "minimatch": "^3.0.0",
     "mockery": "^1.7.0",
     "node-uuid": "^1.4.7",
@@ -34,12 +33,7 @@
     "vso-node-api": "^0.6.1"
   },
   "devDependencies": {
-    "del": "^1.2.0",
-    "gulp": "^3.9.0",
-    "gulp-mocha": "2.0.0",
-    "merge2": "^0.3.6",
     "mocha": "^2.2.5",
-    "semver": "^5.1.0",
     "sync-request": "3.0.1",
     "typedoc": "^0.4.5",
     "typescript": "1.8.7"

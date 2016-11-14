@@ -143,7 +143,7 @@ describe('Dir Operation Tests', function () {
         fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
         testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
 
-        let itemPaths: string[] = tl.find(path.join(root, 'symDir'));
+        let itemPaths: string[] = tl.find(path.join(root, 'symDir'), <tl.FindOptions>{ });
         assert.equal(itemPaths.length, 1);
         assert.equal(itemPaths[0], path.join(root, 'symDir'));
 
@@ -207,7 +207,7 @@ describe('Dir Operation Tests', function () {
         fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
         testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
 
-        let itemPaths: string[] = tl.find(root);
+        let itemPaths: string[] = tl.find(root, <tl.FindOptions>{ });
         assert.equal(itemPaths.length, 4);
         assert.equal(itemPaths[0], root);
         assert.equal(itemPaths[1], path.join(root, 'realDir'));
@@ -345,6 +345,35 @@ describe('Dir Operation Tests', function () {
         assert.equal(itemPaths[6], path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'folder_a'));
         assert.equal(itemPaths[7], path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'folder_a', 'file_under_a'));
         assert.equal(itemPaths[8], path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'folder_a', 'folder_b'));
+
+        done();
+    });
+
+    it('applies default options', (done: MochaDone) => {
+        this.timeout(1000);
+
+        // create the following layout:
+        //   <root>
+        //   <root>/real_folder
+        //   <root>/real_folder/file_under_real_folder
+        //   <root>/sym_folder -> real_folder
+        let root: string = path.join(testutil.getTestTemp(), 'find_applies_default_options');
+        tl.mkdirP(path.join(root, 'real_folder'));
+        fs.writeFileSync(path.join(root, 'real_folder', 'file_under_real_folder'), 'test file under real folder');
+        testutil.createSymlinkDir(path.join(root, 'real_folder'), path.join(root, 'sym_folder'));
+        assert.doesNotThrow(
+            () => fs.statSync(path.join(root, 'sym_folder', 'file_under_real_folder')),
+            'sym_folder should be created properly');
+
+        let actual: string[] = tl.find(root);
+        let expected: string[] = [
+            root,
+            path.join(root, 'real_folder'),
+            path.join(root, 'real_folder', 'file_under_real_folder'),
+            path.join(root, 'sym_folder'),
+            path.join(root, 'sym_folder', 'file_under_real_folder'),
+        ];
+        assert.deepEqual(actual, expected);
 
         done();
     });
@@ -522,14 +551,15 @@ describe('Dir Operation Tests', function () {
     it('breaks if mkdirP loop out of control', (done: MochaDone) => {
         this.timeout(1000);
 
-        process.env['TASKLIB_TEST_MKDIRP_FAILSAFE'] = '10';
         let testPath = path.join(testutil.getTestTemp(), 'mkdirP_failsafe', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10');
-
+        process.env['TASKLIB_TEST_MKDIRP_FAILSAFE'] = '10';
         try {
             tl.mkdirP(testPath);
             throw new Error("directory should not have been created");
         }
         catch (err) {
+            delete process.env['TASKLIB_TEST_MKDIRP_FAILSAFE'];
+
             // ENOENT is expected, all other errors are not
             if (err.code != 'ENOENT') {
                 throw err;

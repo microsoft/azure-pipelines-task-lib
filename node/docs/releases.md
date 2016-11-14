@@ -1,5 +1,11 @@
 # VSTS-TASK-LIB RELEASES
 
+## 2.0.0
+ * Added `findMatch` that interprets the find root from a glob pattern. Supports interleaved exclude.
+ * Updated `find`, `match`, and `filter` to change the default value for the options parameter, when undefined or null.
+ * Update `match` to change the behavior for exclude patterns. Interleaved exclude patterns are now supported, and exclude patterns filter results out now.
+ * Removed `glob`, use `findMatch`.
+
 ## 1.1.0
  * Added `legacyFindFiles` for tasks porting from the PowerShell or PowerShell3 execution handler.
 
