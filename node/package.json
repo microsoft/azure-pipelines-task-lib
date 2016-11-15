@@ -5,6 +5,7 @@
   "main": "./task.js",
   "typings": "./task.d.ts",
   "scripts": {
+    "build": "node make.js build",
     "test": "node make.js test"
   },
   "repository": {

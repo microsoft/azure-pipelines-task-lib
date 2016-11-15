@@ -307,7 +307,7 @@ export function getVariables(): VariableInfo[] {
     return Object.keys(knownVariableMap)
         .map((key: string) => {
             let info: KnownVariableInfo = knownVariableMap[key];
-            return new VariableInfo(info.name, getVariable(info.name), info.secret);
+            return <VariableInfo>{ name: info.name, value: getVariable(info.name), secret: info.secret };
         });
 }
 
@@ -337,7 +337,7 @@ export function setVariable(name: string, val: string, secret: boolean = false):
     }
 
     // store the metadata
-    knownVariableMap[key] = new KnownVariableInfo(name, secret);
+    knownVariableMap[key] = <KnownVariableInfo>{ name: name, secret: secret };
 
     // write the command
     command('task.setvariable', { 'variable': name || '', 'secret': (secret || false).toString() }, varValue);
@@ -356,27 +356,16 @@ function getVariableKey(name: string): string {
  *  1) the real variable name (not the formatted environment variable name)
  *  2) whether the variable is a secret variable
  */
-class KnownVariableInfo {
-    constructor(name: string, secret: boolean) {
-        this.name = name;
-        this.secret = secret;
-    }
-
-    public name: string;
-    public secret: boolean;
+interface KnownVariableInfo {
+    name: string;
+    secret: boolean;
 }
 
 /** Snapshot of a variable at the time when getVariables was called. */
-export class VariableInfo {
-    constructor(name: string, value: string, secret: boolean) {
-        this.name = name;
-        this.value = value;
-        this.secret = secret;
-    }
-
-    public name: string;
-    public value: string;
-    public secret: boolean;
+export interface VariableInfo {
+    name: string;
+    value: string;
+    secret: boolean;
 }
 
 /**
@@ -573,14 +562,14 @@ export function getEndpointAuthorizationParameter(id: string, key: string, optio
 /**
  * Interface for EndpointAuthorization
  * Contains a schema and a string/string dictionary of auth data
- * 
- * @param     parameters        string string dictionary of auth data
- * @param     scheme            auth scheme such as OAuth or username/password etc...
  */
 export interface EndpointAuthorization {
+    /** dictionary of auth data */
     parameters: {
         [key: string]: string;
     };
+
+    /** auth scheme such as OAuth or username/password etc... */
     scheme: string;
 }
 
@@ -973,9 +962,6 @@ export function mv(source: string, dest: string, options?: string, continueOnErr
 /**
  * Interface for FindOptions
  * Contains properties to control whether to follow symlinks
- * 
- * @param followSpecifiedSymbolicLink   Equivalent to the -H command line option. Indicates whether to traverse descendants if the specified path is a symbolic link directory. Does not cause nested symbolic link directories to be traversed.
- * @param  followSymbolicLinks          Equivalent to the -L command line option. Indicates whether to traverse descendants of symbolic link directories.
  */
 export interface FindOptions {
     /**
@@ -2069,7 +2055,7 @@ export function _loadData(): void {
                     // This is technically not the variable name (has underscores instead of dots),
                     // but it's good enough to make getVariable work in a pre-2.104.1 agent where
                     // the VSTS_SECRET_VARIABLES env var is not defined.
-                    knownVariableMap[getVariableKey(variableName)] = new KnownVariableInfo(variableName, true);
+                    knownVariableMap[getVariableKey(variableName)] = <KnownVariableInfo>{ name: variableName, secret: true };
                 }
             }
 
@@ -2094,7 +2080,7 @@ export function _loadData(): void {
     }
 
     names.forEach((name: string) => {
-        knownVariableMap[getVariableKey(name)] = new KnownVariableInfo(name, false);
+        knownVariableMap[getVariableKey(name)] = <KnownVariableInfo>{ name: name, secret: false };
     });
     delete process.env['VSTS_PUBLIC_VARIABLES'];
 
@@ -2107,7 +2093,7 @@ export function _loadData(): void {
     }
 
     names.forEach((name: string) => {
-        knownVariableMap[getVariableKey(name)] = new KnownVariableInfo(name, true);
+        knownVariableMap[getVariableKey(name)] = <KnownVariableInfo>{ name: name, secret: true };
     });
     delete process.env['VSTS_SECRET_VARIABLES'];
 }

@@ -9,37 +9,45 @@ import tcm = require('./taskcommand');
 
 /**
  * Interface for exec options
- * 
- * @param     cwd        optional working directory.  defaults to current 
- * @param     env        optional envvar dictionary.  defaults to current processes env
- * @param     silent     optional.  defaults to false
- * @param     failOnStdErr     optional.  whether to fail if output to stderr.  defaults to false
- * @param     ignoreReturnCode     optional.  defaults to failing on non zero.  ignore will not fail leaving it up to the caller
- * @param     windowsVerbatimArguments     optional.  whether to skip quoting/escaping arguments if needed.  defaults to false.
  */
 export interface IExecOptions {
+    /** optional working directory.  defaults to current */
     cwd: string;
+
+    /** optional envvar dictionary.  defaults to current process's env */
     env: { [key: string]: string };
+
+    /** optional.  defaults to fales */
     silent: boolean;
+
+    /** optional.  whether to fail if output to stderr.  defaults to false */
     failOnStdErr: boolean;
+
+    /** optional.  defaults to failing on non zero.  ignore will not fail leaving it up to the caller */
     ignoreReturnCode: boolean;
+
     outStream: stream.Writable;
+
     errStream: stream.Writable;
+
+    /** optional.  foo.whether to skip quoting/escaping arguments if needed.  defaults to false. */
     windowsVerbatimArguments: boolean;
 };
 
 /**
  * Interface for exec results returned from synchronous exec functions
- * 
- * @param     stdout      standard output
- * @param     stderr      error output
- * @param     code        return code
- * @param     error       Error on failure
  */
 export interface IExecResult {
+    /** standard output */
     stdout: string;
+
+    /** error output */
     stderr: string;
+
+    /** return code */
     code: number;
+
+    /** Error on failure */
     error: Error;
 }
 

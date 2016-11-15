@@ -1,3 +1,5 @@
+/// <reference path="typings/index.d.ts" />
+
 import * as ts from 'typescript';
 var path = require('path');
 
@@ -6,6 +8,7 @@ var path = require('path');
 export interface DocEntry {
     name?: string,
     type?: string,
+    optional?: boolean,
     documentation?: string,
     kind?: string,
     signatures?: DocEntry[],
@@ -62,7 +65,7 @@ function visit(node: ts.Node): void {
         let symbol = checker.getSymbolAtLocation(cd.name);
         if (symbol) {
 
-            let doc: DocEntry = getDockEntryFromSymbol(symbol);
+            let doc: DocEntry = getDocEntryFromSymbol(symbol);
             doc.kind = 'class';
 
             if (inClass) {
@@ -71,7 +74,7 @@ function visit(node: ts.Node): void {
             inClass = true;
 
             let constructorType = checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration);
-            doc.constructors = constructorType.getConstructSignatures().map(getDockEntryFromSignature);
+            doc.constructors = constructorType.getConstructSignatures().map(getDocEntryFromSignature);
             current.members[doc.name] = doc;
             
             push(doc);                 
@@ -84,7 +87,7 @@ function visit(node: ts.Node): void {
         let id: ts.InterfaceDeclaration = <ts.InterfaceDeclaration>node;
         let symbol = checker.getSymbolAtLocation(id.name);
         if (symbol) {
-            let doc: DocEntry = getDockEntryFromSymbol(symbol);
+            let doc: DocEntry = getDocEntryFromSymbol(symbol);
             doc.kind = 'interface';
 
             if (inClass) {
@@ -95,21 +98,20 @@ function visit(node: ts.Node): void {
             let types = checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration);
 
             let st: ts.SymbolTable = symbol.members;
-            for (var item in st) {
-                var s: ts.Symbol = st[item];
-                let decls: ts.Declaration[] = s.getDeclarations();
-                if (decls.length > 0) {
-                    let md: DocEntry = {};
-                    md.name = item;
-                    
-                    let itemtd: ts.Declaration = s.getDeclarations()[0];
-                    md.return = checker.typeToString(checker.getTypeAtLocation(itemtd))
-                    doc.members[item] = md;
+            for (let memberName in st) {
+                var s: ts.Symbol = st[memberName];
+                let memberDeclarations: ts.Declaration[] = s.getDeclarations();
+                if (memberDeclarations.length > 0) {
+                    let memberDoc: DocEntry = {};
+                    memberDoc.documentation = ts.displayPartsToString(s.getDocumentationComment());
+                    memberDoc.name = memberName;
+                    memberDoc.return = checker.typeToString(checker.getTypeAtLocation(memberDeclarations[0]))
+                    doc.members[memberName] = memberDoc;
                 }
             }
 
-            current.members[doc.name] = doc;            
-            push(doc);                 
+            current.members[doc.name] = doc;
+            push(doc);
         }        
     }
     if (node.kind == ts.SyntaxKind.EndOfFileToken) {
@@ -121,12 +123,12 @@ function visit(node: ts.Node): void {
         let symbol = checker.getSymbolAtLocation(m.name);
         
         if (symbol) {
-            let doc: DocEntry = getDockEntryFromSymbol(symbol);
+            let doc: DocEntry = getDocEntryFromSymbol(symbol);
             doc.kind = 'method';
             doc.name = symbol.getName();
             let types = checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration);
             let sigs = types.getCallSignatures();
-            doc.signatures = sigs.map(getDockEntryFromSignature);
+            doc.signatures = sigs.map(getDocEntryFromSignature);
 
             current.members[doc.name] = doc;
         }
@@ -145,13 +147,13 @@ function visit(node: ts.Node): void {
 
         let symbol = checker.getSymbolAtLocation(f.name);
         if (symbol) {
-            let doc: DocEntry = getDockEntryFromSymbol(symbol);
+            let doc: DocEntry = getDocEntryFromSymbol(symbol);
             doc.kind = 'function';
             doc.name = symbol.getName();
 
             let types = checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration);
             let sigs = types.getCallSignatures();
-            doc.signatures = sigs.map(getDockEntryFromSignature);
+            doc.signatures = sigs.map(getDocEntryFromSignature);
 
             current.members[doc.name] = doc;
         }
@@ -170,7 +172,7 @@ function visit(node: ts.Node): void {
     ts.forEachChild(node, visit);      
 }
 
-function getDockEntryFromSignature(signature: ts.Signature): DocEntry {
+function getDocEntryFromSignature(signature: ts.Signature): DocEntry {
     let paramEntries: DocEntry[] = [];
     let params: ts.Symbol[] = signature.parameters;
     params.forEach((ps: ts.Symbol) => {
@@ -180,6 +182,7 @@ function getDockEntryFromSignature(signature: ts.Signature): DocEntry {
         let decls: ts.Declaration[] = ps.declarations;
         let paramType: ts.Type = checker.getTypeAtLocation(decls[0]);
         de.type = checker.typeToString(paramType);
+        de.optional = checker.isOptionalParameter(ps.declarations[0] as ts.ParameterDeclaration);
         de.documentation = ts.displayPartsToString(ps.getDocumentationComment());
         paramEntries.push(de);
     });
@@ -194,7 +197,7 @@ function getDockEntryFromSignature(signature: ts.Signature): DocEntry {
     return e;
 }
 
-function getDockEntryFromSymbol(symbol: ts.Symbol): DocEntry {
+function getDocEntryFromSymbol(symbol: ts.Symbol): DocEntry {
     return {
         name: symbol.getName(),
         members: {} as { string: [DocEntry]},

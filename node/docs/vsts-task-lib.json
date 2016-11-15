@@ -8,32 +8,44 @@
           "name": "IExecOptions",
           "members": {
             "cwd": {
+              "documentation": "optional working directory.  defaults to current ",
               "name": "cwd",
               "return": "string"
             },
             "env": {
+              "documentation": "optional envvar dictionary.  defaults to current process's env ",
               "name": "env",
               "return": "{ [key: string]: string; }"
             },
             "silent": {
+              "documentation": "optional.  defaults to fales ",
               "name": "silent",
               "return": "boolean"
             },
             "failOnStdErr": {
+              "documentation": "optional.  whether to fail if output to stderr.  defaults to false ",
               "name": "failOnStdErr",
               "return": "boolean"
             },
             "ignoreReturnCode": {
+              "documentation": "optional.  defaults to failing on non zero.  ignore will not fail leaving it up to the caller ",
               "name": "ignoreReturnCode",
               "return": "boolean"
             },
             "outStream": {
+              "documentation": "",
               "name": "outStream",
               "return": "any"
             },
             "errStream": {
+              "documentation": "",
               "name": "errStream",
               "return": "any"
+            },
+            "windowsVerbatimArguments": {
+              "documentation": "optional.  foo.whether to skip quoting/escaping arguments if needed.  defaults to false. ",
+              "name": "windowsVerbatimArguments",
+              "return": "boolean"
             }
           },
           "documentation": "Interface for exec options",
@@ -43,18 +55,22 @@
           "name": "IExecResult",
           "members": {
             "stdout": {
+              "documentation": "standard output ",
               "name": "stdout",
               "return": "string"
             },
             "stderr": {
+              "documentation": "error output ",
               "name": "stderr",
               "return": "string"
             },
             "code": {
+              "documentation": "return code ",
               "name": "code",
               "return": "number"
             },
             "error": {
+              "documentation": "Error on failure ",
               "name": "error",
               "return": "Error"
             }
@@ -76,6 +92,7 @@
                     {
                       "name": "message",
                       "type": "any",
+                      "optional": false,
                       "documentation": ""
                     }
                   ],
@@ -96,11 +113,200 @@
                     {
                       "name": "argString",
                       "type": "string",
+                      "optional": false,
                       "documentation": ""
                     }
                   ],
                   "members": {},
                   "return": "string[]",
+                  "documentation": ""
+                }
+              ]
+            },
+            "_getCommandString": {
+              "name": "_getCommandString",
+              "members": {},
+              "documentation": "",
+              "kind": "method",
+              "signatures": [
+                {
+                  "parameters": [
+                    {
+                      "name": "options",
+                      "type": "IExecOptions",
+                      "optional": false,
+                      "documentation": ""
+                    },
+                    {
+                      "name": "noPrefix",
+                      "type": "boolean",
+                      "optional": true,
+                      "documentation": ""
+                    }
+                  ],
+                  "members": {},
+                  "return": "string",
+                  "documentation": ""
+                }
+              ]
+            },
+            "_getSpawnFileName": {
+              "name": "_getSpawnFileName",
+              "members": {},
+              "documentation": "",
+              "kind": "method",
+              "signatures": [
+                {
+                  "parameters": [
+                    {
+                      "name": "options",
+                      "type": "IExecOptions",
+                      "optional": false,
+                      "documentation": ""
+                    }
+                  ],
+                  "members": {},
+                  "return": "string",
+                  "documentation": ""
+                }
+              ]
+            },
+            "_getSpawnArgs": {
+              "name": "_getSpawnArgs",
+              "members": {},
+              "documentation": "",
+              "kind": "method",
+              "signatures": [
+                {
+                  "parameters": [
+                    {
+                      "name": "options",
+                      "type": "IExecOptions",
+                      "optional": false,
+                      "documentation": ""
+                    }
+                  ],
+                  "members": {},
+                  "return": "string[]",
+                  "documentation": ""
+                }
+              ]
+            },
+            "_isCmdFile": {
+              "name": "_isCmdFile",
+              "members": {},
+              "documentation": "",
+              "kind": "method",
+              "signatures": [
+                {
+                  "parameters": [],
+                  "members": {},
+                  "return": "boolean",
+                  "documentation": ""
+                }
+              ]
+            },
+            "_windowsQuoteCmdArg": {
+              "name": "_windowsQuoteCmdArg",
+              "members": {},
+              "documentation": "",
+              "kind": "method",
+              "signatures": [
+                {
+                  "parameters": [
+                    {
+                      "name": "arg",
+                      "type": "string",
+                      "optional": false,
+                      "documentation": ""
+                    }
+                  ],
+                  "members": {},
+                  "return": "string",
+                  "documentation": ""
+                }
+              ]
+            },
+            "_uv_quote_cmd_arg": {
+              "name": "_uv_quote_cmd_arg",
+              "members": {},
+              "documentation": "",
+              "kind": "method",
+              "signatures": [
+                {
+                  "parameters": [
+                    {
+                      "name": "arg",
+                      "type": "string",
+                      "optional": false,
+                      "documentation": ""
+                    }
+                  ],
+                  "members": {},
+                  "return": "string",
+                  "documentation": ""
+                }
+              ]
+            },
+            "_cloneExecOptions": {
+              "name": "_cloneExecOptions",
+              "members": {},
+              "documentation": "",
+              "kind": "method",
+              "signatures": [
+                {
+                  "parameters": [
+                    {
+                      "name": "options",
+                      "type": "IExecOptions",
+                      "optional": false,
+                      "documentation": ""
+                    }
+                  ],
+                  "members": {},
+                  "return": "IExecOptions",
+                  "documentation": ""
+                }
+              ]
+            },
+            "_getSpawnOptions": {
+              "name": "_getSpawnOptions",
+              "members": {},
+              "documentation": "",
+              "kind": "method",
+              "signatures": [
+                {
+                  "parameters": [
+                    {
+                      "name": "options",
+                      "type": "IExecOptions",
+                      "optional": false,
+                      "documentation": ""
+                    }
+                  ],
+                  "members": {},
+                  "return": "any",
+                  "documentation": ""
+                }
+              ]
+            },
+            "_getSpawnSyncOptions": {
+              "name": "_getSpawnSyncOptions",
+              "members": {},
+              "documentation": "",
+              "kind": "method",
+              "signatures": [
+                {
+                  "parameters": [
+                    {
+                      "name": "options",
+                      "type": "IExecOptions",
+                      "optional": false,
+                      "documentation": ""
+                    }
+                  ],
+                  "members": {},
+                  "return": "any",
                   "documentation": ""
                 }
               ]
@@ -116,6 +322,7 @@
                     {
                       "name": "val",
                       "type": "string | string[]",
+                      "optional": false,
                       "documentation": "string cmdline or array of strings"
                     }
                   ],
@@ -128,7 +335,7 @@
             "line": {
               "name": "line",
               "members": {},
-              "documentation": "Append argument command line string\ne.g. '\"arg one\" two -z' would append args[]=['arg one', 'two', '-z']\nreturns ToolRunner for chaining \n\n@returns   ToolRunner",
+              "documentation": "Parses an argument line into one or more arguments\ne.g. .line('\"arg one\" two -z') is equivalent to .arg(['arg one', 'two', '-z'])\nreturns ToolRunner for chaining\n\n@returns   ToolRunner",
               "kind": "method",
               "signatures": [
                 {
@@ -136,12 +343,13 @@
                     {
                       "name": "val",
                       "type": "string",
-                      "documentation": "string cmdline"
+                      "optional": false,
+                      "documentation": "string argument line"
                     }
                   ],
                   "members": {},
                   "return": "ToolRunner",
-                  "documentation": "Append argument command line string\ne.g. '\"arg one\" two -z' would append args[]=['arg one', 'two', '-z']\nreturns ToolRunner for chaining \n\n@returns   ToolRunner"
+                  "documentation": "Parses an argument line into one or more arguments\ne.g. .line('\"arg one\" two -z') is equivalent to .arg(['arg one', 'two', '-z'])\nreturns ToolRunner for chaining\n\n@returns   ToolRunner"
                 }
               ]
             },
@@ -156,11 +364,13 @@
                     {
                       "name": "condition",
                       "type": "any",
+                      "optional": false,
                       "documentation": "boolean condition"
                     },
                     {
                       "name": "val",
                       "type": "any",
+                      "optional": false,
                       "documentation": "string cmdline or array of strings"
                     }
                   ],
@@ -181,6 +391,7 @@
                     {
                       "name": "tool",
                       "type": "ToolRunner",
+                      "optional": false,
                       "documentation": ""
                     }
                   ],
@@ -201,6 +412,7 @@
                     {
                       "name": "options",
                       "type": "IExecOptions",
+                      "optional": true,
                       "documentation": "optional exec options.  See IExecOptions"
                     }
                   ],
@@ -221,6 +433,7 @@
                     {
                       "name": "options",
                       "type": "IExecOptions",
+                      "optional": true,
                       "documentation": "optionalexec options.  See IExecOptions"
                     }
                   ],
@@ -239,6 +452,7 @@
                 {
                   "name": "toolPath",
                   "type": "any",
+                  "optional": false,
                   "documentation": ""
                 }
               ],
@@ -265,11 +479,13 @@
                 {
                   "name": "str",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 },
                 {
                   "name": "start",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 }
               ],
@@ -290,11 +506,13 @@
                 {
                   "name": "str",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 },
                 {
                   "name": "end",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 }
               ],
@@ -315,6 +533,7 @@
                 {
                   "name": "str",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 }
               ],
@@ -335,6 +554,7 @@
                 {
                   "name": "str",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 }
               ],
@@ -355,6 +575,7 @@
                 {
                   "name": "stdStream",
                   "type": "any",
+                  "optional": false,
                   "documentation": ""
                 }
               ],
@@ -375,6 +596,7 @@
                 {
                   "name": "errStream",
                   "type": "any",
+                  "optional": false,
                   "documentation": ""
                 }
               ],
@@ -395,11 +617,13 @@
                 {
                   "name": "result",
                   "type": "TaskResult",
+                  "optional": false,
                   "documentation": "TaskResult enum of Success or Failed.  "
                 },
                 {
                   "name": "message",
                   "type": "string",
+                  "optional": false,
                   "documentation": "A message which will be logged as an error issue if the result is Failed."
                 }
               ],
@@ -420,6 +644,7 @@
                 {
                   "name": "resjsonFile",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 }
               ],
@@ -440,11 +665,13 @@
                 {
                   "name": "resourceFile",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 },
                 {
                   "name": "culture",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 }
               ],
@@ -465,6 +692,7 @@
                 {
                   "name": "path",
                   "type": "string",
+                  "optional": false,
                   "documentation": "Full path to the json."
                 }
               ],
@@ -485,11 +713,13 @@
                 {
                   "name": "key",
                   "type": "string",
+                  "optional": false,
                   "documentation": "key of the resources string in the resource file"
                 },
                 {
                   "name": "param",
                   "type": "any[]",
+                  "optional": false,
                   "documentation": "additional params for formatting the string"
                 }
               ],
@@ -510,6 +740,7 @@
                 {
                   "name": "name",
                   "type": "string",
+                  "optional": false,
                   "documentation": "name of the variable to get"
                 }
               ],
@@ -544,16 +775,19 @@
                 {
                   "name": "name",
                   "type": "string",
+                  "optional": false,
                   "documentation": "name of the variable to set"
                 },
                 {
                   "name": "val",
                   "type": "string",
+                  "optional": false,
                   "documentation": "value to set"
                 },
                 {
                   "name": "secret",
                   "type": "boolean",
+                  "optional": true,
                   "documentation": "whether variable is secret.  optional, defaults to false"
                 }
               ],
@@ -574,6 +808,7 @@
                 {
                   "name": "name",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 }
               ],
@@ -585,58 +820,42 @@
         },
         "KnownVariableInfo": {
           "name": "KnownVariableInfo",
-          "members": {},
-          "documentation": "Used to store the following information about job variables:\n 1) the real variable name (not the formatted environment variable name)\n 2) whether the variable is a secret variable",
-          "kind": "class",
-          "constructors": [
-            {
-              "parameters": [
-                {
-                  "name": "name",
-                  "type": "string",
-                  "documentation": ""
-                },
-                {
-                  "name": "secret",
-                  "type": "boolean",
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "KnownVariableInfo",
-              "documentation": ""
+          "members": {
+            "name": {
+              "documentation": "",
+              "name": "name",
+              "return": "string"
+            },
+            "secret": {
+              "documentation": "",
+              "name": "secret",
+              "return": "boolean"
             }
-          ]
+          },
+          "documentation": "Used to store the following information about job variables:\n 1) the real variable name (not the formatted environment variable name)\n 2) whether the variable is a secret variable",
+          "kind": "interface"
         },
         "VariableInfo": {
           "name": "VariableInfo",
-          "members": {},
-          "documentation": "Snapshot of a variable at the time when getVariables was called. ",
-          "kind": "class",
-          "constructors": [
-            {
-              "parameters": [
-                {
-                  "name": "name",
-                  "type": "string",
-                  "documentation": ""
-                },
-                {
-                  "name": "value",
-                  "type": "string",
-                  "documentation": ""
-                },
-                {
-                  "name": "secret",
-                  "type": "boolean",
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "VariableInfo",
-              "documentation": ""
+          "members": {
+            "name": {
+              "documentation": "",
+              "name": "name",
+              "return": "string"
+            },
+            "value": {
+              "documentation": "",
+              "name": "value",
+              "return": "string"
+            },
+            "secret": {
+              "documentation": "",
+              "name": "secret",
+              "return": "boolean"
             }
-          ]
+          },
+          "documentation": "Snapshot of a variable at the time when getVariables was called. ",
+          "kind": "interface"
         },
         "getInput": {
           "name": "getInput",
@@ -649,11 +868,13 @@
                 {
                   "name": "name",
                   "type": "string",
+                  "optional": false,
                   "documentation": "name of the input to get"
                 },
                 {
                   "name": "required",
                   "type": "boolean",
+                  "optional": true,
                   "documentation": "whether input is required.  optional, defaults to false"
                 }
               ],
@@ -674,11 +895,13 @@
                 {
                   "name": "name",
                   "type": "string",
+                  "optional": false,
                   "documentation": "name of the bool input to get"
                 },
                 {
                   "name": "required",
                   "type": "boolean",
+                  "optional": true,
                   "documentation": "whether input is required.  optional, defaults to false"
                 }
               ],
@@ -699,11 +922,13 @@
                 {
                   "name": "name",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 },
                 {
                   "name": "val",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 }
               ],
@@ -724,16 +949,19 @@
                 {
                   "name": "name",
                   "type": "string",
+                  "optional": false,
                   "documentation": "name of the input to get"
                 },
                 {
                   "name": "delim",
                   "type": "string",
+                  "optional": false,
                   "documentation": "delimiter to split on"
                 },
                 {
                   "name": "required",
                   "type": "boolean",
+                  "optional": true,
                   "documentation": "whether input is required.  optional, defaults to false"
                 }
               ],
@@ -754,6 +982,7 @@
                 {
                   "name": "name",
                   "type": "string",
+                  "optional": false,
                   "documentation": "name of the path input to check"
                 }
               ],
@@ -774,16 +1003,19 @@
                 {
                   "name": "name",
                   "type": "string",
+                  "optional": false,
                   "documentation": "name of the input to get"
                 },
                 {
                   "name": "required",
                   "type": "boolean",
+                  "optional": true,
                   "documentation": "whether input is required.  optional, defaults to false"
                 },
                 {
                   "name": "check",
                   "type": "boolean",
+                  "optional": true,
                   "documentation": "whether path is checked.  optional, defaults to false "
                 }
               ],
@@ -804,11 +1036,13 @@
                 {
                   "name": "id",
                   "type": "string",
+                  "optional": false,
                   "documentation": "name of the service endpoint"
                 },
                 {
                   "name": "optional",
                   "type": "boolean",
+                  "optional": false,
                   "documentation": "whether the url is optional"
                 }
               ],
@@ -829,16 +1063,19 @@
                 {
                   "name": "id",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 },
                 {
                   "name": "key",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 },
                 {
                   "name": "optional",
                   "type": "boolean",
+                  "optional": false,
                   "documentation": ""
                 }
               ],
@@ -859,11 +1096,13 @@
                 {
                   "name": "id",
                   "type": "string",
+                  "optional": false,
                   "documentation": "name of the service endpoint"
                 },
                 {
                   "name": "optional",
                   "type": "boolean",
+                  "optional": false,
                   "documentation": "whether the endpoint authorization scheme is optional"
                 }
               ],
@@ -884,16 +1123,19 @@
                 {
                   "name": "id",
                   "type": "string",
+                  "optional": false,
                   "documentation": "name of the service endpoint"
                 },
                 {
                   "name": "key",
                   "type": "string",
+                  "optional": false,
                   "documentation": "key to find the endpoint authorization parameter"
                 },
                 {
                   "name": "optional",
                   "type": "boolean",
+                  "optional": false,
                   "documentation": "optional whether the endpoint authorization scheme is optional"
                 }
               ],
@@ -907,10 +1149,12 @@
           "name": "EndpointAuthorization",
           "members": {
             "parameters": {
+              "documentation": "dictionary of auth data ",
               "name": "parameters",
               "return": "{ [key: string]: string; }"
             },
             "scheme": {
+              "documentation": "auth scheme such as OAuth or username/password etc... ",
               "name": "scheme",
               "return": "string"
             }
@@ -929,11 +1173,13 @@
                 {
                   "name": "id",
                   "type": "string",
+                  "optional": false,
                   "documentation": "name of the service endpoint"
                 },
                 {
                   "name": "optional",
                   "type": "boolean",
+                  "optional": false,
                   "documentation": "whether the url is optional"
                 }
               ],
@@ -954,16 +1200,19 @@
                 {
                   "name": "command",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 },
                 {
                   "name": "properties",
                   "type": "any",
+                  "optional": false,
                   "documentation": ""
                 },
                 {
                   "name": "message",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 }
               ],
@@ -984,6 +1233,7 @@
                 {
                   "name": "message",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 }
               ],
@@ -1004,6 +1254,7 @@
                 {
                   "name": "message",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 }
               ],
@@ -1024,6 +1275,7 @@
                 {
                   "name": "message",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 }
               ],
@@ -1044,11 +1296,13 @@
                 {
                   "name": "cmd",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 },
                 {
                   "name": "continueOnError",
                   "type": "boolean",
+                  "optional": true,
                   "documentation": ""
                 }
               ],
@@ -1075,6 +1329,7 @@
                 {
                   "name": "path",
                   "type": "string",
+                  "optional": false,
                   "documentation": "path to check"
                 }
               ],
@@ -1095,6 +1350,7 @@
                 {
                   "name": "path",
                   "type": "string",
+                  "optional": false,
                   "documentation": "path to check"
                 }
               ],
@@ -1108,14 +1364,17 @@
           "name": "FsOptions",
           "members": {
             "encoding": {
+              "documentation": "",
               "name": "encoding",
               "return": "string"
             },
             "mode": {
+              "documentation": "",
               "name": "mode",
               "return": "number"
             },
             "flag": {
+              "documentation": "",
               "name": "flag",
               "return": "string"
             }
@@ -1134,16 +1393,19 @@
                 {
                   "name": "file",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 },
                 {
                   "name": "data",
                   "type": "any",
+                  "optional": false,
                   "documentation": ""
                 },
                 {
                   "name": "options",
                   "type": "string | FsOptions",
+                  "optional": true,
                   "documentation": ""
                 }
               ],
@@ -1192,11 +1454,13 @@
                 {
                   "name": "p",
                   "type": "string",
+                  "optional": false,
                   "documentation": "path to check"
                 },
                 {
                   "name": "name",
                   "type": "string",
+                  "optional": false,
                   "documentation": "name only used in error message to identify the path"
                 }
               ],
@@ -1217,6 +1481,7 @@
                 {
                   "name": "path",
                   "type": "string",
+                  "optional": false,
                   "documentation": "new working directory path"
                 }
               ],
@@ -1237,6 +1502,7 @@
                 {
                   "name": "path",
                   "type": "string",
+                  "optional": false,
                   "documentation": "new working directory path"
                 }
               ],
@@ -1271,6 +1537,7 @@
                 {
                   "name": "p",
                   "type": "string",
+                  "optional": false,
                   "documentation": "path to create"
                 }
               ],
@@ -1291,6 +1558,7 @@
                 {
                   "name": "pathSegments",
                   "type": "any[]",
+                  "optional": false,
                   "documentation": ""
                 }
               ],
@@ -1311,11 +1579,13 @@
                 {
                   "name": "tool",
                   "type": "string",
+                  "optional": false,
                   "documentation": "name of the tool"
                 },
                 {
                   "name": "check",
                   "type": "boolean",
+                  "optional": true,
                   "documentation": "whether to check if tool exists"
                 }
               ],
@@ -1336,11 +1606,13 @@
                 {
                   "name": "options",
                   "type": "string",
+                  "optional": false,
                   "documentation": "Available options: -R (recursive), -A (all files, include files beginning with ., except for . and ..)"
                 },
                 {
                   "name": "paths",
                   "type": "string[]",
+                  "optional": false,
                   "documentation": "Paths to search."
                 }
               ],
@@ -1361,21 +1633,25 @@
                 {
                   "name": "source",
                   "type": "string",
+                  "optional": false,
                   "documentation": "source path"
                 },
                 {
                   "name": "dest",
                   "type": "string",
+                  "optional": false,
                   "documentation": "destination path"
                 },
                 {
                   "name": "options",
                   "type": "string",
+                  "optional": true,
                   "documentation": "string -r, -f or -rf for recursive and force "
                 },
                 {
                   "name": "continueOnError",
                   "type": "boolean",
+                  "optional": true,
                   "documentation": "optional. whether to continue on error"
                 }
               ],
@@ -1396,21 +1672,25 @@
                 {
                   "name": "source",
                   "type": "string",
+                  "optional": false,
                   "documentation": "source path"
                 },
                 {
                   "name": "dest",
                   "type": "string",
+                  "optional": false,
                   "documentation": "destination path"
                 },
                 {
                   "name": "options",
                   "type": "string",
+                  "optional": true,
                   "documentation": "string -f or -n for force and no clobber "
                 },
                 {
                   "name": "continueOnError",
                   "type": "boolean",
+                  "optional": true,
                   "documentation": "optional. whether to continue on error"
                 }
               ],
@@ -1424,10 +1704,12 @@
           "name": "FindOptions",
           "members": {
             "followSpecifiedSymbolicLink": {
+              "documentation": "Equivalent to the -H command line option. Indicates whether to traverse descendants if\nthe specified path is a symbolic link directory. Does not cause nested symbolic link\ndirectories to be traversed.",
               "name": "followSpecifiedSymbolicLink",
               "return": "boolean"
             },
             "followSymbolicLinks": {
+              "documentation": "Equivalent to the -L command line option. Indicates whether to traverse descendants of\nsymbolic link directories.",
               "name": "followSymbolicLinks",
               "return": "boolean"
             }
@@ -1438,7 +1720,7 @@
         "find": {
           "name": "find",
           "members": {},
-          "documentation": "Find all files under a give path \nReturns an array of paths\n\n@returns   string[]",
+          "documentation": "Recursively finds all paths a given path. Returns an array of paths.\n\n@returns   string[]",
           "kind": "function",
           "signatures": [
             {
@@ -1446,17 +1728,19 @@
                 {
                   "name": "findPath",
                   "type": "string",
-                  "documentation": "path to find files under"
+                  "optional": false,
+                  "documentation": "path to search"
                 },
                 {
                   "name": "options",
                   "type": "FindOptions",
-                  "documentation": "options to control whether to follow symlinks"
+                  "optional": true,
+                  "documentation": "optional. defaults to { followSymbolicLinks: true }. following soft links is generally appropriate unless deleting files."
                 }
               ],
               "members": {},
               "return": "string[]",
-              "documentation": "Find all files under a give path \nReturns an array of paths\n\n@returns   string[]"
+              "documentation": "Recursively finds all paths a given path. Returns an array of paths.\n\n@returns   string[]"
             }
           ]
         },
@@ -1471,16 +1755,152 @@
                 {
                   "name": "path",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 },
                 {
                   "name": "level",
                   "type": "number",
+                  "optional": false,
                   "documentation": ""
                 }
               ],
               "members": {},
               "return": "FindItem",
+              "documentation": ""
+            }
+          ]
+        },
+        "debugFindOptions": {
+          "name": "debugFindOptions",
+          "members": {},
+          "documentation": "",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "options",
+                  "type": "FindOptions",
+                  "optional": false,
+                  "documentation": ""
+                }
+              ],
+              "members": {},
+              "return": "void",
+              "documentation": ""
+            }
+          ]
+        },
+        "getDefaultFindOptions": {
+          "name": "getDefaultFindOptions",
+          "members": {},
+          "documentation": "",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [],
+              "members": {},
+              "return": "FindOptions",
+              "documentation": ""
+            }
+          ]
+        },
+        "legacyFindFiles": {
+          "name": "legacyFindFiles",
+          "members": {},
+          "documentation": "Prefer tl.find() and tl.match() instead. This function is for backward compatibility\nwhen porting tasks to Node from the PowerShell or PowerShell3 execution handler.\n\n@returns  string[]",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "rootDirectory",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": "path to root unrooted patterns with"
+                },
+                {
+                  "name": "pattern",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": "include and exclude patterns"
+                },
+                {
+                  "name": "includeFiles",
+                  "type": "boolean",
+                  "optional": true,
+                  "documentation": "whether to include files in the result. defaults to true when includeFiles and includeDirectories are both false"
+                },
+                {
+                  "name": "includeDirectories",
+                  "type": "boolean",
+                  "optional": true,
+                  "documentation": "whether to include directories in the result"
+                }
+              ],
+              "members": {},
+              "return": "string[]",
+              "documentation": "Prefer tl.find() and tl.match() instead. This function is for backward compatibility\nwhen porting tasks to Node from the PowerShell or PowerShell3 execution handler.\n\n@returns  string[]"
+            }
+          ]
+        },
+        "legacyFindFiles_convertPatternToRegExp": {
+          "name": "legacyFindFiles_convertPatternToRegExp",
+          "members": {},
+          "documentation": "",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "pattern",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": ""
+                }
+              ],
+              "members": {},
+              "return": "RegExp",
+              "documentation": ""
+            }
+          ]
+        },
+        "legacyFindFiles_getMatchingItems": {
+          "name": "legacyFindFiles_getMatchingItems",
+          "members": {},
+          "documentation": "",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "includePatterns",
+                  "type": "string[]",
+                  "optional": false,
+                  "documentation": ""
+                },
+                {
+                  "name": "excludePatterns",
+                  "type": "RegExp[]",
+                  "optional": false,
+                  "documentation": ""
+                },
+                {
+                  "name": "includeFiles",
+                  "type": "boolean",
+                  "optional": false,
+                  "documentation": ""
+                },
+                {
+                  "name": "includeDirectories",
+                  "type": "boolean",
+                  "optional": false,
+                  "documentation": ""
+                }
+              ],
+              "members": {},
+              "return": "string[]",
               "documentation": ""
             }
           ]
@@ -1496,57 +1916,19 @@
                 {
                   "name": "path",
                   "type": "string",
+                  "optional": false,
                   "documentation": "path to remove"
                 },
                 {
                   "name": "continueOnError",
                   "type": "boolean",
+                  "optional": true,
                   "documentation": "optional. whether to continue on error"
                 }
               ],
               "members": {},
               "return": "void",
               "documentation": "Remove a path recursively with force\nReturns whether it succeeds\n\n@returns   void"
-            }
-          ]
-        },
-        "glob": {
-          "name": "glob",
-          "members": {},
-          "documentation": "",
-          "kind": "function",
-          "signatures": [
-            {
-              "parameters": [
-                {
-                  "name": "pattern",
-                  "type": "string",
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "string[]",
-              "documentation": ""
-            }
-          ]
-        },
-        "globFirst": {
-          "name": "globFirst",
-          "members": {},
-          "documentation": "",
-          "kind": "function",
-          "signatures": [
-            {
-              "parameters": [
-                {
-                  "name": "pattern",
-                  "type": "string",
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "string",
-              "documentation": ""
             }
           ]
         },
@@ -1561,16 +1943,19 @@
                 {
                   "name": "tool",
                   "type": "string",
+                  "optional": false,
                   "documentation": "path to tool to exec"
                 },
                 {
                   "name": "args",
                   "type": "any",
+                  "optional": false,
                   "documentation": "an arg string or array of args"
                 },
                 {
                   "name": "options",
                   "type": "IExecOptions",
+                  "optional": true,
                   "documentation": "optional exec options.  See IExecOptions"
                 }
               ],
@@ -1591,16 +1976,19 @@
                 {
                   "name": "tool",
                   "type": "string",
+                  "optional": false,
                   "documentation": "path to tool to exec"
                 },
                 {
                   "name": "args",
                   "type": "string | string[]",
+                  "optional": false,
                   "documentation": "an arg string or array of args"
                 },
                 {
                   "name": "options",
                   "type": "IExecOptions",
+                  "optional": true,
                   "documentation": "optionalexec options.  See IExecOptions"
                 }
               ],
@@ -1621,6 +2009,7 @@
                 {
                   "name": "tool",
                   "type": "string",
+                  "optional": false,
                   "documentation": "path to tool to exec"
                 }
               ],
@@ -1634,46 +2023,57 @@
           "name": "MatchOptions",
           "members": {
             "debug": {
+              "documentation": "",
               "name": "debug",
               "return": "boolean"
             },
             "nobrace": {
+              "documentation": "",
               "name": "nobrace",
               "return": "boolean"
             },
             "noglobstar": {
+              "documentation": "",
               "name": "noglobstar",
               "return": "boolean"
             },
             "dot": {
+              "documentation": "",
               "name": "dot",
               "return": "boolean"
             },
             "noext": {
+              "documentation": "",
               "name": "noext",
               "return": "boolean"
             },
             "nocase": {
+              "documentation": "",
               "name": "nocase",
               "return": "boolean"
             },
             "nonull": {
+              "documentation": "",
               "name": "nonull",
               "return": "boolean"
             },
             "matchBase": {
+              "documentation": "",
               "name": "matchBase",
               "return": "boolean"
             },
             "nocomment": {
+              "documentation": "",
               "name": "nocomment",
               "return": "boolean"
             },
             "nonegate": {
+              "documentation": "",
               "name": "nonegate",
               "return": "boolean"
             },
             "flipNegate": {
+              "documentation": "",
               "name": "flipNegate",
               "return": "boolean"
             }
@@ -1684,7 +2084,7 @@
         "match": {
           "name": "match",
           "members": {},
-          "documentation": "",
+          "documentation": "Applies glob patterns to a list of paths. Supports interleaved exclude patterns.",
           "kind": "function",
           "signatures": [
             {
@@ -1692,38 +2092,44 @@
                 {
                   "name": "list",
                   "type": "string[]",
-                  "documentation": ""
+                  "optional": false,
+                  "documentation": "array of paths"
                 },
                 {
                   "name": "pattern",
                   "type": "string",
-                  "documentation": ""
+                  "optional": false,
+                  "documentation": "pattern to apply"
                 },
                 {
                   "name": "options",
                   "type": "MatchOptions",
-                  "documentation": ""
+                  "optional": true,
+                  "documentation": "optional. defaults to { dot: true, nobrace: true, nocase: process.platform == 'win32' }."
                 }
               ],
               "members": {},
               "return": "string[]",
-              "documentation": ""
+              "documentation": "Applies glob patterns to a list of paths. Supports interleaved exclude patterns."
             },
             {
               "parameters": [
                 {
                   "name": "list",
                   "type": "string[]",
+                  "optional": false,
                   "documentation": ""
                 },
                 {
                   "name": "patterns",
                   "type": "string[]",
+                  "optional": false,
                   "documentation": ""
                 },
                 {
                   "name": "options",
                   "type": "MatchOptions",
+                  "optional": true,
                   "documentation": ""
                 }
               ],
@@ -1736,7 +2142,7 @@
         "filter": {
           "name": "filter",
           "members": {},
-          "documentation": "",
+          "documentation": "Filter to apply glob patterns",
           "kind": "function",
           "signatures": [
             {
@@ -1744,16 +2150,195 @@
                 {
                   "name": "pattern",
                   "type": "string",
-                  "documentation": ""
+                  "optional": false,
+                  "documentation": "pattern to apply"
                 },
                 {
                   "name": "options",
                   "type": "MatchOptions",
-                  "documentation": ""
+                  "optional": true,
+                  "documentation": "optional. defaults to { dot: true, nobrace: true, nocase: process.platform == 'win32' }."
                 }
               ],
               "members": {},
               "return": "(element: string, indexed: number, array: string[]) => boolean",
+              "documentation": "Filter to apply glob patterns"
+            }
+          ]
+        },
+        "cloneMatchOptions": {
+          "name": "cloneMatchOptions",
+          "members": {},
+          "documentation": "",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "matchOptions",
+                  "type": "MatchOptions",
+                  "optional": false,
+                  "documentation": ""
+                }
+              ],
+              "members": {},
+              "return": "MatchOptions",
+              "documentation": ""
+            }
+          ]
+        },
+        "debugMatchOptions": {
+          "name": "debugMatchOptions",
+          "members": {},
+          "documentation": "",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "options",
+                  "type": "MatchOptions",
+                  "optional": false,
+                  "documentation": ""
+                }
+              ],
+              "members": {},
+              "return": "void",
+              "documentation": ""
+            }
+          ]
+        },
+        "getDefaultMatchOptions": {
+          "name": "getDefaultMatchOptions",
+          "members": {},
+          "documentation": "",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [],
+              "members": {},
+              "return": "MatchOptions",
+              "documentation": ""
+            }
+          ]
+        },
+        "findMatch": {
+          "name": "findMatch",
+          "members": {},
+          "documentation": "Determines the find root from a list of patterns. Performs the find and then applies the glob patterns.\nSupports interleaved exclude patterns. Unrooted patterns are rooted using defaultRoot, unless\nmatchOptions.matchBase is specified and the pattern is a basename only. For matchBase cases, the\ndefaultRoot is used as the find root.",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "defaultRoot",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": "default path to root unrooted patterns. falls back to System.DefaultWorkingDirectory or process.cwd()."
+                },
+                {
+                  "name": "patterns",
+                  "type": "string[] | string",
+                  "optional": false,
+                  "documentation": "pattern or array of patterns to apply"
+                },
+                {
+                  "name": "findOptions",
+                  "type": "FindOptions",
+                  "optional": true,
+                  "documentation": "defaults to { followSymbolicLinks: true }. following soft links is generally appropriate unless deleting files."
+                },
+                {
+                  "name": "matchOptions",
+                  "type": "MatchOptions",
+                  "optional": true,
+                  "documentation": "defaults to { dot: true, nobrace: true, nocase: process.platform == 'win32' }"
+                }
+              ],
+              "members": {},
+              "return": "string[]",
+              "documentation": "Determines the find root from a list of patterns. Performs the find and then applies the glob patterns.\nSupports interleaved exclude patterns. Unrooted patterns are rooted using defaultRoot, unless\nmatchOptions.matchBase is specified and the pattern is a basename only. For matchBase cases, the\ndefaultRoot is used as the find root."
+            }
+          ]
+        },
+        "PatternFindInfo": {
+          "name": "PatternFindInfo",
+          "members": {
+            "adjustedPattern": {
+              "documentation": "Adjusted pattern to use. Unrooted patterns are typically rooted using the default info, although this is not true for match-base scenarios. ",
+              "name": "adjustedPattern",
+              "return": "string"
+            },
+            "findPath": {
+              "documentation": "Path interpreted from the pattern to call find() on. ",
+              "name": "findPath",
+              "return": "string"
+            },
+            "statOnly": {
+              "documentation": "Indicates whether to call stat() or find(). When all path segemnts in the pattern are literal, there is no need to call find(). ",
+              "name": "statOnly",
+              "return": "boolean"
+            }
+          },
+          "documentation": "",
+          "kind": "interface"
+        },
+        "getFindInfoFromPattern": {
+          "name": "getFindInfoFromPattern",
+          "members": {},
+          "documentation": "",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "defaultRoot",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": ""
+                },
+                {
+                  "name": "pattern",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": ""
+                },
+                {
+                  "name": "matchOptions",
+                  "type": "MatchOptions",
+                  "optional": false,
+                  "documentation": ""
+                }
+              ],
+              "members": {},
+              "return": "PatternFindInfo",
+              "documentation": ""
+            }
+          ]
+        },
+        "ensurePatternRooted": {
+          "name": "ensurePatternRooted",
+          "members": {},
+          "documentation": "",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "root",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": ""
+                },
+                {
+                  "name": "p",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": ""
+                }
+              ],
+              "members": {},
+              "return": "string",
               "documentation": ""
             }
           ]
@@ -1772,31 +2357,37 @@
                     {
                       "name": "resultFiles",
                       "type": "any",
+                      "optional": false,
                       "documentation": ""
                     },
                     {
                       "name": "mergeResults",
                       "type": "any",
+                      "optional": false,
                       "documentation": ""
                     },
                     {
                       "name": "platform",
                       "type": "any",
+                      "optional": false,
                       "documentation": ""
                     },
                     {
                       "name": "config",
                       "type": "any",
+                      "optional": false,
                       "documentation": ""
                     },
                     {
                       "name": "runTitle",
                       "type": "any",
+                      "optional": false,
                       "documentation": ""
                     },
                     {
                       "name": "publishRunAttachments",
                       "type": "any",
+                      "optional": false,
                       "documentation": ""
                     }
                   ],
@@ -1815,6 +2406,7 @@
                 {
                   "name": "testRunner",
                   "type": "any",
+                  "optional": false,
                   "documentation": ""
                 }
               ],
@@ -1838,21 +2430,25 @@
                     {
                       "name": "codeCoverageTool",
                       "type": "any",
+                      "optional": false,
                       "documentation": ""
                     },
                     {
                       "name": "summaryFileLocation",
                       "type": "any",
+                      "optional": false,
                       "documentation": ""
                     },
                     {
                       "name": "reportDirectory",
                       "type": "any",
+                      "optional": false,
                       "documentation": ""
                     },
                     {
                       "name": "additionalCodeCoverageFiles",
                       "type": "any",
+                      "optional": false,
                       "documentation": ""
                     }
                   ],
@@ -1888,6 +2484,7 @@
                     {
                       "name": "buildProps",
                       "type": "{ [key: string]: string; }",
+                      "optional": false,
                       "documentation": ""
                     }
                   ],
@@ -1906,11 +2503,13 @@
                 {
                   "name": "buildTool",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 },
                 {
                   "name": "ccTool",
                   "type": "string",
+                  "optional": false,
                   "documentation": ""
                 }
               ],
@@ -1930,6 +2529,96 @@
               "parameters": [],
               "members": {},
               "return": "void",
+              "documentation": ""
+            }
+          ]
+        },
+        "ensureRooted": {
+          "name": "ensureRooted",
+          "members": {},
+          "documentation": "",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "root",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": ""
+                },
+                {
+                  "name": "p",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": ""
+                }
+              ],
+              "members": {},
+              "return": "string",
+              "documentation": ""
+            }
+          ]
+        },
+        "getDirectoryName": {
+          "name": "getDirectoryName",
+          "members": {},
+          "documentation": "Determines the parent path and trims trailing slashes (when safe). Path separators are normalized\nin the result. This function works similar to the .NET System.IO.Path.GetDirectoryName() method.\nFor example, C:\\hello\\world\\ returns C:\\hello\\world (trailing slash removed). Returns empty when\nno higher directory can be determined.",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "p",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": ""
+                }
+              ],
+              "members": {},
+              "return": "string",
+              "documentation": "Determines the parent path and trims trailing slashes (when safe). Path separators are normalized\nin the result. This function works similar to the .NET System.IO.Path.GetDirectoryName() method.\nFor example, C:\\hello\\world\\ returns C:\\hello\\world (trailing slash removed). Returns empty when\nno higher directory can be determined."
+            }
+          ]
+        },
+        "isRooted": {
+          "name": "isRooted",
+          "members": {},
+          "documentation": "On OSX/Linux, true if path starts with '/'. On Windows, true for paths like:\n\\, \\hello, \\\\hello\\share, C:, and C:\\hello (and corresponding alternate separator cases).",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "p",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": ""
+                }
+              ],
+              "members": {},
+              "return": "boolean",
+              "documentation": "On OSX/Linux, true if path starts with '/'. On Windows, true for paths like:\n\\, \\hello, \\\\hello\\share, C:, and C:\\hello (and corresponding alternate separator cases)."
+            }
+          ]
+        },
+        "normalizeSeparators": {
+          "name": "normalizeSeparators",
+          "members": {},
+          "documentation": "",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "p",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": ""
+                }
+              ],
+              "members": {},
+              "return": "string",
               "documentation": ""
             }
           ]

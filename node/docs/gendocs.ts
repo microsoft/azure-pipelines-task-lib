@@ -21,7 +21,7 @@ let options: ts.CompilerOptions = {
 }
 
 const jsonDocName: string = "vsts-task-lib.json";
-const mdDocName: string = "vsts-task-lib2.md";
+const mdDocName: string = "vsts-task-lib.md";
 
 header('Generating ' + jsonDocName);
 let doc: ts2json.DocEntry = ts2json.generate(docs.files, options);
@@ -37,6 +37,10 @@ function writeLine(line?: string) {
     fs.appendFileSync(mdpath, (line || ' ') + os.EOL);
 }
 
+function mdEscape(val: string) {
+    return (val || '').replace(/[-\\`*_{}[\]()#+!|]/g, '\\$&');
+}
+
 function anchorName(name) {
     return name.replace(/\./g, '').replace(/ /g, '');
 }
@@ -47,57 +51,52 @@ var aliasCache = {} as { string : [ts2json.DocEntry]};
 
 function getDocEntry(namespace: string): ts2json.DocEntry {
     let d: ts2json.DocEntry;
+    let parts: string[] = namespace.split('.');
+    while (parts.length) {
+        if (!d) {
+            d = doc.members[parts.shift()];
+        }
+        else {
+            d = d.members[parts.shift()];
+        }
 
-    let parts: string[] =  namespace.split('.');
-    if (parts.length != 2) {
-        console.error(namespace + ' invalid.  doc entry must have two parts.  alias.itemName');
-    }
-
-    let alias: string = parts[0];
-    let entryName: string = parts[1];
-    let stmt: string = 'doc.' + docs.aliases[alias];
-    
-    if (!aliasCache[alias]) {
-        aliasCache[alias] = eval(stmt);
-    }
-    d = aliasCache[alias][entryName];
-
-    if (!d) {
-        console.error('Could not evaluate: ' + namespace + '(' + stmt + ')');
+        if (!d) {
+            console.error(namespace + 'invalid.  doc entry not found.');
+            process.exit(1);
+        }
     }
 
     return d;
 }
 
 // TODO: enums
-// TODO: isOptional on params
 // TODO: params type
 
 var writeFunction = function(name: string, item: ts2json.DocEntry) {
     writeLine("<br/>");
     writeLine('<div id="' + anchorName(name) + '">');
-    writeLine('### ' + name + ' <a href="#index">(^)</a>');
+    writeLine();
+    writeLine('### ' + mdEscape(name) + ' <a href="#index">(^)</a>');
 
-    var sigs = item.signatures;
+    let sigs = item.signatures;
     sigs.forEach((sig: ts2json.DocEntry) => {
         // comments
-        var comment = sig.documentation;
-        if (comment) {
-            writeLine(comment);
+        if (sig.documentation) {
+            writeLine(sig.documentation);
         }
 
         // signature
 
-        var sigLine = item.name + '(';
+        let sigLine = item.name + '(';
 
         if (sig.parameters) {
-            for (var i = 0; i < sig.parameters.length; i++) {
-                var param = sig.parameters[i];
+            for (let i = 0; i < sig.parameters.length; i++) {
+                let param = sig.parameters[i];
                 sigLine += param.name;
 
-                // if (param.flags.isOptional) {
-                //     sigLine += '?';
-                // }
+                if (param.optional) {
+                    sigLine += '?';
+                }
 
                 sigLine += (':' + param.type);
 
@@ -115,19 +114,45 @@ var writeFunction = function(name: string, item: ts2json.DocEntry) {
 
         // params table
 
-        if (sig.parameters) {
+        if (sig.parameters.length) {
             writeLine();
             writeLine('Param | Type | Description');
             writeLine('--- | --- | ---');
-            for (var i = 0; i < sig.parameters.length; i++) {
-                var param = sig.parameters[i];
-
-                var pc = param.documentation ? param.documentation || ' - ' : ' - ';
-                writeLine(param.name + ' | ' + param.type + ' | ' + pc);
+            for (let param of sig.parameters) {
+                let escapedName = mdEscape(param.name);
+                let escapedType = mdEscape(param.type);
+                let escapedDescription = mdEscape((param.documentation || '').replace(/\n/g, ' ')); // remove newlines
+                writeLine(escapedName + ' | ' + escapedType + ' | ' + escapedDescription);
             }
-            writeLine();
-        }                       
+        }
+
+        writeLine();
     });
+}
+
+var writeInterface = function(name: string, item: ts2json.DocEntry) {
+    writeLine("<br/>");
+    writeLine('<div id="' + anchorName(name) + '">');
+    writeLine();
+    writeLine('### ' + mdEscape(name) + ' <a href="#index">(^)</a>');
+
+    // comments
+    if (item.documentation) {
+        writeLine(mdEscape(item.documentation));
+    }
+
+    // members
+    writeLine();
+    writeLine('Property | Type | Description');
+    writeLine('--- | --- | ---');
+    for (let memberName in item.members) {
+        let member: ts2json.DocEntry = item.members[memberName];
+        let escapedName = mdEscape(memberName);
+        let escapedType = mdEscape((member.return || '').replace(/\|/g, 'or'));
+        let escapedDescription = mdEscape((member.documentation || '').replace(/\n/g, ' ')); // remove newlines
+        writeLine(escapedName + ' | ' + escapedType + ' | ' + escapedDescription);
+    }
+    writeLine();
 }
 
 writeLine('# VSTS-TASK-LIB TYPESCRIPT API');
@@ -153,6 +178,7 @@ writeLine();
 // Index
 //
 writeLine('<div id="index">');
+writeLine();
 writeLine('## Index');
 for (var sectionName in docsStructure) {
     writeLine();
@@ -165,7 +191,7 @@ for (var sectionName in docsStructure) {
         var docEntry: ts2json.DocEntry  = getDocEntry(docItem);
 
         if (docEntry) {
-            writeLine('<a href="#' + anchorName(docItem) + '">' + docEntry.name + '</a><br/>');           
+            writeLine('<a href="#' + anchorName(docItem) + '">' + docItem.substr(docItem.indexOf('.') + 1) + '</a> <br/>');
         }
     })
 }
@@ -177,7 +203,8 @@ for (var sectionName in docsStructure) {
     writeLine();
     writeLine("<br/>");
     writeLine('<div id="' + anchorName(sectionName) + '">');
-    writeLine('## ' + sectionName);
+    writeLine();
+    writeLine('## ' + mdEscape(sectionName));
     writeLine();
     writeLine('---');
     writeLine();
@@ -218,9 +245,10 @@ for (var sectionName in docsStructure) {
                     break;
 
                 case "interface":
-                    //writeInterface(doc, item);
+                    writeInterface(docItem, item);
                     break;
 
+                // case "class":
                 default:
                     console.log('warning: skipping ' + item.kind);
                     console.log(item);
