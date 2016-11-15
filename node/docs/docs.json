@@ -17,6 +17,7 @@
                 "task.filePathSupplied",
                 "task.getDelimitedInput",
                 "task.getVariable",
+                "task.VariableInfo",
                 "task.getVariables",
                 "task.setVariable"
             ]
@@ -26,13 +27,13 @@
             "Sample": "samples/toolrunner.src",
             "Document": [
                 "task.tool",
-                "toolrunner.arg",
-                "toolrunner.line",
-                "toolrunner.argIf",
+                "toolrunner.ToolRunner.arg",
+                "toolrunner.ToolRunner.line",
+                "toolrunner.ToolRunner.argIf",
                 "toolrunner.IExecOptions",
-                "toolrunner.exec",
-                "toolrunner.execSync",
-                "toolrunner.pipeExecOutputToTool",
+                "toolrunner.ToolRunner.exec",
+                "toolrunner.ToolRunner.execSync",
+                "toolrunner.ToolRunner.pipeExecOutputToTool",
                 "toolrunner.IExecResult",
                 "task.exec",
                 "task.execSync",
@@ -43,6 +44,9 @@
             "Summary": "Retrieve service endpoints and authorization details",
             "Document": [
                 "task.getEndpointUrl",
+                "task.getEndpointDataParameter",
+                "task.getEndpointAuthorizationScheme",
+                "task.getEndpointAuthorizationParameter",
                 "task.EndpointAuthorization",
                 "task.getEndpointAuthorization"
             ]
@@ -65,6 +69,16 @@
                 "task.resolve",
                 "task.stats",
                 "task.writeFile"
+            ]
+        },
+        "Globbing": {
+            "Summary": "Functions for matching file paths",
+            "Document": [
+                "task.MatchOptions",
+                "task.match",
+                "task.findMatch",
+                "task.filter",
+                "task.legacyFindFiles"
             ]
         },
         "Localization": {
