@@ -2096,10 +2096,16 @@
                   "documentation": "array of paths"
                 },
                 {
-                  "name": "pattern",
-                  "type": "string",
+                  "name": "patterns",
+                  "type": "string[] | string",
                   "optional": false,
-                  "documentation": "pattern to apply"
+                  "documentation": "patterns to apply. supports interleaved exclude patterns."
+                },
+                {
+                  "name": "patternRoot",
+                  "type": "string",
+                  "optional": true,
+                  "documentation": "optional. default root to apply to unrooted patterns. not applied to basename-only patterns when matchBase:true."
                 },
                 {
                   "name": "options",
@@ -2111,31 +2117,6 @@
               "members": {},
               "return": "string[]",
               "documentation": "Applies glob patterns to a list of paths. Supports interleaved exclude patterns."
-            },
-            {
-              "parameters": [
-                {
-                  "name": "list",
-                  "type": "string[]",
-                  "optional": false,
-                  "documentation": ""
-                },
-                {
-                  "name": "patterns",
-                  "type": "string[]",
-                  "optional": false,
-                  "documentation": ""
-                },
-                {
-                  "name": "options",
-                  "type": "MatchOptions",
-                  "optional": true,
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "string[]",
-              "documentation": ""
             }
           ]
         },

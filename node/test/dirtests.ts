@@ -378,6 +378,35 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
+    it('empty find path returns empty array', (done: MochaDone) => {
+        this.timeout(1000);
+
+        let actual: string[] = tl.find('');
+        assert.equal(typeof actual, 'object');
+        assert.equal(actual.length, 0);
+
+        done();
+    });
+
+    it('normalizes find path', (done: MochaDone) => {
+        this.timeout(1000);
+
+        // create the following layout:
+        //   <root>/hello/world.txt
+        let root: string = path.join(testutil.getTestTemp(), 'find_normalizes_separators');
+        tl.mkdirP(path.join(root, 'hello'));
+        fs.writeFileSync(path.join(root, 'hello', 'world.txt'), '');
+
+        let actual: string[] = tl.find(root + path.sep + path.sep + path.sep + 'nosuch' + path.sep + '..' + path.sep + 'hello');
+        let expected: string[] = [
+            path.join(root, 'hello'),
+            path.join(root, 'hello', 'world.txt'),
+        ];
+        assert.deepEqual(actual, expected);
+
+        done();
+    });
+
     // mkdirP tests
     it('creates folder with mkdirP', function (done) {
         this.timeout(1000);

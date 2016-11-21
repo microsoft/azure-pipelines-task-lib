@@ -33,7 +33,7 @@ describe('Match Tests', function () {
         ];
         let pattern: string = '/projects/**/*.proj';
         let options: tl.MatchOptions = { matchBase: true };
-        let result: string[] = tl.match(list, pattern, options);
+        let result: string[] = tl.match(list, pattern, null, options);
         assert.equal(result.length, 2);
         assert.equal(result[0], '/projects/myproj1/myproj1.proj');
         assert.equal(result[1], '/projects/myproj2/myproj2.proj');
@@ -54,7 +54,7 @@ describe('Match Tests', function () {
             '/projects/**/myproj2.proj'
         ];
         let options: tl.MatchOptions = { matchBase: true };
-        let result: string[] = tl.match(list, patterns, options);
+        let result: string[] = tl.match(list, patterns, null, options);
         assert.equal(result.length, 2);
         assert.equal(result[0], '/projects/myproj1/myproj1.proj');
         assert.equal(result[1], '/projects/myproj2/myproj2.proj');
@@ -104,7 +104,7 @@ describe('Match Tests', function () {
             '/projects/**/myproj4.proj',
         ];
         let options: tl.MatchOptions = { matchBase: true };
-        let result: string[] = tl.match(list, patterns, options);
+        let result: string[] = tl.match(list, patterns, null, options);
         assert.equal(result.length, 5);
         assert.equal(result[0], '/projects/myproj1/myproj1.proj'); // should follow original list order
         assert.equal(result[1], '/projects/myproj2/myproj2.proj');
@@ -254,7 +254,7 @@ describe('Match Tests', function () {
         let patterns: string[] = [
             '#hello-world.txt',
         ];
-        let actual: string[] = tl.match(list, patterns, <tl.MatchOptions>{ nocomment: true });
+        let actual: string[] = tl.match(list, patterns, null, <tl.MatchOptions>{ nocomment: true });
         let expected: string[] = [
             '#hello-world.txt'
         ];
@@ -273,7 +273,7 @@ describe('Match Tests', function () {
         let patterns: string[] = [
             '!hello-world.txt',
         ];
-        let actual: string[] = tl.match(list, patterns, <tl.MatchOptions>{ nonegate: true });
+        let actual: string[] = tl.match(list, patterns, null, <tl.MatchOptions>{ nonegate: true });
         let expected: string[] = [
             '!hello-world.txt'
         ];
@@ -292,7 +292,7 @@ describe('Match Tests', function () {
         let patterns: string[] = [
             '!hello-world.txt',
         ];
-        let actual: string[] = tl.match(list, patterns, <tl.MatchOptions>{ flipNegate: true });
+        let actual: string[] = tl.match(list, patterns, null, <tl.MatchOptions>{ flipNegate: true });
         let expected: string[] = [
             'hello-world.txt'
         ];
@@ -366,6 +366,112 @@ describe('Match Tests', function () {
         let expected: string[] = [
             'hello.txt',
             'world.txt',
+        ];
+        assert.deepEqual(actual, expected);
+
+        done();
+    });
+
+    it('applies pattern root for include patterns', (done: MochaDone) => {
+        this.timeout(1000);
+
+        let list: string[] = [
+            '/matching/pattern/root/hello.txt',
+            '/matching/pattern/root/hello/world.txt',
+            '/matching/pattern/root/other.zzz',
+            '/non-matching/pattern/root/hello.txt',
+            '/non-matching/pattern/root/hello/world.txt',
+        ];
+        let patterns: string[] = [
+            'hello.txt',
+            '**/world.txt',
+        ];
+        let patternRoot = '/matching/pattern/root';
+        let actual: string[] = tl.match(list, patterns, patternRoot);
+        let expected: string[] = [
+            '/matching/pattern/root/hello.txt',
+            '/matching/pattern/root/hello/world.txt',
+        ];
+        assert.deepEqual(actual, expected);
+
+        done();
+    });
+
+    it('applies pattern root for exclude patterns', (done: MochaDone) => {
+        this.timeout(1000);
+
+        let list: string[] = [
+            '/matching/pattern/root/hello.txt',
+            '/matching/pattern/root/hello/world.txt',
+            '/matching/pattern/root/other.zzz',
+            '/non-matching/pattern/root/hello.txt',
+            '/non-matching/pattern/root/hello/world.txt',
+        ];
+        let patterns: string[] = [
+            '/**/*',
+            '!hello.txt',
+            '!**/world.txt',
+        ];
+        let patternRoot = '/matching/pattern/root';
+        let actual: string[] = tl.match(list, patterns, patternRoot);
+        let expected: string[] = [
+            '/matching/pattern/root/other.zzz',
+            '/non-matching/pattern/root/hello.txt',
+            '/non-matching/pattern/root/hello/world.txt',
+        ];
+        assert.deepEqual(actual, expected);
+
+        done();
+    });
+
+    it('does not apply pattern root for basename matchBase include patterns', (done: MochaDone) => {
+        this.timeout(1000);
+
+        let list: string[] = [
+            '/matching/pattern/root/hello.txt',
+            '/matching/pattern/root/hello/world.txt',
+            '/matching/pattern/root/other.zzz',
+            '/non-matching/pattern/root/hello.txt',
+            '/non-matching/pattern/root/hello/world.txt',
+        ];
+        let patterns: string[] = [
+            'hello.txt',
+            '**/world.txt',
+        ];
+        let patternRoot = '/matching/pattern/root';
+        let options = <tl.MatchOptions>{ matchBase: true };
+        let actual: string[] = tl.match(list, patterns, patternRoot, options);
+        let expected: string[] = [
+            '/matching/pattern/root/hello.txt',
+            '/matching/pattern/root/hello/world.txt',
+            '/non-matching/pattern/root/hello.txt',
+        ];
+        assert.deepEqual(actual, expected);
+
+        done();
+    });
+
+    it('does not apply pattern root for basename matchBase exclude patterns', (done: MochaDone) => {
+        this.timeout(1000);
+
+        let list: string[] = [
+            '/matching/pattern/root/hello.txt',
+            '/matching/pattern/root/hello/world.txt',
+            '/matching/pattern/root/other.zzz',
+            '/non-matching/pattern/root/hello.txt',
+            '/non-matching/pattern/root/hello/world.txt',
+        ];
+        let patterns: string[] = [
+            '/**/*',
+            '!hello.txt',
+            '!**/world.txt',
+        ];
+        let patternRoot = '/matching/pattern/root';
+        let options = <tl.MatchOptions>{ matchBase: true };
+        let actual: string[] = tl.match(list, patterns, patternRoot, options);
+        let expected: string[] = [
+            '/matching/pattern/root/other.zzz',
+            '/non-matching/pattern/root/hello/world.txt',
         ];
         assert.deepEqual(actual, expected);
 
