@@ -1,9 +1,15 @@
 # VSTS-TASK-LIB RELEASES
 
+## 2.0.1-preview
+ * Updated `match` to expose optional pattern-root parameter.
+ * Updated `find` to normalize the specified path so the results are consistent.
+ * Updated `mock-task.filter` and `mock-task.match` to passthru to `task.filter` and `task.match`.
+ * Removed `vso-node-api` from package.json. If needed, add to your package.json.
+
 ## 2.0.0-preview
  * Added `findMatch` that interprets the find root from a glob pattern. Supports interleaved exclude.
  * Updated `find`, `match`, and `filter` to change the default value for the options parameter, when undefined or null.
- * Update `match` to change the behavior for exclude patterns. Interleaved exclude patterns are now supported, and exclude patterns filter results out now.
+ * Updated `match` to change the behavior for exclude patterns. Interleaved exclude patterns are now supported, and exclude patterns filter results out now.
  * Removed `glob`, use `findMatch`.
 
 ## 1.1.0

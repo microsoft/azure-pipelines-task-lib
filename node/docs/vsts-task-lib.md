@@ -860,24 +860,15 @@ flipNegate | boolean |
 ### task.match <a href="#index">(^)</a>
 Applies glob patterns to a list of paths. Supports interleaved exclude patterns.
 ```javascript
-match(list:string[], pattern:string, options?:MatchOptions):string[]
+match(list:string[], patterns:string[] | string, patternRoot?:string, options?:MatchOptions):string[]
 ```
  
 Param | Type | Description
 --- | --- | ---
 list | string\[\] | array of paths
-pattern | string | pattern to apply
+patterns | string\[\] \| string | patterns to apply. supports interleaved exclude patterns.
+patternRoot | string | optional. default root to apply to unrooted patterns. not applied to basename\-only patterns when matchBase:true.
 options | MatchOptions | optional. defaults to \{ dot: true, nobrace: true, nocase: process.platform == 'win32' \}.
- 
-```javascript
-match(list:string[], patterns:string[], options?:MatchOptions):string[]
-```
- 
-Param | Type | Description
---- | --- | ---
-list | string\[\] | 
-patterns | string\[\] | 
-options | MatchOptions | 
  
 <br/>
 <div id="taskfindMatch">

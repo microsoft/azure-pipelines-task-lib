@@ -102,20 +102,57 @@ describe('Mock Tests', function () {
         done();
     })
 
-    it('Mocks matches item in list', (done) => {
+    it('match not mocked', (done) => {
+        let actual: string[] = (mt as any).match(
+            [
+                '/foo',
+                '/bar',
+                '/baz',
+            ],
+            '/ba[rz]');
+        assert.deepEqual(actual, [ '/bar', '/baz' ]);
+
+        done();
+    })
+
+    it('filter not mocked', (done) => {
+        let list = [
+            '/foo',
+            '/bar',
+            '/baz',
+        ];
+        let actual: string[] = list.filter((mt as any).filter('/ba[rz]'));
+        assert.deepEqual(actual, [ '/bar', '/baz' ]);
+
+        done();
+    })
+
+    it('Mocks findMatch results', (done) => {
         var a: ma.TaskLibAnswers = <ma.TaskLibAnswers>{
-            "match": {
-                "**/TEST-*.xml": [
-                    "/user/build/fun/test-123.xml"
+            "findMatch": {
+                "/ba[rz]": [
+                    "/bar",
+                    "/baz",
                 ]
             }
         };
 
         mt.setAnswers(a);
-        var matches: string[] = mt.match([], "**/TEST-*.xml", {});
-        assert.equal(matches.length, 1);
-        assert.equal(matches[0], "/user/build/fun/test-123.xml");
+        var matches: string[] = mt.findMatch('/default-root', '/ba[rz]');
+        assert.deepEqual(matches, [ '/bar', '/baz' ]);
 
+        done();
+    })
+
+    it('Mock loc returns key', (done: MochaDone) => {
+        let actual = mt.loc('STR_KEY');
+        assert.equal(actual, 'loc_mock_STR_KEY');
+        done();
+    })
+
+    it('Mock loc returns key and args', (done: MochaDone) => {
+        let actual = mt.loc('STR_KEY', false, 2, 'three');
+        assert.equal(actual, 'loc_mock_STR_KEY false 2 three');
         done();
     })
 

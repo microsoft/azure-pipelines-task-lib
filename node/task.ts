@@ -986,14 +986,31 @@ export interface FindOptions {
  * @returns   string[]
  */
 export function find(findPath: string, options?: FindOptions): string[] {
+    if (!findPath) {
+        debug('no path specified');
+        return [];
+    }
+
+    // normalize the path, otherwise the first result is inconsistently formatted from the rest of the results
+    // because path.join() performs normalization.
+    findPath = path.normalize(findPath);
+
+    // debug trace the parameters
     debug(`findPath: '${findPath}'`);
     options = options || getDefaultFindOptions();
     debugFindOptions(options)
 
     // return empty if not exists
-    if (!shell.test('-e', findPath)) {
-        debug('0 results')
-        return [];
+    try {
+        fs.lstatSync(findPath);
+    }
+    catch (err) {
+        if (err.code == 'ENOENT') {
+            debug('0 results')
+            return [];
+        }
+
+        throw err;
     }
 
     try {
@@ -1006,10 +1023,7 @@ export function find(findPath: string, options?: FindOptions): string[] {
         while (stack.length) {
             // pop the next item and push to the result array
             let item: FindItem = stack.pop();
-            result.push(item.path); // todo: fix inconsistency on Windows when findPath contains '/'. the findPath
-                                    // is returned as part of the result array, and child paths are constructed using
-                                    // path.join(). path.join() converts to backslashes, so the first result only will
-                                    // have '/' - inconsistent with the rest of the results.
+            result.push(item.path);
 
             // stat the item.  the stat info is used further below to determine whether to traverse deeper
             //
@@ -1431,25 +1445,20 @@ export interface MatchOptions {
 /**
  * Applies glob patterns to a list of paths. Supports interleaved exclude patterns.
  *
- * @param  list      array of paths
- * @param  pattern   pattern to apply
- * @param  patterns  patterns to apply. supports interleaved exclude patterns.
- * @param  options   optional. defaults to { dot: true, nobrace: true, nocase: process.platform == 'win32' }.
+ * @param  list         array of paths
+ * @param  patterns     patterns to apply. supports interleaved exclude patterns.
+ * @param  patternRoot  optional. default root to apply to unrooted patterns. not applied to basename-only patterns when matchBase:true.
+ * @param  options      optional. defaults to { dot: true, nobrace: true, nocase: process.platform == 'win32' }.
  */
-export function match(list: string[], pattern: string, options?: MatchOptions): string[];
-export function match(list: string[], patterns: string[], options?: MatchOptions): string[];
-export function match(list: string[], pattern: any, options?: MatchOptions): string[] {
-    // get default options
-    options = options || getDefaultMatchOptions();
+export function match(list: string[], patterns: string[] | string, patternRoot?: string, options?: MatchOptions): string[] {
+    // trace parameters
+    debug(`patternRoot: '${patternRoot}'`);
+    options = options || getDefaultMatchOptions(); // default match options
     debugMatchOptions(options);
 
     // convert pattern to an array
-    let patterns: string[];
-    if (typeof pattern == 'string') {
-        patterns = [ pattern ];
-    }
-    else {
-        patterns = pattern;
+    if (typeof patterns == 'string') {
+        patterns = [ patterns as string ];
     }
 
     // hashtable to keep track of matches
@@ -1475,7 +1484,7 @@ export function match(list: string[], pattern: any, options?: MatchOptions): str
             continue;
         }
 
-        // set nocomment
+        // set nocomment - brace expansion could result in a leading '#'
         options.nocomment = true;
 
         // determine whether pattern is include or exclude
@@ -1499,33 +1508,66 @@ export function match(list: string[], pattern: any, options?: MatchOptions): str
         options.nonegate = true;
         options.flipNegate = false;
 
-        // trim and skip empty
-        pattern = (pattern || '').trim();
-        if (!pattern) {
-            debug('skipping empty pattern');
-            continue;
-        }
-
-        if (isIncludePattern) {
-            // apply the pattern
-            debug('applying include pattern against original list');
-            let matchResults: string[] = minimatch.match(list, pattern, options);
-            debug(matchResults.length + ' matches');
-
-            // union the results
-            for (let matchResult of matchResults) {
-                map[matchResult] = true;
-            }
+        // expand braces - required to accurately root patterns
+        let expanded: string[];
+        let preExpanded: string = pattern;
+        if (options.nobrace) {
+            expanded = [ pattern ];
         }
         else {
-            // apply the pattern
-            debug('applying exclude pattern against original list');
-            let matchResults: string[] = minimatch.match(list, pattern, options);
-            debug(matchResults.length + ' matches');
+            // convert slashes on Windows before calling braceExpand(). unfortunately this means braces cannot
+            // be escaped on Windows, this limitation is consistent with current limitations of minimatch (3.0.3).
+            debug('expanding braces');
+            let convertedPattern = process.platform == 'win32' ? pattern.replace(/\\/g, '/') : pattern;
+            expanded = (minimatch as any).braceExpand(convertedPattern);
+        }
 
-            // substract the results
-            for (let matchResult of matchResults) {
-                delete map[matchResult];
+        // set nobrace
+        options.nobrace = true;
+
+        for (let pattern of expanded) {
+            if (expanded.length != 1 || pattern != preExpanded) {
+                debug(`pattern: '${pattern}'`);
+            }
+
+            // trim and skip empty
+            pattern = (pattern || '').trim();
+            if (!pattern) {
+                debug('skipping empty pattern');
+                continue;
+            }
+
+            // root the pattern when all of the following conditions are true:
+            if (patternRoot &&          // patternRoot supplied
+                !isRooted(pattern) &&   // AND pattern not rooted
+                                        // AND matchBase:false or not basename only
+                (!options.matchBase || (process.platform == 'win32' ? pattern.replace(/\\/g, '/') : pattern).indexOf('/') >= 0)) {
+
+                pattern = ensureRooted(patternRoot, pattern);
+                debug(`rooted pattern: '${pattern}'`);
+            }
+
+            if (isIncludePattern) {
+                // apply the pattern
+                debug('applying include pattern against original list');
+                let matchResults: string[] = minimatch.match(list, pattern, options);
+                debug(matchResults.length + ' matches');
+
+                // union the results
+                for (let matchResult of matchResults) {
+                    map[matchResult] = true;
+                }
+            }
+            else {
+                // apply the pattern
+                debug('applying exclude pattern against original list');
+                let matchResults: string[] = minimatch.match(list, pattern, options);
+                debug(matchResults.length + ' matches');
+
+                // substract the results
+                for (let matchResult of matchResults) {
+                    delete map[matchResult];
+                }
             }
         }
     }

@@ -6,7 +6,7 @@
 //    ##vso[task.progress value=58]
 //    ##vso[task.issue type=warning;]This is the user warning message
 //
-var CMD_PREFIX = '##vso[';
+let CMD_PREFIX = '##vso[';
 
 export class TaskCommand {
     constructor(command, properties, message) {
@@ -33,12 +33,18 @@ export class TaskCommand {
                     var val = this.properties[key];
                     if (val) {
                         cmdStr += key + '=' + val + ';';
-                    }                    
+                    }
                 }
             }
         }
 
-        cmdStr += ']' + this.message;
+        cmdStr += ']';
+
+        // safely append the message - avoid blowing up when attempting to
+        // call .replace() if message is not a string for some reason
+        let message: string = '' + (this.message || '');
+        cmdStr += message.replace(/\r/g, '%0D').replace(/\n/g, '%0A');
+
         return cmdStr;
     }
 }
@@ -73,7 +79,9 @@ export function commandFromString(commandLine) {
         });
     }
 
-    var msg = commandLine.substring(rbPos + 1);
+    var msg = commandLine.substring(rbPos + 1)
+        .replace(/%0D/g, '\r')
+        .replace(/%0A/g, '\n');
     var cmd = new TaskCommand(command, properties, msg);
     return cmd;
 }
