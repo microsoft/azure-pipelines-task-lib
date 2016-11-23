@@ -4,7 +4,7 @@ import fs = require('fs');
 import path = require('path');
 import crypto = require('crypto');
 
-var uuid = require('node-uuid');
+var uuid = require('uuid');
 var algorithm = "aes-256-ctr";
 
 //

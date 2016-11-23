@@ -27,7 +27,7 @@
   "dependencies": {
     "minimatch": "^3.0.0",
     "mockery": "^1.7.0",
-    "node-uuid": "^1.4.7",
+    "uuid": "^3.0.0",
     "q": "^1.1.2",
     "semver": "^5.1.0",
     "shelljs": "^0.3.0",
