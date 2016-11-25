@@ -468,8 +468,8 @@
       "name": "task",
       "kind": "file",
       "members": {
-        "startsWith": {
-          "name": "startsWith",
+        "_startsWith": {
+          "name": "_startsWith",
           "members": {},
           "documentation": "",
           "kind": "function",
@@ -495,8 +495,8 @@
             }
           ]
         },
-        "endsWith": {
-          "name": "endsWith",
+        "_endsWith": {
+          "name": "_endsWith",
           "members": {},
           "documentation": "",
           "kind": "function",
@@ -633,8 +633,8 @@
             }
           ]
         },
-        "loadResJson": {
-          "name": "loadResJson",
+        "_loadResJson": {
+          "name": "_loadResJson",
           "members": {},
           "documentation": "",
           "kind": "function",
@@ -654,8 +654,8 @@
             }
           ]
         },
-        "loadLocStrings": {
-          "name": "loadLocStrings",
+        "_loadLocStrings": {
+          "name": "_loadLocStrings",
           "members": {},
           "documentation": "",
           "kind": "function",
@@ -797,8 +797,8 @@
             }
           ]
         },
-        "getVariableKey": {
-          "name": "getVariableKey",
+        "_getVariableKey": {
+          "name": "_getVariableKey",
           "members": {},
           "documentation": "",
           "kind": "function",
@@ -818,8 +818,8 @@
             }
           ]
         },
-        "KnownVariableInfo": {
-          "name": "KnownVariableInfo",
+        "_KnownVariableInfo": {
+          "name": "_KnownVariableInfo",
           "members": {
             "name": {
               "documentation": "",
@@ -908,33 +908,6 @@
               "members": {},
               "return": "boolean",
               "documentation": "Gets the value of an input and converts to a bool.  Convenience.\nIf required is true and the value is not set, it will throw.\n\n@returns   string"
-            }
-          ]
-        },
-        "setEnvVar": {
-          "name": "setEnvVar",
-          "members": {},
-          "documentation": "",
-          "kind": "function",
-          "signatures": [
-            {
-              "parameters": [
-                {
-                  "name": "name",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                },
-                {
-                  "name": "val",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "void",
-              "documentation": ""
             }
           ]
         },
@@ -1285,8 +1258,8 @@
             }
           ]
         },
-        "checkShell": {
-          "name": "checkShell",
+        "_checkShell": {
+          "name": "_checkShell",
           "members": {},
           "documentation": "",
           "kind": "function",
@@ -1744,8 +1717,8 @@
             }
           ]
         },
-        "FindItem": {
-          "name": "FindItem",
+        "_FindItem": {
+          "name": "_FindItem",
           "members": {},
           "documentation": "",
           "kind": "class",
@@ -1766,13 +1739,13 @@
                 }
               ],
               "members": {},
-              "return": "FindItem",
+              "return": "_FindItem",
               "documentation": ""
             }
           ]
         },
-        "debugFindOptions": {
-          "name": "debugFindOptions",
+        "_debugFindOptions": {
+          "name": "_debugFindOptions",
           "members": {},
           "documentation": "",
           "kind": "function",
@@ -1792,8 +1765,8 @@
             }
           ]
         },
-        "getDefaultFindOptions": {
-          "name": "getDefaultFindOptions",
+        "_getDefaultFindOptions": {
+          "name": "_getDefaultFindOptions",
           "members": {},
           "documentation": "",
           "kind": "function",
@@ -1845,8 +1818,8 @@
             }
           ]
         },
-        "legacyFindFiles_convertPatternToRegExp": {
-          "name": "legacyFindFiles_convertPatternToRegExp",
+        "_legacyFindFiles_convertPatternToRegExp": {
+          "name": "_legacyFindFiles_convertPatternToRegExp",
           "members": {},
           "documentation": "",
           "kind": "function",
@@ -1866,8 +1839,8 @@
             }
           ]
         },
-        "legacyFindFiles_getMatchingItems": {
-          "name": "legacyFindFiles_getMatchingItems",
+        "_legacyFindFiles_getMatchingItems": {
+          "name": "_legacyFindFiles_getMatchingItems",
           "members": {},
           "documentation": "",
           "kind": "function",
@@ -2147,8 +2120,8 @@
             }
           ]
         },
-        "cloneMatchOptions": {
-          "name": "cloneMatchOptions",
+        "_cloneMatchOptions": {
+          "name": "_cloneMatchOptions",
           "members": {},
           "documentation": "",
           "kind": "function",
@@ -2168,8 +2141,8 @@
             }
           ]
         },
-        "debugMatchOptions": {
-          "name": "debugMatchOptions",
+        "_debugMatchOptions": {
+          "name": "_debugMatchOptions",
           "members": {},
           "documentation": "",
           "kind": "function",
@@ -2189,8 +2162,8 @@
             }
           ]
         },
-        "getDefaultMatchOptions": {
-          "name": "getDefaultMatchOptions",
+        "_getDefaultMatchOptions": {
+          "name": "_getDefaultMatchOptions",
           "members": {},
           "documentation": "",
           "kind": "function",
@@ -2242,8 +2215,8 @@
             }
           ]
         },
-        "PatternFindInfo": {
-          "name": "PatternFindInfo",
+        "_PatternFindInfo": {
+          "name": "_PatternFindInfo",
           "members": {
             "adjustedPattern": {
               "documentation": "Adjusted pattern to use. Unrooted patterns are typically rooted using the default info, although this is not true for match-base scenarios. ",
@@ -2264,8 +2237,8 @@
           "documentation": "",
           "kind": "interface"
         },
-        "getFindInfoFromPattern": {
-          "name": "getFindInfoFromPattern",
+        "_getFindInfoFromPattern": {
+          "name": "_getFindInfoFromPattern",
           "members": {},
           "documentation": "",
           "kind": "function",
@@ -2292,13 +2265,13 @@
                 }
               ],
               "members": {},
-              "return": "PatternFindInfo",
+              "return": "_PatternFindInfo",
               "documentation": ""
             }
           ]
         },
-        "ensurePatternRooted": {
-          "name": "ensurePatternRooted",
+        "_ensurePatternRooted": {
+          "name": "_ensurePatternRooted",
           "members": {},
           "documentation": "",
           "kind": "function",
@@ -2514,8 +2487,8 @@
             }
           ]
         },
-        "ensureRooted": {
-          "name": "ensureRooted",
+        "_ensureRooted": {
+          "name": "_ensureRooted",
           "members": {},
           "documentation": "",
           "kind": "function",
@@ -2541,8 +2514,8 @@
             }
           ]
         },
-        "getDirectoryName": {
-          "name": "getDirectoryName",
+        "_getDirectoryName": {
+          "name": "_getDirectoryName",
           "members": {},
           "documentation": "Determines the parent path and trims trailing slashes (when safe). Path separators are normalized\nin the result. This function works similar to the .NET System.IO.Path.GetDirectoryName() method.\nFor example, C:\\hello\\world\\ returns C:\\hello\\world (trailing slash removed). Returns empty when\nno higher directory can be determined.",
           "kind": "function",
@@ -2562,8 +2535,8 @@
             }
           ]
         },
-        "isRooted": {
-          "name": "isRooted",
+        "_isRooted": {
+          "name": "_isRooted",
           "members": {},
           "documentation": "On OSX/Linux, true if path starts with '/'. On Windows, true for paths like:\n\\, \\hello, \\\\hello\\share, C:, and C:\\hello (and corresponding alternate separator cases).",
           "kind": "function",
@@ -2583,8 +2556,8 @@
             }
           ]
         },
-        "normalizeSeparators": {
-          "name": "normalizeSeparators",
+        "_normalizeSeparators": {
+          "name": "_normalizeSeparators",
           "members": {},
           "documentation": "",
           "kind": "function",

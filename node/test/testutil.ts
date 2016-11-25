@@ -18,7 +18,7 @@ export function initialize(useRealStreams?: boolean) {
         tl.setErrStream(this.getNullStream());
     }
 
-    tl.setEnvVar('TASKLIB_INPROC_UNITS', '1');
+    process.env['TASKLIB_INPROC_UNITS'] = '1';
     tl.mkdirP(this.getTestTemp());
 }
 
