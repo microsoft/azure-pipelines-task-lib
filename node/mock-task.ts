@@ -25,25 +25,25 @@ export enum TaskResult {
 // String convenience
 //-----------------------------------------------------
 
-function startsWith(str: string, start: string): boolean {
+function _startsWith(str: string, start: string): boolean {
     return str.slice(0, start.length) == start;
 }
 
-function endsWith(str: string, start: string): boolean {
+function _endsWith(str: string, start: string): boolean {
     return str.slice(-str.length) == str;
 }
 
 //-----------------------------------------------------
 // General Helpers
 //-----------------------------------------------------
-export var _outStream = process.stdout;
-export var _errStream = process.stderr;
+let _outStream = process.stdout;
+let _errStream = process.stderr;
 
-export function _writeError(str: string): void {
+function _writeError(str: string): void {
     _errStream.write(str + os.EOL);
 }
 
-export function _writeLine(str: string): void {
+function _writeLine(str: string): void {
     _outStream.write(str + os.EOL);
 }
 
@@ -90,7 +90,6 @@ module.exports.getVariable = task.getVariable;
 module.exports.setVariable = task.setVariable;
 module.exports.getInput = task.getInput;
 module.exports.getBoolInput = task.getBoolInput;
-module.exports.setEnvVar = task.setEnvVar;
 module.exports.getDelimitedInput = task.getDelimitedInput;
 module.exports.filePathSupplied = task.filePathSupplied;
 

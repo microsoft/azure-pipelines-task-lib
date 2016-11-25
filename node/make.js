@@ -38,6 +38,7 @@ target.test = function() {
     buildutils.getExternals();
     run('tsc -p ./test');
     cp('-Rf', rp('test/scripts'), testPath);
+    process.env['TASKLIB_INPROC_UNITS'] = '1'; // export task-lib internals for internal unit testing
     run('mocha ' + testPath + ' --recursive');
 }
 

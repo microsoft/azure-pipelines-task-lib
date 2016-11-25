@@ -17,7 +17,10 @@ export enum TaskResult {
     Failed = 1
 }
 
-export var _internal = {};
+let _internal = { } as any;
+if (process.env.TASKLIB_INPROC_UNITS) {
+    module.exports._internal = _internal;
+}
 
 /**
  * Hash table of known variable info. The formatted env var name is the lookup key.
@@ -28,33 +31,33 @@ export var _internal = {};
  *  2) to distinguish between secret vars and public
  *  3) to know the real variable name and not just the formatted env var name.
  */
-let knownVariableMap: { [key: string]: KnownVariableInfo; } = { };
+let _knownVariableMap: { [key: string]: _KnownVariableInfo; } = { };
 
-let vault: vm.Vault;
+let _vault: vm.Vault;
 
 //-----------------------------------------------------
 // String convenience
 //-----------------------------------------------------
 
-function startsWith(str: string, start: string): boolean {
+function _startsWith(str: string, start: string): boolean {
     return str.slice(0, start.length) == start;
 }
 
-function endsWith(str: string, end: string): boolean {
+function _endsWith(str: string, end: string): boolean {
     return str.slice(-str.length) == end;
 }
 
 //-----------------------------------------------------
 // General Helpers
 //-----------------------------------------------------
-export var _outStream = process.stdout;
-export var _errStream = process.stderr;
+let _outStream = process.stdout;
+let _errStream = process.stderr;
 
-export function _writeError(str: string): void {
+function _writeError(str: string): void {
     _errStream.write(str + os.EOL);
 }
 
-export function _writeLine(str: string): void {
+function _writeLine(str: string): void {
     _outStream.write(str + os.EOL);
 }
 
@@ -102,14 +105,12 @@ process.on('uncaughtException', (err) => {
 //-----------------------------------------------------
 // Loc Helpers
 //-----------------------------------------------------
-var locStringCache: {
-    [key: string]: string
-} = {};
-var resourceFile: string;
-var libResourceFileLoaded: boolean = false;
-var resourceCulture: string = 'en-US';
+let _locStringCache: { [key: string]: string } = {};
+let _resourceFile: string;
+let _libResourceFileLoaded: boolean = false;
+let _resourceCulture: string = 'en-US';
 
-function loadResJson(resjsonFile: string): any {
+function _loadResJson(resjsonFile: string): any {
     var resJson: {} = null;
     if (exist(resjsonFile)) {
         var resjsonContent = fs.readFileSync(resjsonFile, 'utf8').toString();
@@ -133,7 +134,7 @@ function loadResJson(resjsonFile: string): any {
     return resJson;
 }
 
-function loadLocStrings(resourceFile: string, culture: string): { [key: string]: string; } {
+function _loadLocStrings(resourceFile: string, culture: string): { [key: string]: string; } {
     var locStrings: {
         [key: string]: string
     } = {};
@@ -153,7 +154,7 @@ function loadLocStrings(resourceFile: string, culture: string): { [key: string]:
                 if (cultures[i].toUpperCase() == upperCulture) {
                     localizedResourceFile = path.join(localizedResourceFile, cultures[i], 'resources.resjson');
                     if (exist(localizedResourceFile)) {
-                        locResourceJson = loadResJson(localizedResourceFile);
+                        locResourceJson = _loadResJson(localizedResourceFile);
                     }
 
                     break;
@@ -186,27 +187,27 @@ function loadLocStrings(resourceFile: string, culture: string): { [key: string]:
  */
 export function setResourcePath(path: string): void {
     if (process.env['TASKLIB_INPROC_UNITS']) {
-        resourceFile = null;
-        libResourceFileLoaded = false;
-        locStringCache = {};
-        resourceCulture = 'en-US';
+        _resourceFile = null;
+        _libResourceFileLoaded = false;
+        _locStringCache = {};
+        _resourceCulture = 'en-US';
     }
 
-    if (!resourceFile) {
+    if (!_resourceFile) {
         checkPath(path, 'resource file path');
-        resourceFile = path;
-        debug('set resource file to: ' + resourceFile);
+        _resourceFile = path;
+        debug('set resource file to: ' + _resourceFile);
 
-        resourceCulture = getVariable('system.culture') || resourceCulture;
-        var locStrs = loadLocStrings(resourceFile, resourceCulture);
+        _resourceCulture = getVariable('system.culture') || _resourceCulture;
+        var locStrs = _loadLocStrings(_resourceFile, _resourceCulture);
         for (var key in locStrs) {
             //cache loc string
-            locStringCache[key] = locStrs[key];
+            _locStringCache[key] = locStrs[key];
         }
 
     }
     else {
-        warning(loc('LIB_ResourceFileAlreadySet', resourceFile));
+        warning(loc('LIB_ResourceFileAlreadySet', _resourceFile));
     }
 }
 
@@ -218,24 +219,24 @@ export function setResourcePath(path: string): void {
  * @returns   string
  */
 export function loc(key: string, ...param: any[]): string {
-    if (!libResourceFileLoaded) {
+    if (!_libResourceFileLoaded) {
         // merge loc strings from vsts-task-lib.
         var libResourceFile = path.join(__dirname, 'lib.json');
-        var libLocStrs = loadLocStrings(libResourceFile, resourceCulture);
+        var libLocStrs = _loadLocStrings(libResourceFile, _resourceCulture);
         for (var libKey in libLocStrs) {
             //cache vsts-task-lib loc string
-            locStringCache[libKey] = libLocStrs[libKey];
+            _locStringCache[libKey] = libLocStrs[libKey];
         }
 
-        libResourceFileLoaded = true;
+        _libResourceFileLoaded = true;
     }
 
     var locString;;
-    if (locStringCache.hasOwnProperty(key)) {
-        locString = locStringCache[key];
+    if (_locStringCache.hasOwnProperty(key)) {
+        locString = _locStringCache[key];
     }
     else {
-        if (!resourceFile) {
+        if (!_resourceFile) {
             warning(loc('LIB_ResourceFileNotSet', key));
         }
         else {
@@ -266,15 +267,15 @@ export function getVariable(name: string): string {
     let varval: string;
 
     // get the metadata
-    let info: KnownVariableInfo;
-    let key: string = getVariableKey(name);
-    if (knownVariableMap.hasOwnProperty(key)) {
-        info = knownVariableMap[key];
+    let info: _KnownVariableInfo;
+    let key: string = _getVariableKey(name);
+    if (_knownVariableMap.hasOwnProperty(key)) {
+        info = _knownVariableMap[key];
     }
 
     if (info && info.secret) {
         // get the secret value
-        varval = vault.retrieveSecret('SECRET_' + key);
+        varval = _vault.retrieveSecret('SECRET_' + key);
     }
     else {
         // get the public value
@@ -304,9 +305,9 @@ export function getVariable(name: string): string {
  * @returns VariableInfo[]
  */
 export function getVariables(): VariableInfo[] {
-    return Object.keys(knownVariableMap)
+    return Object.keys(_knownVariableMap)
         .map((key: string) => {
-            let info: KnownVariableInfo = knownVariableMap[key];
+            let info: _KnownVariableInfo = _knownVariableMap[key];
             return <VariableInfo>{ name: info.name, value: getVariable(info.name), secret: info.secret };
         });
 }
@@ -321,29 +322,29 @@ export function getVariables(): VariableInfo[] {
  */
 export function setVariable(name: string, val: string, secret: boolean = false): void {
     // once a secret always a secret
-    let key: string = getVariableKey(name);
-    if (knownVariableMap.hasOwnProperty(key)) {
-        secret = secret || knownVariableMap[key].secret;
+    let key: string = _getVariableKey(name);
+    if (_knownVariableMap.hasOwnProperty(key)) {
+        secret = secret || _knownVariableMap[key].secret;
     }
 
     // store the value
     let varValue = val || '';
     debug('set ' + name + '=' + (secret && varValue ? '********' : varValue));
     if (secret) {
-        vault.storeSecret('SECRET_' + key, varValue);
+        _vault.storeSecret('SECRET_' + key, varValue);
         delete process.env[key];
     } else {
         process.env[key] = varValue;
     }
 
     // store the metadata
-    knownVariableMap[key] = <KnownVariableInfo>{ name: name, secret: secret };
+    _knownVariableMap[key] = <_KnownVariableInfo>{ name: name, secret: secret };
 
     // write the command
     command('task.setvariable', { 'variable': name || '', 'secret': (secret || false).toString() }, varValue);
 }
 
-function getVariableKey(name: string): string {
+function _getVariableKey(name: string): string {
     if (!name) {
         throw new Error(loc('LIB_ParameterIsRequired', 'name'));
     }
@@ -356,7 +357,7 @@ function getVariableKey(name: string): string {
  *  1) the real variable name (not the formatted environment variable name)
  *  2) whether the variable is a secret variable
  */
-interface KnownVariableInfo {
+interface _KnownVariableInfo {
     name: string;
     secret: boolean;
 }
@@ -377,7 +378,7 @@ export interface VariableInfo {
  * @returns   string
  */
 export function getInput(name: string, required?: boolean): string {
-    var inval = vault.retrieveSecret('INPUT_' + name.replace(' ', '_').toUpperCase());
+    var inval = _vault.retrieveSecret('INPUT_' + name.replace(' ', '_').toUpperCase());
     if (inval) {
         inval = inval.trim();
     }
@@ -400,13 +401,6 @@ export function getInput(name: string, required?: boolean): string {
  */
 export function getBoolInput(name: string, required?: boolean): boolean {
     return (getInput(name, required) || '').toUpperCase() == "TRUE";
-}
-
-// deprecated - use  setVariable
-export function setEnvVar(name: string, val: string): void {
-    if (val) {
-        process.env[name] = val;
-    }
 }
 
 /**
@@ -530,7 +524,7 @@ export function getEndpointDataParameter(id: string, key: string, optional: bool
  * @returns {string} value of the endpoint authorization scheme
  */
 export function getEndpointAuthorizationScheme(id: string, optional: boolean) : string {
-    var authScheme = vault.retrieveSecret('ENDPOINT_AUTH_SCHEME_' + id);
+    var authScheme = _vault.retrieveSecret('ENDPOINT_AUTH_SCHEME_' + id);
 
     if(!optional && !authScheme) {
         throw new Error(loc('LIB_EndpointAuthNotExist', id));
@@ -550,7 +544,7 @@ export function getEndpointAuthorizationScheme(id: string, optional: boolean) : 
  * @returns {string} value of the endpoint authorization parameter value
  */
 export function getEndpointAuthorizationParameter(id: string, key: string, optional: boolean) : string {
-    var authParam = vault.retrieveSecret('ENDPOINT_AUTH_PARAMETER_' + id + '_' + key.toUpperCase());
+    var authParam = _vault.retrieveSecret('ENDPOINT_AUTH_PARAMETER_' + id + '_' + key.toUpperCase());
 
     if(!optional && !authParam) {
         throw new Error(loc('LIB_EndpointAuthNotExist', id));
@@ -582,7 +576,7 @@ export interface EndpointAuthorization {
  * @returns   string
  */
 export function getEndpointAuthorization(id: string, optional: boolean): EndpointAuthorization {
-    var aval = vault.retrieveSecret('ENDPOINT_AUTH_' + id);
+    var aval = _vault.retrieveSecret('ENDPOINT_AUTH_' + id);
 
     if (!optional && !aval) {
         setResult(TaskResult.Failed, loc('LIB_EndpointAuthNotExist', id));
@@ -626,7 +620,7 @@ export function debug(message: string): void {
 //-----------------------------------------------------
 // Disk Functions
 //-----------------------------------------------------
-function checkShell(cmd: string, continueOnError?: boolean) {
+function _checkShell(cmd: string, continueOnError?: boolean) {
     var se = shell.error();
 
     if (se) {
@@ -730,7 +724,7 @@ export function checkPath(p: string, name: string): void {
 export function cd(path: string): void {
     if (path) {
         shell.cd(path);
-        checkShell('cd');
+        _checkShell('cd');
     }
 }
 
@@ -742,7 +736,7 @@ export function cd(path: string): void {
  */
 export function pushd(path: string): void {
     shell.pushd(path);
-    checkShell('pushd');
+    _checkShell('pushd');
 }
 
 /**
@@ -752,7 +746,7 @@ export function pushd(path: string): void {
  */
 export function popd(): void {
     shell.popd();
-    checkShell('popd');
+    _checkShell('popd');
 }
 
 /**
@@ -936,7 +930,7 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
         shell.cp(source, dest);
     }
 
-    checkShell('cp', continueOnError);
+    _checkShell('cp', continueOnError);
 }
 
 /**
@@ -956,7 +950,7 @@ export function mv(source: string, dest: string, options?: string, continueOnErr
         shell.mv(source, dest);
     }
 
-    checkShell('mv', continueOnError);
+    _checkShell('mv', continueOnError);
 }
 
 /**
@@ -997,8 +991,8 @@ export function find(findPath: string, options?: FindOptions): string[] {
 
     // debug trace the parameters
     debug(`findPath: '${findPath}'`);
-    options = options || getDefaultFindOptions();
-    debugFindOptions(options)
+    options = options || _getDefaultFindOptions();
+    _debugFindOptions(options)
 
     // return empty if not exists
     try {
@@ -1017,12 +1011,12 @@ export function find(findPath: string, options?: FindOptions): string[] {
         let result: string[] = [];
 
         // push the first item
-        let stack: FindItem[] = [ new FindItem(findPath, 1) ];
+        let stack: _FindItem[] = [ new _FindItem(findPath, 1) ];
         let traversalChain: string[] = []; // used to detect cycles
 
         while (stack.length) {
             // pop the next item and push to the result array
-            let item: FindItem = stack.pop();
+            let item: _FindItem = stack.pop();
             result.push(item.path);
 
             // stat the item.  the stat info is used further below to determine whether to traverse deeper
@@ -1068,9 +1062,9 @@ export function find(findPath: string, options?: FindOptions): string[] {
 
                 // push the child items in reverse onto the stack
                 let childLevel: number = item.level + 1;
-                let childItems: FindItem[] =
+                let childItems: _FindItem[] =
                     fs.readdirSync(item.path)
-                    .map((childName: string) => new FindItem(path.join(item.path, childName), childLevel));
+                    .map((childName: string) => new _FindItem(path.join(item.path, childName), childLevel));
                 stack.push(...childItems.reverse());
             }
             else {
@@ -1086,7 +1080,7 @@ export function find(findPath: string, options?: FindOptions): string[] {
     }
 }
 
-class FindItem {
+class _FindItem {
     public path: string;
     public level: number;
 
@@ -1096,12 +1090,12 @@ class FindItem {
     }
 }
 
-function debugFindOptions(options: FindOptions): void {
+function _debugFindOptions(options: FindOptions): void {
     debug(`findOptions.followSpecifiedSymbolicLink: '${options.followSpecifiedSymbolicLink}'`);
     debug(`findOptions.followSymbolicLinks: '${options.followSymbolicLinks}'`);
 }
 
-function getDefaultFindOptions(): FindOptions {
+function _getDefaultFindOptions(): FindOptions {
     return <FindOptions>{
         followSpecifiedSymbolicLink: true,
         followSymbolicLinks: true
@@ -1184,13 +1178,13 @@ export function legacyFindFiles(
             includePatterns.push(pat);
         }
         else {
-            excludePatterns.push(legacyFindFiles_convertPatternToRegExp(pat));
+            excludePatterns.push(_legacyFindFiles_convertPatternToRegExp(pat));
         }
     }
 
     // find and apply patterns
     let count = 0;
-    let result: string[] = legacyFindFiles_getMatchingItems(includePatterns, excludePatterns, !!includeFiles, !!includeDirectories);
+    let result: string[] = _legacyFindFiles_getMatchingItems(includePatterns, excludePatterns, !!includeFiles, !!includeDirectories);
     debug('all matches:');
     for (let resultItem of result) {
         debug(' ' + resultItem);
@@ -1200,7 +1194,7 @@ export function legacyFindFiles(
     return result;
 }
 
-function legacyFindFiles_convertPatternToRegExp(pattern: string): RegExp {
+function _legacyFindFiles_convertPatternToRegExp(pattern: string): RegExp {
     pattern = (process.platform == 'win32' ? pattern.replace(/\\/g, '/') : pattern) // normalize separator on Windows
         .replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') // regex escape - from http://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
         .replace(/\\\/\\\*\\\*\\\//g, '((\/.+/)|(\/))') // replace directory globstar, e.g. /hello/**/world
@@ -1211,9 +1205,9 @@ function legacyFindFiles_convertPatternToRegExp(pattern: string): RegExp {
     let flags = process.platform == 'win32' ? 'i' : '';
     return new RegExp(pattern, flags);
 }
-legacyFindFiles['legacyFindFiles_convertPatternToRegExp'] = legacyFindFiles_convertPatternToRegExp; // for unit testing
+_internal._legacyFindFiles_convertPatternToRegExp = _legacyFindFiles_convertPatternToRegExp; // for unit testing
 
-function legacyFindFiles_getMatchingItems(
+function _legacyFindFiles_getMatchingItems(
     includePatterns: string[],
     excludePatterns: RegExp[],
     includeFiles: boolean,
@@ -1243,14 +1237,14 @@ function legacyFindFiles_getMatchingItems(
             // if no wildcards are found, use the directory name portion of the path.
             // if there is no directory name (file name only in pattern or drive root),
             // this will return empty string.
-            findPath = getDirectoryName(pattern);
+            findPath = _getDirectoryName(pattern);
         }
         else {
             // extract the directory prior to the first wildcard
             let index = Math.min(
                 starIndex >= 0 ? starIndex : questionIndex,
                 questionIndex >= 0 ? questionIndex : starIndex);
-            findPath = getDirectoryName(pattern.substring(0, index));
+            findPath = _getDirectoryName(pattern.substring(0, index));
         }
 
         // note, due to this short-circuit and the above usage of getDirectoryName, this
@@ -1263,7 +1257,7 @@ function legacyFindFiles_getMatchingItems(
             continue;
         }
 
-        let patternRegex: RegExp = legacyFindFiles_convertPatternToRegExp(pattern);
+        let patternRegex: RegExp = _legacyFindFiles_convertPatternToRegExp(pattern);
 
         // find files/directories
         let items = find(findPath, <FindOptions>{ followSymbolicLinks: true })
@@ -1453,8 +1447,8 @@ export interface MatchOptions {
 export function match(list: string[], patterns: string[] | string, patternRoot?: string, options?: MatchOptions): string[] {
     // trace parameters
     debug(`patternRoot: '${patternRoot}'`);
-    options = options || getDefaultMatchOptions(); // default match options
-    debugMatchOptions(options);
+    options = options || _getDefaultMatchOptions(); // default match options
+    _debugMatchOptions(options);
 
     // convert pattern to an array
     if (typeof patterns == 'string') {
@@ -1476,7 +1470,7 @@ export function match(list: string[], patterns: string[] | string, patternRoot?:
         }
 
         // clone match options
-        let options = cloneMatchOptions(originalOptions);
+        let options = _cloneMatchOptions(originalOptions);
 
         // skip comments
         if (!options.nocomment && pattern.startsWith('#')) {
@@ -1539,11 +1533,11 @@ export function match(list: string[], patterns: string[] | string, patternRoot?:
 
             // root the pattern when all of the following conditions are true:
             if (patternRoot &&          // patternRoot supplied
-                !isRooted(pattern) &&   // AND pattern not rooted
+                !_isRooted(pattern) &&  // AND pattern not rooted
                                         // AND matchBase:false or not basename only
                 (!options.matchBase || (process.platform == 'win32' ? pattern.replace(/\\/g, '/') : pattern).indexOf('/') >= 0)) {
 
-                pattern = ensureRooted(patternRoot, pattern);
+                pattern = _ensureRooted(patternRoot, pattern);
                 debug(`rooted pattern: '${pattern}'`);
             }
 
@@ -1585,11 +1579,11 @@ export function match(list: string[], patterns: string[] | string, patternRoot?:
  * @param  options  optional. defaults to { dot: true, nobrace: true, nocase: process.platform == 'win32' }.
  */
 export function filter(pattern: string, options?: MatchOptions): (element: string, indexed: number, array: string[]) => boolean {
-    options = options || getDefaultMatchOptions();
+    options = options || _getDefaultMatchOptions();
     return minimatch.filter(pattern, options);
 }
 
-function cloneMatchOptions(matchOptions: MatchOptions): MatchOptions {
+function _cloneMatchOptions(matchOptions: MatchOptions): MatchOptions {
     return <MatchOptions>{
         debug: matchOptions.debug,
         nobrace: matchOptions.nobrace,
@@ -1605,7 +1599,7 @@ function cloneMatchOptions(matchOptions: MatchOptions): MatchOptions {
     };
 }
 
-function debugMatchOptions(options: MatchOptions): void {
+function _debugMatchOptions(options: MatchOptions): void {
     debug(`matchOptions.debug: '${options.debug}'`);
     debug(`matchOptions.nobrace: '${options.nobrace}'`);
     debug(`matchOptions.noglobstar: '${options.noglobstar}'`);
@@ -1619,7 +1613,7 @@ function debugMatchOptions(options: MatchOptions): void {
     debug(`matchOptions.flipNegate: '${options.flipNegate}'`);
 }
 
-function getDefaultMatchOptions(): MatchOptions {
+function _getDefaultMatchOptions(): MatchOptions {
     return <MatchOptions>{
         debug: false,
         nobrace: true,
@@ -1653,13 +1647,13 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
     debug(`defaultRoot: '${defaultRoot}'`);
     patterns = patterns || [];
     patterns = typeof patterns == 'string' ? [ patterns ] as string[] : patterns;
-    findOptions = findOptions || getDefaultFindOptions();
-    debugFindOptions(findOptions);
-    matchOptions = matchOptions || getDefaultMatchOptions();
-    debugMatchOptions(matchOptions);
+    findOptions = findOptions || _getDefaultFindOptions();
+    _debugFindOptions(findOptions);
+    matchOptions = matchOptions || _getDefaultMatchOptions();
+    _debugMatchOptions(matchOptions);
 
     // normalize slashes for root dir
-    defaultRoot = normalizeSeparators(defaultRoot);
+    defaultRoot = _normalizeSeparators(defaultRoot);
 
     let results: { [key: string]: string } = { };
     let originalMatchOptions = matchOptions;
@@ -1674,7 +1668,7 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
         }
 
         // clone match options
-        let matchOptions = cloneMatchOptions(originalMatchOptions);
+        let matchOptions = _cloneMatchOptions(originalMatchOptions);
 
         // skip comments
         if (!matchOptions.nocomment && pattern.startsWith('#')) {
@@ -1737,7 +1731,7 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
 
             if (isIncludePattern) {
                 // determine the findPath
-                let findInfo: PatternFindInfo = getFindInfoFromPattern(defaultRoot, pattern, matchOptions);
+                let findInfo: _PatternFindInfo = _getFindInfoFromPattern(defaultRoot, pattern, matchOptions);
                 let findPath: string = findInfo.findPath;
                 debug(`findPath: '${findPath}'`);
 
@@ -1788,7 +1782,7 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
             else {
                 // check if basename only and matchBase=true
                 if (matchOptions.matchBase &&
-                    !isRooted(pattern) &&
+                    !_isRooted(pattern) &&
                     (process.platform == 'win32' ? pattern.replace(/\\/g, '/') : pattern).indexOf('/') < 0) {
 
                     // do not root the pattern
@@ -1796,7 +1790,7 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
                 }
                 else {
                     // root the exclude pattern
-                    pattern = ensurePatternRooted(defaultRoot, pattern);
+                    pattern = _ensurePatternRooted(defaultRoot, pattern);
                     debug(`after ensurePatternRooted, pattern: '${pattern}'`);
                 }
 
@@ -1824,7 +1818,7 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
     return finalResult;
 }
 
-interface PatternFindInfo {
+interface _PatternFindInfo {
     /** Adjusted pattern to use. Unrooted patterns are typically rooted using the default info, although this is not true for match-base scenarios. */
     adjustedPattern: string,
 
@@ -1835,7 +1829,7 @@ interface PatternFindInfo {
     statOnly: boolean,
 }
 
-function getFindInfoFromPattern(defaultRoot: string, pattern: string, matchOptions: MatchOptions): PatternFindInfo {
+function _getFindInfoFromPattern(defaultRoot: string, pattern: string, matchOptions: MatchOptions): _PatternFindInfo {
     // parameter validation
     if (!defaultRoot) {
         throw new Error('getFindRootFromPattern() parameter defaultRoot cannot be empty');
@@ -1850,15 +1844,15 @@ function getFindInfoFromPattern(defaultRoot: string, pattern: string, matchOptio
     }
 
     // for the sake of determining the findPath, pretend nocase=false
-    matchOptions = cloneMatchOptions(matchOptions);
+    matchOptions = _cloneMatchOptions(matchOptions);
     matchOptions.nocase = false;
 
     // check if basename only and matchBase=true
     if (matchOptions.matchBase &&
-        !isRooted(pattern) &&
+        !_isRooted(pattern) &&
         (process.platform == 'win32' ? pattern.replace(/\\/g, '/') : pattern).indexOf('/') < 0) {
 
-        return <PatternFindInfo>{
+        return <_PatternFindInfo>{
             adjustedPattern: pattern, // for basename only scenarios, do not root the pattern
             findPath: defaultRoot,
             statOnly: false,
@@ -1906,11 +1900,11 @@ function getFindInfoFromPattern(defaultRoot: string, pattern: string, matchOptio
 
     // determine the find path
     let findPath: string;
-    if (isRooted(pattern)) { // the pattern was rooted
+    if (_isRooted(pattern)) { // the pattern was rooted
         findPath = joinedSegments;
     }
     else if (joinedSegments) { // the pattern was not rooted, and literal segments were found
-        findPath = ensureRooted(defaultRoot, joinedSegments);
+        findPath = _ensureRooted(defaultRoot, joinedSegments);
     }
     else { // the pattern was not rooted, and no literal segments were found
         findPath = defaultRoot;
@@ -1918,19 +1912,19 @@ function getFindInfoFromPattern(defaultRoot: string, pattern: string, matchOptio
 
     // clean up the path
     if (findPath) {
-        findPath = getDirectoryName(ensureRooted(findPath, '_')); // hack to remove unnecessary trailing slash
-        findPath = normalizeSeparators(findPath); // normalize slashes
+        findPath = _getDirectoryName(_ensureRooted(findPath, '_')); // hack to remove unnecessary trailing slash
+        findPath = _normalizeSeparators(findPath); // normalize slashes
     }
 
-    return <PatternFindInfo>{
-        adjustedPattern: ensurePatternRooted(defaultRoot, pattern),
+    return <_PatternFindInfo>{
+        adjustedPattern: _ensurePatternRooted(defaultRoot, pattern),
         findPath: findPath,
         statOnly: literalSegments.length == minimatchObj.set[0].length,
     };
 }
-_internal['getFindInfoFromPattern'] = getFindInfoFromPattern;
+_internal._getFindInfoFromPattern = _getFindInfoFromPattern;
 
-function ensurePatternRooted(root: string, p: string) {
+function _ensurePatternRooted(root: string, p: string) {
     if (!root) {
         throw new Error('ensurePatternRooted() parameter "root" cannot be empty');
     }
@@ -1939,12 +1933,12 @@ function ensurePatternRooted(root: string, p: string) {
         throw new Error('ensurePatternRooted() parameter "p" cannot be empty');
     }
 
-    if (isRooted(p)) {
+    if (_isRooted(p)) {
         return p;
     }
 
     // normalize root
-    root = normalizeSeparators(root);
+    root = _normalizeSeparators(root);
 
     // escape special glob characters
     root = (process.platform == 'win32' ? root : root.replace(/\\/g, '\\\\')) // escape '\' on OSX/Linux
@@ -1955,9 +1949,9 @@ function ensurePatternRooted(root: string, p: string) {
         .replace(/@\(/g, '[@](') // escape '@('
         .replace(/!\(/g, '[!]('); // escape '!('
 
-    return ensureRooted(root, p);
+    return _ensureRooted(root, p);
 }
-_internal['ensurePatternRooted'] = ensurePatternRooted;
+_internal._ensurePatternRooted = _ensurePatternRooted;
 
 //-----------------------------------------------------
 // Test Publisher
@@ -2072,15 +2066,15 @@ if (semver.lt(process.versions.node, '4.2.0')) {
 // Populate the vault with sensitive data.  Inputs and Endpoints
 //-------------------------------------------------------------------
 
-// only exposed as a function so unit tests can reload vault for each test
+// only exposed as a function so unit tests can reload vault for each test.
 // in prod, it's called globally below so user does not need to call
 
-export function _loadData(): void {
+function _loadData(): void {
     // in agent, workFolder is set.
     // In interactive dev mode, it won't be
     let keyPath: string = getVariable("agent.workFolder") || process.cwd();
-    vault = new vm.Vault(keyPath);
-    knownVariableMap = { };
+    _vault = new vm.Vault(keyPath);
+    _knownVariableMap = { };
     debug('loading inputs and endpoints');
     let loaded: number = 0;
     for (let envvar in process.env) {
@@ -2097,7 +2091,7 @@ export function _loadData(): void {
                     // This is technically not the variable name (has underscores instead of dots),
                     // but it's good enough to make getVariable work in a pre-2.104.1 agent where
                     // the VSTS_SECRET_VARIABLES env var is not defined.
-                    knownVariableMap[getVariableKey(variableName)] = <KnownVariableInfo>{ name: variableName, secret: true };
+                    _knownVariableMap[_getVariableKey(variableName)] = <_KnownVariableInfo>{ name: variableName, secret: true };
                 }
             }
 
@@ -2105,7 +2099,7 @@ export function _loadData(): void {
             if (process.env[envvar]) {
                 ++loaded;
                 debug('loading ' + envvar);
-                vault.storeSecret(envvar, process.env[envvar]);
+                _vault.storeSecret(envvar, process.env[envvar]);
                 delete process.env[envvar];
             }
         }
@@ -2122,7 +2116,7 @@ export function _loadData(): void {
     }
 
     names.forEach((name: string) => {
-        knownVariableMap[getVariableKey(name)] = <KnownVariableInfo>{ name: name, secret: false };
+        _knownVariableMap[_getVariableKey(name)] = <_KnownVariableInfo>{ name: name, secret: false };
     });
     delete process.env['VSTS_PUBLIC_VARIABLES'];
 
@@ -2135,17 +2129,17 @@ export function _loadData(): void {
     }
 
     names.forEach((name: string) => {
-        knownVariableMap[getVariableKey(name)] = <KnownVariableInfo>{ name: name, secret: true };
+        _knownVariableMap[_getVariableKey(name)] = <_KnownVariableInfo>{ name: name, secret: true };
     });
     delete process.env['VSTS_SECRET_VARIABLES'];
 }
-
+_internal._loadData = _loadData;
 _loadData();
 
 //--------------------------------------------------------------------------------
 // Internal path helpers.
 //--------------------------------------------------------------------------------
-function ensureRooted(root: string, p: string) {
+function _ensureRooted(root: string, p: string) {
     if (!root) {
         throw new Error('ensureRooted() parameter "root" cannot be empty');
     }
@@ -2154,7 +2148,7 @@ function ensureRooted(root: string, p: string) {
         throw new Error('ensureRooted() parameter "p" cannot be empty');
     }
 
-    if (isRooted(p)) {
+    if (_isRooted(p)) {
         return p;
     }
 
@@ -2172,7 +2166,7 @@ function ensureRooted(root: string, p: string) {
 
     return root + p;
 }
-_internal['ensureRooted'] = ensureRooted;
+_internal._ensureRooted = _ensureRooted;
 
 /**
  * Determines the parent path and trims trailing slashes (when safe). Path separators are normalized
@@ -2180,14 +2174,14 @@ _internal['ensureRooted'] = ensureRooted;
  * For example, C:\hello\world\ returns C:\hello\world (trailing slash removed). Returns empty when
  * no higher directory can be determined.
  */
-function getDirectoryName(p: string): string {
+function _getDirectoryName(p: string): string {
     // short-circuit if empty
     if (!p) {
         return '';
     }
 
     // normalize separators
-    p = normalizeSeparators(p);
+    p = _normalizeSeparators(p);
 
     // on Windows, the goal of this function is to match the behavior of
     // [System.IO.Path]::GetDirectoryName(), e.g.
@@ -2268,14 +2262,14 @@ function getDirectoryName(p: string): string {
 
     return path.dirname(p);
 }
-_internal['getDirectoryName'] = getDirectoryName;
+_internal._getDirectoryName = _getDirectoryName;
 
 /**
  * On OSX/Linux, true if path starts with '/'. On Windows, true for paths like:
  * \, \hello, \\hello\share, C:, and C:\hello (and corresponding alternate separator cases).
  */
-function isRooted(p: string): boolean {
-    p = normalizeSeparators(p);
+function _isRooted(p: string): boolean {
+    p = _normalizeSeparators(p);
     if (!p) {
         throw new Error('isRooted() parameter "p" cannot be empty');
     }
@@ -2287,9 +2281,9 @@ function isRooted(p: string): boolean {
 
     return p.startsWith('/'); // e.g. /hello
 }
-_internal['isRooted'] = isRooted;
+_internal._isRooted = _isRooted;
 
-function normalizeSeparators(p: string): string {
+function _normalizeSeparators(p: string): string {
     p = p || '';
     if (process.platform == 'win32') {
         // convert slashes on Windows
@@ -2303,4 +2297,4 @@ function normalizeSeparators(p: string): string {
     // remove redundant slashes
     return p.replace(/\/\/+/g, '/');
 }
-_internal['normalizeSeparators'] = normalizeSeparators;
+_internal._normalizeSeparators = _normalizeSeparators;

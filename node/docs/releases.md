@@ -5,6 +5,8 @@
  * Updated `find` to normalize the specified path so the results are consistent.
  * Updated `mock-task.filter` and `mock-task.match` to passthru to `task.filter` and `task.match`.
  * Removed `vso-node-api` from package.json. If needed, add to your package.json.
+ * Removed `setEnvVar`.
+ * Removed `_writeLine`. Use console.log().
 
 ## 2.0.0-preview
  * Added `findMatch` that interprets the find root from a glob pattern. Supports interleaved exclude.

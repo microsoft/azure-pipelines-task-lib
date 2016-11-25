@@ -832,7 +832,7 @@ describe('Find and Match Tests', function () {
     });
 
     function assertEnsurePatternRooted(root: string, path: string, expected: string) {
-        let actual: string = tl._internal['ensurePatternRooted'](root, path);
+        let actual: string = (tl as any)._internal._ensurePatternRooted(root, path);
         if (actual != expected) {
             throw new Error(`ensureRootedPattern on <${root}, ${path}> yields <${actual}>; expected <${expected}>`);
         }
@@ -913,7 +913,7 @@ describe('Find and Match Tests', function () {
     });
 
     function assertPatternFindInfo(defaultRoot: string, pattern: string, matchOptions: tl.MatchOptions, expected: any) {
-        let actual: any = tl._internal['getFindInfoFromPattern'](defaultRoot, pattern, matchOptions);
+        let actual: any = (tl as any)._internal._getFindInfoFromPattern(defaultRoot, pattern, matchOptions);
         assert.deepEqual(actual, expected);
     }
 

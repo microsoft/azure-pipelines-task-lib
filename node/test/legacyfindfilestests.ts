@@ -655,14 +655,12 @@ describe('Legacy Find Files Tests', function () {
     });
 
     function assertMatch(pattern: string, path: string): void {
-        let tlAny = tl as any;
-        assert(tlAny.legacyFindFiles.legacyFindFiles_convertPatternToRegExp(pattern).test(path),
+        assert((tl as any)._internal._legacyFindFiles_convertPatternToRegExp(pattern).test(path),
             `pattern '${pattern}' should match path '${path}'`);
     }
 
     function assertNotMatch(pattern: string, path: string): void {
-        let tlAny = tl as any;
-        assert(!tlAny.legacyFindFiles.legacyFindFiles_convertPatternToRegExp(pattern).test(path),
+        assert(!(tl as any)._internal._legacyFindFiles_convertPatternToRegExp(pattern).test(path),
             `pattern '${pattern}' should not match path '${path}'`);
     }
 

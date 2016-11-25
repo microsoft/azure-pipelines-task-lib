@@ -28,7 +28,7 @@ describe('Internal Path Helper Tests', function () {
 
     function assertEnsureRooted(root: string, path: string, expected: string): void {
         assert.equal(
-            tl._internal['ensureRooted'](root, path),
+            (tl as any)._internal._ensureRooted(root, path),
             expected,
             `expected ensureRooted for input <${path}> to yield <${expected}>`);
     }
@@ -116,7 +116,7 @@ describe('Internal Path Helper Tests', function () {
 
     function assertDirectoryName(path: string, expected: string): void {
         assert.equal(
-            tl._internal['getDirectoryName'](path),
+            (tl as any)._internal._getDirectoryName(path),
             expected,
             `expected getDirectoryName for input <${path}> to yield <${expected}>`);
     }
@@ -240,7 +240,7 @@ describe('Internal Path Helper Tests', function () {
 
     function assertIsRooted(path: string, expected: boolean): void {
         assert.equal(
-            tl._internal['isRooted'](path),
+            (tl as any)._internal._isRooted(path),
             expected,
             `expected isRooted for input <${path}> to yield <${expected}>`);
     }
@@ -331,7 +331,7 @@ describe('Internal Path Helper Tests', function () {
 
     function assertNormalizeSeparators(path: string, expected: string): void {
         assert.equal(
-            tl._internal['normalizeSeparators'](path),
+            (tl as any)._internal._normalizeSeparators(path),
             expected,
             `expected normalizeSeparators for input <${path}> to yield <${expected}>`);
     }
