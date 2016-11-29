@@ -109,6 +109,18 @@ describe('Input Tests', function () {
 
         done();
     })
+    it('gets a variable with special characters', (done: MochaDone) => {
+        this.timeout(1000);
+
+        let expected = 'Value of var with special chars';
+        process.env['HELLO_DOT_DOT2_SPACE_SPACE2'] = expected;
+        (tl as any)._internal._loadData();
+
+        let varVal = tl.getVariable('Hello.dot.dot2 space space2');
+        assert.equal(varVal, expected);
+
+        done();
+    })
 
     // setVariable tests
     it('sets a variable as an env var', function (done) {
@@ -117,6 +129,16 @@ describe('Input Tests', function () {
         tl.setVariable('Build.Repository.Uri', 'test value');
         let varVal: string = process.env['BUILD_REPOSITORY_URI'];
         assert.equal(varVal, 'test value');
+
+        done();
+    })
+    it('sets a variable with special chars as an env var', (done: MochaDone) => {
+        this.timeout(1000);
+
+        let expected = 'Set value of var with special chars';
+        tl.setVariable('Hello.dot.dot2 space space2', expected);
+        let varVal: string = process.env['HELLO_DOT_DOT2_SPACE_SPACE2'];
+        assert.equal(varVal, expected);
 
         done();
     })
