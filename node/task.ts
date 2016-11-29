@@ -349,7 +349,7 @@ function _getVariableKey(name: string): string {
         throw new Error(loc('LIB_ParameterIsRequired', 'name'));
     }
 
-    return name.replace(/\./g, '_').toUpperCase();
+    return name.replace(/\./g, '_').replace(/ /g, '_').toUpperCase();
 }
 
 /**
