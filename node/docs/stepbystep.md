@@ -55,9 +55,8 @@ sampletask@1.0.0 /Users/bryan/Projects/sampletask
 Create a typings.json and add external dependencies
 
 ```bash
-$ touch typings.json
-$ typings install dt~node --global --save
-$ typings install dt~q --global --save
+npm install @types/node --save-dev
+npm install @types/q --save-dev
 ```
 
 Create a .gitignore and add node_modules and typings to it.  Your build process should do `npm install` and `typings install`.  No need to checkin dependencies.
