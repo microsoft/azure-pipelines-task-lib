@@ -14,8 +14,8 @@ require('./extensions');
 
 export enum TaskResult {
     Succeeded = 0,
-    SucceededWithIssues = 2,
-    Failed = 1
+    SucceededWithIssues = 1,
+    Failed = 2
 }
 
 let _internal = { } as any;

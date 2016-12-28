@@ -18,7 +18,8 @@ export function setAnswers(answers: ma.TaskLibAnswers) {
 
 export enum TaskResult {
     Succeeded = 0,
-    Failed = 1
+    SucceededWithIssues = 1,
+    Failed = 2
 }
 
 //-----------------------------------------------------
