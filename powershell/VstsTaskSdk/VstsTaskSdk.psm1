@@ -152,8 +152,10 @@ $null = New-Item -Force -Path "function:\global:Invoke-VstsTaskScript" -Value ([
     } catch [VstsTaskSdk.TerminationException] {
         # Special internal exception type to control the flow. Not currently intended
         # for public usage and subject to change.
+        $global:__vstsNoOverrideVerbose = ''
         Write-Verbose "Task script terminated." 4>&1 | Out-Default
     } catch {
+        $global:__vstsNoOverrideVerbose = ''
         Write-Verbose "Caught exception from task script." 4>&1 | Out-Default
         $_ | Out-Default
         Write-Host "##vso[task.complete result=Failed]"
