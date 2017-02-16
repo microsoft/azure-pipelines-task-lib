@@ -14,7 +14,8 @@ require('./extensions');
 
 export enum TaskResult {
     Succeeded = 0,
-    Failed = 1
+    SucceededWithIssues = 1,
+    Failed = 2
 }
 
 let _internal = { } as any;
@@ -79,7 +80,7 @@ export function setErrStream(errStream): void {
  * If not set, task will be Succeeded.
  * If multiple calls are made to setResult the most pessimistic call wins (Failed) regardless of the order of calls.
  * 
- * @param result    TaskResult enum of Success or Failed.  
+ * @param result    TaskResult enum of Succeeded, SucceededWithIssues or Failed.  
  * @param message   A message which will be logged as an error issue if the result is Failed.
  * @returns         void
  */
@@ -89,6 +90,9 @@ export function setResult(result: TaskResult, message: string): void {
     // add an error issue
     if (result == TaskResult.Failed && message) {
         error(message);
+    }
+    else if (result == TaskResult.SucceededWithIssues && message) {
+        warning(message);
     }
 
     // set the task result
