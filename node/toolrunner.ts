@@ -7,10 +7,33 @@ import child = require('child_process');
 import stream = require('stream');
 import tcm = require('./taskcommand');
 
+//-----------------------------------------------------
+// String convenience
+//-----------------------------------------------------
+
+function _startsWith(str: string, start: string): boolean {
+    return str.slice(0, start.length) == start;
+}
+
+function _endsWith(str: string, end: string): boolean {
+    return str.slice(-end.length) == end;
+}
+
 /**
  * Interface for exec options
  */
-export interface IExecOptions {
+export interface IExecOptions extends IExecSyncOptions {
+    /** optional.  whether to fail if output to stderr.  defaults to false */
+    failOnStdErr: boolean;
+
+    /** optional.  defaults to failing on non zero.  ignore will not fail leaving it up to the caller */
+    ignoreReturnCode: boolean;
+};
+
+/**
+ * Interface for execSync options
+ */
+export interface IExecSyncOptions {
     /** optional working directory.  defaults to current */
     cwd: string;
 
@@ -19,12 +42,6 @@ export interface IExecOptions {
 
     /** optional.  defaults to fales */
     silent: boolean;
-
-    /** optional.  whether to fail if output to stderr.  defaults to false */
-    failOnStdErr: boolean;
-
-    /** optional.  defaults to failing on non zero.  ignore will not fail leaving it up to the caller */
-    ignoreReturnCode: boolean;
 
     outStream: stream.Writable;
 
@@ -37,7 +54,7 @@ export interface IExecOptions {
 /**
  * Interface for exec results returned from synchronous exec functions
  */
-export interface IExecResult {
+export interface IExecSyncResult {
     /** standard output */
     stdout: string;
 
@@ -61,19 +78,15 @@ export class ToolRunner extends events.EventEmitter {
 
         this.toolPath = toolPath;
         this.args = [];
-        this.silent = false;
         this._debug('toolRunner toolPath: ' + toolPath);
     }
 
-    public toolPath: string;
-    public args: string[];
-    public silent: boolean;
+    private toolPath: string;
+    private args: string[];
     private pipeOutputToTool: ToolRunner;
 
     private _debug(message) {
-        if (!this.silent) {
-            this.emit('debug', message);
-        }
+        this.emit('debug', message);
     }
 
     private _argStringToArray(argString: string): string[] {
@@ -130,7 +143,7 @@ export class ToolRunner extends events.EventEmitter {
     }
 
     private _getCommandString(options: IExecOptions, noPrefix?: boolean): string {
-        let toolPath: string = this._getSpawnFileName(options);
+        let toolPath: string = this._getSpawnFileName();
         let args: string[] = this._getSpawnArgs(options);
         let cmd = noPrefix ? '' : '[command]'; // omit prefix when piped to a second tool
         if (process.platform == 'win32') {
@@ -174,7 +187,7 @@ export class ToolRunner extends events.EventEmitter {
         return cmd;
     }
 
-    private _getSpawnFileName(options: IExecOptions): string {
+    private _getSpawnFileName(): string {
         if (process.platform == 'win32') {
              if (this._isCmdFile()) {
                  return process.env['COMSPEC'] || 'cmd.exe';
@@ -249,7 +262,7 @@ export class ToolRunner extends events.EventEmitter {
 
     private _isCmdFile(): boolean {
         let upperToolPath: string = this.toolPath.toUpperCase();
-        return upperToolPath.endsWith('.CMD') || upperToolPath.endsWith('.BAT');
+        return _endsWith(upperToolPath, '.CMD') || _endsWith(upperToolPath, '.BAT');
     }
 
     private _windowsQuoteCmdArg(arg: string): string {
@@ -456,7 +469,7 @@ export class ToolRunner extends events.EventEmitter {
         return result;
     }
 
-    private _getSpawnSyncOptions(options: IExecOptions): child.SpawnSyncOptions {
+    private _getSpawnSyncOptions(options: IExecSyncOptions): child.SpawnSyncOptions {
         let result = <child.SpawnSyncOptions>{};
         result.cwd = options.cwd;
         result.env = options.env;
@@ -546,7 +559,7 @@ export class ToolRunner extends events.EventEmitter {
         var defer = Q.defer<number>();
 
         this._debug('exec tool: ' + this.toolPath);
-        this._debug('Arguments:');
+        this._debug('arguments:');
         this.args.forEach((arg) => {
             this._debug('   ' + arg);
         });
@@ -574,11 +587,11 @@ export class ToolRunner extends events.EventEmitter {
 
             //start the child process for both tools
             var cpFirst = child.spawn(
-                this._getSpawnFileName(options),
+                this._getSpawnFileName(),
                 this._getSpawnArgs(options),
                 this._getSpawnOptions(options));
             cp = child.spawn(
-                this.pipeOutputToTool._getSpawnFileName(options),
+                this.pipeOutputToTool._getSpawnFileName(),
                 this.pipeOutputToTool._getSpawnArgs(options),
                 this.pipeOutputToTool._getSpawnOptions(options));
 
@@ -612,7 +625,7 @@ export class ToolRunner extends events.EventEmitter {
             });
 
         } else {
-            cp = child.spawn(this._getSpawnFileName(options), this._getSpawnArgs(options), this._getSpawnOptions(options));
+            cp = child.spawn(this._getSpawnFileName(), this._getSpawnArgs(options), this._getSpawnOptions(options));
         }
 
         var processLineBuffer = (data: Buffer, strBuffer: string, onLine:(line: string) => void): void => {
@@ -703,39 +716,39 @@ export class ToolRunner extends events.EventEmitter {
      * Exec a tool synchronously. 
      * Output will be *not* be streamed to the live console.  It will be returned after execution is complete.
      * Appropriate for short running tools 
-     * Returns IExecResult with output and return code
+     * Returns IExecSyncResult with output and return code
      * 
      * @param     tool     path to tool to exec
-     * @param     options  optionalexec options.  See IExecOptions
-     * @returns   IExecResult
+     * @param     options  optional exec options.  See IExecSyncOptions
+     * @returns   IExecSyncResult
      */
-    public execSync(options?: IExecOptions): IExecResult {
+    public execSync(options?: IExecSyncOptions): IExecSyncResult {
         var defer = Q.defer();
 
         this._debug('exec tool: ' + this.toolPath);
-        this._debug('Arguments:');
+        this._debug('arguments:');
         this.args.forEach((arg) => {
             this._debug('   ' + arg);
         });
 
         var success = true;
-        options = this._cloneExecOptions(options);
+        options = this._cloneExecOptions(options as IExecOptions);
 
         if (!options.silent) {
-            options.outStream.write(this._getCommandString(options) + os.EOL);
+            options.outStream.write(this._getCommandString(options as IExecOptions) + os.EOL);
         }
 
-        var r = child.spawnSync(this._getSpawnFileName(options), this._getSpawnArgs(options), this._getSpawnSyncOptions(options));
+        var r = child.spawnSync(this._getSpawnFileName(), this._getSpawnArgs(options as IExecOptions), this._getSpawnSyncOptions(options));
 
-        if (r.stdout && r.stdout.length > 0) {
+        if (!options.silent && r.stdout && r.stdout.length > 0) {
             options.outStream.write(r.stdout);
         }
 
-        if (r.stderr && r.stderr.length > 0) {
+        if (!options.silent && r.stderr && r.stderr.length > 0) {
             options.errStream.write(r.stderr);
         }
 
-        var res:IExecResult = <IExecResult>{ code: r.status, error: r.error };
+        var res: IExecSyncResult = <IExecSyncResult>{ code: r.status, error: r.error };
         res.stdout = (r.stdout) ? r.stdout.toString() : null;
         res.stderr = (r.stderr) ? r.stderr.toString() : null;
         return res;

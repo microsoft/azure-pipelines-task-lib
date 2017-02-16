@@ -630,8 +630,8 @@ describe('Toolrunner Tests', function () {
         var node = tl.tool(tl.which('node', true));
         node.arg('one');
         node.arg('two');
-        assert.equal(node.args.length, 2, 'should have 2 args');
-        assert.equal(node.args.toString(), 'one,two', 'should be one,two');
+        assert.equal((node as any).args.length, 2, 'should have 2 args');
+        assert.equal((node as any).args.toString(), 'one,two', 'should be one,two');
         done();
     })
     it('handles arg chaining', function (done) {
@@ -640,8 +640,8 @@ describe('Toolrunner Tests', function () {
         var node = tl.tool(tl.which('node', true));
         node.arg('one').arg('two').argIf(true, 'three').line('four five');
         //node.arg('one').arg('two').argIf(true, 'three');
-        assert.equal(node.args.length, 5, 'should have 5 args');
-        assert.equal(node.args.toString(), 'one,two,three,four,five', 'should be one,two,three,four,five');
+        assert.equal((node as any).args.length, 5, 'should have 5 args');
+        assert.equal((node as any).args.toString(), 'one,two,three,four,five', 'should be one,two,three,four,five');
         done();
     })        
     it('handles padded spaces', function (done) {
@@ -650,8 +650,8 @@ describe('Toolrunner Tests', function () {
         var node = tl.tool(tl.which('node', true));
         node.arg(' one ');
         node.arg('two');
-        assert.equal(node.args.length, 2, 'should have 2 args');
-        assert.equal(node.args.toString(), 'one,two', 'should be one,two');
+        assert.equal((node as any).args.length, 2, 'should have 2 args');
+        assert.equal((node as any).args.toString(), 'one,two', 'should be one,two');
         done();
     })
     it('handles basic arg string with spaces', function (done) {
@@ -660,8 +660,8 @@ describe('Toolrunner Tests', function () {
         var node = tl.tool(tl.which('node', true));
         node.line('one two');
         node.arg('three');
-        assert.equal(node.args.length, 3, 'should have 3 args');
-        assert.equal(node.args.toString(), 'one,two,three', 'should be one,two,three');
+        assert.equal((node as any).args.length, 3, 'should have 3 args');
+        assert.equal((node as any).args.toString(), 'one,two,three', 'should be one,two,three');
         done();
     })
     it('handles arg string with extra spaces', function (done) {
@@ -670,8 +670,8 @@ describe('Toolrunner Tests', function () {
         var node = tl.tool(tl.which('node', true));
         node.line('one   two');
         node.arg('three');
-        assert.equal(node.args.length, 3, 'should have 3 args');
-        assert.equal(node.args.toString(), 'one,two,three', 'should be one,two,three');
+        assert.equal((node as any).args.length, 3, 'should have 3 args');
+        assert.equal((node as any).args.toString(), 'one,two,three', 'should be one,two,three');
         done();
     })
     it('handles arg string with backslash', function (done) {
@@ -680,8 +680,8 @@ describe('Toolrunner Tests', function () {
         var node = tl.tool(tl.which('node', true));
         node.line('one two\\arg');
         node.arg('three');
-        assert.equal(node.args.length, 3, 'should have 3 args');
-        assert.equal(node.args.toString(), 'one,two\\arg,three', 'should be one,two,three');
+        assert.equal((node as any).args.length, 3, 'should have 3 args');
+        assert.equal((node as any).args.toString(), 'one,two\\arg,three', 'should be one,two,three');
         done();
     })
     it('handles equals and switches', function (done) {
@@ -690,8 +690,8 @@ describe('Toolrunner Tests', function () {
         var node = tl.tool(tl.which('node', true));
         node.line('foo=bar -x');
         node.arg('-y');
-        assert.equal(node.args.length, 3, 'should have 3 args');
-        assert.equal(node.args.toString(), 'foo=bar,-x,-y', 'should be foo=bar,-x,-y');
+        assert.equal((node as any).args.length, 3, 'should have 3 args');
+        assert.equal((node as any).args.toString(), 'foo=bar,-x,-y', 'should be foo=bar,-x,-y');
         done();
     })
     it('handles double quotes', function (done) {
@@ -700,8 +700,8 @@ describe('Toolrunner Tests', function () {
         var node = tl.tool(tl.which('node', true));
         node.line('foo="bar baz" -x');
         node.arg('-y');
-        assert.equal(node.args.length, 3, 'should have 3 args');
-        assert.equal(node.args.toString(), 'foo=bar baz,-x,-y', 'should be foo=bar baz,-x,-y');
+        assert.equal((node as any).args.length, 3, 'should have 3 args');
+        assert.equal((node as any).args.toString(), 'foo=bar baz,-x,-y', 'should be foo=bar baz,-x,-y');
         done();
     })
     it('handles quote in double quotes', function (done) {
@@ -710,8 +710,8 @@ describe('Toolrunner Tests', function () {
         var node = tl.tool(tl.which('node', true));
         node.line('foo="bar \\" baz" -x');
         node.arg('-y');
-        assert.equal(node.args.length, 3, 'should have 3 args');
-        assert.equal(node.args.toString(), 'foo=bar " baz,-x,-y', 'should be foo=bar " baz,-x,-y');
+        assert.equal((node as any).args.length, 3, 'should have 3 args');
+        assert.equal((node as any).args.toString(), 'foo=bar " baz,-x,-y', 'should be foo=bar " baz,-x,-y');
         done();
     })
     it('handles literal path', function (done) {
@@ -719,8 +719,8 @@ describe('Toolrunner Tests', function () {
 
         var node = tl.tool(tl.which('node', true));
         node.arg('--path').arg('/bin/working folder1');
-        assert.equal(node.args.length, 2, 'should have 2 args');
-        assert.equal(node.args.toString(), '--path,/bin/working folder1', 'should be --path /bin/working folder1');
+        assert.equal((node as any).args.length, 2, 'should have 2 args');
+        assert.equal((node as any).args.toString(), '--path,/bin/working folder1', 'should be --path /bin/working folder1');
         done();
     })
 
@@ -1090,8 +1090,8 @@ describe('Toolrunner Tests', function () {
                 .arg('helloworld')
                 .arg('hello:"world again"');
             let outStream = testutil.createStringStream();
-            let options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream, windowsVerbatimArguments: true };
-            let result: trm.IExecResult = exeRunner.execSync(options);
+            let options = <trm.IExecSyncOptions>{ outStream: <stream.Writable>outStream, windowsVerbatimArguments: true };
+            let result: trm.IExecSyncResult = exeRunner.execSync(options);
             assert.equal(result.code, 0, 'return code of cmd should be 0');
             // validate the [command] header
             assert.equal(
@@ -1117,8 +1117,8 @@ describe('Toolrunner Tests', function () {
                 .arg('hello:"world again"')
                 .arg('hello,world'); // "," should not be quoted for .exe (should be for .cmd)
             let outStream = testutil.createStringStream();
-            let options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream };
-            let result: trm.IExecResult = exeRunner.execSync(options);
+            let options = <trm.IExecSyncOptions>{ outStream: <stream.Writable>outStream };
+            let result: trm.IExecSyncResult = exeRunner.execSync(options);
             assert.equal(result.code, 0, 'return code of cmd should be 0');
             // validate the [command] header
             assert.equal(
@@ -1148,8 +1148,8 @@ describe('Toolrunner Tests', function () {
             let exeRunner = tl.tool(exePath)
                 .arg('myarg1 myarg2');
             let outStream = testutil.createStringStream();
-            let options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream, windowsVerbatimArguments: true };
-            let result: trm.IExecResult = exeRunner.execSync(options);
+            let options = <trm.IExecSyncOptions>{ outStream: <stream.Writable>outStream, windowsVerbatimArguments: true };
+            let result: trm.IExecSyncResult = exeRunner.execSync(options);
             // validate the [command] header
             assert.equal(
                 outStream.getContents().split(os.EOL)[0],
@@ -1172,8 +1172,8 @@ describe('Toolrunner Tests', function () {
                 .arg('arg1 arg2')
                 .arg('arg3');
             let outStream = testutil.createStringStream();
-            let options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream, windowsVerbatimArguments: true };
-            let result: trm.IExecResult = cmdRunner.execSync(options);
+            let options = <trm.IExecSyncOptions>{ outStream: <stream.Writable>outStream, windowsVerbatimArguments: true };
+            let result: trm.IExecSyncResult = cmdRunner.execSync(options);
             // validate the [command] header
             assert.equal(
                 outStream.getContents().split(os.EOL)[0],
@@ -1198,8 +1198,8 @@ describe('Toolrunner Tests', function () {
                 .arg('my arg 1')
                 .arg('my arg 2');
             let outStream = testutil.createStringStream();
-            let options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream };
-            let result: trm.IExecResult = cmdRunner.execSync(options);
+            let options = <trm.IExecSyncOptions>{ outStream: <stream.Writable>outStream };
+            let result: trm.IExecSyncResult = cmdRunner.execSync(options);
             // validate the [command] header
             assert.equal(
                 outStream.getContents().split(os.EOL)[0],
@@ -1243,8 +1243,8 @@ describe('Toolrunner Tests', function () {
                 .arg('hello:"world again"')
                 .arg('hello world\\');
             let outStream = testutil.createStringStream();
-            let options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream };
-            let result: trm.IExecResult = cmdRunner.execSync(options);
+            let options = <trm.IExecSyncOptions>{ outStream: <stream.Writable>outStream };
+            let result: trm.IExecSyncResult = cmdRunner.execSync(options);
             // validate the [command] header
             assert.equal(
                 outStream.getContents().split(os.EOL)[0],

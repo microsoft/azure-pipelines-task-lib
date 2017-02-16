@@ -1,5 +1,11 @@
 # VSTS-TASK-LIB RELEASES
 
+## 2.0.2-preview
+ * Updated `ToolRunner` to cleanup `execSync` interface, for `execSync` to follow `options.silent`, and removed all fields from the public interface.
+ * Updated `TaskResult` to include `SucceededWithIssues`.
+ * Updated `rmRF` to remove `continueOnError`.
+ * Removed `startsWith`, `endsWith`, and `isEqual` prototype functions for `String`.
+
 ## 2.0.1-preview
  * Updated `match` to expose optional pattern-root parameter.
  * Updated `find` to normalize the specified path so the results are consistent.

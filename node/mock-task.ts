@@ -332,7 +332,7 @@ export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Pro
     return tr.exec(options);
 }
 
-export function execSync(tool: string, args: any, options?: trm.IExecOptions): trm.IExecResult {
+export function execSync(tool: string, args: any, options?: trm.IExecSyncOptions): trm.IExecSyncResult {
     var toolPath = which(tool, true);
     var tr: trm.ToolRunner = this.tool(toolPath);
     if (args) {

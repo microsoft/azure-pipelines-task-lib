@@ -41,6 +41,41 @@ describe('Result Tests', function () {
 
         done();
     })
+    it('setResult success with issues outputs', function (done) {
+        this.timeout(1000);
+
+        var stdStream = testutil.createStringStream();
+        tl.setStdStream(stdStream);
+        tl.setResult(tl.TaskResult.SucceededWithIssues, 'warning msg');
+
+        var expected = testutil.buildOutput(
+            ['##vso[task.debug]task result: SucceededWithIssues',
+                '##vso[task.issue type=warning;]warning msg',
+                '##vso[task.complete result=SucceededWithIssues;]warning msg']);
+
+        var output = stdStream.getContents();
+
+        assert.equal(output, expected);
+
+        done();
+    })
+    it('setResult succeeded with issues does not create issue with empty message', function (done) {
+        this.timeout(1000);
+
+        var stdStream = testutil.createStringStream();
+        tl.setStdStream(stdStream);
+        tl.setResult(tl.TaskResult.SucceededWithIssues, '');
+
+        var expected = testutil.buildOutput(
+            ['##vso[task.debug]task result: SucceededWithIssues',
+                '##vso[task.complete result=SucceededWithIssues;]']);
+
+        var output = stdStream.getContents();
+
+        assert.equal(output, expected);
+
+        done();
+    })
     it('setResult failed outputs', function (done) {
         this.timeout(1000);
 
