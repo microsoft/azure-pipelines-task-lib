@@ -4,13 +4,11 @@ import fs = require('fs');
 import path = require('path');
 import os = require('os');
 import minimatch = require('minimatch');
-import globm = require('glob');
 import util = require('util');
 import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
 import vm = require('./vault');
 import semver = require('semver');
-require('./extensions');
 
 export enum TaskResult {
     Succeeded = 0,
@@ -45,7 +43,7 @@ function _startsWith(str: string, start: string): boolean {
 }
 
 function _endsWith(str: string, end: string): boolean {
-    return str.slice(-str.length) == end;
+    return str.slice(-end.length) == end;
 }
 
 //-----------------------------------------------------
@@ -917,9 +915,7 @@ export function ls(options: string, paths: string[]): string[] {
 }
 
 /**
- * Returns path of a tool had the tool actually been invoked.  Resolves via paths.
- * If you check and the tool does not exist, it will throw.
- * Returns whether the copy was successful
+ * Copies a file or folder.
  * 
  * @param     source     source path
  * @param     dest       destination path
@@ -938,8 +934,7 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
 }
 
 /**
- * Moves a path.  
- * Returns whether the copy was successful
+ * Moves a path.
  * 
  * @param     source     source path
  * @param     dest       destination path
@@ -1149,11 +1144,11 @@ export function legacyFindFiles(
         // include patterns start with +: or anything other than -:
         // exclude patterns start with -:
         let isIncludePattern: boolean;
-        if (pat.startsWith('+:')) {
+        if (_startsWith(pat, '+:')) {
             pat = pat.substring(2);
             isIncludePattern = true;
         }
-        else if (pat.startsWith('-:')) {
+        else if (_startsWith(pat, '-:')) {
             pat = pat.substring(2);
             isIncludePattern = false;
         }
@@ -1162,7 +1157,7 @@ export function legacyFindFiles(
         }
 
         // validate pattern does not end with a slash
-        if (pat.endsWith('/') || (process.platform == 'win32' && pat.endsWith('\\'))) {
+        if (_endsWith(pat, '/') || (process.platform == 'win32' && _endsWith(pat, '\\'))) {
             throw new Error(loc('LIB_InvalidPattern', pat));
         }
 
@@ -1173,7 +1168,7 @@ export function legacyFindFiles(
             // remove trailing slash sometimes added by path.join() on Windows, e.g.
             //      path.join('\\\\hello', 'world') => '\\\\hello\\world\\'
             //      path.join('//hello', 'world') => '\\\\hello\\world\\'
-            if (pat.endsWith('\\')) {
+            if (_endsWith(pat, '\\')) {
                 pat = pat.substring(0, pat.length - 1);
             }
         }
@@ -1310,7 +1305,7 @@ function _legacyFindFiles_getMatchingItems(
  * @param     continueOnError optional. whether to continue on error
  * @returns   void
  */
-export function rmRF(path: string, continueOnError?: boolean): void {
+export function rmRF(path: string): void {
     debug('rm -rf ' + path);
 
     // get the lstats in order to workaround a bug in shelljs@0.3.0 where symlinks
@@ -1332,7 +1327,7 @@ export function rmRF(path: string, continueOnError?: boolean): void {
     if (lstats.isDirectory()) {
         debug('removing directory');
         shell.rm('-rf', path);
-        var errMsg: string = shell.error();
+        let errMsg: string = shell.error();
         if (errMsg) {
             throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
         }
@@ -1385,10 +1380,10 @@ export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Pro
  * 
  * @param     tool     path to tool to exec
  * @param     args     an arg string or array of args
- * @param     options  optionalexec options.  See IExecOptions
- * @returns   IExecResult
+ * @param     options  optional exec options.  See IExecSyncOptions
+ * @returns   IExecSyncResult
  */
-export function execSync(tool: string, args: string | string[], options?: trm.IExecOptions): trm.IExecResult {
+export function execSync(tool: string, args: string | string[], options?: trm.IExecSyncOptions): trm.IExecSyncResult {
     var toolPath = which(tool, true);
     var tr: trm.ToolRunner = this.tool(toolPath);
     tr.on('debug', (data) => {
@@ -1477,7 +1472,7 @@ export function match(list: string[], patterns: string[] | string, patternRoot?:
         let options = _cloneMatchOptions(originalOptions);
 
         // skip comments
-        if (!options.nocomment && pattern.startsWith('#')) {
+        if (!options.nocomment && _startsWith(pattern, '#')) {
             debug('skipping comment');
             continue;
         }
@@ -1675,7 +1670,7 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
         let matchOptions = _cloneMatchOptions(originalMatchOptions);
 
         // skip comments
-        if (!matchOptions.nocomment && pattern.startsWith('#')) {
+        if (!matchOptions.nocomment && _startsWith(pattern, '#')) {
             debug('skipping comment');
             continue;
         }
@@ -1898,7 +1893,7 @@ function _getFindInfoFromPattern(defaultRoot: string, pattern: string, matchOpti
     // consequetive slashes, and finally splits on slash. this means that UNC format is lost, but can
     // be detected from the original pattern.
     let joinedSegments = literalSegments.join('/');
-    if (joinedSegments && process.platform == 'win32' && pattern.replace(/\\/g, '/').startsWith('//')) {
+    if (joinedSegments && process.platform == 'win32' && _startsWith(pattern.replace(/\\/g, '/'), '//')) {
         joinedSegments = '/' + joinedSegments; // restore UNC format
     }
 
@@ -2082,14 +2077,14 @@ function _loadData(): void {
     debug('loading inputs and endpoints');
     let loaded: number = 0;
     for (let envvar in process.env) {
-        if (envvar.startsWith('INPUT_') ||
-            envvar.startsWith('ENDPOINT_AUTH_') ||
-            envvar.startsWith('SECRET_')) {
+        if (_startsWith(envvar, 'INPUT_') ||
+            _startsWith(envvar, 'ENDPOINT_AUTH_') ||
+            _startsWith(envvar, 'SECRET_')) {
 
             // Record the secret variable metadata. This is required by getVariable to know whether
             // to retrieve the value from the vault. In a 2.104.1 agent or higher, this metadata will
             // be overwritten when the VSTS_SECRET_VARIABLES env var is processed below.
-            if (envvar.startsWith('SECRET_')) {
+            if (_startsWith(envvar, 'SECRET_')) {
                 let variableName: string = envvar.substring('SECRET_'.length);
                 if (variableName) {
                     // This is technically not the variable name (has underscores instead of dots),
@@ -2161,7 +2156,7 @@ function _ensureRooted(root: string, p: string) {
     }
 
     // ensure root ends with a separator
-    if (root.endsWith('/') || (process.platform == 'win32' && root.endsWith('\\'))) {
+    if (_endsWith(root, '/') || (process.platform == 'win32' && _endsWith(root, '\\'))) {
         // root already ends with a separator
     }
     else {
@@ -2260,7 +2255,7 @@ function _getDirectoryName(p: string): string {
     else if (p == '/') {
         return '';
     }
-    else if (p.endsWith('/')) {
+    else if (_endsWith(p, '/')) {
         return p.substring(0, p.length - 1);
     }
 
@@ -2279,11 +2274,11 @@ function _isRooted(p: string): boolean {
     }
 
     if (process.platform == 'win32') {
-        return p.startsWith('\\') || // e.g. \ or \hello or \\hello
+        return _startsWith(p, '\\') || // e.g. \ or \hello or \\hello
             /^[A-Z]:/i.test(p);      // e.g. C: or C:\hello
     }
 
-    return p.startsWith('/'); // e.g. /hello
+    return _startsWith(p, '/'); // e.g. /hello
 }
 _internal._isRooted = _isRooted;
 

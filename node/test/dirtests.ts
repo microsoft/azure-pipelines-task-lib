@@ -749,7 +749,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    // creating a symlink on Windows requires elevated
+    // creating a symlink to a file on Windows requires elevated
     if (os.platform() != 'win32') {
         it('removes symlink file with rmRF', (done: MochaDone) => {
             this.timeout(1000);
@@ -829,6 +829,64 @@ describe('Dir Operation Tests', function () {
 
             done();
         });
+
+        it('removes nested symlink file with rmRF', (done: MochaDone) => {
+            this.timeout(1000);
+
+            // create the following layout:
+            //   real_directory
+            //   real_directory/real_file
+            //   outer_directory
+            //   outer_directory/symlink_file -> real_file
+            let root: string = path.join(testutil.getTestTemp(), 'rmRF_sym_nest_file_test');
+            let realDirectory: string = path.join(root, 'real_directory');
+            let realFile: string = path.join(root, 'real_directory', 'real_file');
+            let outerDirectory: string = path.join(root, 'outer_directory');
+            let symlinkFile: string = path.join(root, 'outer_directory', 'symlink_file');
+            tl.mkdirP(realDirectory);
+            fs.writeFileSync(realFile, 'test file content');
+            tl.mkdirP(outerDirectory);
+            fs.symlinkSync(realFile, symlinkFile);
+            assert.equal(fs.readFileSync(symlinkFile), 'test file content');
+
+            tl.rmRF(outerDirectory);
+            assert(shell.test('-d', realDirectory), 'real directory should still exist');
+            assert(shell.test('-f', realFile), 'file should still exist');
+            assert(!shell.test('-e', symlinkFile), 'symlink file should have been deleted');
+            assert(!shell.test('-e', outerDirectory), 'outer directory should have been deleted');
+
+            done();
+        });
+
+        it('removes deeply nested symlink file with rmRF', (done: MochaDone) => {
+            this.timeout(1000);
+
+            // create the following layout:
+            //   real_directory
+            //   real_directory/real_file
+            //   outer_directory
+            //   outer_directory/nested_directory
+            //   outer_directory/nested_directory/symlink_file -> real_file
+            let root: string = path.join(testutil.getTestTemp(), 'rmRF_sym_deep_nest_file_test');
+            let realDirectory: string = path.join(root, 'real_directory');
+            let realFile: string = path.join(root, 'real_directory', 'real_file');
+            let outerDirectory: string = path.join(root, 'outer_directory');
+            let nestedDirectory: string = path.join(root, 'outer_directory', 'nested_directory');
+            let symlinkFile: string = path.join(root, 'outer_directory', 'nested_directory', 'symlink_file');
+            tl.mkdirP(realDirectory);
+            fs.writeFileSync(realFile, 'test file content');
+            tl.mkdirP(nestedDirectory);
+            fs.symlinkSync(realFile, symlinkFile);
+            assert.equal(fs.readFileSync(symlinkFile), 'test file content');
+
+            tl.rmRF(outerDirectory);
+            assert(shell.test('-d', realDirectory), 'real directory should still exist');
+            assert(shell.test('-f', realFile), 'file should still exist');
+            assert(!shell.test('-e', symlinkFile), 'symlink file should have been deleted');
+            assert(!shell.test('-e', outerDirectory), 'outer directory should have been deleted');
+
+            done();
+        });
     }
 
     it('removes symlink folder with missing source using rmRF', (done: MochaDone) => {
@@ -838,7 +896,7 @@ describe('Dir Operation Tests', function () {
         //   real_directory
         //   real_directory/real_file
         //   symlink_directory -> real_directory
-        let root: string = path.join(testutil.getTestTemp(), 'rmRF_sym_dir_test');
+        let root: string = path.join(testutil.getTestTemp(), 'rmRF_sym_dir_miss_src_test');
         let realDirectory: string = path.join(root, 'real_directory');
         let realFile: string = path.join(root, 'real_directory', 'real_file');
         let symlinkDirectory: string = path.join(root, 'symlink_directory');
@@ -895,6 +953,64 @@ describe('Dir Operation Tests', function () {
         tl.rmRF(symlinkLevel2Directory);
         assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'real file should still exist');
         assert(!shell.test('-e', symlinkLevel2Directory), 'symlink level 2 file should have been deleted');
+
+        done();
+    });
+
+    it('removes nested symlink folder with rmRF', (done: MochaDone) => {
+        this.timeout(1000);
+
+        // create the following layout:
+        //   real_directory
+        //   real_directory/real_file
+        //   outer_directory
+        //   outer_directory/symlink_directory -> real_directory
+        let root: string = path.join(testutil.getTestTemp(), 'rmRF_sym_nest_dir_test');
+        let realDirectory: string = path.join(root, 'real_directory');
+        let realFile: string = path.join(root, 'real_directory', 'real_file');
+        let outerDirectory: string = path.join(root, 'outer_directory');
+        let symlinkDirectory: string = path.join(root, 'outer_directory', 'symlink_directory');
+        tl.mkdirP(realDirectory);
+        fs.writeFileSync(realFile, 'test file content');
+        tl.mkdirP(outerDirectory);
+        testutil.createSymlinkDir(realDirectory, symlinkDirectory);
+        assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'symlink directory should be created correctly');
+
+        tl.rmRF(outerDirectory);
+        assert(shell.test('-d', realDirectory), 'real directory should still exist');
+        assert(shell.test('-f', realFile), 'file should still exist');
+        assert(!shell.test('-e', symlinkDirectory), 'symlink directory should have been deleted');
+        assert(!shell.test('-e', outerDirectory), 'outer directory should have been deleted');
+
+        done();
+    });
+
+    it('removes deeply nested symlink folder with rmRF', (done: MochaDone) => {
+        this.timeout(1000);
+
+        // create the following layout:
+        //   real_directory
+        //   real_directory/real_file
+        //   outer_directory
+        //   outer_directory/nested_directory
+        //   outer_directory/nested_directory/symlink_directory -> real_directory
+        let root: string = path.join(testutil.getTestTemp(), 'rmRF_sym_deep_nest_dir_test');
+        let realDirectory: string = path.join(root, 'real_directory');
+        let realFile: string = path.join(root, 'real_directory', 'real_file');
+        let outerDirectory: string = path.join(root, 'outer_directory');
+        let nestedDirectory: string = path.join(root, 'outer_directory', 'nested_directory');
+        let symlinkDirectory: string = path.join(root, 'outer_directory', 'nested_directory', 'symlink_directory');
+        tl.mkdirP(realDirectory);
+        fs.writeFileSync(realFile, 'test file content');
+        tl.mkdirP(nestedDirectory);
+        testutil.createSymlinkDir(realDirectory, symlinkDirectory);
+        assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'symlink directory should be created correctly');
+
+        tl.rmRF(outerDirectory);
+        assert(shell.test('-d', realDirectory), 'real directory should still exist');
+        assert(shell.test('-f', realFile), 'file should still exist');
+        assert(!shell.test('-e', symlinkDirectory), 'symlink directory should have been deleted');
+        assert(!shell.test('-e', outerDirectory), 'outer directory should have been deleted');
 
         done();
     });
