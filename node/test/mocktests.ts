@@ -183,5 +183,56 @@ describe('Mock Tests', function () {
         
         assert(tool, "tool should not be null");
         assert(rc == 0, "rc is 0");
-    })                
+    })
+
+    it('Mock toolRunner returns success code for execTool', async () => {
+        var a: ma.TaskLibAnswers = <ma.TaskLibAnswers>{
+            "execTool": {
+                "/usr/local/bin/atool": (args: string[]) => {
+		    assert.equal(args.indexOf("--arg"), 0, "--arg should be the first element");
+		    assert.equal(args.indexOf("foo"), 1, "foo should be the second element");
+		    return {
+			"code": 0,
+			"stdout": "atool output here",
+			"stderr": "atool with this stderr output"
+                    }
+		}
+            }
+        };
+
+        mt.setAnswers(a);
+
+        let tool: mtr.ToolRunner = mt.tool('/usr/local/bin/atool');
+        tool.arg('--arg');
+        tool.arg('foo');
+        let rc: number = await tool.exec(<mtr.IExecOptions>{});
+        
+        assert(tool, "tool should not be null");
+        assert(rc == 0, "rc should be 0");
+    })
+
+    it('Mock toolRunner exeSync returns success code for execTool', async () => {
+        var a: ma.TaskLibAnswers = <ma.TaskLibAnswers>{
+            "execTool": {
+                "/usr/local/bin/atool": (args: string[]) => {
+		    assert.equal(args.indexOf("--arg"), 0, "--arg should be the first element");
+		    assert.equal(args.indexOf("foo"), 1, "foo should be the second element");
+		    return {
+			"code": 0,
+			"stdout": "atool output here",
+			"stderr": "atool with this stderr output"
+                    }
+		}
+            }
+        };
+	
+        mt.setAnswers(a);
+
+        let tool: mtr.ToolRunner = mt.tool('/usr/local/bin/atool');
+        tool.arg('--arg');
+        tool.arg('foo');
+        let {code} = tool.execSync(<mtr.IExecOptions>{});
+        assert(tool, "tool should not be null");
+        assert(code == 0, "return code should be 0");
+    })
 });

@@ -223,6 +223,10 @@ export class ToolRunner extends events.EventEmitter {
 
         // TODO: filter process.env
         var res = mock.getResponse('exec', cmdString, debug);
+        if (!res) {
+          var resFunction = mock.getResponse('execTool', this.toolPath, debug) as (args: string[]) => any;
+          res = resFunction(this.args);
+        }
         if (res.stdout) {
             this.emit('stdout', res.stdout);
             if (!ops.silent) {
@@ -300,6 +304,10 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         var r = mock.getResponse('exec', cmdString, debug);
+        if (!r) {
+          var rFunction = mock.getResponse('execTool', this.toolPath, debug) as (args: string[]) => any;
+          r = rFunction(this.args);
+        }
         if (!ops.silent && r.stdout && r.stdout.length > 0) {
             ops.outStream.write(r.stdout);
         }

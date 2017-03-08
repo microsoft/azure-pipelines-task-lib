@@ -9,7 +9,8 @@ export interface TaskLibAnswerExecResult {
 
 export interface TaskLibAnswers {
     which?: { [key: string]: string; },
-    exec?: { [ key: string]: TaskLibAnswerExecResult },
+    exec?: { [key: string]: TaskLibAnswerExecResult },
+    execTool?: { [key: string]: (args: string[]) => TaskLibAnswerExecResult },
     checkPath?: { [key: string]: boolean },
     exist?: { [key: string]: boolean },
     find?: { [key: string]: string[] },
