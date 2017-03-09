@@ -598,6 +598,71 @@ export function getEndpointAuthorization(id: string, optional: boolean): Endpoin
     return auth;
 }
 
+//-----------------------------------------------------
+// SecureFile Helpers
+//-----------------------------------------------------
+
+/**
+ * Interface for SecureFile
+ * Contains secure file id, name and ticket 
+ */
+export interface SecureFile {
+    id: string;
+    name: string;
+    ticket: string;
+}
+
+/**
+ * Gets the secure files with download tickets for given input json
+ * @param secureFilesInput 
+ */
+export function getSecureFiles(secureFilesInput: string) : SecureFile [] {
+    var secureFiles = null;
+
+    try {
+        secureFiles = <SecureFile[]>JSON.parse(secureFilesInput);
+    }
+    catch (err) {
+        throw new Error(loc('LIB_InvalidSecureFilesInput', secureFilesInput));
+    }
+
+    if(secureFiles != null && secureFiles.length > 0) {
+        for(var i = 0; i < secureFiles.length; i ++) {
+            secureFiles[i].name = getSecureFileName(secureFiles[i].id);
+            secureFiles[i].ticket = getSecureFileTicket(secureFiles[i].id);
+        }
+    }
+    
+    debug('secure files = ' + JSON.stringify(secureFiles));
+    return secureFiles;
+}
+
+/**
+ * Gets the name for a secure file
+ * 
+ * @param     id        secure file id
+ * @returns   string
+ */
+export function getSecureFileName(id: string): string {
+    var name = process.env['SECUREFILE_NAME_' + id];
+
+    debug('secure file name for id ' + id + ' = ' + name);
+    return name;
+}
+
+/** 
+  * Gets the secure file ticket that can be used to download the secure file contents
+  *
+  * @param id name of the secure file
+  * @returns {string} secure file ticket
+  */
+export function getSecureFileTicket(id: string) : string {
+    var ticket = _vault.retrieveSecret('SECUREFILE_TICKET_' + id);
+
+    debug('secure file ticket for id ' + id + ' = ' + ticket);
+    return ticket;
+}
+
 
 //-----------------------------------------------------
 // Cmd Helpers
@@ -2079,6 +2144,7 @@ function _loadData(): void {
     for (let envvar in process.env) {
         if (_startsWith(envvar, 'INPUT_') ||
             _startsWith(envvar, 'ENDPOINT_AUTH_') ||
+            _startsWith(envvar, 'SECUREFILE_TICKET_') ||
             _startsWith(envvar, 'SECRET_')) {
 
             // Record the secret variable metadata. This is required by getVariable to know whether

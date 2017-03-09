@@ -18,6 +18,7 @@
     "LIB_EndpointDataNotExist": "Endpoint data parameter %s not present: %s",
     "LIB_EndpointAuthNotExist": "Endpoint auth data not present: %s",
     "LIB_InvalidEndpointAuth": "Invalid endpoint auth: %s",
+    "LIB_InvalidSecureFilesInput": "Invalid secure file input: %s",
     "LIB_PathNotFound": "Not found %s: %s",
     "LIB_PathHasNullByte": "Path cannot contain null bytes",
     "LIB_OperationFailed": "Failed %s: %s",

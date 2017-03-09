@@ -432,7 +432,72 @@ describe('Input Tests', function () {
 
         done();
     })
+    // getSecureFileName/getSecureFileTicket/getSecureFiles tests
+    it('gets a secure file name', function (done) {
+        this.timeout(1000);
 
+        process.env['SECUREFILE_NAME_10'] = 'securefile10.p12';
+        (tl as any)._internal._loadData();
+
+        var name = tl.getSecureFileName('10');
+        assert.equal(name, 'securefile10.p12', 'name should match');
+
+        done();
+    })
+    it('gets a secure file ticket', function (done) {
+        this.timeout(1000);
+
+        process.env['SECUREFILE_TICKET_10'] = 'rsaticket10';
+        (tl as any)._internal._loadData();
+
+        var ticket = tl.getSecureFileTicket('10');
+        assert(ticket, 'should return a string value');
+        assert.equal(ticket, 'rsaticket10', 'should be correct ticket');
+        assert(!process.env['SECUREFILE_TICKET_10'], 'should clear ticket envvar');
+
+        done();
+    })
+    it('gets secure files with valid input', function (done) {
+        this.timeout(1000);
+        
+        process.env['SECUREFILE_NAME_10'] = 'securefile10.p12';
+        process.env['SECUREFILE_TICKET_10'] = 'rsaticket10';
+        process.env['SECUREFILE_NAME_12'] = 'securefile12.mobileprovision';
+        process.env['SECUREFILE_TICKET_12'] = 'rsaticket12';
+        (tl as any)._internal._loadData();
+
+        var secureFiles = tl.getSecureFiles('[{"id": "10"}, {"id": "12", "name": "old.mobileprovision"}]');
+        assert(secureFiles != null && secureFiles.length === 2, 'should return 2 secure files');
+        assert.equal(secureFiles[0].id, '10', 'should be correct id');
+        assert.equal(secureFiles[0].name, 'securefile10.p12', 'should be correct name');
+        assert.equal(secureFiles[0].ticket, 'rsaticket10', 'should be correct ticket');
+        assert(!process.env['SECUREFILE_TICKET_10'], 'should clear ticket envvar');
+        assert.equal(secureFiles[1].id, '12', 'should be correct id');
+        assert.equal(secureFiles[1].name, 'securefile12.mobileprovision', 'should be correct name');
+        assert.equal(secureFiles[1].ticket, 'rsaticket12', 'should be correct ticket');
+        assert(!process.env['SECUREFILE_TICKET_12'], 'should clear ticket envvar');
+
+        done();
+    })
+    it('gets secure files throws with invalid input', function (done) {
+        this.timeout(1000);
+        
+        process.env['SECUREFILE_NAME_10'] = 'securefile10.p12';
+        process.env['SECUREFILE_TICKET_10'] = 'rsaticket10';
+        process.env['SECUREFILE_NAME_12'] = 'securefile12.mobileprovision';
+        process.env['SECUREFILE_TICKET_12'] = 'rsaticket12';
+        (tl as any)._internal._loadData();
+
+        var worked: boolean = false;
+        try {
+            var secureFiles = tl.getSecureFiles('[10,12]');
+            worked = true;
+        }
+        catch (err) { }
+        assert(!worked, 'bad secure file input should have not have worked');
+
+        done();
+    })
     // getBoolInput tests
     it('gets case insensitive true bool input value', function (done) {
         this.timeout(1000);
