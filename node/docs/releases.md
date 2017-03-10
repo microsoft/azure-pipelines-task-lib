@@ -5,6 +5,7 @@
  * Updated `TaskResult` to include `SucceededWithIssues`.
  * Updated `rmRF` to remove `continueOnError`.
  * Removed `startsWith`, `endsWith`, and `isEqual` prototype functions for `String`.
+ * Added `getSecureFiles`, `getSecureFileName` and `getSecureFileTicket` to help tasks working with secure files.
 
 ## 2.0.1-preview
  * Updated `match` to expose optional pattern-root parameter.
