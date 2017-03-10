@@ -4,8 +4,79 @@
       "name": "toolrunner",
       "kind": "file",
       "members": {
+        "_startsWith": {
+          "name": "_startsWith",
+          "members": {},
+          "documentation": "",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "str",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": ""
+                },
+                {
+                  "name": "start",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": ""
+                }
+              ],
+              "members": {},
+              "return": "boolean",
+              "documentation": ""
+            }
+          ]
+        },
+        "_endsWith": {
+          "name": "_endsWith",
+          "members": {},
+          "documentation": "",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "str",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": ""
+                },
+                {
+                  "name": "end",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": ""
+                }
+              ],
+              "members": {},
+              "return": "boolean",
+              "documentation": ""
+            }
+          ]
+        },
         "IExecOptions": {
           "name": "IExecOptions",
+          "members": {
+            "failOnStdErr": {
+              "documentation": "optional.  whether to fail if output to stderr.  defaults to false ",
+              "name": "failOnStdErr",
+              "return": "boolean"
+            },
+            "ignoreReturnCode": {
+              "documentation": "optional.  defaults to failing on non zero.  ignore will not fail leaving it up to the caller ",
+              "name": "ignoreReturnCode",
+              "return": "boolean"
+            }
+          },
+          "documentation": "Interface for exec options",
+          "kind": "interface"
+        },
+        "IExecSyncOptions": {
+          "name": "IExecSyncOptions",
           "members": {
             "cwd": {
               "documentation": "optional working directory.  defaults to current ",
@@ -20,16 +91,6 @@
             "silent": {
               "documentation": "optional.  defaults to fales ",
               "name": "silent",
-              "return": "boolean"
-            },
-            "failOnStdErr": {
-              "documentation": "optional.  whether to fail if output to stderr.  defaults to false ",
-              "name": "failOnStdErr",
-              "return": "boolean"
-            },
-            "ignoreReturnCode": {
-              "documentation": "optional.  defaults to failing on non zero.  ignore will not fail leaving it up to the caller ",
-              "name": "ignoreReturnCode",
               "return": "boolean"
             },
             "outStream": {
@@ -48,11 +109,11 @@
               "return": "boolean"
             }
           },
-          "documentation": "Interface for exec options",
+          "documentation": "Interface for execSync options",
           "kind": "interface"
         },
-        "IExecResult": {
-          "name": "IExecResult",
+        "IExecSyncResult": {
+          "name": "IExecSyncResult",
           "members": {
             "stdout": {
               "documentation": "standard output ",
@@ -157,14 +218,7 @@
               "kind": "method",
               "signatures": [
                 {
-                  "parameters": [
-                    {
-                      "name": "options",
-                      "type": "IExecOptions",
-                      "optional": false,
-                      "documentation": ""
-                    }
-                  ],
+                  "parameters": [],
                   "members": {},
                   "return": "string",
                   "documentation": ""
@@ -300,7 +354,7 @@
                   "parameters": [
                     {
                       "name": "options",
-                      "type": "IExecOptions",
+                      "type": "IExecSyncOptions",
                       "optional": false,
                       "documentation": ""
                     }
@@ -425,21 +479,21 @@
             "execSync": {
               "name": "execSync",
               "members": {},
-              "documentation": "Exec a tool synchronously. \nOutput will be *not* be streamed to the live console.  It will be returned after execution is complete.\nAppropriate for short running tools \nReturns IExecResult with output and return code\n\n@returns   IExecResult",
+              "documentation": "Exec a tool synchronously. \nOutput will be *not* be streamed to the live console.  It will be returned after execution is complete.\nAppropriate for short running tools \nReturns IExecSyncResult with output and return code\n\n@returns   IExecSyncResult",
               "kind": "method",
               "signatures": [
                 {
                   "parameters": [
                     {
                       "name": "options",
-                      "type": "IExecOptions",
+                      "type": "IExecSyncOptions",
                       "optional": true,
-                      "documentation": "optionalexec options.  See IExecOptions"
+                      "documentation": "optional exec options.  See IExecSyncOptions"
                     }
                   ],
                   "members": {},
-                  "return": "IExecResult",
-                  "documentation": "Exec a tool synchronously. \nOutput will be *not* be streamed to the live console.  It will be returned after execution is complete.\nAppropriate for short running tools \nReturns IExecResult with output and return code\n\n@returns   IExecResult"
+                  "return": "IExecSyncResult",
+                  "documentation": "Exec a tool synchronously. \nOutput will be *not* be streamed to the live console.  It will be returned after execution is complete.\nAppropriate for short running tools \nReturns IExecSyncResult with output and return code\n\n@returns   IExecSyncResult"
                 }
               ]
             }
@@ -618,7 +672,7 @@
                   "name": "result",
                   "type": "TaskResult",
                   "optional": false,
-                  "documentation": "TaskResult enum of Success or Failed.  "
+                  "documentation": "TaskResult enum of Succeeded, SucceededWithIssues or Failed.  "
                 },
                 {
                   "name": "message",
@@ -1162,6 +1216,91 @@
             }
           ]
         },
+        "SecureFile": {
+          "name": "SecureFile",
+          "members": {
+            "id": {
+              "documentation": "",
+              "name": "id",
+              "return": "string"
+            },
+            "name": {
+              "documentation": "",
+              "name": "name",
+              "return": "string"
+            },
+            "ticket": {
+              "documentation": "",
+              "name": "ticket",
+              "return": "string"
+            }
+          },
+          "documentation": "Interface for SecureFile\nContains secure file id, name and ticket ",
+          "kind": "interface"
+        },
+        "getSecureFiles": {
+          "name": "getSecureFiles",
+          "members": {},
+          "documentation": "Gets the secure files with download tickets for given input json",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "secureFilesInput",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": ""
+                }
+              ],
+              "members": {},
+              "return": "SecureFile[]",
+              "documentation": "Gets the secure files with download tickets for given input json"
+            }
+          ]
+        },
+        "getSecureFileName": {
+          "name": "getSecureFileName",
+          "members": {},
+          "documentation": "Gets the name for a secure file\n\n@returns   string",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "id",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": "secure file id"
+                }
+              ],
+              "members": {},
+              "return": "string",
+              "documentation": "Gets the name for a secure file\n\n@returns   string"
+            }
+          ]
+        },
+        "getSecureFileTicket": {
+          "name": "getSecureFileTicket",
+          "members": {},
+          "documentation": "Gets the secure file ticket that can be used to download the secure file contents\n\n@returns {string} secure file ticket",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "id",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": "name of the secure file"
+                }
+              ],
+              "members": {},
+              "return": "string",
+              "documentation": "Gets the secure file ticket that can be used to download the secure file contents\n\n@returns {string} secure file ticket"
+            }
+          ]
+        },
         "command": {
           "name": "command",
           "members": {},
@@ -1598,7 +1737,7 @@
         "cp": {
           "name": "cp",
           "members": {},
-          "documentation": "Returns path of a tool had the tool actually been invoked.  Resolves via paths.\nIf you check and the tool does not exist, it will throw.\nReturns whether the copy was successful",
+          "documentation": "Copies a file or folder.",
           "kind": "function",
           "signatures": [
             {
@@ -1630,14 +1769,14 @@
               ],
               "members": {},
               "return": "void",
-              "documentation": "Returns path of a tool had the tool actually been invoked.  Resolves via paths.\nIf you check and the tool does not exist, it will throw.\nReturns whether the copy was successful"
+              "documentation": "Copies a file or folder."
             }
           ]
         },
         "mv": {
           "name": "mv",
           "members": {},
-          "documentation": "Moves a path.  \nReturns whether the copy was successful",
+          "documentation": "Moves a path.",
           "kind": "function",
           "signatures": [
             {
@@ -1669,7 +1808,7 @@
               ],
               "members": {},
               "return": "void",
-              "documentation": "Moves a path.  \nReturns whether the copy was successful"
+              "documentation": "Moves a path."
             }
           ]
         },
@@ -1891,12 +2030,6 @@
                   "type": "string",
                   "optional": false,
                   "documentation": "path to remove"
-                },
-                {
-                  "name": "continueOnError",
-                  "type": "boolean",
-                  "optional": true,
-                  "documentation": "optional. whether to continue on error"
                 }
               ],
               "members": {},
@@ -1941,7 +2074,7 @@
         "execSync": {
           "name": "execSync",
           "members": {},
-          "documentation": "Exec a tool synchronously.  Convenience wrapper over ToolRunner to execSync with args in one call.\nOutput will be *not* be streamed to the live console.  It will be returned after execution is complete.\nAppropriate for short running tools \nReturns IExecResult with output and return code\n\n@returns   IExecResult",
+          "documentation": "Exec a tool synchronously.  Convenience wrapper over ToolRunner to execSync with args in one call.\nOutput will be *not* be streamed to the live console.  It will be returned after execution is complete.\nAppropriate for short running tools \nReturns IExecResult with output and return code\n\n@returns   IExecSyncResult",
           "kind": "function",
           "signatures": [
             {
@@ -1960,14 +2093,14 @@
                 },
                 {
                   "name": "options",
-                  "type": "IExecOptions",
+                  "type": "IExecSyncOptions",
                   "optional": true,
-                  "documentation": "optionalexec options.  See IExecOptions"
+                  "documentation": "optional exec options.  See IExecSyncOptions"
                 }
               ],
               "members": {},
-              "return": "IExecResult",
-              "documentation": "Exec a tool synchronously.  Convenience wrapper over ToolRunner to execSync with args in one call.\nOutput will be *not* be streamed to the live console.  It will be returned after execution is complete.\nAppropriate for short running tools \nReturns IExecResult with output and return code\n\n@returns   IExecResult"
+              "return": "IExecSyncResult",
+              "documentation": "Exec a tool synchronously.  Convenience wrapper over ToolRunner to execSync with args in one call.\nOutput will be *not* be streamed to the live console.  It will be returned after execution is complete.\nAppropriate for short running tools \nReturns IExecResult with output and return code\n\n@returns   IExecSyncResult"
             }
           ]
         },

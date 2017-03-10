@@ -34,7 +34,7 @@
                 "toolrunner.ToolRunner.exec",
                 "toolrunner.ToolRunner.execSync",
                 "toolrunner.ToolRunner.pipeExecOutputToTool",
-                "toolrunner.IExecResult",
+                "toolrunner.IExecSyncResult",
                 "task.exec",
                 "task.execSync",
                 "task.setResult"
@@ -51,6 +51,14 @@
                 "task.getEndpointAuthorization"
             ]
         }, 
+        "Secure Files": {
+            "Summary": "Retrieve secure files details required to download the file",
+            "Document": [
+                "task.getSecureFiles",
+                "task.getSecureFileName",
+                "task.getSecureFileTicket"
+            ]
+        },
         "Disk Functions": {
             "Summary": "Functions for disk operations",
             "Document": [

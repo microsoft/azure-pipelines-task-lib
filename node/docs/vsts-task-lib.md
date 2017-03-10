@@ -42,7 +42,7 @@ import tl = require('vsts-task-lib/task')
 <a href="#toolrunnerToolRunnerexec">ToolRunner.exec</a> <br/>
 <a href="#toolrunnerToolRunnerexecSync">ToolRunner.execSync</a> <br/>
 <a href="#toolrunnerToolRunnerpipeExecOutputToTool">ToolRunner.pipeExecOutputToTool</a> <br/>
-<a href="#toolrunnerIExecResult">IExecResult</a> <br/>
+<a href="#toolrunnerIExecSyncResult">IExecSyncResult</a> <br/>
 <a href="#taskexec">exec</a> <br/>
 <a href="#taskexecSync">execSync</a> <br/>
 <a href="#tasksetResult">setResult</a> <br/>
@@ -55,6 +55,12 @@ import tl = require('vsts-task-lib/task')
 <a href="#taskgetEndpointAuthorizationParameter">getEndpointAuthorizationParameter</a> <br/>
 <a href="#taskEndpointAuthorization">EndpointAuthorization</a> <br/>
 <a href="#taskgetEndpointAuthorization">getEndpointAuthorization</a> <br/>
+ 
+### Secure Files <a href="#SecureFiles">(v)</a>
+ 
+<a href="#taskgetSecureFiles">getSecureFiles</a> <br/>
+<a href="#taskgetSecureFileName">getSecureFileName</a> <br/>
+<a href="#taskgetSecureFileTicket">getSecureFileTicket</a> <br/>
  
 ### Disk Functions <a href="#DiskFunctions">(v)</a>
  
@@ -351,14 +357,8 @@ Interface for exec options
  
 Property | Type | Description
 --- | --- | ---
-cwd | string | optional working directory.  defaults to current 
-env | \{ \[key: string\]: string; \} | optional envvar dictionary.  defaults to current process's env 
-silent | boolean | optional.  defaults to fales 
 failOnStdErr | boolean | optional.  whether to fail if output to stderr.  defaults to false 
 ignoreReturnCode | boolean | optional.  defaults to failing on non zero.  ignore will not fail leaving it up to the caller 
-outStream | any | 
-errStream | any | 
-windowsVerbatimArguments | boolean | optional.  foo.whether to skip quoting/escaping arguments if needed.  defaults to false. 
  
 <br/>
 <div id="toolrunnerToolRunnerexec">
@@ -384,16 +384,16 @@ options | IExecOptions | optional exec options.  See IExecOptions
 Exec a tool synchronously. 
 Output will be *not* be streamed to the live console.  It will be returned after execution is complete.
 Appropriate for short running tools 
-Returns IExecResult with output and return code
+Returns IExecSyncResult with output and return code
 
-@returns   IExecResult
+@returns   IExecSyncResult
 ```javascript
-execSync(options?:IExecOptions):IExecResult
+execSync(options?:IExecSyncOptions):IExecSyncResult
 ```
  
 Param | Type | Description
 --- | --- | ---
-options | IExecOptions | optionalexec options.  See IExecOptions
+options | IExecSyncOptions | optional exec options.  See IExecSyncOptions
  
 <br/>
 <div id="toolrunnerToolRunnerpipeExecOutputToTool">
@@ -410,9 +410,9 @@ Param | Type | Description
 tool | ToolRunner | 
  
 <br/>
-<div id="toolrunnerIExecResult">
+<div id="toolrunnerIExecSyncResult">
  
-### toolrunner.IExecResult <a href="#index">(^)</a>
+### toolrunner.IExecSyncResult <a href="#index">(^)</a>
 Interface for exec results returned from synchronous exec functions
  
 Property | Type | Description
@@ -450,16 +450,16 @@ Output will be *not* be streamed to the live console.  It will be returned after
 Appropriate for short running tools 
 Returns IExecResult with output and return code
 
-@returns   IExecResult
+@returns   IExecSyncResult
 ```javascript
-execSync(tool:string, args:string | string[], options?:IExecOptions):IExecResult
+execSync(tool:string, args:string | string[], options?:IExecSyncOptions):IExecSyncResult
 ```
  
 Param | Type | Description
 --- | --- | ---
 tool | string | path to tool to exec
 args | string \| string\[\] | an arg string or array of args
-options | IExecOptions | optionalexec options.  See IExecOptions
+options | IExecSyncOptions | optional exec options.  See IExecSyncOptions
  
 <br/>
 <div id="tasksetResult">
@@ -477,7 +477,7 @@ setResult(result:TaskResult, message:string):void
  
 Param | Type | Description
 --- | --- | ---
-result | TaskResult | TaskResult enum of Success or Failed.  
+result | TaskResult | TaskResult enum of Succeeded, SucceededWithIssues or Failed.  
 message | string | A message which will be logged as an error issue if the result is Failed.
  
  
@@ -586,6 +586,58 @@ optional | boolean | whether the url is optional
  
  
 <br/>
+<div id="SecureFiles">
+ 
+## Secure Files
+ 
+---
+ 
+Retrieve secure files details required to download the file
+<br/>
+<div id="taskgetSecureFiles">
+ 
+### task.getSecureFiles <a href="#index">(^)</a>
+Gets the secure files with download tickets for given input json
+```javascript
+getSecureFiles(secureFilesInput:string):SecureFile[]
+```
+ 
+Param | Type | Description
+--- | --- | ---
+secureFilesInput | string | 
+ 
+<br/>
+<div id="taskgetSecureFileName">
+ 
+### task.getSecureFileName <a href="#index">(^)</a>
+Gets the name for a secure file
+
+@returns   string
+```javascript
+getSecureFileName(id:string):string
+```
+ 
+Param | Type | Description
+--- | --- | ---
+id | string | secure file id
+ 
+<br/>
+<div id="taskgetSecureFileTicket">
+ 
+### task.getSecureFileTicket <a href="#index">(^)</a>
+Gets the secure file ticket that can be used to download the secure file contents
+
+@returns {string} secure file ticket
+```javascript
+getSecureFileTicket(id:string):string
+```
+ 
+Param | Type | Description
+--- | --- | ---
+id | string | name of the secure file
+ 
+ 
+<br/>
 <div id="DiskFunctions">
  
 ## Disk Functions
@@ -661,9 +713,7 @@ path | string | new working directory path
 <div id="taskcp">
  
 ### task.cp <a href="#index">(^)</a>
-Returns path of a tool had the tool actually been invoked.  Resolves via paths.
-If you check and the tool does not exist, it will throw.
-Returns whether the copy was successful
+Copies a file or folder.
 ```javascript
 cp(source:string, dest:string, options?:string, continueOnError?:boolean):void
 ```
@@ -679,8 +729,7 @@ continueOnError | boolean | optional. whether to continue on error
 <div id="taskmv">
  
 ### task.mv <a href="#index">(^)</a>
-Moves a path.  
-Returns whether the copy was successful
+Moves a path.
 ```javascript
 mv(source:string, dest:string, options?:string, continueOnError?:boolean):void
 ```
@@ -745,13 +794,12 @@ Returns whether it succeeds
 
 @returns   void
 ```javascript
-rmRF(path:string, continueOnError?:boolean):void
+rmRF(path:string):void
 ```
  
 Param | Type | Description
 --- | --- | ---
 path | string | path to remove
-continueOnError | boolean | optional. whether to continue on error
  
 <br/>
 <div id="taskpushd">
