@@ -16,7 +16,7 @@ export enum TaskResult {
     Failed = 2
 }
 
-let _internal = { } as any;
+let _internal = {} as any;
 if (process.env.TASKLIB_INPROC_UNITS) {
     module.exports._internal = _internal;
 }
@@ -30,7 +30,7 @@ if (process.env.TASKLIB_INPROC_UNITS) {
  *  2) to distinguish between secret vars and public
  *  3) to know the real variable name and not just the formatted env var name.
  */
-let _knownVariableMap: { [key: string]: _KnownVariableInfo; } = { };
+let _knownVariableMap: { [key: string]: _KnownVariableInfo; } = {};
 
 let _vault: vm.Vault;
 
@@ -343,7 +343,7 @@ export function setVariable(name: string, val: string, secret: boolean = false):
     _knownVariableMap[key] = <_KnownVariableInfo>{ name: name, secret: secret };
 
     // write the command
-    command('task.setvariable', { 'variable': name || '', 'secret': (secret || false).toString() }, varValue);
+    command('task.setvariable', { 'variable': name || '', 'issecret': (secret || false).toString() }, varValue);
 }
 
 function _getVariableKey(name: string): string {
@@ -509,7 +509,7 @@ export function getEndpointUrl(id: string, optional: boolean): string {
 export function getEndpointDataParameter(id: string, key: string, optional: boolean): string {
     var dataParamVal = process.env['ENDPOINT_DATA_' + id + '_' + key.toUpperCase()];
 
-    if(!optional && !dataParamVal) {
+    if (!optional && !dataParamVal) {
         throw new Error(loc('LIB_EndpointDataNotExist', id, key));
     }
 
@@ -525,10 +525,10 @@ export function getEndpointDataParameter(id: string, key: string, optional: bool
  * @param optional whether the endpoint authorization scheme is optional
  * @returns {string} value of the endpoint authorization scheme
  */
-export function getEndpointAuthorizationScheme(id: string, optional: boolean) : string {
+export function getEndpointAuthorizationScheme(id: string, optional: boolean): string {
     var authScheme = _vault.retrieveSecret('ENDPOINT_AUTH_SCHEME_' + id);
 
-    if(!optional && !authScheme) {
+    if (!optional && !authScheme) {
         throw new Error(loc('LIB_EndpointAuthNotExist', id));
     }
 
@@ -545,10 +545,10 @@ export function getEndpointAuthorizationScheme(id: string, optional: boolean) : 
  * @param optional optional whether the endpoint authorization scheme is optional
  * @returns {string} value of the endpoint authorization parameter value
  */
-export function getEndpointAuthorizationParameter(id: string, key: string, optional: boolean) : string {
+export function getEndpointAuthorizationParameter(id: string, key: string, optional: boolean): string {
     var authParam = _vault.retrieveSecret('ENDPOINT_AUTH_PARAMETER_' + id + '_' + key.toUpperCase());
 
-    if(!optional && !authParam) {
+    if (!optional && !authParam) {
         throw new Error(loc('LIB_EndpointAuthNotExist', id));
     }
 
@@ -616,7 +616,7 @@ export interface SecureFile {
  * Gets the secure files with download tickets for given input json
  * @param secureFilesInput 
  */
-export function getSecureFiles(secureFilesInput: string) : SecureFile [] {
+export function getSecureFiles(secureFilesInput: string): SecureFile[] {
     var secureFiles = null;
 
     try {
@@ -626,13 +626,13 @@ export function getSecureFiles(secureFilesInput: string) : SecureFile [] {
         throw new Error(loc('LIB_InvalidSecureFilesInput', secureFilesInput));
     }
 
-    if(secureFiles != null && secureFiles.length > 0) {
-        for(var i = 0; i < secureFiles.length; i ++) {
+    if (secureFiles != null && secureFiles.length > 0) {
+        for (var i = 0; i < secureFiles.length; i++) {
             secureFiles[i].name = getSecureFileName(secureFiles[i].id);
             secureFiles[i].ticket = getSecureFileTicket(secureFiles[i].id);
         }
     }
-    
+
     debug('secure files = ' + JSON.stringify(secureFiles));
     return secureFiles;
 }
@@ -656,13 +656,52 @@ export function getSecureFileName(id: string): string {
   * @param id name of the secure file
   * @returns {string} secure file ticket
   */
-export function getSecureFileTicket(id: string) : string {
+export function getSecureFileTicket(id: string): string {
     var ticket = _vault.retrieveSecret('SECUREFILE_TICKET_' + id);
 
     debug('secure file ticket for id ' + id + ' = ' + ticket);
     return ticket;
 }
 
+//-----------------------------------------------------
+// Task Variable Helpers
+//-----------------------------------------------------
+/**
+ * Gets a variable value that is set by previous step from the same wrapper task.
+ * 
+ * @param     name     name of the variable to get
+ * @returns   string
+ */
+export function getTaskVariable(name: string): string {
+    var inval = _vault.retrieveSecret('VSTS_TASKVARIABLE_' + name.replace(' ', '_').toUpperCase());
+    if (inval) {
+        inval = inval.trim();
+    }
+
+    debug('task variable: ' + name + '=' + inval);
+    return inval;
+}
+
+/**
+ * Sets a task variable which will only be available to subsequent steps belong to the same wrapper task.
+ * 
+ * @param     name    name of the variable to set
+ * @param     val     value to set
+ * @param     secret  whether variable is secret.  optional, defaults to false
+ * @returns   void
+ */
+export function setTaskVariable(name: string, val: string, secret: boolean = false): void {
+    let key: string = _getVariableKey(name);
+
+    // store the value
+    let varValue = val || '';
+    debug('set task variable: ' + name + '=' + (secret && varValue ? '********' : varValue));
+    _vault.storeSecret('VSTS_TASKVARIABLE_' + key, varValue);
+    delete process.env[key];
+
+    // write the command
+    command('task.settaskvariable', { 'variable': name || '', 'issecret': (secret || false).toString() }, varValue);
+}
 
 //-----------------------------------------------------
 // Cmd Helpers
@@ -738,12 +777,12 @@ export function exist(path: string): boolean {
 }
 
 export interface FsOptions {
-  encoding?: string;
-  mode?: number;
-  flag?: string;
+    encoding?: string;
+    mode?: number;
+    flag?: string;
 }
 
-export function writeFile(file: string, data: string|Buffer, options? : string|FsOptions) {
+export function writeFile(file: string, data: string | Buffer, options?: string | FsOptions) {
     fs.writeFileSync(file, data, options);
 }
 
@@ -763,7 +802,7 @@ export function osType(): string {
  * 
  * @return      the path to the current working directory of the process
  */
-export function cwd() : string {
+export function cwd(): string {
     return process.cwd();
 }
 
@@ -829,7 +868,7 @@ export function mkdirP(p: string): void {
     }
 
     // build a stack of directories to create
-    let stack: string[] = [ ];
+    let stack: string[] = [];
     let testDir: string = p;
     while (true) {
         // validate the loop is not out of control
@@ -972,7 +1011,7 @@ export function which(tool: string, check?: boolean): string {
  * @return {string[]}          An array of files in the given path(s).
  */
 export function ls(options: string, paths: string[]): string[] {
-    if(options){
+    if (options) {
         return shell.ls(options, paths);
     } else {
         return shell.ls(paths);
@@ -1075,7 +1114,7 @@ export function find(findPath: string, options?: FindOptions): string[] {
         let result: string[] = [];
 
         // push the first item
-        let stack: _FindItem[] = [ new _FindItem(findPath, 1) ];
+        let stack: _FindItem[] = [new _FindItem(findPath, 1)];
         let traversalChain: string[] = []; // used to detect cycles
 
         while (stack.length) {
@@ -1128,7 +1167,7 @@ export function find(findPath: string, options?: FindOptions): string[] {
                 let childLevel: number = item.level + 1;
                 let childItems: _FindItem[] =
                     fs.readdirSync(item.path)
-                    .map((childName: string) => new _FindItem(path.join(item.path, childName), childLevel));
+                        .map((childName: string) => new _FindItem(path.join(item.path, childName), childLevel));
                 stack.push(...childItems.reverse());
             }
             else {
@@ -1177,10 +1216,10 @@ function _getDefaultFindOptions(): FindOptions {
  * @returns  string[]
  */
 export function legacyFindFiles(
-        rootDirectory: string,
-        pattern: string,
-        includeFiles?: boolean,
-        includeDirectories?: boolean): string[] {
+    rootDirectory: string,
+    pattern: string,
+    includeFiles?: boolean,
+    includeDirectories?: boolean): string[] {
 
     if (!pattern) {
         throw new Error('pattern parameter cannot be empty');
@@ -1338,7 +1377,7 @@ function _legacyFindFiles_getMatchingItems(
                 // **/times/** will not match C:/fun/times because there isn't a trailing slash
                 // so try both if including directories
                 let alternatePath = `${normalizedPath}/`;   // potential bug: it looks like this will result in a false
-                                                            // positive if the item is a regular file and not a directory
+                // positive if the item is a regular file and not a directory
 
                 let isMatch = false;
                 if (patternRegex.test(normalizedPath) || (includeDirectories && patternRegex.test(alternatePath))) {
@@ -1516,7 +1555,7 @@ export function match(list: string[], patterns: string[] | string, patternRoot?:
 
     // convert pattern to an array
     if (typeof patterns == 'string') {
-        patterns = [ patterns as string ];
+        patterns = [patterns as string];
     }
 
     // hashtable to keep track of matches
@@ -1570,7 +1609,7 @@ export function match(list: string[], patterns: string[] | string, patternRoot?:
         let expanded: string[];
         let preExpanded: string = pattern;
         if (options.nobrace) {
-            expanded = [ pattern ];
+            expanded = [pattern];
         }
         else {
             // convert slashes on Windows before calling braceExpand(). unfortunately this means braces cannot
@@ -1598,7 +1637,7 @@ export function match(list: string[], patterns: string[] | string, patternRoot?:
             // root the pattern when all of the following conditions are true:
             if (patternRoot &&          // patternRoot supplied
                 !_isRooted(pattern) &&  // AND pattern not rooted
-                                        // AND matchBase:false or not basename only
+                // AND matchBase:false or not basename only
                 (!options.matchBase || (process.platform == 'win32' ? pattern.replace(/\\/g, '/') : pattern).indexOf('/') >= 0)) {
 
                 pattern = _ensureRooted(patternRoot, pattern);
@@ -1704,13 +1743,13 @@ function _getDefaultMatchOptions(): MatchOptions {
  * @param  findOptions   defaults to { followSymbolicLinks: true }. following soft links is generally appropriate unless deleting files.
  * @param  matchOptions  defaults to { dot: true, nobrace: true, nocase: process.platform == 'win32' }
  */
-export function findMatch(defaultRoot: string, patterns: string[] | string, findOptions?: FindOptions, matchOptions?: MatchOptions) : string[] {
+export function findMatch(defaultRoot: string, patterns: string[] | string, findOptions?: FindOptions, matchOptions?: MatchOptions): string[] {
 
     // apply defaults for parameters and trace
     defaultRoot = defaultRoot || this.getVariable('system.defaultWorkingDirectory') || process.cwd();
     debug(`defaultRoot: '${defaultRoot}'`);
     patterns = patterns || [];
-    patterns = typeof patterns == 'string' ? [ patterns ] as string[] : patterns;
+    patterns = typeof patterns == 'string' ? [patterns] as string[] : patterns;
     findOptions = findOptions || _getDefaultFindOptions();
     _debugFindOptions(findOptions);
     matchOptions = matchOptions || _getDefaultMatchOptions();
@@ -1719,7 +1758,7 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
     // normalize slashes for root dir
     defaultRoot = _normalizeSeparators(defaultRoot);
 
-    let results: { [key: string]: string } = { };
+    let results: { [key: string]: string } = {};
     let originalMatchOptions = matchOptions;
     for (let pattern of (patterns || [])) {
         debug(`pattern: '${pattern}'`);
@@ -1768,7 +1807,7 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
         let expanded: string[];
         let preExpanded: string = pattern;
         if (matchOptions.nobrace) {
-            expanded = [ pattern ];
+            expanded = [pattern];
         }
         else {
             // convert slashes on Windows before calling braceExpand(). unfortunately this means braces cannot
@@ -2138,14 +2177,15 @@ function _loadData(): void {
     // In interactive dev mode, it won't be
     let keyPath: string = getVariable("agent.workFolder") || process.cwd();
     _vault = new vm.Vault(keyPath);
-    _knownVariableMap = { };
+    _knownVariableMap = {};
     debug('loading inputs and endpoints');
     let loaded: number = 0;
     for (let envvar in process.env) {
         if (_startsWith(envvar, 'INPUT_') ||
             _startsWith(envvar, 'ENDPOINT_AUTH_') ||
             _startsWith(envvar, 'SECUREFILE_TICKET_') ||
-            _startsWith(envvar, 'SECRET_')) {
+            _startsWith(envvar, 'SECRET_') ||
+            _startsWith(envvar, 'VSTS_TASKVARIABLE_')) {
 
             // Record the secret variable metadata. This is required by getVariable to know whether
             // to retrieve the value from the vault. In a 2.104.1 agent or higher, this metadata will
@@ -2310,8 +2350,8 @@ function _getDirectoryName(p: string): string {
         }
 
         return p.substring(0, lastSlashIndex);  // e.g. hello\world => hello or hello\world\ => hello\world
-                                                // note, this means trailing slashes for non-root directories
-                                                // (i.e. not C:\, \, or \\unc\) will simply be removed.
+        // note, this means trailing slashes for non-root directories
+        // (i.e. not C:\, \, or \\unc\) will simply be removed.
     }
 
     // OSX/Linux

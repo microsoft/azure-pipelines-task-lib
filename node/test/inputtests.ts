@@ -459,7 +459,7 @@ describe('Input Tests', function () {
     })
     it('gets secure files with valid input', function (done) {
         this.timeout(1000);
-        
+
         process.env['SECUREFILE_NAME_10'] = 'securefile10.p12';
         process.env['SECUREFILE_TICKET_10'] = 'rsaticket10';
         process.env['SECUREFILE_NAME_12'] = 'securefile12.mobileprovision';
@@ -481,7 +481,7 @@ describe('Input Tests', function () {
     })
     it('gets secure files throws with invalid input', function (done) {
         this.timeout(1000);
-        
+
         process.env['SECUREFILE_NAME_10'] = 'securefile10.p12';
         process.env['SECUREFILE_TICKET_10'] = 'rsaticket10';
         process.env['SECUREFILE_NAME_12'] = 'securefile12.mobileprovision';
@@ -523,7 +523,7 @@ describe('Input Tests', function () {
 
         done();
     })
-    it('defaults to false bool input value', function(done) {
+    it('defaults to false bool input value', function (done) {
         this.timeout(1000);
 
         (tl as any)._internal._loadData();
@@ -720,15 +720,37 @@ describe('Input Tests', function () {
     })
 
     //resolve tests
-    it('resolve', function(done) {
+    it('resolve', function (done) {
         var absolutePath = tl.resolve('/repo/root', '/repo/root/some/path');
-        if(os.platform() !== 'win32') {
+        if (os.platform() !== 'win32') {
             assert(absolutePath === '/repo/root/some/path', 'absolute path not expected, got:' + absolutePath + ' expected: /repo/root/some/path');
         } else {
             var winDrive = path.parse(path.resolve('')).root;
             var expectedPath = winDrive.concat('repo\\root\\some\\path');
             assert.equal(absolutePath, expectedPath, 'absolute path not as expected, got: ' + absolutePath + ' expected: ' + expectedPath);
         }
+        done();
+    })
+
+    //task variable tests
+    it('gets a task variable', function (done) {
+        this.timeout(1000);
+
+        process.env['VSTS_TASKVARIABLE_TEST1'] = 'Task variable value 1';
+        (tl as any)._internal._loadData();
+
+        var varVal = tl.getTaskVariable('test1');
+        assert.equal(varVal, 'Task variable value 1');
+
+        done();
+    })
+    it('sets a task variable', function (done) {
+        this.timeout(1000);
+
+        tl.setTaskVariable('test2', 'Task variable value 2');
+        let varVal: string = tl.getTaskVariable('test2');
+        assert.equal(varVal, 'Task variable value 2');
+
         done();
     })
 });
