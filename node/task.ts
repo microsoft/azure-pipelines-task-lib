@@ -603,41 +603,6 @@ export function getEndpointAuthorization(id: string, optional: boolean): Endpoin
 //-----------------------------------------------------
 
 /**
- * Interface for SecureFile
- * Contains secure file id, name and ticket 
- */
-export interface SecureFile {
-    id: string;
-    name: string;
-    ticket: string;
-}
-
-/**
- * Gets the secure files with download tickets for given input json
- * @param secureFilesInput 
- */
-export function getSecureFiles(secureFilesInput: string): SecureFile[] {
-    var secureFiles = null;
-
-    try {
-        secureFiles = <SecureFile[]>JSON.parse(secureFilesInput);
-    }
-    catch (err) {
-        throw new Error(loc('LIB_InvalidSecureFilesInput', secureFilesInput));
-    }
-
-    if (secureFiles != null && secureFiles.length > 0) {
-        for (var i = 0; i < secureFiles.length; i++) {
-            secureFiles[i].name = getSecureFileName(secureFiles[i].id);
-            secureFiles[i].ticket = getSecureFileTicket(secureFiles[i].id);
-        }
-    }
-
-    debug('secure files = ' + JSON.stringify(secureFiles));
-    return secureFiles;
-}
-
-/**
  * Gets the name for a secure file
  * 
  * @param     id        secure file id
