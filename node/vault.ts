@@ -4,7 +4,7 @@ import fs = require('fs');
 import path = require('path');
 import crypto = require('crypto');
 
-var uuid = require('node-uuid');
+var uuidV4 = require('uuid/v4');
 var algorithm = "aes-256-ctr";
 
 //
@@ -72,6 +72,6 @@ export class Vault {
     }
 
     private genKey(): void {
-        fs.writeFileSync(this._keyFile, uuid.v1(), 'utf8');
+        fs.writeFileSync(this._keyFile, uuidV4(), 'utf8');
     } 
 }
