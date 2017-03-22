@@ -19,7 +19,9 @@
                 "task.getVariable",
                 "task.VariableInfo",
                 "task.getVariables",
-                "task.setVariable"
+                "task.setVariable",
+                "task.getTaskVariable",
+                "task.setTaskVariable"
             ]
         },
         "Execution": {
@@ -54,7 +56,6 @@
         "Secure Files": {
             "Summary": "Retrieve secure files details required to download the file",
             "Document": [
-                "task.getSecureFiles",
                 "task.getSecureFileName",
                 "task.getSecureFileTicket"
             ]

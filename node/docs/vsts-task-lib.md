@@ -31,6 +31,8 @@ import tl = require('vsts-task-lib/task')
 <a href="#taskVariableInfo">VariableInfo</a> <br/>
 <a href="#taskgetVariables">getVariables</a> <br/>
 <a href="#tasksetVariable">setVariable</a> <br/>
+<a href="#taskgetTaskVariable">getTaskVariable</a> <br/>
+<a href="#tasksetTaskVariable">setTaskVariable</a> <br/>
  
 ### Execution <a href="#Execution">(v)</a>
  
@@ -58,7 +60,6 @@ import tl = require('vsts-task-lib/task')
  
 ### Secure Files <a href="#SecureFiles">(v)</a>
  
-<a href="#taskgetSecureFiles">getSecureFiles</a> <br/>
 <a href="#taskgetSecureFileName">getSecureFileName</a> <br/>
 <a href="#taskgetSecureFileTicket">getSecureFileTicket</a> <br/>
  
@@ -249,6 +250,38 @@ Sets a variable which will be available to subsequent tasks as well.
 @returns   void
 ```javascript
 setVariable(name:string, val:string, secret?:boolean):void
+```
+ 
+Param | Type | Description
+--- | --- | ---
+name | string | name of the variable to set
+val | string | value to set
+secret | boolean | whether variable is secret.  optional, defaults to false
+ 
+<br/>
+<div id="taskgetTaskVariable">
+ 
+### task.getTaskVariable <a href="#index">(^)</a>
+Gets a variable value that is set by previous step from the same wrapper task.
+
+@returns   string
+```javascript
+getTaskVariable(name:string):string
+```
+ 
+Param | Type | Description
+--- | --- | ---
+name | string | name of the variable to get
+ 
+<br/>
+<div id="tasksetTaskVariable">
+ 
+### task.setTaskVariable <a href="#index">(^)</a>
+Sets a task variable which will only be available to subsequent steps belong to the same wrapper task.
+
+@returns   void
+```javascript
+setTaskVariable(name:string, val:string, secret?:boolean):void
 ```
  
 Param | Type | Description
@@ -593,19 +626,6 @@ optional | boolean | whether the url is optional
 ---
  
 Retrieve secure files details required to download the file
-<br/>
-<div id="taskgetSecureFiles">
- 
-### task.getSecureFiles <a href="#index">(^)</a>
-Gets the secure files with download tickets for given input json
-```javascript
-getSecureFiles(secureFilesInput:string):SecureFile[]
-```
- 
-Param | Type | Description
---- | --- | ---
-secureFilesInput | string | 
- 
 <br/>
 <div id="taskgetSecureFileName">
  

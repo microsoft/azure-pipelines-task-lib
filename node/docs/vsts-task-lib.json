@@ -1216,49 +1216,6 @@
             }
           ]
         },
-        "SecureFile": {
-          "name": "SecureFile",
-          "members": {
-            "id": {
-              "documentation": "",
-              "name": "id",
-              "return": "string"
-            },
-            "name": {
-              "documentation": "",
-              "name": "name",
-              "return": "string"
-            },
-            "ticket": {
-              "documentation": "",
-              "name": "ticket",
-              "return": "string"
-            }
-          },
-          "documentation": "Interface for SecureFile\nContains secure file id, name and ticket ",
-          "kind": "interface"
-        },
-        "getSecureFiles": {
-          "name": "getSecureFiles",
-          "members": {},
-          "documentation": "Gets the secure files with download tickets for given input json",
-          "kind": "function",
-          "signatures": [
-            {
-              "parameters": [
-                {
-                  "name": "secureFilesInput",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "SecureFile[]",
-              "documentation": "Gets the secure files with download tickets for given input json"
-            }
-          ]
-        },
         "getSecureFileName": {
           "name": "getSecureFileName",
           "members": {},
@@ -1298,6 +1255,60 @@
               "members": {},
               "return": "string",
               "documentation": "Gets the secure file ticket that can be used to download the secure file contents\n\n@returns {string} secure file ticket"
+            }
+          ]
+        },
+        "getTaskVariable": {
+          "name": "getTaskVariable",
+          "members": {},
+          "documentation": "Gets a variable value that is set by previous step from the same wrapper task.\n\n@returns   string",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "name",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": "name of the variable to get"
+                }
+              ],
+              "members": {},
+              "return": "string",
+              "documentation": "Gets a variable value that is set by previous step from the same wrapper task.\n\n@returns   string"
+            }
+          ]
+        },
+        "setTaskVariable": {
+          "name": "setTaskVariable",
+          "members": {},
+          "documentation": "Sets a task variable which will only be available to subsequent steps belong to the same wrapper task.\n\n@returns   void",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "name",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": "name of the variable to set"
+                },
+                {
+                  "name": "val",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": "value to set"
+                },
+                {
+                  "name": "secret",
+                  "type": "boolean",
+                  "optional": true,
+                  "documentation": "whether variable is secret.  optional, defaults to false"
+                }
+              ],
+              "members": {},
+              "return": "void",
+              "documentation": "Sets a task variable which will only be available to subsequent steps belong to the same wrapper task.\n\n@returns   void"
             }
           ]
         },
