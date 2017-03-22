@@ -294,6 +294,22 @@ export function getVariable(name: string): string {
 }
 
 /**
+ * Asserts the agent version is at least the specified minimum.
+ *
+ * @param    minimum    minimum version version - must be 2.104.1 or higher
+ */
+export function assertAgent(minimum: string): void {
+    if (semver.lt(minimum, '2.104.1')) {
+        throw new Error('assertAgent() requires the parameter to be 2.104.1 or higher');
+    }
+
+    let agent = getVariable('Agent.Version');
+    if (!agent || semver.lt(agent, minimum)) {
+        throw new Error(`Agent version ${minimum} or higher is required`);
+    }
+}
+
+/**
  * Gets a snapshot of the current state of all job variables available to the task.
  * Requires a 2.104.1 agent or higher for full functionality.
  *
@@ -668,11 +684,13 @@ export function getSecureFileTicket(id: string): string {
 //-----------------------------------------------------
 /**
  * Gets a variable value that is set by previous step from the same wrapper task.
+ * Requires a 2.115.0 agent or higher.
  * 
  * @param     name     name of the variable to get
  * @returns   string
  */
 export function getTaskVariable(name: string): string {
+    assertAgent('2.115.0');
     var inval = _vault.retrieveSecret('VSTS_TASKVARIABLE_' + name.replace(' ', '_').toUpperCase());
     if (inval) {
         inval = inval.trim();
@@ -684,6 +702,7 @@ export function getTaskVariable(name: string): string {
 
 /**
  * Sets a task variable which will only be available to subsequent steps belong to the same wrapper task.
+ * Requires a 2.115.0 agent or higher.
  * 
  * @param     name    name of the variable to set
  * @param     val     value to set
@@ -691,6 +710,7 @@ export function getTaskVariable(name: string): string {
  * @returns   void
  */
 export function setTaskVariable(name: string, val: string, secret: boolean = false): void {
+    assertAgent('2.115.0');
     let key: string = _getVariableKey(name);
 
     // store the value
@@ -2147,7 +2167,6 @@ export class CodeCoverageEnabler {
         command('codecoverage.enable', buildProps, "");
     }
 }
-
 
 //-----------------------------------------------------
 // Tools

@@ -719,7 +719,7 @@ describe('Input Tests', function () {
         done();
     })
 
-    //resolve tests
+    // resolve tests
     it('resolve', function (done) {
         var absolutePath = tl.resolve('/repo/root', '/repo/root/some/path');
         if (os.platform() !== 'win32') {
@@ -732,24 +732,99 @@ describe('Input Tests', function () {
         done();
     })
 
-    //task variable tests
+    // getTaskVariable tests
     it('gets a task variable', function (done) {
         this.timeout(1000);
 
-        process.env['VSTS_TASKVARIABLE_TEST1'] = 'Task variable value 1';
-        (tl as any)._internal._loadData();
-
-        var varVal = tl.getTaskVariable('test1');
-        assert.equal(varVal, 'Task variable value 1');
+        let originalAgentVersion = process.env['AGENT_VERSION'];
+        try {
+            process.env['AGENT_VERSION'] = '2.115.0';
+            process.env['VSTS_TASKVARIABLE_TEST1'] = 'Task variable value 1';
+            (tl as any)._internal._loadData();
+            var varVal = tl.getTaskVariable('test1');
+            assert.equal(varVal, 'Task variable value 1');
+        }
+        finally {
+            process.env['AGENT_VERSION'] = originalAgentVersion;
+        }
 
         done();
     })
     it('sets a task variable', function (done) {
         this.timeout(1000);
 
-        tl.setTaskVariable('test2', 'Task variable value 2');
-        let varVal: string = tl.getTaskVariable('test2');
-        assert.equal(varVal, 'Task variable value 2');
+        let originalAgentVersion = process.env['AGENT_VERSION'];
+        try {
+            process.env['AGENT_VERSION'] = '2.115.0';
+            tl.setTaskVariable('test2', 'Task variable value 2');
+            let varVal: string = tl.getTaskVariable('test2');
+            assert.equal(varVal, 'Task variable value 2');
+        }
+        finally {
+            process.env['AGENT_VERSION'] = originalAgentVersion;
+        }
+
+        done();
+    })
+
+    // assertAgent tests
+    it('assert agent fails when empty', function (done) {
+        this.timeout(1000);
+
+        let originalAgentVersion = process.env['AGENT_VERSION'];
+        try {
+            process.env['AGENT_VERSION'] = '';
+            let failed = false;
+            try {
+                tl.assertAgent('2.115.0');
+            }
+            catch (err) {
+                failed = true;
+            }
+
+            assert(failed, 'assert should have thrown');
+        }
+        finally {
+            process.env['AGENT_VERSION'] = originalAgentVersion;
+        }
+
+        done();
+    })
+    it('assert agent fails when less than', function (done) {
+        this.timeout(1000);
+
+        let originalAgentVersion = process.env['AGENT_VERSION'];
+        try {
+            process.env['AGENT_VERSION'] = '2.114.0';
+            let failed = false;
+            try {
+                tl.assertAgent('2.115.0');
+            }
+            catch (err) {
+                failed = true;
+            }
+
+            assert(failed, 'assert should have thrown');
+        }
+        finally {
+            process.env['AGENT_VERSION'] = originalAgentVersion;
+        }
+
+        done();
+    })
+    it('assert succeeds when greater or equal', function (done) {
+        this.timeout(1000);
+
+        let originalAgentVersion = process.env['AGENT_VERSION'];
+        try {
+            process.env['AGENT_VERSION'] = '2.115.0';
+            tl.assertAgent('2.115.0');
+            process.env['AGENT_VERSION'] = '2.116.0';
+            tl.assertAgent('2.115.0');
+        }
+        finally {
+            process.env['AGENT_VERSION'] = originalAgentVersion;
+        }
 
         done();
     })
