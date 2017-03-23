@@ -152,22 +152,20 @@
           "type": {
             "type": "string",
             "description": "The type that dictates the control rendered to the user.",
-            "enum": [
-              "boolean",
-              "connectedService:ServiceType",
-              "connectedService:AzureRM",
-              "connectedService:Azure",
-              "connectedService:Azure:Certificate,UsernamePassword",
-              "connectedService:Chef",
-              "connectedService:ssh",
-              "connectedService:Generic",
-              "connectedService:Jenkins",
-              "connectedService:servicefabric",
-              "filePath",
-              "multiLine",
-              "pickList",
-              "radio",
-              "string"
+            "anyOf": [
+              {
+                "enum": [
+                  "boolean",
+                  "filePath",
+                  "multiLine",
+                  "pickList",
+                  "radio",
+                  "string"
+                ]
+              },
+              {
+                "pattern": "^connectedService\\:.+$"
+              }
             ]
           },
           "defaultValue": {
