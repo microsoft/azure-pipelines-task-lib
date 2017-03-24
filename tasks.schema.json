@@ -1,5 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema",
+  "id": "https://aka.ms/vsts-tasks.schema.json",
   "title": "VSTS Tasks schema",
   "type": "object",
   "additionalProperties": false,
