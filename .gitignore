@@ -6,6 +6,7 @@ node/*.d.ts
 node/*.js
 node/docs/temp
 node/docs/*.js
+.DS_Store
 
 # Logs
 logs
