@@ -787,4 +787,24 @@ describe('Input Tests', function () {
 
         done();
     })
+
+    // _loadData tests
+    it('_loadData does not run twice', function (done) {
+        this.timeout(2000);
+
+        // intialize an input (stored in vault)
+        process.env['INPUT_SOMEINPUT'] = 'some input value';
+        (tl as any)._internal._loadData();
+        assert.equal(tl.getInput('SomeInput'), 'some input value');
+
+        // copy vsts-task-lib to a different dir and load it from
+        // there so it will be forced to load again
+        let testDir = path.join(testutil.getTestTemp(), '_loadData-not-called-twice');
+        tl.mkdirP(testDir);
+        tl.cp(path.join(__dirname, '..', '_build'), testDir, '-R');
+        require(path.join(testDir, '_build', 'task'));
+
+        assert.equal(tl.getInput('SomeInput'), 'some input value');
+        done();
+    })
 });

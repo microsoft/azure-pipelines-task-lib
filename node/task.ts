@@ -2221,9 +2221,16 @@ function _loadData(): void {
         _knownVariableMap[_getVariableKey(name)] = <_KnownVariableInfo>{ name: name, secret: true };
     });
     delete process.env['VSTS_SECRET_VARIABLES'];
+
+    // avoid loading twice (overwrites .taskkey)
+    global['_vsts_task_lib_loaded'] = true;
 }
 _internal._loadData = _loadData;
-_loadData();
+
+// avoid loading twice (overwrites .taskkey)
+if (!global['_vsts_task_lib_loaded']) {
+    _loadData();
+}
 
 //--------------------------------------------------------------------------------
 // Internal path helpers.
