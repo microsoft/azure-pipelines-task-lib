@@ -125,6 +125,12 @@ export interface EndpointAuthorization {
 }
 
 //-----------------------------------------------------
+// SecureFile Helpers
+//-----------------------------------------------------
+module.exports.getSecureFileName = task.getSecureFileName;
+module.exports.getSecureFileTicket = task.getSecureFileTicket;
+
+//-----------------------------------------------------
 // Fs Helpers
 //-----------------------------------------------------
 
