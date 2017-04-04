@@ -446,23 +446,23 @@ export class ToolRunner extends events.EventEmitter {
         return reverse.split('').reverse().join('');
     }
 
-    private _cloneExecOptions(options: IExecOptions): IExecOptions {
-        options = options || <IExecOptions>{};
-        let result: IExecOptions = <IExecOptions>{
+    private _cloneExecOptions(options?: Partial<IExecOptions>): IExecOptions {
+        options = options || {};
+        let result: IExecOptions = {
             cwd: options.cwd || process.cwd(),
             env: options.env || process.env,
             silent: options.silent || false,
             failOnStdErr: options.failOnStdErr || false,
             ignoreReturnCode: options.ignoreReturnCode || false,
-            windowsVerbatimArguments: options.windowsVerbatimArguments || false
+            windowsVerbatimArguments: options.windowsVerbatimArguments || false,
+            outStream: options.outStream || process.stdout as stream.Writable,
+            errStream: options.errStream || process.stderr as stream.Writable
         };
-        result.outStream = options.outStream || <stream.Writable>process.stdout;
-        result.errStream = options.errStream || <stream.Writable>process.stderr;
         return result;
     }
 
     private _getSpawnOptions(options: IExecOptions): child.SpawnOptions {
-        let result = <child.SpawnOptions>{};
+        let result: child.SpawnOptions = {};
         result.cwd = options.cwd;
         result.env = options.env;
         result['windowsVerbatimArguments'] = options.windowsVerbatimArguments || this._isCmdFile();
@@ -555,7 +555,7 @@ export class ToolRunner extends events.EventEmitter {
      * @param     options  optional exec options.  See IExecOptions
      * @returns   number
      */
-    public exec(options?: IExecOptions): Q.Promise<number> {
+    public exec(options?: Partial<IExecOptions>): Q.Promise<number> {
         var defer = Q.defer<number>();
 
         this._debug('exec tool: ' + this.toolPath);
@@ -565,10 +565,10 @@ export class ToolRunner extends events.EventEmitter {
         });
 
         let success = true;
-        options = this._cloneExecOptions(options);
+        const opts = this._cloneExecOptions(options);
 
-        if (!options.silent) {
-            options.outStream.write(this._getCommandString(options) + os.EOL);
+        if (!opts.silent) {
+            opts.outStream.write(this._getCommandString(opts) + os.EOL);
         }
 
         // TODO: filter process.env
@@ -588,12 +588,12 @@ export class ToolRunner extends events.EventEmitter {
             //start the child process for both tools
             var cpFirst = child.spawn(
                 this._getSpawnFileName(),
-                this._getSpawnArgs(options),
-                this._getSpawnOptions(options));
+                this._getSpawnArgs(opts),
+                this._getSpawnOptions(opts));
             cp = child.spawn(
                 this.pipeOutputToTool._getSpawnFileName(),
-                this.pipeOutputToTool._getSpawnArgs(options),
-                this.pipeOutputToTool._getSpawnOptions(options));
+                this.pipeOutputToTool._getSpawnArgs(opts),
+                this.pipeOutputToTool._getSpawnOptions(opts));
 
             //pipe stdout of first tool to stdin of second tool
             cpFirst.stdout.on('data', (data: Buffer) => {
@@ -605,9 +605,9 @@ export class ToolRunner extends events.EventEmitter {
                 }
             });
             cpFirst.stderr.on('data', (data: Buffer) => {
-                successFirst = !options.failOnStdErr;
-                if (!options.silent) {
-                    var s = options.failOnStdErr ? options.errStream : options.outStream;
+                successFirst = !opts.failOnStdErr;
+                if (!opts.silent) {
+                    var s = opts.failOnStdErr ? opts.errStream : opts.outStream;
                     s.write(data);
                 }
             });
@@ -616,7 +616,7 @@ export class ToolRunner extends events.EventEmitter {
                 defer.reject(new Error(toolPathFirst + ' failed. ' + err.message));
             });
             cpFirst.on('close', (code, signal) => {
-                if (code != 0 && !options.ignoreReturnCode) {
+                if (code != 0 && !opts.ignoreReturnCode) {
                     successFirst = false;
                     returnCodeFirst = code;
                 }
@@ -625,7 +625,7 @@ export class ToolRunner extends events.EventEmitter {
             });
 
         } else {
-            cp = child.spawn(this._getSpawnFileName(), this._getSpawnArgs(options), this._getSpawnOptions(options));
+            cp = child.spawn(this._getSpawnFileName(), this._getSpawnArgs(opts), this._getSpawnOptions(opts));
         }
 
         var processLineBuffer = (data: Buffer, strBuffer: string, onLine:(line: string) => void): void => {
@@ -655,8 +655,8 @@ export class ToolRunner extends events.EventEmitter {
         cp.stdout.on('data', (data: Buffer) => {
             this.emit('stdout', data);
 
-            if (!options.silent) {
-                options.outStream.write(data);
+            if (!opts.silent) {
+                opts.outStream.write(data);
             }
 
             processLineBuffer(data, stdbuffer, (line: string) => {
@@ -668,9 +668,9 @@ export class ToolRunner extends events.EventEmitter {
         cp.stderr.on('data', (data: Buffer) => {
             this.emit('stderr', data);
 
-            success = !options.failOnStdErr;
-            if (!options.silent) {
-                var s = options.failOnStdErr ? options.errStream : options.outStream;
+            success = !opts.failOnStdErr;
+            if (!opts.silent) {
+                var s = opts.failOnStdErr ? opts.errStream : opts.outStream;
                 s.write(data);
             }
 
@@ -694,7 +694,7 @@ export class ToolRunner extends events.EventEmitter {
                 this.emit('errline', errbuffer);
             }
 
-            if (code != 0 && !options.ignoreReturnCode) {
+            if (code != 0 && !opts.ignoreReturnCode) {
                 success = false;
             }
 
@@ -722,7 +722,7 @@ export class ToolRunner extends events.EventEmitter {
      * @param     options  optional exec options.  See IExecSyncOptions
      * @returns   IExecSyncResult
      */
-    public execSync(options?: IExecSyncOptions): IExecSyncResult {
+    public execSync(options?: Partial<IExecSyncOptions>): IExecSyncResult {
         var defer = Q.defer();
 
         this._debug('exec tool: ' + this.toolPath);
@@ -732,25 +732,28 @@ export class ToolRunner extends events.EventEmitter {
         });
 
         var success = true;
-        options = this._cloneExecOptions(options as IExecOptions);
+        let opts: IExecOptions = this._cloneExecOptions(options);
 
-        if (!options.silent) {
-            options.outStream.write(this._getCommandString(options as IExecOptions) + os.EOL);
+        if (!opts.silent) {
+            opts.outStream.write(this._getCommandString(opts) + os.EOL);
         }
 
-        var r = child.spawnSync(this._getSpawnFileName(), this._getSpawnArgs(options as IExecOptions), this._getSpawnSyncOptions(options));
+        var r = child.spawnSync(this._getSpawnFileName(), this._getSpawnArgs(opts), this._getSpawnSyncOptions(opts));
 
-        if (!options.silent && r.stdout && r.stdout.length > 0) {
-            options.outStream.write(r.stdout);
+        if (!opts.silent && r.stdout && r.stdout.length > 0) {
+            opts.outStream.write(r.stdout);
         }
 
-        if (!options.silent && r.stderr && r.stderr.length > 0) {
-            options.errStream.write(r.stderr);
+        if (!opts.silent && r.stderr && r.stderr.length > 0) {
+            opts.errStream.write(r.stderr);
         }
 
-        var res: IExecSyncResult = <IExecSyncResult>{ code: r.status, error: r.error };
-        res.stdout = (r.stdout) ? r.stdout.toString() : null;
-        res.stderr = (r.stderr) ? r.stderr.toString() : null;
+        var res: IExecSyncResult = {
+            code: r.status,
+            error: r.error,
+            stdout: (r.stdout) ? r.stdout.toString() : null,
+            stderr: (r.stderr) ? r.stderr.toString() : null
+        };
         return res;
     }
 }

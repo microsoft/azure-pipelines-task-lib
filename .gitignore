@@ -41,3 +41,10 @@ node/docs/vsotask.json
 
 # tests
 node/.taskKey
+/node/bin
+/node/obj/Debug
+/node/test/_temp
+*.js
+*.njsproj
+*.sln
+/.vs

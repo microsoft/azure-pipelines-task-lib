@@ -1443,7 +1443,7 @@ export function rmRF(path: string): void {
  * @param     options  optional exec options.  See IExecOptions
  * @returns   number
  */
-export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Promise<number> {
+export function exec(tool: string, args: any, options?: Partial<trm.IExecOptions>): Q.Promise<number> {
     var toolPath = which(tool, true);
     var tr: trm.ToolRunner = this.tool(toolPath);
     tr.on('debug', (data) => {
@@ -1472,7 +1472,7 @@ export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Pro
  * @param     options  optional exec options.  See IExecSyncOptions
  * @returns   IExecSyncResult
  */
-export function execSync(tool: string, args: string | string[], options?: trm.IExecSyncOptions): trm.IExecSyncResult {
+export function execSync(tool: string, args: string | string[], options?: Partial<trm.IExecSyncOptions>): trm.IExecSyncResult {
     var toolPath = which(tool, true);
     var tr: trm.ToolRunner = this.tool(toolPath);
     tr.on('debug', (data) => {
