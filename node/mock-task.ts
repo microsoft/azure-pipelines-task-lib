@@ -16,23 +16,7 @@ export function setAnswers(answers: ma.TaskLibAnswers) {
     trm.setAnswers(answers);
 }
 
-export enum TaskResult {
-    Succeeded = 0,
-    SucceededWithIssues = 1,
-    Failed = 2
-}
-
-//-----------------------------------------------------
-// String convenience
-//-----------------------------------------------------
-
-function _startsWith(str: string, start: string): boolean {
-    return str.slice(0, start.length) == start;
-}
-
-function _endsWith(str: string, start: string): boolean {
-    return str.slice(-str.length) == str;
-}
+module.exports.TaskResult = task.TaskResult;
 
 //-----------------------------------------------------
 // General Helpers
@@ -48,25 +32,14 @@ function _writeLine(str: string): void {
     _outStream.write(str + os.EOL);
 }
 
-export function setStdStream(stdStream): void {
-    _outStream = stdStream;
-}
-
-export function setErrStream(errStream): void {
-    _errStream = errStream;
-}
+module.exports.setStdStream = task.setStdStream;
+module.exports.setErrStream = task.setErrStream;
 
 //-----------------------------------------------------
 // Results and Exiting
 //-----------------------------------------------------
-module.exports.setResult = task.setResult;
 
-//
-// Catching all exceptions
-//
-process.on('uncaughtException', (err) => {
-    module.exports.setResult(TaskResult.Failed, 'Unhandled:' + err.message);
-});
+module.exports.setResult = task.setResult;
 
 //-----------------------------------------------------
 // Loc Helpers

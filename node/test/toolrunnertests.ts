@@ -1389,7 +1389,13 @@ describe('Toolrunner Tests', function () {
         it('_windowsQuoteCmdArg quotes .exe args (Windows)', function (done) {
             this.timeout(1000);
 
-            let tr: any = tl.tool('some.exe');
+            // create a .exe file
+            let testPath = path.join(testutil.getTestTemp(), 'which-finds-file-name');
+            tl.mkdirP(testPath);
+            let filePath = path.join(testPath, 'some.exe');
+            fs.writeFileSync(filePath, '');
+
+            let tr: any = tl.tool(filePath);
 
             // ---------------------------------------------
             // libuv quoting rules should applied for .exe
@@ -1473,7 +1479,13 @@ describe('Toolrunner Tests', function () {
         it('_windowsQuoteCmdArg quotes .cmd args (Windows)', function (done) {
             this.timeout(1000);
 
-            let tr: any = tl.tool('some.cmd');
+            // create a .cmd file
+            let testPath = path.join(testutil.getTestTemp(), 'which-finds-file-name');
+            tl.mkdirP(testPath);
+            let filePath = path.join(testPath, 'some.cmd');
+            fs.writeFileSync(filePath, '');
+
+            let tr: any = tl.tool(filePath);
 
             // ---------------------------------------------------------------
             // cmd.exe command line quoting rules should be applied for .cmd
@@ -1526,7 +1538,14 @@ describe('Toolrunner Tests', function () {
         it('_windowsQuoteCmdArg quotes .bat args (Windows)', function (done) {
             this.timeout(1000);
 
-            let tr: any = tl.tool('some.bat');
+            // create a .bat file
+            let testPath = path.join(testutil.getTestTemp(), 'which-finds-file-name');
+            tl.mkdirP(testPath);
+            let filePath = path.join(testPath, 'some.bat');
+            fs.writeFileSync(filePath, '');
+
+            // cmd.exe command line quoting rules should be applied for .bat
+            let tr: any = tl.tool(filePath);
             assert.equal(tr._windowsQuoteCmdArg('hello:"world again"'), '"hello:""world again"""');
             assert.equal(tr._windowsQuoteCmdArg('hello|world'), '"hello|world"');
 
