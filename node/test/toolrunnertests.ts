@@ -548,7 +548,7 @@ describe('Toolrunner Tests', function () {
         };
 
         if (os.platform() === 'win32') {
-            var find = tl.tool(tl.which('FIND', true));
+            var find = tl.tool(tl.which('FIND.exe', true));
             find.arg('bad');
 
             var tasklist = tl.tool(tl.which('tasklist', true));

@@ -931,62 +931,168 @@ export function resolve(...pathSegments: any[]): string {
  * @returns   string
  */
 export function which(tool: string, check?: boolean): string {
+    if (!tool) {
+        throw new Error('parameter \'tool\' is required');
+    }
+
+    // recursive when check=true
+    if (check) {
+        let result: string = which(tool, false);
+        if (!result) {
+            if (process.platform == 'win32') {
+                throw new Error(loc('LIB_WhichNotFound_Win', tool));
+            }
+            else {
+                throw new Error(loc('LIB_WhichNotFound_Linux', tool));
+            }
+        }
+    }
+
+    debug(`which '${tool}'`);
     try {
-        // we can't use shelljs.which() on windows due to https://github.com/shelljs/shelljs/issues/238
-        // shelljs.which() does not prefer file with executable extensions (.exe, .bat, .cmd).
-        // we already made a PR for Shelljs, but they haven't merge it yet. https://github.com/shelljs/shelljs/pull/239
-        if (os.type().match(/^Win/)) {
-            var pathEnv = process.env.path || process.env.Path || process.env.PATH;
-            var pathArray = pathEnv.split(';');
-            var toolPath: string = null;
-
-            // No relative/absolute paths provided?
-            if (tool.search(/[\/\\]/) === -1) {
-                // Search for command in PATH
-                pathArray.forEach(function (dir) {
-                    if (toolPath)
-                        return; // already found it
-
-                    var attempt = resolve(dir + '/' + tool);
-
-                    var baseAttempt = attempt;
-                    attempt = baseAttempt + '.exe';
-                    if (exist(attempt) && stats(attempt).isFile) {
-                        toolPath = attempt;
-                        return;
-                    }
-                    attempt = baseAttempt + '.bat';
-                    if (exist(attempt) && stats(attempt).isFile) {
-                        toolPath = attempt;
-                        return;
-                    }
-                    attempt = baseAttempt + '.cmd';
-                    if (exist(attempt) && stats(attempt).isFile) {
-                        toolPath = attempt;
-                        return;
-                    }
-                });
-            }
-
-            // Command not found in Path, but the input itself is point to a file.
-            if (!toolPath && exist(tool) && stats(tool).isFile) {
-                toolPath = resolve(tool);
+        // build the list of extensions to try
+        let extensions: string[] = [];
+        if (process.platform == 'win32' && process.env['PATHEXT']) {
+            for (let extension of process.env['PATHEXT'].split(path.delimiter)) {
+                if (extension) {
+                    extensions.push(extension);
+                }
             }
         }
-        else {
-            var toolPath = shell.which(tool);
+
+        // if it's rooted, return it if exists. otherwise return empty.
+        if (_isRooted(tool)) {
+            let filePath: string = _tryGetExecutablePath(tool, extensions);
+            if (filePath) {
+                debug(`found: '${filePath}'`);
+                return filePath;
+            }
+
+            debug('not found');
+            return '';
         }
 
-        if (check) {
-            checkPath(toolPath, tool);
+        // if any path separators, return empty
+        if (tool.indexOf('/') >= 0 || (process.platform == 'win32' && tool.indexOf('\\') >= 0)) {
+            debug('not found');
+            return '';
         }
 
-        debug(tool + '=' + toolPath);
-        return toolPath;
+        // build the list of directories
+        //
+        // Note, technically "where" checks the current directory on Windows. From a task lib perspective,
+        // it feels like we should not do this. Checking the current directory seems like more of a use
+        // case of a shell, and the which() function exposed by the task lib should strive for consistency
+        // across platforms.
+        let directories: string[] = [ ];
+        if (process.env['PATH']) {
+            for (let p of process.env['PATH'].split(path.delimiter)) {
+                if (p) {
+                    directories.push(p);
+                }
+            }
+        }
+
+        // return the first match
+        for (let directory of directories) {
+            let filePath = _tryGetExecutablePath(directory + path.sep + tool, extensions);
+            if (filePath) {
+                debug(`found: '${filePath}'`);
+                return filePath;
+            }
+        }
+
+        debug('not found');
+        return '';
     }
     catch (err) {
         throw new Error(loc('LIB_OperationFailed', 'which', err.message));
     }
+}
+
+/**
+ * Best effort attempt to determine whether a file exists and is executable.
+ * @param filePath    file path to check
+ * @param extensions  additional file extensions to try
+ * @return if file exists and is executable, returns the file path. otherwise empty string.
+ */
+function _tryGetExecutablePath(filePath: string, extensions: string[]): string {
+    try {
+        // test file exists
+        let stats: fs.Stats = fs.statSync(filePath);
+        if (stats.isFile()) {
+            if (process.platform == 'win32') {
+                // on Windows, test for valid extension
+                let isExecutable = false;
+                let fileName = path.basename(filePath);
+                let dotIndex = fileName.lastIndexOf('.');
+                if (dotIndex >= 0) {
+                    let upperExt = fileName.substr(dotIndex).toUpperCase();
+                    if (extensions.some(validExt => validExt.toUpperCase() == upperExt)) {
+                        return filePath;
+                    }
+                }
+            }
+            else {
+                // on Mac/Linux, test the execute bit
+                //     R   W  X  R  W X R W X
+                //   256 128 64 32 16 8 4 2 1
+                if ((stats.mode & 1) == 1) {
+                    return filePath;
+                }
+            }
+        }
+    }
+    catch (err) {
+        if (err.code != 'ENOENT') {
+            debug(`Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`);
+        }
+    }
+
+    // try each extension
+    let originalFilePath = filePath;
+    for (let extension of extensions) {
+        let found = false;
+        let filePath = originalFilePath + extension;
+        try {
+            let stats: fs.Stats = fs.statSync(filePath);
+            if (stats.isFile()) {
+                if (process.platform == 'win32') {
+                    // preserve the case of the actual file (since an extension was appended)
+                    try {
+                        let directory = path.dirname(filePath);
+                        let upperName = path.basename(filePath).toUpperCase();
+                        for (let actualName of fs.readdirSync(directory)) {
+                            if (upperName == actualName.toUpperCase()) {
+                                filePath = path.join(directory, actualName);
+                                break;
+                            }
+                        }
+                    }
+                    catch (err) {
+                        debug(`Unexpected error attempting to determine the actual case of the file '${filePath}': ${err}`);
+                    }
+
+                    return filePath;
+                }
+                else {
+                    // on Mac/Linux, test the execute bit
+                    //     R   W  X  R  W X R W X
+                    //   256 128 64 32 16 8 4 2 1
+                    if ((stats.mode & 1) == 1) {
+                        return filePath;
+                    }
+                }
+            }
+        }
+        catch (err) {
+            if (err.code != 'ENOENT') {
+                debug(`Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`);
+            }
+        }
+    }
+
+    return '';
 }
 
 /**
