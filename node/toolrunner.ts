@@ -5,19 +5,8 @@ import os = require('os');
 import events = require('events');
 import child = require('child_process');
 import stream = require('stream');
+import im = require('./internal');
 import tcm = require('./taskcommand');
-
-//-----------------------------------------------------
-// String convenience
-//-----------------------------------------------------
-
-function _startsWith(str: string, start: string): boolean {
-    return str.slice(0, start.length) == start;
-}
-
-function _endsWith(str: string, end: string): boolean {
-    return str.slice(-end.length) == end;
-}
 
 /**
  * Interface for exec options
@@ -76,7 +65,7 @@ export class ToolRunner extends events.EventEmitter {
             throw new Error('Parameter \'toolPath\' cannot be null or empty.');
         }
 
-        this.toolPath = toolPath;
+        this.toolPath = im._which(toolPath, true);
         this.args = [];
         this._debug('toolRunner toolPath: ' + toolPath);
     }
@@ -262,7 +251,7 @@ export class ToolRunner extends events.EventEmitter {
 
     private _isCmdFile(): boolean {
         let upperToolPath: string = this.toolPath.toUpperCase();
-        return _endsWith(upperToolPath, '.CMD') || _endsWith(upperToolPath, '.BAT');
+        return im._endsWith(upperToolPath, '.CMD') || im._endsWith(upperToolPath, '.BAT');
     }
 
     private _windowsQuoteCmdArg(arg: string): string {

@@ -5,6 +5,7 @@ import path = require('path');
 import os = require('os');
 import minimatch = require('minimatch');
 import util = require('util');
+import im = require('./internal');
 import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
 import vm = require('./vault');
@@ -16,57 +17,11 @@ export enum TaskResult {
     Failed = 2
 }
 
-let _internal = {} as any;
-if (process.env.TASKLIB_INPROC_UNITS) {
-    module.exports._internal = _internal;
-}
-
-/**
- * Hash table of known variable info. The formatted env var name is the lookup key.
- *
- * The purpose of this hash table is to keep track of known variables. The hash table
- * needs to be maintained for multiple reasons:
- *  1) to distinguish between env vars and job vars
- *  2) to distinguish between secret vars and public
- *  3) to know the real variable name and not just the formatted env var name.
- */
-let _knownVariableMap: { [key: string]: _KnownVariableInfo; } = {};
-
-let _vault: vm.Vault;
-
-//-----------------------------------------------------
-// String convenience
-//-----------------------------------------------------
-
-function _startsWith(str: string, start: string): boolean {
-    return str.slice(0, start.length) == start;
-}
-
-function _endsWith(str: string, end: string): boolean {
-    return str.slice(-end.length) == end;
-}
-
 //-----------------------------------------------------
 // General Helpers
 //-----------------------------------------------------
-let _outStream = process.stdout;
-let _errStream = process.stderr;
-
-function _writeError(str: string): void {
-    _errStream.write(str + os.EOL);
-}
-
-function _writeLine(str: string): void {
-    _outStream.write(str + os.EOL);
-}
-
-export function setStdStream(stdStream): void {
-    _outStream = stdStream;
-}
-
-export function setErrStream(errStream): void {
-    _errStream = errStream;
-}
+export const setStdStream = im._setStdStream;
+export const setErrStream = im._setErrStream;
 
 //-----------------------------------------------------
 // Results
@@ -107,191 +62,15 @@ process.on('uncaughtException', (err) => {
 //-----------------------------------------------------
 // Loc Helpers
 //-----------------------------------------------------
-let _locStringCache: { [key: string]: string } = {};
-let _resourceFile: string;
-let _libResourceFileLoaded: boolean = false;
-let _resourceCulture: string = 'en-US';
 
-function _loadResJson(resjsonFile: string): any {
-    var resJson: {} = null;
-    if (exist(resjsonFile)) {
-        var resjsonContent = fs.readFileSync(resjsonFile, 'utf8').toString();
-        // remove BOM
-        if (resjsonContent.indexOf('\uFEFF') == 0) {
-            resjsonContent = resjsonContent.slice(1);
-        }
-
-        try {
-            resJson = JSON.parse(resjsonContent);
-        }
-        catch (err) {
-            debug('unable to parse resjson with err: ' + err.message);
-            resJson = null;
-        }
-    }
-    else {
-        debug('.resjson file not found: ' + resjsonFile);
-    }
-
-    return resJson;
-}
-
-function _loadLocStrings(resourceFile: string, culture: string): { [key: string]: string; } {
-    var locStrings: {
-        [key: string]: string
-    } = {};
-
-    if (exist(resourceFile)) {
-        var resourceJson = require(resourceFile);
-        if (resourceJson && resourceJson.hasOwnProperty('messages')) {
-            var locResourceJson = null;
-            // load up resource resjson for different culture
-
-            var localizedResourceFile = path.join(path.dirname(resourceFile), 'Strings', 'resources.resjson');
-            var upperCulture = culture.toUpperCase();
-            var cultures = [];
-            try { cultures = fs.readdirSync(localizedResourceFile); }
-            catch (ex) { }
-            for (var i = 0; i < cultures.length; i++) {
-                if (cultures[i].toUpperCase() == upperCulture) {
-                    localizedResourceFile = path.join(localizedResourceFile, cultures[i], 'resources.resjson');
-                    if (exist(localizedResourceFile)) {
-                        locResourceJson = _loadResJson(localizedResourceFile);
-                    }
-
-                    break;
-                }
-            }
-
-            for (var key in resourceJson.messages) {
-                if (locResourceJson && locResourceJson.hasOwnProperty('loc.messages.' + key)) {
-                    locStrings[key] = locResourceJson['loc.messages.' + key];
-                }
-                else {
-                    locStrings[key] = resourceJson.messages[key];
-                }
-            }
-        }
-    }
-    else {
-        warning(loc('LIB_ResourceFileNotExist', resourceFile));
-    }
-
-    return locStrings;
-}
-
-/**
- * Sets the location of the resources json.  This is typically the task.json file.
- * Call once at the beginning of the script before any calls to loc.
- * 
- * @param     path      Full path to the json.
- * @returns   void
- */
-export function setResourcePath(path: string): void {
-    if (process.env['TASKLIB_INPROC_UNITS']) {
-        _resourceFile = null;
-        _libResourceFileLoaded = false;
-        _locStringCache = {};
-        _resourceCulture = 'en-US';
-    }
-
-    if (!_resourceFile) {
-        checkPath(path, 'resource file path');
-        _resourceFile = path;
-        debug('set resource file to: ' + _resourceFile);
-
-        _resourceCulture = getVariable('system.culture') || _resourceCulture;
-        var locStrs = _loadLocStrings(_resourceFile, _resourceCulture);
-        for (var key in locStrs) {
-            //cache loc string
-            _locStringCache[key] = locStrs[key];
-        }
-
-    }
-    else {
-        warning(loc('LIB_ResourceFileAlreadySet', _resourceFile));
-    }
-}
-
-/**
- * Gets the localized string from the json resource file.  Optionally formats with additional params.
- * 
- * @param     key      key of the resources string in the resource file
- * @param     param    additional params for formatting the string
- * @returns   string
- */
-export function loc(key: string, ...param: any[]): string {
-    if (!_libResourceFileLoaded) {
-        // merge loc strings from vsts-task-lib.
-        var libResourceFile = path.join(__dirname, 'lib.json');
-        var libLocStrs = _loadLocStrings(libResourceFile, _resourceCulture);
-        for (var libKey in libLocStrs) {
-            //cache vsts-task-lib loc string
-            _locStringCache[libKey] = libLocStrs[libKey];
-        }
-
-        _libResourceFileLoaded = true;
-    }
-
-    var locString;;
-    if (_locStringCache.hasOwnProperty(key)) {
-        locString = _locStringCache[key];
-    }
-    else {
-        if (!_resourceFile) {
-            warning(loc('LIB_ResourceFileNotSet', key));
-        }
-        else {
-            warning(loc('LIB_LocStringNotFound', key));
-        }
-
-        locString = key;
-    }
-
-    if (param.length > 0) {
-        return util.format.apply(this, [locString].concat(param));
-    }
-    else {
-        return locString;
-    }
-}
+export const setResourcePath = im._setResourcePath;
+export const loc = im._loc;
 
 //-----------------------------------------------------
 // Input Helpers
 //-----------------------------------------------------
-/**
- * Gets a variable value that is defined on the build/release definition or set at runtime.
- * 
- * @param     name     name of the variable to get
- * @returns   string
- */
-export function getVariable(name: string): string {
-    let varval: string;
 
-    // get the metadata
-    let info: _KnownVariableInfo;
-    let key: string = _getVariableKey(name);
-    if (_knownVariableMap.hasOwnProperty(key)) {
-        info = _knownVariableMap[key];
-    }
-
-    if (info && info.secret) {
-        // get the secret value
-        varval = _vault.retrieveSecret('SECRET_' + key);
-    }
-    else {
-        // get the public value
-        varval = process.env[key];
-
-        // fallback for pre 2.104.1 agent
-        if (!varval && name.toUpperCase() == 'AGENT.JOBSTATUS') {
-            varval = process.env['agent.jobstatus'];
-        }
-    }
-
-    debug(name + '=' + varval);
-    return varval;
-}
+export const getVariable = im._getVariable;
 
 /**
  * Asserts the agent version is at least the specified minimum.
@@ -323,9 +102,9 @@ export function assertAgent(minimum: string): void {
  * @returns VariableInfo[]
  */
 export function getVariables(): VariableInfo[] {
-    return Object.keys(_knownVariableMap)
+    return Object.keys(im._knownVariableMap)
         .map((key: string) => {
-            let info: _KnownVariableInfo = _knownVariableMap[key];
+            let info: im._KnownVariableInfo = im._knownVariableMap[key];
             return <VariableInfo>{ name: info.name, value: getVariable(info.name), secret: info.secret };
         });
 }
@@ -340,44 +119,26 @@ export function getVariables(): VariableInfo[] {
  */
 export function setVariable(name: string, val: string, secret: boolean = false): void {
     // once a secret always a secret
-    let key: string = _getVariableKey(name);
-    if (_knownVariableMap.hasOwnProperty(key)) {
-        secret = secret || _knownVariableMap[key].secret;
+    let key: string = im._getVariableKey(name);
+    if (im._knownVariableMap.hasOwnProperty(key)) {
+        secret = secret || im._knownVariableMap[key].secret;
     }
 
     // store the value
     let varValue = val || '';
     debug('set ' + name + '=' + (secret && varValue ? '********' : varValue));
     if (secret) {
-        _vault.storeSecret('SECRET_' + key, varValue);
+        im._vault.storeSecret('SECRET_' + key, varValue);
         delete process.env[key];
     } else {
         process.env[key] = varValue;
     }
 
     // store the metadata
-    _knownVariableMap[key] = <_KnownVariableInfo>{ name: name, secret: secret };
+    im._knownVariableMap[key] = <im._KnownVariableInfo>{ name: name, secret: secret };
 
     // write the command
     command('task.setvariable', { 'variable': name || '', 'issecret': (secret || false).toString() }, varValue);
-}
-
-function _getVariableKey(name: string): string {
-    if (!name) {
-        throw new Error(loc('LIB_ParameterIsRequired', 'name'));
-    }
-
-    return name.replace(/\./g, '_').replace(/ /g, '_').toUpperCase();
-}
-
-/**
- * Used to store the following information about job variables:
- *  1) the real variable name (not the formatted environment variable name)
- *  2) whether the variable is a secret variable
- */
-interface _KnownVariableInfo {
-    name: string;
-    secret: boolean;
 }
 
 /** Snapshot of a variable at the time when getVariables was called. */
@@ -396,7 +157,7 @@ export interface VariableInfo {
  * @returns   string
  */
 export function getInput(name: string, required?: boolean): string {
-    var inval = _vault.retrieveSecret('INPUT_' + name.replace(' ', '_').toUpperCase());
+    var inval = im._vault.retrieveSecret('INPUT_' + name.replace(' ', '_').toUpperCase());
     if (inval) {
         inval = inval.trim();
     }
@@ -461,7 +222,7 @@ export function getDelimitedInput(name: string, delim: string, required?: boolea
 export function filePathSupplied(name: string): boolean {
     // normalize paths
     var pathValue = this.resolve(this.getPathInput(name) || '');
-    var repoRoot = this.resolve(this.getVariable('build.sourcesDirectory') || this.getVariable('system.defaultWorkingDirectory') || '');
+    var repoRoot = this.resolve(getVariable('build.sourcesDirectory') || getVariable('system.defaultWorkingDirectory') || '');
 
     var supplied = pathValue !== repoRoot;
     debug(name + 'path supplied :' + supplied);
@@ -542,7 +303,7 @@ export function getEndpointDataParameter(id: string, key: string, optional: bool
  * @returns {string} value of the endpoint authorization scheme
  */
 export function getEndpointAuthorizationScheme(id: string, optional: boolean): string {
-    var authScheme = _vault.retrieveSecret('ENDPOINT_AUTH_SCHEME_' + id);
+    var authScheme = im._vault.retrieveSecret('ENDPOINT_AUTH_SCHEME_' + id);
 
     if (!optional && !authScheme) {
         throw new Error(loc('LIB_EndpointAuthNotExist', id));
@@ -562,7 +323,7 @@ export function getEndpointAuthorizationScheme(id: string, optional: boolean): s
  * @returns {string} value of the endpoint authorization parameter value
  */
 export function getEndpointAuthorizationParameter(id: string, key: string, optional: boolean): string {
-    var authParam = _vault.retrieveSecret('ENDPOINT_AUTH_PARAMETER_' + id + '_' + key.toUpperCase());
+    var authParam = im._vault.retrieveSecret('ENDPOINT_AUTH_PARAMETER_' + id + '_' + key.toUpperCase());
 
     if (!optional && !authParam) {
         throw new Error(loc('LIB_EndpointAuthNotExist', id));
@@ -594,7 +355,7 @@ export interface EndpointAuthorization {
  * @returns   string
  */
 export function getEndpointAuthorization(id: string, optional: boolean): EndpointAuthorization {
-    var aval = _vault.retrieveSecret('ENDPOINT_AUTH_' + id);
+    var aval = im._vault.retrieveSecret('ENDPOINT_AUTH_' + id);
 
     if (!optional && !aval) {
         setResult(TaskResult.Failed, loc('LIB_EndpointAuthNotExist', id));
@@ -638,7 +399,7 @@ export function getSecureFileName(id: string): string {
   * @returns {string} secure file ticket
   */
 export function getSecureFileTicket(id: string): string {
-    var ticket = _vault.retrieveSecret('SECUREFILE_TICKET_' + id);
+    var ticket = im._vault.retrieveSecret('SECUREFILE_TICKET_' + id);
 
     debug('secure file ticket for id ' + id + ' = ' + ticket);
     return ticket;
@@ -656,7 +417,7 @@ export function getSecureFileTicket(id: string): string {
  */
 export function getTaskVariable(name: string): string {
     assertAgent('2.115.0');
-    var inval = _vault.retrieveSecret('VSTS_TASKVARIABLE_' + name.replace(' ', '_').toUpperCase());
+    var inval = im._vault.retrieveSecret('VSTS_TASKVARIABLE_' + name.replace(' ', '_').toUpperCase());
     if (inval) {
         inval = inval.trim();
     }
@@ -676,12 +437,12 @@ export function getTaskVariable(name: string): string {
  */
 export function setTaskVariable(name: string, val: string, secret: boolean = false): void {
     assertAgent('2.115.0');
-    let key: string = _getVariableKey(name);
+    let key: string = im._getVariableKey(name);
 
     // store the value
     let varValue = val || '';
     debug('set task variable: ' + name + '=' + (secret && varValue ? '********' : varValue));
-    _vault.storeSecret('VSTS_TASKVARIABLE_' + key, varValue);
+    im._vault.storeSecret('VSTS_TASKVARIABLE_' + key, varValue);
     delete process.env[key];
 
     // write the command
@@ -691,22 +452,11 @@ export function setTaskVariable(name: string, val: string, secret: boolean = fal
 //-----------------------------------------------------
 // Cmd Helpers
 //-----------------------------------------------------
-export function command(command: string, properties, message: string) {
-    var taskCmd = new tcm.TaskCommand(command, properties, message);
-    _writeLine(taskCmd.toString());
-}
 
-export function warning(message: string): void {
-    command('task.issue', { 'type': 'warning' }, message);
-}
-
-export function error(message: string): void {
-    command('task.issue', { 'type': 'error' }, message);
-}
-
-export function debug(message: string): void {
-    command('task.debug', null, message);
-}
+export const command = im._command;
+export const warning = im._warning;
+export const error = im._error;
+export const debug = im._debug;
 
 //-----------------------------------------------------
 // Disk Functions
@@ -741,25 +491,7 @@ export function stats(path: string): FsStats {
     return fs.statSync(path);
 }
 
-/**
- * Returns whether a path exists.
- * 
- * @param     path      path to check
- * @returns   boolean 
- */
-export function exist(path: string): boolean {
-    var exist = false;
-    try {
-        exist = path && fs.statSync(path) != null;
-    } catch (err) {
-        if (err && err.code === 'ENOENT') {
-            exist = false;
-        } else {
-            throw err;
-        }
-    }
-    return exist;
-}
+export const exist = im._exist;
 
 export interface FsOptions {
     encoding?: string;
@@ -791,20 +523,7 @@ export function cwd(): string {
     return process.cwd();
 }
 
-/**
- * Checks whether a path exists.
- * If the path does not exist, it will throw.
- * 
- * @param     p         path to check
- * @param     name      name only used in error message to identify the path
- * @returns   void
- */
-export function checkPath(p: string, name: string): void {
-    debug('check path : ' + p);
-    if (!exist(p)) {
-        throw new Error(loc('LIB_PathNotFound', name, p));
-    }
-}
+export const checkPath = im._checkPath;
 
 /**
  * Change working directory.
@@ -922,178 +641,7 @@ export function resolve(...pathSegments: any[]): string {
     return absolutePath;
 }
 
-/**
- * Returns path of a tool had the tool actually been invoked.  Resolves via paths.
- * If you check and the tool does not exist, it will throw.
- * 
- * @param     tool       name of the tool
- * @param     check      whether to check if tool exists
- * @returns   string
- */
-export function which(tool: string, check?: boolean): string {
-    if (!tool) {
-        throw new Error('parameter \'tool\' is required');
-    }
-
-    // recursive when check=true
-    if (check) {
-        let result: string = which(tool, false);
-        if (!result) {
-            if (process.platform == 'win32') {
-                throw new Error(loc('LIB_WhichNotFound_Win', tool));
-            }
-            else {
-                throw new Error(loc('LIB_WhichNotFound_Linux', tool));
-            }
-        }
-    }
-
-    debug(`which '${tool}'`);
-    try {
-        // build the list of extensions to try
-        let extensions: string[] = [];
-        if (process.platform == 'win32' && process.env['PATHEXT']) {
-            for (let extension of process.env['PATHEXT'].split(path.delimiter)) {
-                if (extension) {
-                    extensions.push(extension);
-                }
-            }
-        }
-
-        // if it's rooted, return it if exists. otherwise return empty.
-        if (_isRooted(tool)) {
-            let filePath: string = _tryGetExecutablePath(tool, extensions);
-            if (filePath) {
-                debug(`found: '${filePath}'`);
-                return filePath;
-            }
-
-            debug('not found');
-            return '';
-        }
-
-        // if any path separators, return empty
-        if (tool.indexOf('/') >= 0 || (process.platform == 'win32' && tool.indexOf('\\') >= 0)) {
-            debug('not found');
-            return '';
-        }
-
-        // build the list of directories
-        //
-        // Note, technically "where" checks the current directory on Windows. From a task lib perspective,
-        // it feels like we should not do this. Checking the current directory seems like more of a use
-        // case of a shell, and the which() function exposed by the task lib should strive for consistency
-        // across platforms.
-        let directories: string[] = [ ];
-        if (process.env['PATH']) {
-            for (let p of process.env['PATH'].split(path.delimiter)) {
-                if (p) {
-                    directories.push(p);
-                }
-            }
-        }
-
-        // return the first match
-        for (let directory of directories) {
-            let filePath = _tryGetExecutablePath(directory + path.sep + tool, extensions);
-            if (filePath) {
-                debug(`found: '${filePath}'`);
-                return filePath;
-            }
-        }
-
-        debug('not found');
-        return '';
-    }
-    catch (err) {
-        throw new Error(loc('LIB_OperationFailed', 'which', err.message));
-    }
-}
-
-/**
- * Best effort attempt to determine whether a file exists and is executable.
- * @param filePath    file path to check
- * @param extensions  additional file extensions to try
- * @return if file exists and is executable, returns the file path. otherwise empty string.
- */
-function _tryGetExecutablePath(filePath: string, extensions: string[]): string {
-    try {
-        // test file exists
-        let stats: fs.Stats = fs.statSync(filePath);
-        if (stats.isFile()) {
-            if (process.platform == 'win32') {
-                // on Windows, test for valid extension
-                let isExecutable = false;
-                let fileName = path.basename(filePath);
-                let dotIndex = fileName.lastIndexOf('.');
-                if (dotIndex >= 0) {
-                    let upperExt = fileName.substr(dotIndex).toUpperCase();
-                    if (extensions.some(validExt => validExt.toUpperCase() == upperExt)) {
-                        return filePath;
-                    }
-                }
-            }
-            else {
-                // on Mac/Linux, test the execute bit
-                //     R   W  X  R  W X R W X
-                //   256 128 64 32 16 8 4 2 1
-                if ((stats.mode & 1) == 1) {
-                    return filePath;
-                }
-            }
-        }
-    }
-    catch (err) {
-        if (err.code != 'ENOENT') {
-            debug(`Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`);
-        }
-    }
-
-    // try each extension
-    let originalFilePath = filePath;
-    for (let extension of extensions) {
-        let found = false;
-        let filePath = originalFilePath + extension;
-        try {
-            let stats: fs.Stats = fs.statSync(filePath);
-            if (stats.isFile()) {
-                if (process.platform == 'win32') {
-                    // preserve the case of the actual file (since an extension was appended)
-                    try {
-                        let directory = path.dirname(filePath);
-                        let upperName = path.basename(filePath).toUpperCase();
-                        for (let actualName of fs.readdirSync(directory)) {
-                            if (upperName == actualName.toUpperCase()) {
-                                filePath = path.join(directory, actualName);
-                                break;
-                            }
-                        }
-                    }
-                    catch (err) {
-                        debug(`Unexpected error attempting to determine the actual case of the file '${filePath}': ${err}`);
-                    }
-
-                    return filePath;
-                }
-                else {
-                    // on Mac/Linux, test the execute bit
-                    //     R   W  X  R  W X R W X
-                    //   256 128 64 32 16 8 4 2 1
-                    if ((stats.mode & 1) == 1) {
-                        return filePath;
-                    }
-                }
-            }
-        }
-        catch (err) {
-            if (err.code != 'ENOENT') {
-                debug(`Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`);
-            }
-        }
-    }
-
-    return '';
-}
+export const which = im._which;
 
 /**
  * Returns array of files in the given path, or in current directory if no path provided.  See shelljs.ls
@@ -1339,11 +887,11 @@ export function legacyFindFiles(
         // include patterns start with +: or anything other than -:
         // exclude patterns start with -:
         let isIncludePattern: boolean;
-        if (_startsWith(pat, '+:')) {
+        if (im._startsWith(pat, '+:')) {
             pat = pat.substring(2);
             isIncludePattern = true;
         }
-        else if (_startsWith(pat, '-:')) {
+        else if (im._startsWith(pat, '-:')) {
             pat = pat.substring(2);
             isIncludePattern = false;
         }
@@ -1352,7 +900,7 @@ export function legacyFindFiles(
         }
 
         // validate pattern does not end with a slash
-        if (_endsWith(pat, '/') || (process.platform == 'win32' && _endsWith(pat, '\\'))) {
+        if (im._endsWith(pat, '/') || (process.platform == 'win32' && im._endsWith(pat, '\\'))) {
             throw new Error(loc('LIB_InvalidPattern', pat));
         }
 
@@ -1363,7 +911,7 @@ export function legacyFindFiles(
             // remove trailing slash sometimes added by path.join() on Windows, e.g.
             //      path.join('\\\\hello', 'world') => '\\\\hello\\world\\'
             //      path.join('//hello', 'world') => '\\\\hello\\world\\'
-            if (_endsWith(pat, '\\')) {
+            if (im._endsWith(pat, '\\')) {
                 pat = pat.substring(0, pat.length - 1);
             }
         }
@@ -1372,7 +920,7 @@ export function legacyFindFiles(
             includePatterns.push(pat);
         }
         else {
-            excludePatterns.push(_legacyFindFiles_convertPatternToRegExp(pat));
+            excludePatterns.push(im._legacyFindFiles_convertPatternToRegExp(pat));
         }
     }
 
@@ -1388,18 +936,6 @@ export function legacyFindFiles(
     return result;
 }
 
-function _legacyFindFiles_convertPatternToRegExp(pattern: string): RegExp {
-    pattern = (process.platform == 'win32' ? pattern.replace(/\\/g, '/') : pattern) // normalize separator on Windows
-        .replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') // regex escape - from http://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
-        .replace(/\\\/\\\*\\\*\\\//g, '((\/.+/)|(\/))') // replace directory globstar, e.g. /hello/**/world
-        .replace(/\\\*\\\*/g, '.*') // replace remaining globstars with a wildcard that can span directory separators, e.g. /hello/**dll
-        .replace(/\\\*/g, '[^\/]*') // replace asterisks with a wildcard that cannot span directory separators, e.g. /hello/*.dll
-        .replace(/\\\?/g, '[^\/]') // replace single character wildcards, e.g. /hello/log?.dll
-    pattern = `^${pattern}$`;
-    let flags = process.platform == 'win32' ? 'i' : '';
-    return new RegExp(pattern, flags);
-}
-_internal._legacyFindFiles_convertPatternToRegExp = _legacyFindFiles_convertPatternToRegExp; // for unit testing
 
 function _legacyFindFiles_getMatchingItems(
     includePatterns: string[],
@@ -1431,14 +967,14 @@ function _legacyFindFiles_getMatchingItems(
             // if no wildcards are found, use the directory name portion of the path.
             // if there is no directory name (file name only in pattern or drive root),
             // this will return empty string.
-            findPath = _getDirectoryName(pattern);
+            findPath = im._getDirectoryName(pattern);
         }
         else {
             // extract the directory prior to the first wildcard
             let index = Math.min(
                 starIndex >= 0 ? starIndex : questionIndex,
                 questionIndex >= 0 ? questionIndex : starIndex);
-            findPath = _getDirectoryName(pattern.substring(0, index));
+            findPath = im._getDirectoryName(pattern.substring(0, index));
         }
 
         // note, due to this short-circuit and the above usage of getDirectoryName, this
@@ -1451,7 +987,7 @@ function _legacyFindFiles_getMatchingItems(
             continue;
         }
 
-        let patternRegex: RegExp = _legacyFindFiles_convertPatternToRegExp(pattern);
+        let patternRegex: RegExp = im._legacyFindFiles_convertPatternToRegExp(pattern);
 
         // find files/directories
         let items = find(findPath, <FindOptions>{ followSymbolicLinks: true })
@@ -1550,8 +1086,7 @@ export function rmRF(path: string): void {
  * @returns   number
  */
 export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Promise<number> {
-    var toolPath = which(tool, true);
-    var tr: trm.ToolRunner = this.tool(toolPath);
+    let tr: trm.ToolRunner = this.tool(tool);
     tr.on('debug', (data) => {
         debug(data);
     });
@@ -1579,8 +1114,7 @@ export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Pro
  * @returns   IExecSyncResult
  */
 export function execSync(tool: string, args: string | string[], options?: trm.IExecSyncOptions): trm.IExecSyncResult {
-    var toolPath = which(tool, true);
-    var tr: trm.ToolRunner = this.tool(toolPath);
+    let tr: trm.ToolRunner = this.tool(tool);
     tr.on('debug', (data) => {
         debug(data);
     });
@@ -1604,7 +1138,7 @@ export function execSync(tool: string, args: string | string[], options?: trm.IE
  * @returns   ToolRunner
  */
 export function tool(tool: string) {
-    var tr: trm.ToolRunner = new trm.ToolRunner(tool);
+    let tr: trm.ToolRunner = new trm.ToolRunner(tool);
     tr.on('debug', (message: string) => {
         debug(message);
     })
@@ -1615,19 +1149,8 @@ export function tool(tool: string) {
 //-----------------------------------------------------
 // Matching helpers
 //-----------------------------------------------------
-// redefine to avoid folks having to typings install minimatch
-export interface MatchOptions {
-    debug?: boolean;
-    nobrace?: boolean;
-    noglobstar?: boolean;
-    dot?: boolean;
-    noext?: boolean;
-    nocase?: boolean;
-    nonull?: boolean;
-    matchBase?: boolean;
-    nocomment?: boolean;
-    nonegate?: boolean;
-    flipNegate?: boolean;
+
+export interface MatchOptions extends im._MatchOptions {
 }
 
 /**
@@ -1667,7 +1190,7 @@ export function match(list: string[], patterns: string[] | string, patternRoot?:
         let options = _cloneMatchOptions(originalOptions);
 
         // skip comments
-        if (!options.nocomment && _startsWith(pattern, '#')) {
+        if (!options.nocomment && im._startsWith(pattern, '#')) {
             debug('skipping comment');
             continue;
         }
@@ -1727,11 +1250,11 @@ export function match(list: string[], patterns: string[] | string, patternRoot?:
 
             // root the pattern when all of the following conditions are true:
             if (patternRoot &&          // patternRoot supplied
-                !_isRooted(pattern) &&  // AND pattern not rooted
+                !im._isRooted(pattern) &&  // AND pattern not rooted
                 // AND matchBase:false or not basename only
                 (!options.matchBase || (process.platform == 'win32' ? pattern.replace(/\\/g, '/') : pattern).indexOf('/') >= 0)) {
 
-                pattern = _ensureRooted(patternRoot, pattern);
+                pattern = im._ensureRooted(patternRoot, pattern);
                 debug(`rooted pattern: '${pattern}'`);
             }
 
@@ -1847,7 +1370,7 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
     _debugMatchOptions(matchOptions);
 
     // normalize slashes for root dir
-    defaultRoot = _normalizeSeparators(defaultRoot);
+    defaultRoot = im._normalizeSeparators(defaultRoot);
 
     let results: { [key: string]: string } = {};
     let originalMatchOptions = matchOptions;
@@ -1865,7 +1388,7 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
         let matchOptions = _cloneMatchOptions(originalMatchOptions);
 
         // skip comments
-        if (!matchOptions.nocomment && _startsWith(pattern, '#')) {
+        if (!matchOptions.nocomment && im._startsWith(pattern, '#')) {
             debug('skipping comment');
             continue;
         }
@@ -1925,7 +1448,7 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
 
             if (isIncludePattern) {
                 // determine the findPath
-                let findInfo: _PatternFindInfo = _getFindInfoFromPattern(defaultRoot, pattern, matchOptions);
+                let findInfo: im._PatternFindInfo = im._getFindInfoFromPattern(defaultRoot, pattern, matchOptions);
                 let findPath: string = findInfo.findPath;
                 debug(`findPath: '${findPath}'`);
 
@@ -1976,7 +1499,7 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
             else {
                 // check if basename only and matchBase=true
                 if (matchOptions.matchBase &&
-                    !_isRooted(pattern) &&
+                    !im._isRooted(pattern) &&
                     (process.platform == 'win32' ? pattern.replace(/\\/g, '/') : pattern).indexOf('/') < 0) {
 
                     // do not root the pattern
@@ -1984,7 +1507,7 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
                 }
                 else {
                     // root the exclude pattern
-                    pattern = _ensurePatternRooted(defaultRoot, pattern);
+                    pattern = im._ensurePatternRooted(defaultRoot, pattern);
                     debug(`after ensurePatternRooted, pattern: '${pattern}'`);
                 }
 
@@ -2011,141 +1534,6 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
     debug(finalResult.length + ' final results');
     return finalResult;
 }
-
-interface _PatternFindInfo {
-    /** Adjusted pattern to use. Unrooted patterns are typically rooted using the default info, although this is not true for match-base scenarios. */
-    adjustedPattern: string,
-
-    /** Path interpreted from the pattern to call find() on. */
-    findPath: string,
-
-    /** Indicates whether to call stat() or find(). When all path segemnts in the pattern are literal, there is no need to call find(). */
-    statOnly: boolean,
-}
-
-function _getFindInfoFromPattern(defaultRoot: string, pattern: string, matchOptions: MatchOptions): _PatternFindInfo {
-    // parameter validation
-    if (!defaultRoot) {
-        throw new Error('getFindRootFromPattern() parameter defaultRoot cannot be empty');
-    }
-
-    if (!pattern) {
-        throw new Error('getFindRootFromPattern() parameter pattern cannot be empty');
-    }
-
-    if (!matchOptions.nobrace) {
-        throw new Error('getFindRootFromPattern() expected matchOptions.nobrace to be true');
-    }
-
-    // for the sake of determining the findPath, pretend nocase=false
-    matchOptions = _cloneMatchOptions(matchOptions);
-    matchOptions.nocase = false;
-
-    // check if basename only and matchBase=true
-    if (matchOptions.matchBase &&
-        !_isRooted(pattern) &&
-        (process.platform == 'win32' ? pattern.replace(/\\/g, '/') : pattern).indexOf('/') < 0) {
-
-        return <_PatternFindInfo>{
-            adjustedPattern: pattern, // for basename only scenarios, do not root the pattern
-            findPath: defaultRoot,
-            statOnly: false,
-        };
-    }
-
-    // the technique applied by this function is to use the information on the Minimatch object determine
-    // the findPath. Minimatch breaks the pattern into path segments, and exposes information about which
-    // segments are literal vs patterns.
-    //
-    // note, the technique currently imposes a limitation for drive-relative paths with a glob in the
-    // first segment, e.g. C:hello*/world. it's feasible to overcome this limitation, but is left unsolved
-    // for now.
-    let minimatchObj = new minimatch.Minimatch(pattern, matchOptions);
-
-    // the "set" property is an array of arrays of parsed path segment info. the outer array should only
-    // contain one item, otherwise something went wrong. brace expansion can result in multiple arrays,
-    // but that should be turned off by the time this function is reached.
-    if (minimatchObj.set.length != 1) {
-        throw new Error('getFindRootFromPattern() expected Minimatch(...).set.length to be 1. Actual: ' + minimatchObj.set.length);
-    }
-
-    let literalSegments: string[] = [];
-    for (let parsedSegment of minimatchObj.set[0]) {
-        if (typeof parsedSegment == 'string') {
-            // the item is a string when the original input for the path segment does not contain any
-            // unescaped glob characters.
-            //
-            // note, the string here is already unescaped (i.e. glob escaping removed), so it is ready
-            // to pass to find() as-is. for example, an input string 'hello\\*world' => 'hello*world'.
-            literalSegments.push(parsedSegment);
-            continue;
-        }
-
-        break;
-    }
-
-    // join the literal segments back together. Minimatch converts '\' to '/' on Windows, then squashes
-    // consequetive slashes, and finally splits on slash. this means that UNC format is lost, but can
-    // be detected from the original pattern.
-    let joinedSegments = literalSegments.join('/');
-    if (joinedSegments && process.platform == 'win32' && _startsWith(pattern.replace(/\\/g, '/'), '//')) {
-        joinedSegments = '/' + joinedSegments; // restore UNC format
-    }
-
-    // determine the find path
-    let findPath: string;
-    if (_isRooted(pattern)) { // the pattern was rooted
-        findPath = joinedSegments;
-    }
-    else if (joinedSegments) { // the pattern was not rooted, and literal segments were found
-        findPath = _ensureRooted(defaultRoot, joinedSegments);
-    }
-    else { // the pattern was not rooted, and no literal segments were found
-        findPath = defaultRoot;
-    }
-
-    // clean up the path
-    if (findPath) {
-        findPath = _getDirectoryName(_ensureRooted(findPath, '_')); // hack to remove unnecessary trailing slash
-        findPath = _normalizeSeparators(findPath); // normalize slashes
-    }
-
-    return <_PatternFindInfo>{
-        adjustedPattern: _ensurePatternRooted(defaultRoot, pattern),
-        findPath: findPath,
-        statOnly: literalSegments.length == minimatchObj.set[0].length,
-    };
-}
-_internal._getFindInfoFromPattern = _getFindInfoFromPattern;
-
-function _ensurePatternRooted(root: string, p: string) {
-    if (!root) {
-        throw new Error('ensurePatternRooted() parameter "root" cannot be empty');
-    }
-
-    if (!p) {
-        throw new Error('ensurePatternRooted() parameter "p" cannot be empty');
-    }
-
-    if (_isRooted(p)) {
-        return p;
-    }
-
-    // normalize root
-    root = _normalizeSeparators(root);
-
-    // escape special glob characters
-    root = (process.platform == 'win32' ? root : root.replace(/\\/g, '\\\\')) // escape '\' on OSX/Linux
-        .replace(/(\[)(?=[^\/]+\])/g, '[[]') // escape '[' when ']' follows within the path segment
-        .replace(/\?/g, '[?]') // escape '?'
-        .replace(/\*/g, '[*]') // escape '*'
-        .replace(/\+\(/g, '[+](') // escape '+('
-        .replace(/@\(/g, '[@](') // escape '@('
-        .replace(/!\(/g, '[!]('); // escape '!('
-
-    return _ensureRooted(root, p);
-}
-_internal._ensurePatternRooted = _ensurePatternRooted;
 
 //-----------------------------------------------------
 // Test Publisher
@@ -2259,244 +1647,7 @@ if (semver.lt(process.versions.node, '4.2.0')) {
 // Populate the vault with sensitive data.  Inputs and Endpoints
 //-------------------------------------------------------------------
 
-// only exposed as a function so unit tests can reload vault for each test.
-// in prod, it's called globally below so user does not need to call
-
-function _loadData(): void {
-    // in agent, workFolder is set.
-    // In interactive dev mode, it won't be
-    let keyPath: string = getVariable("agent.workFolder") || process.cwd();
-    _vault = new vm.Vault(keyPath);
-    _knownVariableMap = {};
-    debug('loading inputs and endpoints');
-    let loaded: number = 0;
-    for (let envvar in process.env) {
-        if (_startsWith(envvar, 'INPUT_') ||
-            _startsWith(envvar, 'ENDPOINT_AUTH_') ||
-            _startsWith(envvar, 'SECUREFILE_TICKET_') ||
-            _startsWith(envvar, 'SECRET_') ||
-            _startsWith(envvar, 'VSTS_TASKVARIABLE_')) {
-
-            // Record the secret variable metadata. This is required by getVariable to know whether
-            // to retrieve the value from the vault. In a 2.104.1 agent or higher, this metadata will
-            // be overwritten when the VSTS_SECRET_VARIABLES env var is processed below.
-            if (_startsWith(envvar, 'SECRET_')) {
-                let variableName: string = envvar.substring('SECRET_'.length);
-                if (variableName) {
-                    // This is technically not the variable name (has underscores instead of dots),
-                    // but it's good enough to make getVariable work in a pre-2.104.1 agent where
-                    // the VSTS_SECRET_VARIABLES env var is not defined.
-                    _knownVariableMap[_getVariableKey(variableName)] = <_KnownVariableInfo>{ name: variableName, secret: true };
-                }
-            }
-
-            // store the secret
-            if (process.env[envvar]) {
-                ++loaded;
-                debug('loading ' + envvar);
-                _vault.storeSecret(envvar, process.env[envvar]);
-                delete process.env[envvar];
-            }
-        }
-    }
-    debug('loaded ' + loaded);
-
-    // store public variable metadata
-    let names: string[];
-    try {
-        names = JSON.parse(process.env['VSTS_PUBLIC_VARIABLES'] || '[]');
-    }
-    catch (err) {
-        throw new Error('Failed to parse VSTS_PUBLIC_VARIABLES as JSON. ' + err); // may occur during interactive testing
-    }
-
-    names.forEach((name: string) => {
-        _knownVariableMap[_getVariableKey(name)] = <_KnownVariableInfo>{ name: name, secret: false };
-    });
-    delete process.env['VSTS_PUBLIC_VARIABLES'];
-
-    // store secret variable metadata
-    try {
-        names = JSON.parse(process.env['VSTS_SECRET_VARIABLES'] || '[]');
-    }
-    catch (err) {
-        throw new Error('Failed to parse VSTS_SECRET_VARIABLES as JSON. ' + err); // may occur during interactive testing
-    }
-
-    names.forEach((name: string) => {
-        _knownVariableMap[_getVariableKey(name)] = <_KnownVariableInfo>{ name: name, secret: true };
-    });
-    delete process.env['VSTS_SECRET_VARIABLES'];
-
-    // avoid loading twice (overwrites .taskkey)
-    global['_vsts_task_lib_loaded'] = true;
-}
-_internal._loadData = _loadData;
-
 // avoid loading twice (overwrites .taskkey)
 if (!global['_vsts_task_lib_loaded']) {
-    _loadData();
+    im._loadData();
 }
-
-//--------------------------------------------------------------------------------
-// Internal path helpers.
-//--------------------------------------------------------------------------------
-function _ensureRooted(root: string, p: string) {
-    if (!root) {
-        throw new Error('ensureRooted() parameter "root" cannot be empty');
-    }
-
-    if (!p) {
-        throw new Error('ensureRooted() parameter "p" cannot be empty');
-    }
-
-    if (_isRooted(p)) {
-        return p;
-    }
-
-    if (process.platform == 'win32' && root.match(/^[A-Z]:$/i)) { // e.g. C:
-        return root + p;
-    }
-
-    // ensure root ends with a separator
-    if (_endsWith(root, '/') || (process.platform == 'win32' && _endsWith(root, '\\'))) {
-        // root already ends with a separator
-    }
-    else {
-        root += path.sep; // append separator
-    }
-
-    return root + p;
-}
-_internal._ensureRooted = _ensureRooted;
-
-/**
- * Determines the parent path and trims trailing slashes (when safe). Path separators are normalized
- * in the result. This function works similar to the .NET System.IO.Path.GetDirectoryName() method.
- * For example, C:\hello\world\ returns C:\hello\world (trailing slash removed). Returns empty when
- * no higher directory can be determined.
- */
-function _getDirectoryName(p: string): string {
-    // short-circuit if empty
-    if (!p) {
-        return '';
-    }
-
-    // normalize separators
-    p = _normalizeSeparators(p);
-
-    // on Windows, the goal of this function is to match the behavior of
-    // [System.IO.Path]::GetDirectoryName(), e.g.
-    //      C:/             =>
-    //      C:/hello        => C:\
-    //      C:/hello/       => C:\hello
-    //      C:/hello/world  => C:\hello
-    //      C:/hello/world/ => C:\hello\world
-    //      C:              =>
-    //      C:hello         => C:
-    //      C:hello/        => C:hello
-    //      /               =>
-    //      /hello          => \
-    //      /hello/         => \hello
-    //      //hello         =>
-    //      //hello/        =>
-    //      //hello/world   =>
-    //      //hello/world/  => \\hello\world
-    //
-    // unfortunately, path.dirname() can't simply be used. for example, on Windows
-    // it yields different results from Path.GetDirectoryName:
-    //      C:/             => C:/
-    //      C:/hello        => C:/
-    //      C:/hello/       => C:/
-    //      C:/hello/world  => C:/hello
-    //      C:/hello/world/ => C:/hello
-    //      C:              => C:
-    //      C:hello         => C:
-    //      C:hello/        => C:
-    //      /               => /
-    //      /hello          => /
-    //      /hello/         => /
-    //      //hello         => /
-    //      //hello/        => /
-    //      //hello/world   => //hello/world
-    //      //hello/world/  => //hello/world/
-    //      //hello/world/again => //hello/world/
-    //      //hello/world/again/ => //hello/world/
-    //      //hello/world/again/again => //hello/world/again
-    //      //hello/world/again/again/ => //hello/world/again
-    if (process.platform == 'win32') {
-        if (/^[A-Z]:\\?[^\\]+$/i.test(p)) { // e.g. C:\hello or C:hello
-            return p.charAt(2) == '\\' ? p.substring(0, 3) : p.substring(0, 2);
-        }
-        else if (/^[A-Z]:\\?$/i.test(p)) { // e.g. C:\ or C:
-            return '';
-        }
-
-        let lastSlashIndex = p.lastIndexOf('\\');
-        if (lastSlashIndex < 0) { // file name only
-            return '';
-        }
-        else if (p == '\\') { // relative root
-            return '';
-        }
-        else if (lastSlashIndex == 0) { // e.g. \\hello
-            return '\\';
-        }
-        else if (/^\\\\[^\\]+(\\[^\\]*)?$/.test(p)) { // UNC root, e.g. \\hello or \\hello\ or \\hello\world
-            return '';
-        }
-
-        return p.substring(0, lastSlashIndex);  // e.g. hello\world => hello or hello\world\ => hello\world
-        // note, this means trailing slashes for non-root directories
-        // (i.e. not C:\, \, or \\unc\) will simply be removed.
-    }
-
-    // OSX/Linux
-    if (p.indexOf('/') < 0) { // file name only
-        return '';
-    }
-    else if (p == '/') {
-        return '';
-    }
-    else if (_endsWith(p, '/')) {
-        return p.substring(0, p.length - 1);
-    }
-
-    return path.dirname(p);
-}
-_internal._getDirectoryName = _getDirectoryName;
-
-/**
- * On OSX/Linux, true if path starts with '/'. On Windows, true for paths like:
- * \, \hello, \\hello\share, C:, and C:\hello (and corresponding alternate separator cases).
- */
-function _isRooted(p: string): boolean {
-    p = _normalizeSeparators(p);
-    if (!p) {
-        throw new Error('isRooted() parameter "p" cannot be empty');
-    }
-
-    if (process.platform == 'win32') {
-        return _startsWith(p, '\\') || // e.g. \ or \hello or \\hello
-            /^[A-Z]:/i.test(p);      // e.g. C: or C:\hello
-    }
-
-    return _startsWith(p, '/'); // e.g. /hello
-}
-_internal._isRooted = _isRooted;
-
-function _normalizeSeparators(p: string): string {
-    p = p || '';
-    if (process.platform == 'win32') {
-        // convert slashes on Windows
-        p = p.replace(/\//g, '\\');
-
-        // remove redundant slashes
-        let isUnc = /^\\\\+[^\\]/.test(p); // e.g. \\hello
-        return (isUnc ? '\\' : '') + p.replace(/\\\\+/g, '\\'); // preserve leading // for UNC
-    }
-
-    // remove redundant slashes
-    return p.replace(/\/\/+/g, '/');
-}
-_internal._normalizeSeparators = _normalizeSeparators;

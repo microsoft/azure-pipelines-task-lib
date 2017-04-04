@@ -1,5 +1,9 @@
 # VSTS-TASK-LIB RELEASES
 
+## 2.0.4-preview
+ * Updated `ToolRunner` to validate the specified tool can be found and is executable.
+ * Updated `which` to validate the file is executable and also on Windows to apply PATHEXT.
+
 ## 2.0.2-preview
  * Updated `ToolRunner` to cleanup `execSync` interface, for `execSync` to follow `options.silent`, and removed all fields from the public interface.
  * Updated `TaskResult` to include `SucceededWithIssues`.

@@ -6,6 +6,7 @@
 
 import assert = require('assert');
 import * as tl from '../_build/task';
+import * as im from '../_build/internal'
 import * as fs from 'fs';
 import * as path from 'path';
 import testutil = require('./testutil');
@@ -832,7 +833,7 @@ describe('Find and Match Tests', function () {
     });
 
     function assertEnsurePatternRooted(root: string, path: string, expected: string) {
-        let actual: string = (tl as any)._internal._ensurePatternRooted(root, path);
+        let actual: string = im._ensurePatternRooted(root, path);
         if (actual != expected) {
             throw new Error(`ensureRootedPattern on <${root}, ${path}> yields <${actual}>; expected <${expected}>`);
         }
@@ -913,7 +914,7 @@ describe('Find and Match Tests', function () {
     });
 
     function assertPatternFindInfo(defaultRoot: string, pattern: string, matchOptions: tl.MatchOptions, expected: any) {
-        let actual: any = (tl as any)._internal._getFindInfoFromPattern(defaultRoot, pattern, matchOptions);
+        let actual: any = im._getFindInfoFromPattern(defaultRoot, pattern, matchOptions);
         assert.deepEqual(actual, expected);
     }
 
