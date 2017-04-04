@@ -225,6 +225,9 @@ export class ToolRunner extends events.EventEmitter {
         var res = mock.getResponse('exec', cmdString, debug);
         if (res.stdout) {
             this.emit('stdout', res.stdout);
+            for (const line of res.stdout.split(os.EOL)) {
+                this.emit('stdline', line);
+            }
             if (!ops.silent) {
                 ops.outStream.write(res.stdout + os.EOL);
             }
@@ -232,6 +235,9 @@ export class ToolRunner extends events.EventEmitter {
 
         if (res.stderr) {
             this.emit('stderr', res.stderr);
+            for (const line of res.stderr.split(os.EOL)) {
+                this.emit('errline', line);
+            }
 
             success = !ops.failOnStdErr;
             if (!ops.silent) {
