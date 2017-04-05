@@ -518,7 +518,6 @@ export function _legacyFindFiles_convertPatternToRegExp(pattern: string): RegExp
 // Matching helpers
 //-----------------------------------------------------
 
-// redefine to avoid folks having to typings install minimatch
 export interface _MatchOptions {
     debug?: boolean;
     nobrace?: boolean;
@@ -533,7 +532,7 @@ export interface _MatchOptions {
     flipNegate?: boolean;
 }
 
-function _cloneMatchOptions(matchOptions: _MatchOptions): _MatchOptions {
+export function _cloneMatchOptions(matchOptions: _MatchOptions): _MatchOptions {
     return <_MatchOptions>{
         debug: matchOptions.debug,
         nobrace: matchOptions.nobrace,
