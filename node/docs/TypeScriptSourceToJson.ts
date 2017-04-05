@@ -25,12 +25,9 @@ let checker: ts.TypeChecker;
 export function generate(filePaths: string[], options: ts.CompilerOptions): DocEntry {
     program = ts.createProgram(filePaths, options);
     checker = program.getTypeChecker();
-    
 
     let files: ts.SourceFile[] = program.getSourceFiles();
     for (const sourceFile of program.getSourceFiles()) {
-        
-        
         // only document files we specified. dependency files may be in program
         if (filePaths.indexOf(sourceFile.fileName) >= 0) {
             let name = path.basename(sourceFile.fileName, '.ts'); 
@@ -76,8 +73,8 @@ function visit(node: ts.Node): void {
             let constructorType = checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration);
             doc.constructors = constructorType.getConstructSignatures().map(getDocEntryFromSignature);
             current.members[doc.name] = doc;
-            
-            push(doc);                 
+
+            push(doc);
         }
     }
     else if (node.kind == ts.SyntaxKind.InterfaceDeclaration) {
@@ -158,17 +155,22 @@ function visit(node: ts.Node): void {
             current.members[doc.name] = doc;
         }
     }
-    // else if (node.kind === ts.SyntaxKind.ModuleDeclaration) {
-    //     // This is a namespace, visit its children
-    //     console.log('*********** module **************');
-    //     let f: ts.ModuleDeclaration = <ts.ModuleDeclaration>node;
-    //     let symbol = checker.getSymbolAtLocation(f.name);
-    //     if (symbol) {
-    //         console.log('module', symbol.getName());
-    //     }          
-    // }
+    // handle re-export from internal.ts
+    else if (node.kind === ts.SyntaxKind.VariableStatement && node.flags === ts.NodeFlags.Export) {
+        let statement = <ts.VariableStatement>node;
+        let list: ts.VariableDeclarationList = statement.declarationList;
+        for (let declaration of list.declarations) {
+            let symbol = checker.getSymbolAtLocation(declaration.name);
+            let doc: DocEntry = getDocEntryFromSymbol(symbol);
+            doc.kind = 'function'; // assume the re-export is a function
+            doc.name = symbol.getName();
+            let types = checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration);
+            let sigs = types.getCallSignatures();
+            doc.signatures = sigs.map(getDocEntryFromSignature);
+            current.members[doc.name] = doc;
+        }
+    }
 
-    
     ts.forEachChild(node, visit);      
 }
 

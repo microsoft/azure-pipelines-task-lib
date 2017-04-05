@@ -1150,7 +1150,18 @@ export function tool(tool: string) {
 // Matching helpers
 //-----------------------------------------------------
 
-export interface MatchOptions extends im._MatchOptions {
+export interface MatchOptions {
+    debug?: boolean;
+    nobrace?: boolean;
+    noglobstar?: boolean;
+    dot?: boolean;
+    noext?: boolean;
+    nocase?: boolean;
+    nonull?: boolean;
+    matchBase?: boolean;
+    nocomment?: boolean;
+    nonegate?: boolean;
+    flipNegate?: boolean;
 }
 
 /**
@@ -1187,7 +1198,7 @@ export function match(list: string[], patterns: string[] | string, patternRoot?:
         }
 
         // clone match options
-        let options = _cloneMatchOptions(originalOptions);
+        let options = im._cloneMatchOptions(originalOptions);
 
         // skip comments
         if (!options.nocomment && im._startsWith(pattern, '#')) {
@@ -1300,22 +1311,6 @@ export function filter(pattern: string, options?: MatchOptions): (element: strin
     return minimatch.filter(pattern, options);
 }
 
-function _cloneMatchOptions(matchOptions: MatchOptions): MatchOptions {
-    return <MatchOptions>{
-        debug: matchOptions.debug,
-        nobrace: matchOptions.nobrace,
-        noglobstar: matchOptions.noglobstar,
-        dot: matchOptions.dot,
-        noext: matchOptions.noext,
-        nocase: matchOptions.nocase,
-        nonull: matchOptions.nonull,
-        matchBase: matchOptions.matchBase,
-        nocomment: matchOptions.nocomment,
-        nonegate: matchOptions.nonegate,
-        flipNegate: matchOptions.flipNegate
-    };
-}
-
 function _debugMatchOptions(options: MatchOptions): void {
     debug(`matchOptions.debug: '${options.debug}'`);
     debug(`matchOptions.nobrace: '${options.nobrace}'`);
@@ -1385,7 +1380,7 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
         }
 
         // clone match options
-        let matchOptions = _cloneMatchOptions(originalMatchOptions);
+        let matchOptions = im._cloneMatchOptions(originalMatchOptions);
 
         // skip comments
         if (!matchOptions.nocomment && im._startsWith(pattern, '#')) {
