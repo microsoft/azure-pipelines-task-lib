@@ -27,11 +27,7 @@ export class MockAnswers {
         this._answers = answers;
     }
 
-    public getResponse<T extends keyof TaskLibAnswers, K extends keyof TaskLibAnswers[T]>(
-        cmd: T,
-        key: K,
-        debug: (message: string) => void
-    ): TaskLibAnswers[T][K] {
+    public getResponse(cmd: string, key: string, debug: (message: string) => void): any {
         debug(`looking up mock answers for ${JSON.stringify(cmd)}, key '${JSON.stringify(key)}'`);
         if (!this._answers) {
             throw new Error('Must initialize');
