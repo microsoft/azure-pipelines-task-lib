@@ -4,60 +4,6 @@
       "name": "toolrunner",
       "kind": "file",
       "members": {
-        "_startsWith": {
-          "name": "_startsWith",
-          "members": {},
-          "documentation": "",
-          "kind": "function",
-          "signatures": [
-            {
-              "parameters": [
-                {
-                  "name": "str",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                },
-                {
-                  "name": "start",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "boolean",
-              "documentation": ""
-            }
-          ]
-        },
-        "_endsWith": {
-          "name": "_endsWith",
-          "members": {},
-          "documentation": "",
-          "kind": "function",
-          "signatures": [
-            {
-              "parameters": [
-                {
-                  "name": "str",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                },
-                {
-                  "name": "end",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "boolean",
-              "documentation": ""
-            }
-          ]
-        },
         "IExecOptions": {
           "name": "IExecOptions",
           "members": {
@@ -522,102 +468,6 @@
       "name": "task",
       "kind": "file",
       "members": {
-        "_startsWith": {
-          "name": "_startsWith",
-          "members": {},
-          "documentation": "",
-          "kind": "function",
-          "signatures": [
-            {
-              "parameters": [
-                {
-                  "name": "str",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                },
-                {
-                  "name": "start",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "boolean",
-              "documentation": ""
-            }
-          ]
-        },
-        "_endsWith": {
-          "name": "_endsWith",
-          "members": {},
-          "documentation": "",
-          "kind": "function",
-          "signatures": [
-            {
-              "parameters": [
-                {
-                  "name": "str",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                },
-                {
-                  "name": "end",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "boolean",
-              "documentation": ""
-            }
-          ]
-        },
-        "_writeError": {
-          "name": "_writeError",
-          "members": {},
-          "documentation": "",
-          "kind": "function",
-          "signatures": [
-            {
-              "parameters": [
-                {
-                  "name": "str",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "void",
-              "documentation": ""
-            }
-          ]
-        },
-        "_writeLine": {
-          "name": "_writeLine",
-          "members": {},
-          "documentation": "",
-          "kind": "function",
-          "signatures": [
-            {
-              "parameters": [
-                {
-                  "name": "str",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "void",
-              "documentation": ""
-            }
-          ]
-        },
         "setStdStream": {
           "name": "setStdStream",
           "members": {},
@@ -687,58 +537,10 @@
             }
           ]
         },
-        "_loadResJson": {
-          "name": "_loadResJson",
-          "members": {},
-          "documentation": "",
-          "kind": "function",
-          "signatures": [
-            {
-              "parameters": [
-                {
-                  "name": "resjsonFile",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "any",
-              "documentation": ""
-            }
-          ]
-        },
-        "_loadLocStrings": {
-          "name": "_loadLocStrings",
-          "members": {},
-          "documentation": "",
-          "kind": "function",
-          "signatures": [
-            {
-              "parameters": [
-                {
-                  "name": "resourceFile",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                },
-                {
-                  "name": "culture",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "{ [key: string]: string; }",
-              "documentation": ""
-            }
-          ]
-        },
         "setResourcePath": {
           "name": "setResourcePath",
           "members": {},
-          "documentation": "Sets the location of the resources json.  This is typically the task.json file.\nCall once at the beginning of the script before any calls to loc.\n\n@returns   void",
+          "documentation": "",
           "kind": "function",
           "signatures": [
             {
@@ -759,7 +561,7 @@
         "loc": {
           "name": "loc",
           "members": {},
-          "documentation": "Gets the localized string from the json resource file.  Optionally formats with additional params.\n\n@returns   string",
+          "documentation": "",
           "kind": "function",
           "signatures": [
             {
@@ -786,7 +588,7 @@
         "getVariable": {
           "name": "getVariable",
           "members": {},
-          "documentation": "Gets a variable value that is defined on the build/release definition or set at runtime.\n\n@returns   string",
+          "documentation": "",
           "kind": "function",
           "signatures": [
             {
@@ -801,6 +603,27 @@
               "members": {},
               "return": "string",
               "documentation": "Gets a variable value that is defined on the build/release definition or set at runtime.\n\n@returns   string"
+            }
+          ]
+        },
+        "assertAgent": {
+          "name": "assertAgent",
+          "members": {},
+          "documentation": "Asserts the agent version is at least the specified minimum.",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "minimum",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": "minimum version version - must be 2.104.1 or higher"
+                }
+              ],
+              "members": {},
+              "return": "void",
+              "documentation": "Asserts the agent version is at least the specified minimum."
             }
           ]
         },
@@ -850,44 +673,6 @@
               "documentation": "Sets a variable which will be available to subsequent tasks as well.\n\n@returns   void"
             }
           ]
-        },
-        "_getVariableKey": {
-          "name": "_getVariableKey",
-          "members": {},
-          "documentation": "",
-          "kind": "function",
-          "signatures": [
-            {
-              "parameters": [
-                {
-                  "name": "name",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "string",
-              "documentation": ""
-            }
-          ]
-        },
-        "_KnownVariableInfo": {
-          "name": "_KnownVariableInfo",
-          "members": {
-            "name": {
-              "documentation": "",
-              "name": "name",
-              "return": "string"
-            },
-            "secret": {
-              "documentation": "",
-              "name": "secret",
-              "return": "boolean"
-            }
-          },
-          "documentation": "Used to store the following information about job variables:\n 1) the real variable name (not the formatted environment variable name)\n 2) whether the variable is a secret variable",
-          "kind": "interface"
         },
         "VariableInfo": {
           "name": "VariableInfo",
@@ -1261,7 +1046,7 @@
         "getTaskVariable": {
           "name": "getTaskVariable",
           "members": {},
-          "documentation": "Gets a variable value that is set by previous step from the same wrapper task.\n\n@returns   string",
+          "documentation": "Gets a variable value that is set by previous step from the same wrapper task.\nRequires a 2.115.0 agent or higher.\n\n@returns   string",
           "kind": "function",
           "signatures": [
             {
@@ -1275,14 +1060,14 @@
               ],
               "members": {},
               "return": "string",
-              "documentation": "Gets a variable value that is set by previous step from the same wrapper task.\n\n@returns   string"
+              "documentation": "Gets a variable value that is set by previous step from the same wrapper task.\nRequires a 2.115.0 agent or higher.\n\n@returns   string"
             }
           ]
         },
         "setTaskVariable": {
           "name": "setTaskVariable",
           "members": {},
-          "documentation": "Sets a task variable which will only be available to subsequent steps belong to the same wrapper task.\n\n@returns   void",
+          "documentation": "Sets a task variable which will only be available to subsequent steps belong to the same wrapper task.\nRequires a 2.115.0 agent or higher.\n\n@returns   void",
           "kind": "function",
           "signatures": [
             {
@@ -1308,7 +1093,7 @@
               ],
               "members": {},
               "return": "void",
-              "documentation": "Sets a task variable which will only be available to subsequent steps belong to the same wrapper task.\n\n@returns   void"
+              "documentation": "Sets a task variable which will only be available to subsequent steps belong to the same wrapper task.\nRequires a 2.115.0 agent or higher.\n\n@returns   void"
             }
           ]
         },
@@ -1465,7 +1250,7 @@
         "exist": {
           "name": "exist",
           "members": {},
-          "documentation": "Returns whether a path exists.\n\n@returns   boolean ",
+          "documentation": "",
           "kind": "function",
           "signatures": [
             {
@@ -1569,7 +1354,7 @@
         "checkPath": {
           "name": "checkPath",
           "members": {},
-          "documentation": "Checks whether a path exists.\nIf the path does not exist, it will throw.\n\n@returns   void",
+          "documentation": "",
           "kind": "function",
           "signatures": [
             {
@@ -1694,7 +1479,7 @@
         "which": {
           "name": "which",
           "members": {},
-          "documentation": "Returns path of a tool had the tool actually been invoked.  Resolves via paths.\nIf you check and the tool does not exist, it will throw.\n\n@returns   string",
+          "documentation": "",
           "kind": "function",
           "signatures": [
             {
@@ -1965,27 +1750,6 @@
               "members": {},
               "return": "string[]",
               "documentation": "Prefer tl.find() and tl.match() instead. This function is for backward compatibility\nwhen porting tasks to Node from the PowerShell or PowerShell3 execution handler.\n\n@returns  string[]"
-            }
-          ]
-        },
-        "_legacyFindFiles_convertPatternToRegExp": {
-          "name": "_legacyFindFiles_convertPatternToRegExp",
-          "members": {},
-          "documentation": "",
-          "kind": "function",
-          "signatures": [
-            {
-              "parameters": [
-                {
-                  "name": "pattern",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "RegExp",
-              "documentation": ""
             }
           ]
         },
@@ -2264,27 +2028,6 @@
             }
           ]
         },
-        "_cloneMatchOptions": {
-          "name": "_cloneMatchOptions",
-          "members": {},
-          "documentation": "",
-          "kind": "function",
-          "signatures": [
-            {
-              "parameters": [
-                {
-                  "name": "matchOptions",
-                  "type": "MatchOptions",
-                  "optional": false,
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "MatchOptions",
-              "documentation": ""
-            }
-          ]
-        },
         "_debugMatchOptions": {
           "name": "_debugMatchOptions",
           "members": {},
@@ -2356,88 +2099,6 @@
               "members": {},
               "return": "string[]",
               "documentation": "Determines the find root from a list of patterns. Performs the find and then applies the glob patterns.\nSupports interleaved exclude patterns. Unrooted patterns are rooted using defaultRoot, unless\nmatchOptions.matchBase is specified and the pattern is a basename only. For matchBase cases, the\ndefaultRoot is used as the find root."
-            }
-          ]
-        },
-        "_PatternFindInfo": {
-          "name": "_PatternFindInfo",
-          "members": {
-            "adjustedPattern": {
-              "documentation": "Adjusted pattern to use. Unrooted patterns are typically rooted using the default info, although this is not true for match-base scenarios. ",
-              "name": "adjustedPattern",
-              "return": "string"
-            },
-            "findPath": {
-              "documentation": "Path interpreted from the pattern to call find() on. ",
-              "name": "findPath",
-              "return": "string"
-            },
-            "statOnly": {
-              "documentation": "Indicates whether to call stat() or find(). When all path segemnts in the pattern are literal, there is no need to call find(). ",
-              "name": "statOnly",
-              "return": "boolean"
-            }
-          },
-          "documentation": "",
-          "kind": "interface"
-        },
-        "_getFindInfoFromPattern": {
-          "name": "_getFindInfoFromPattern",
-          "members": {},
-          "documentation": "",
-          "kind": "function",
-          "signatures": [
-            {
-              "parameters": [
-                {
-                  "name": "defaultRoot",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                },
-                {
-                  "name": "pattern",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                },
-                {
-                  "name": "matchOptions",
-                  "type": "MatchOptions",
-                  "optional": false,
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "_PatternFindInfo",
-              "documentation": ""
-            }
-          ]
-        },
-        "_ensurePatternRooted": {
-          "name": "_ensurePatternRooted",
-          "members": {},
-          "documentation": "",
-          "kind": "function",
-          "signatures": [
-            {
-              "parameters": [
-                {
-                  "name": "root",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                },
-                {
-                  "name": "p",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "string",
-              "documentation": ""
             }
           ]
         },
@@ -2613,110 +2274,6 @@
               ],
               "members": {},
               "return": "CodeCoverageEnabler",
-              "documentation": ""
-            }
-          ]
-        },
-        "_loadData": {
-          "name": "_loadData",
-          "members": {},
-          "documentation": "",
-          "kind": "function",
-          "signatures": [
-            {
-              "parameters": [],
-              "members": {},
-              "return": "void",
-              "documentation": ""
-            }
-          ]
-        },
-        "_ensureRooted": {
-          "name": "_ensureRooted",
-          "members": {},
-          "documentation": "",
-          "kind": "function",
-          "signatures": [
-            {
-              "parameters": [
-                {
-                  "name": "root",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                },
-                {
-                  "name": "p",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "string",
-              "documentation": ""
-            }
-          ]
-        },
-        "_getDirectoryName": {
-          "name": "_getDirectoryName",
-          "members": {},
-          "documentation": "Determines the parent path and trims trailing slashes (when safe). Path separators are normalized\nin the result. This function works similar to the .NET System.IO.Path.GetDirectoryName() method.\nFor example, C:\\hello\\world\\ returns C:\\hello\\world (trailing slash removed). Returns empty when\nno higher directory can be determined.",
-          "kind": "function",
-          "signatures": [
-            {
-              "parameters": [
-                {
-                  "name": "p",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "string",
-              "documentation": "Determines the parent path and trims trailing slashes (when safe). Path separators are normalized\nin the result. This function works similar to the .NET System.IO.Path.GetDirectoryName() method.\nFor example, C:\\hello\\world\\ returns C:\\hello\\world (trailing slash removed). Returns empty when\nno higher directory can be determined."
-            }
-          ]
-        },
-        "_isRooted": {
-          "name": "_isRooted",
-          "members": {},
-          "documentation": "On OSX/Linux, true if path starts with '/'. On Windows, true for paths like:\n\\, \\hello, \\\\hello\\share, C:, and C:\\hello (and corresponding alternate separator cases).",
-          "kind": "function",
-          "signatures": [
-            {
-              "parameters": [
-                {
-                  "name": "p",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "boolean",
-              "documentation": "On OSX/Linux, true if path starts with '/'. On Windows, true for paths like:\n\\, \\hello, \\\\hello\\share, C:, and C:\\hello (and corresponding alternate separator cases)."
-            }
-          ]
-        },
-        "_normalizeSeparators": {
-          "name": "_normalizeSeparators",
-          "members": {},
-          "documentation": "",
-          "kind": "function",
-          "signatures": [
-            {
-              "parameters": [
-                {
-                  "name": "p",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": ""
-                }
-              ],
-              "members": {},
-              "return": "string",
               "documentation": ""
             }
           ]

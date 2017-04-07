@@ -61,7 +61,7 @@ function getDocEntry(namespace: string): ts2json.DocEntry {
         }
 
         if (!d) {
-            console.error(namespace + 'invalid.  doc entry not found.');
+            console.error(namespace + ' invalid.  doc entry not found.');
             process.exit(1);
         }
     }

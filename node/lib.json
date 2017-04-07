@@ -10,6 +10,8 @@
     "LIB_ResourceFileNotExist": "Resource file doesn\\'t exist: %s",
     "LIB_ResourceFileAlreadySet": "Resource file has already set to: %s",
     "LIB_ResourceFileNotSet": "Resource file haven\\'t set, can\\'t find loc string for key: %s",
+    "LIB_WhichNotFound_Linux": "Unable to locate executable file: '%s'. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also check the file mode to verify the file is executable.",
+    "LIB_WhichNotFound_Win": "Unable to locate executable file: '%s'. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also verify the file has a valid extension for an executable file.",
     "LIB_LocStringNotFound": "Can\\'t find loc string for key: %s",
     "LIB_ParameterIsRequired": "%s not supplied",
     "LIB_InputRequired": "Input required: %s",

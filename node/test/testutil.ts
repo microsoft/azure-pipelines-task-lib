@@ -69,6 +69,14 @@ export function buildOutput(lines: string[]): string {
     return output;
 }
 
+export function chmod(file: string, mode: string): void {
+    let result = child.spawnSync('chmod', [ mode, file ]);
+    if (result.status != 0) {
+        let message: string = (result.output || []).join(' ').trim();
+        throw new Error(`Command failed: "chmod ${mode} ${file}".  ${message}`);
+    }
+}
+
 export function createHiddenDirectory(dir: string): void {
     if (!path.basename(dir).match(/^\./)) {
         throw new Error(`Expected dir '${dir}' to start with '.'.`);

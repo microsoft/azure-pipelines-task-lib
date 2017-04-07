@@ -8,6 +8,7 @@ import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as testutil from './testutil';
+import * as im from '../_build/internal';
 import * as tl from '../_build/task';
 
 describe('Legacy Find Files Tests', function () {
@@ -655,12 +656,12 @@ describe('Legacy Find Files Tests', function () {
     });
 
     function assertMatch(pattern: string, path: string): void {
-        assert((tl as any)._internal._legacyFindFiles_convertPatternToRegExp(pattern).test(path),
+        assert(im._legacyFindFiles_convertPatternToRegExp(pattern).test(path),
             `pattern '${pattern}' should match path '${path}'`);
     }
 
     function assertNotMatch(pattern: string, path: string): void {
-        assert(!(tl as any)._internal._legacyFindFiles_convertPatternToRegExp(pattern).test(path),
+        assert(!im._legacyFindFiles_convertPatternToRegExp(pattern).test(path),
             `pattern '${pattern}' should not match path '${path}'`);
     }
 

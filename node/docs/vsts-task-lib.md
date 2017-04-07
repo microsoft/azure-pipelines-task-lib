@@ -263,6 +263,7 @@ secret | boolean | whether variable is secret.  optional, defaults to false
  
 ### task.getTaskVariable <a href="#index">(^)</a>
 Gets a variable value that is set by previous step from the same wrapper task.
+Requires a 2.115.0 agent or higher.
 
 @returns   string
 ```javascript
@@ -278,6 +279,7 @@ name | string | name of the variable to get
  
 ### task.setTaskVariable <a href="#index">(^)</a>
 Sets a task variable which will only be available to subsequent steps belong to the same wrapper task.
+Requires a 2.115.0 agent or higher.
 
 @returns   void
 ```javascript
