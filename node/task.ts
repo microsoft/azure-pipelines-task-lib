@@ -1033,7 +1033,6 @@ function _legacyFindFiles_getMatchingItems(
  * Returns whether it succeeds
  * 
  * @param     path     path to remove
- * @param     continueOnError optional. whether to continue on error
  * @returns   void
  */
 export function rmRF(path: string): void {
