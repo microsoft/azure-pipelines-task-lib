@@ -19,6 +19,24 @@ exports.run = function(cl) {
 }
 var run = exports.run;
 
+exports.assertTsc = function () {
+    var tscPath = path.join(__dirname, 'node_modules', '.bin', 'tsc');
+    if (process.platform == 'win32') {
+        tscPath += '.cmd';
+    }
+
+    try {
+        fs.stat(tscPath);
+    }
+    catch (err) {
+        if (err.code == 'ENOENT') {
+            throw new Error('\'tsc\' not found under \'node_modules/.bin\'. Run \'npm install\' and try again.');
+        }
+    }
+
+    addPath(path.dirname(tscPath));
+}
+
 exports.getExternals = function () {
     // determine the platform
     var platform = os.platform();

@@ -21,6 +21,7 @@ target.build = function() {
     target.clean();
     target.loc();
 
+    buildutils.assertTsc();
     run('tsc --outDir ' + buildPath);
     cp(rp('dependencies/typings.json'), buildPath);
     cp(rp('package.json'), buildPath);
@@ -36,6 +37,7 @@ target.test = function() {
     target.build();
 
     buildutils.getExternals();
+    buildutils.assertTsc();
     run('tsc -p ./test');
     cp('-Rf', rp('test/scripts'), testPath);
     process.env['TASKLIB_INPROC_UNITS'] = '1'; // export task-lib internals for internal unit testing
