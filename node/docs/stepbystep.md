@@ -395,4 +395,72 @@ export TASK_TEST_TRACE=1
 
 ## Add Task to an Extension
 
-Coming soon
+### Create your publisher
+
+All extensions are identified as being provided by a publisher. If you aren't already a member of an existing publisher, you'll create one. Sign in to the [Visual Studio Marketplace Publishing Portal](http://aka.ms/vsmarketplace-manage). If you're not prompted to create a publisher, scroll down to the bottom of the page and select *Publish Extensions* underneath **Related Sites**.
+
+### Create an extension manifest file
+
+You will need to create the extension manifest file in the directory above `sampletask`.
+
+Create a file `vss-extension.json`:
+```json
+{
+    "manifestVersion": 1,
+    "id": "sample-task",
+    "name": "Sample Build Tools",
+    "version": "0.0.1",
+    "publisher": "samplepublisher",
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],    
+    "description": "Sample tools for building. Includes one build task.",
+    "categories": [
+        "Build and release"
+    ],
+    "//uncomment 'icons' below to include a custom icon": "",
+    "//icons": {
+        "default": "images/extension-icon.png"
+    },
+    "files": [
+        {
+            "//Relative path of the task directory": "",
+            "path": "sampletask"
+        }
+    ],
+    "contributions": [
+        {
+            "//Identifier of the contribution. Must be unique within the extension. Does not need to match the name of the build task, but typically the build task name is included in the ID of the contribution.": "",
+            "id": "sample-build-task",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "//Name of the task. This must match the folder name of the corresponding self-contained build task definition.": "",
+                "name": "sampletask"
+            }
+        }
+    ]
+}
+```
+
+### Publish, Install, Publish
+
+Publish the extension to the Marketplace and grant your account the ability to see it. Sharing the extension with your account allows you to install and test it.
+
+You will need a personal access token scoped to `All accessible` accounts.
+
+```
+tfx extension publish --manifest-globs your-manifest.json --share-with youraccountname
+```
+
+Install the extension into your account.
+
+```
+tfx extension install --vsix .\samplepublisher.sample-task-0.0.1.vsix --accounts youraccountname
+```
+
+Future publishes will automatically update the extension installed into your account. Add `--rev-version` when publishing updates to the extension, and also rev the task version (in the `task.json`).
