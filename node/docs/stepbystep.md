@@ -96,8 +96,17 @@ import mod = require('./taskmod');
 async function run() {
     try {
         console.log(process.env["INPUT_SAMPLESTRING"]);
-        let echoPath = tl.which('echo');
-        let rc1: number = await tl.tool(echoPath).arg(tl.getInput('samplestring', true)).exec();
+        let tool: trm.ToolRunner;
+        if (process.platform == 'win32') {
+            let cmdPath = tl.which('cmd');
+            tool = tl.tool(cmdPath).arg('/c').arg('echo ' + tl.getInput('samplestring', true));
+        }
+        else {
+            let echoPath = tl.which('echo');
+            tool = tl.tool(echoPath).arg(tl.getInput('samplestring', true));
+        }
+
+        let rc1: number = await tool.exec();
         
         // call some module which does external work
         if (rc1 == 0) {
@@ -249,7 +258,7 @@ This requires vsts-task-lib 0.9.15 or greater.
 We will use mocha as the test driver in this examples.  Others exist.
 ```bash
 npm install mocha --save-dev -g
-typings install dt~mocha --save --global
+npm install @types/mocha --save-dev
 ```
 
 ### Create test suite
@@ -269,7 +278,7 @@ The success test [from _suite.ts](https://gist.github.com/bryanmacfarlane/154f14
         let tp = path.join(__dirname, 'success.js');
         let tr: ttm.MockTestRunner = new ttm.MockTestRunner(tp);
 
-        tr.Run();
+        tr.run();
         assert(tr.succeeded, 'should have succeeded');
         assert.equal(tr.invokedToolCount, 1);
         assert.equal(tr.warningIssues.length, 0, "should have no warnings");
@@ -294,10 +303,16 @@ tmr.setInput('samplebool', 'true');
 // provide answers for task mock
 let a: ma.TaskLibAnswers = <ma.TaskLibAnswers>{
     "which": {
-        "echo": "/mocked/tools/echo"
+        "echo": "/mocked/tools/echo",
+        "cmd": "/mocked/tools/cmd"
     },
     "exec": {
         "/mocked/tools/echo Hello, from task!": {
+            "code": 0,
+            "stdout": "atool output here",
+            "stderr": "atool with this stderr output"            
+        },
+        "/mocked/tools/cmd /c echo Hello, from task!": {
             "code": 0,
             "stdout": "atool output here",
             "stderr": "atool with this stderr output"            
@@ -330,12 +345,17 @@ The fail test [from _suite.ts](https://gist.github.com/bryanmacfarlane/154f14dd8
         let tp = path.join(__dirname, 'failrc.js');
         let tr: ttm.MockTestRunner = new ttm.MockTestRunner(tp);
 
-        tr.Run();
+        tr.run();
         assert(!tr.succeeded, 'should have failed');
         assert.equal(tr.invokedToolCount, 1);
         assert.equal(tr.warningIssues, 0, "should have no warnings");
         assert.equal(tr.errorIssues.length, 1, "should have 1 error issue");
-        assert.equal(tr.errorIssues[0], '/mocked/tools/echo failed with return code: 1', 'error issue output');
+        if (process.platform == 'win32') {
+            assert.equal(tr.errorIssues[0], '/mocked/tools/cmd failed with return code: 1', 'error issue output');
+        }
+        else {
+            assert.equal(tr.errorIssues[0], '/mocked/tools/echo failed with return code: 1', 'error issue output');
+        }
         assert(tr.stdout.indexOf('atool output here') >= 0, "tool stdout");
         assert.equal(tr.stdout.indexOf('Hello Mock!'), -1, "task module should have never been called");
 
