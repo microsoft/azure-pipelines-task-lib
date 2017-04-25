@@ -13,13 +13,11 @@ TODO: posting soon
 
 ## Tools 
 
-[Typescript Compiler 1.8.7 or greater](https://www.npmjs.com/package/typescript)  
+[Typescript Compiler 2.2.0 or greater](https://www.npmjs.com/package/typescript)  
 
 [Node 4.4.7 (LTS) or greater](https://nodejs.org/en/)  
 
-[Npm 3.0 or greater recommended](https://www.npmjs.com/package/npm3) (comes with node >=5. creates flat dependencies in tasks)  
-
-[Typings 1.0 or greater](https://github.com/typings/typings/blob/master/README.md)    
+[Npm 3.0 or greater recommended](https://www.npmjs.com/package/npm3) (comes with node >=5. creates flat dependencies in tasks)   
 
 This tutorial uses [VS Code](https://code.visualstudio.com) for great intellisense and debugging support
 
@@ -45,32 +43,34 @@ The npm module carries the .d.ts typecript definition files so compile and intel
 
 ```
 $ npm install vsts-task-lib --save
-sampletask@1.0.0 /Users/bryan/Projects/sampletask
-└─┬ vsts-task-lib@0.9.5 
+...
+└─┬ vsts-task-lib@2.0.5 
 ... 
 ```
 
 ### Add Typings for Externals
 
-Create a typings.json and add external dependencies
+Ensure typings are installed for external dependencies
 
 ```bash
-$ touch typings.json
-$ typings install dt~node --global --save
-$ typings install dt~q --global --save
+$ npm install @types/node --save-dev
+$ npm install @types/q --save-dev
 ```
 
-Create a .gitignore and add node_modules and typings to it.  Your build process should do `npm install` and `typings install`.  No need to checkin dependencies.
+Create a .gitignore and add node_modules to it.  Your build process should do `npm install` and `typings install`.  No need to checkin dependencies.
 
 ```bash
 $ cat .gitignore
 node_modules
-typings
 ```
 
 ### Create tsconfig.json Compiler Options
 
-Create a `tsconfig.json` file from the sample gist.  The most important piece being ES6 for async await support.
+```bash
+$ tsc --init
+```
+
+Change `tsconfig.json` file to ES6 to match the sample gist.  ES6 is for async await support.
 
 ## Task Implementation
 
@@ -81,7 +81,8 @@ Create a `task.json` file using `sample_task.json` as a starting point.
 Replace the `{{placeholders}}`.  The most important being a [unique guid](http://www.guidgen.com/).
 Note: copy from web view since file needs property names in quotes (browser might strip in raw view)
 
-Create a `index.ts` file using sample_task.ts as a starting point.
+Create a `index.ts` file using index.ts from the gist as a starting point.
+Create a `taskmod.ts` file using taskmod.ts from the gist as a starting point.
 
 Instellisense should just work in [VS Code](https://code.visualstudio.com)
 
