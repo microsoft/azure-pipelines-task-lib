@@ -30,7 +30,9 @@ describe('Dir Operation Tests', function () {
     it('is expected version', (done: MochaDone) => {
         this.timeout(1000);
 
-        assert.equal(process.version, 'v5.10.1');
+        if (process.version != 'v5.10.1' && process.version != 'v6.10.3') {
+            assert.fail('expected node v5.10.1 or v6.10.3. actual: ' + process.version);
+        }
 
         done();
     });

@@ -20,6 +20,11 @@ exports.run = function(cl) {
 var run = exports.run;
 
 exports.getExternals = function () {
+    if (process.env['TF_BUILD']) {
+        // skip adding node 5.10.1 to the PATH. the CI definition tests against node 5 and 6.
+        return;
+    }
+
     // determine the platform
     var platform = os.platform();
     if (platform != 'darwin' && platform != 'linux' && platform != 'win32') {
