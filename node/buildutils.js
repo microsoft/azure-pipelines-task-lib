@@ -151,3 +151,4 @@ var addPath = function (directory) {
         process.env['PATH'] = directory;
     }
 }
+exports.addPath = addPath;
