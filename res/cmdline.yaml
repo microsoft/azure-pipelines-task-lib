@@ -3,7 +3,7 @@
     inputs:
       filename: echo
       arguments: hello world {{this.[build.sourceVersion]}}! {{this.['build.sourceVersion']}}!
-{{#each}}
+{{#each this}}
 - task: cmdline@1.*
     inputs:
       filename: echo
