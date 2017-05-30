@@ -3,7 +3,9 @@
     inputs:
       filename: echo
       arguments: hello world {{this.[build.sourceVersion]}}! {{this.['build.sourceVersion']}}!
-  - task: cmdline@1.*
+{{#each @root}}
+- task: cmdline@1.*
     inputs:
       filename: echo
-      arguments: hello world {{this.[build.sourceversion]}}! {{this.['build.sourceversion']}}!
+      arguments: hello world {{@key}}={{this}}
+{{/each}}
