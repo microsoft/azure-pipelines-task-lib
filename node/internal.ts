@@ -6,6 +6,7 @@ import util = require('util');
 import tcm = require('./taskcommand');
 import vm = require('./vault');
 import semver = require('semver');
+const home = os.homedir();
 
 /**
  * Hash table of known variable info. The formatted env var name is the lookup key.
@@ -401,7 +402,11 @@ export function _which(tool: string, check?: boolean): string {
         }
 
         // return the first match
-        for (let directory of directories) {
+        for (var directory of directories) {
+            // TODO: fix to make tests pass.
+            // if ( !!home && process.platform == 'win32') {
+            //     directory = _unTildify(directory);
+            // }
             let filePath = _tryGetExecutablePath(directory + path.sep + tool, extensions);
             if (filePath) {
                 _debug(`found: '${filePath}'`);
@@ -500,6 +505,22 @@ function _tryGetExecutablePath(filePath: string, extensions: string[]): string {
     }
 
     return '';
+}
+
+/**
+ * Deal with expanding tilde (~) to home directory on nix which really is a bash thing
+ * taken from https://github.com/sindresorhus/untildify
+ * @param filePath file and path to check
+ * @return the filePath prefix
+ */
+function _unTildify(filePath) {
+    console.log("##### %s", filePath);
+    if (typeof filePath !== 'string') {
+        throw new TypeError(`Expected a string, got ${typeof filePath}`);
+    }
+    if (filePath[0] !== '~') return filePath;
+
+    return home ? filePath.replace(/^~($|\/|\\)/, `${home}$1`) : filePath;
 }
 
 export function _legacyFindFiles_convertPatternToRegExp(pattern: string): RegExp {

@@ -113,6 +113,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
     it('which() searches path in order', function (done) {
+        // TODO:SPC Mimic this one.
         this.timeout(1000);
 
         // create a chcp.com/bash override file
@@ -349,6 +350,48 @@ describe('Dir Operation Tests', function () {
             if (process.platform == 'win32') {
                 assert.equal(tl.which(testDirName + '\\' + fileName) || '', '');
             }
+        }
+        finally {
+            process.env['PATH'] = originalPath;
+        }
+
+        done();
+    });
+    it('which() handles tilde ~ prefix', function (done) {
+        // TODO:SPC Mimic this one.
+        this.timeout(1000);
+
+        // create a chcp.com/bash override file
+        let testPath = path.join(os.homedir(), 'which-expands-tilde-in-path');
+        let tildePath = path.join('~', 'which-expands-tilde-in-path');
+        tl.mkdirP(testPath);
+        let fileName;
+        if (process.platform == 'win32') { // TODO: this might apply bash in windows
+            fileName = 'chcp.com';
+        }
+        else {
+            fileName = 'bash';
+        }
+
+        let filePath = path.join(testPath, fileName);
+        fs.writeFileSync(filePath, '');
+        if (process.platform != 'win32') {
+            testutil.chmod(filePath, '+x');
+        }
+        let originalPath = process.env['PATH'];
+        try {
+            // sanity - regular chcp.com/bash should be found
+            let originalWhich = tl.which(fileName);
+            assert((originalWhich || '') != '', fileName + 'should be found');
+
+            // TODO: need to deal with $HOME and ~ 
+            // modify PATH
+            process.env['PATH'] = tildePath + path.delimiter + process.env['PATH'];
+
+            // override chcp.com/bash should be found
+            assert(tl.which(fileName), filePath);
+            assert(testPath !== tildePath, "these shouldn't match: " + testPath + "  " + tildePath);
+
         }
         finally {
             process.env['PATH'] = originalPath;
