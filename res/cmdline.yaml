@@ -1,11 +1,11 @@
-﻿steps:
+steps:
   - task: cmdline@1.*
     inputs:
       filename: echo
-      arguments: hello world {{this.[build.sourceVersion]}}! {{this.['build.sourceVersion']}}!
-{{#each @root}}
-- task: cmdline@1.*
-    inputs:
-      filename: echo
-      arguments: hello world {{@key}}
-{{/each}}
+      arguments: hello world {{@root.$['build.sourceVersion']}} or {{@root._yaml_preview}} or {{@root.$['_yaml_preview']}}???
+# {{#each @root}}
+# - task: cmdline@1.*
+#     inputs:
+#       filename: echo
+#       arguments: hello world {{@key}}
+# {{/each}}
