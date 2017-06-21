@@ -1,0 +1,33 @@
+steps:
+  # - task: Npm@1.*
+  #   name: npm install
+  #   inputs:
+  #     command: install
+  #     workingDir: node
+  - task: CmdLine@1.*
+    name: npm install
+    inputs:
+      filename: npm
+      arguments: install
+      workingFolder: node
+  - task: NodeTool@0.*
+    name: use node 5.10.1
+    inputs:
+      versionSpec: "5.10.1"
+  - task: CmdLine@1.*
+    name: node make.js test
+    inputs:
+      filename: node
+      arguments: make.js test
+      workingFolder: node
+  - task: NodeTool@0.*
+    enabled: false
+    name: use node 6.10.3
+    inputs:
+      versionSpec: "6.10.3"
+  - task: CmdLine@1.*
+    name: node make.js test
+    inputs:
+      filename: node
+      arguments: make.js test
+      workingFolder: node
