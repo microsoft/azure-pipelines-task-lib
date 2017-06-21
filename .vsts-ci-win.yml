@@ -46,7 +46,6 @@ jobs:
           arguments: make.js test
           workingFolder: node
       - task: NodeTool@0.*
-        enabled: false
         name: use node 6.10.3
         inputs:
           versionSpec: "6.10.3"
