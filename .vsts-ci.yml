@@ -17,12 +17,12 @@ jobs:
       # use node 5
       - task: NodeTool@0.*
         name: use node 5.10.1
-        condition: and(succeeded(), ne(variables.os, 'win'))
+        condition: and(succeeded(), ne(variables.os, 'windows'))
         inputs:
           versionSpec: "5.10.1"
       - task: CmdLine@1.*
         name: use node 5.10.1
-        condition: and(succeeded(), eq(variables.os, 'win'))
+        condition: and(succeeded(), eq(variables.os, 'windows'))
         inputs:
           filename: powershell.exe
           arguments: -noninteractive -noprofile -file "$(build.sourcesDirectory)/res/UseNode5.ps1"
