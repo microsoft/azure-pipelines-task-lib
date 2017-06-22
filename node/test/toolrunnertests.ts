@@ -585,8 +585,13 @@ describe('Toolrunner Tests', function () {
                 });
         }
         else {
-            var grep = tl.tool(tl.which('grep', true));
-            grep.arg('--?');
+            // grep runs too fast on Ubuntu and can cause ECONNRESET
+            // call ping first to slow things down a little
+            var grep = tl.tool(tl.which('bash', true));
+            grep.arg('--noprofile');
+            grep.arg('--norc');
+            grep.arg('--c');
+            grep.arg('ping -i 0.1 -c 2 127.0.0.1 ; grep --?');
 
             var ps = tl.tool(tl.which('ps', true));
             ps.arg('ax');
