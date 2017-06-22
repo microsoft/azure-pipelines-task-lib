@@ -11,8 +11,8 @@ Invoke-VstsTaskScript -ScriptBlock {
         # Create the following layout:
         #   #hello-world.txt
         #   hello-world.txt
-        New-Item -Path "$tempDirectory\#hello-world.txt"
-        New-Item -Path "$tempDirectory\hello-world.txt"
+        New-Item -Path "$tempDirectory\#hello-world.txt" -ItemType File
+        New-Item -Path "$tempDirectory\hello-world.txt" -ItemType File
         $patterns = @(
             '#hello-world.txt'
         )
@@ -25,6 +25,6 @@ Invoke-VstsTaskScript -ScriptBlock {
         $expected = "$tempDirectory\#hello-world.txt"
         Assert-AreEqual $expected $actual
     } finally {
-        Remove-Item $tempDirectory -Recurse
+        Remove-Item $tempDirectory -Recurse -Force
     }
 }

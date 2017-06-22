@@ -15,6 +15,8 @@ Invoke-VstsTaskScript -ScriptBlock {
             Select-Object -ExpandProperty Message
 
         # Assert.
-        Assert-AreEqual $variableSet.Expected $verboseMessage
+        # Due to redirection limitation when running in PS4, more than one message may have been written
+        # to the verbose stream when running in PS4 (write-host is redirected to verbose).
+        Assert-AreEqual -Expected 1 -Actual ($verboseMessage | Where-Object { $_ -eq $variableSet.Expected }).Count -Message "Expected a verbose message '$($variableSet.Expected)'. Actual '$verboseMessage'"
     }
 }
