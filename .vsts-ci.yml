@@ -1,6 +1,7 @@
 jobs:
   - name: Build vsts-task-lib
     steps:
+      # npm install
       # - task: Npm@1.*
       #   name: npm install
       #   inputs:
@@ -12,43 +13,35 @@ jobs:
           filename: npm
           arguments: install
           workingFolder: node
-      # - task: NodeTool@0.*
-      #   name: use node 5.10.1
-      #   inputs:
-      #     versionSpec: "5.10.1"
-      - task: PowerShell@1.*
+
+      # use node 5
+      - task: NodeTool@0.*
         name: use node 5.10.1
+        condition: and(succeeded(), ne(variables.os, 'win'))
         inputs:
-          scriptType: inlineScript
-          inlineScript: |
-            $ErrorActionPreference='Stop'
-            $m=[version]'2.115.0'
-            if (([version]$env:AGENT_VERSION) -lt $m) { throw "Min agent $m" }
-            $v='5.10.1'
-            $d="$env:AGENT_TOOLSDIRECTORY\node\$v\x64"
-            $c="$d.complete"
-            $u="https://nodejs.org/dist/v5.10.1/win-x64/node"
-            if (!(Test-Path $c)) {
-            "rm $d"
-            ri $d -rec -for -ea 0
-            md $d
-            "downloading"
-            $w=New-Object System.Net.WebClient
-            $w.DownloadFile("$u.exe", "$d\node.exe")
-            $w.DownloadFile("$u.lib", "$d\node.lib")
-            New-Item $c -Type File
-            }
-            "##vso[task.prependpath]$d"
+          versionSpec: "5.10.1"
+      - task: CmdLine@1.*
+        name: use node 5.10.1
+        condition: and(succeeded(), eq(variables.os, 'win'))
+        inputs:
+          filename: powershell.exe
+          arguments: -noninteractive -noprofile -file "$(build.sourcesDirectory)/res/UseNode5.ps1"
+
+      # build/test
       - task: CmdLine@1.*
         name: node make.js test
         inputs:
           filename: node
           arguments: make.js test
           workingFolder: node
+
+      # use node 6
       - task: NodeTool@0.*
         name: use node 6.10.3
         inputs:
           versionSpec: "6.10.3"
+
+      # build/test
       - task: CmdLine@1.*
         name: node make.js test
         inputs:
