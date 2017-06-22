@@ -590,32 +590,35 @@ describe('Toolrunner Tests', function () {
 
             // if the first tool runs too fast, then ECONNRESET may result
             // when the second tool attempts to read the stream.
-            var ping = tl.tool(tl.which('ping', true));
-            ping.line('-c 2 127.0.0.1');
-            ping.pipeExecOutputToTool(grep);
+            var bash = tl.tool(tl.which('bash', true));
+            bash.arg('--noprofile');
+            bash.arg('--norc');
+            bash.arg('-c');
+            bash.arg('ping -c 1 127.0.0.1 ; ping -c 1 127.0.0.1');
+            bash.pipeExecOutputToTool(grep);
 
             var output = '';
-            ping.on('stdout', (data) => {
+            bash.on('stdout', (data) => {
                 output += data.toString();
             });
 
             var errOut = '';
-            ping.on('stderr', (data) => {
+            bash.on('stderr', (data) => {
                 errOut += data.toString();
             })
 
             var succeeded = false;
-            ping.exec(_testExecOptions)
+            bash.exec(_testExecOptions)
                 .then(function (code) {
                     succeeded = true;
-                    assert.fail('ping -i 0.1 -c 127.0.0.1 | grep --? was a bad command and it did not fail');
+                    assert.fail('bash --noprofile --norc -c "ping -c 1 127.0.0.1 ; ping -c 1 127.0.0.1" | grep --? was a bad command and it did not fail');
                 })
                 .fail(function (err) {
                     if (succeeded) {
                         done(err);
                     }
                     else {
-                        assert(errOut && errOut.length > 0 && errOut.indexOf('grep: unrecognized option') >= 0, 'error output from ping command is expected');
+                        assert(errOut && errOut.length > 0 && errOut.indexOf('grep: unrecognized option') >= 0, 'error output from bash command is expected');
                         // grep is /bin/grep on Linux and /usr/bin/grep on OSX
                         assert(err && err.message && err.message.match(/\/[usr\/]?bin\/grep/), 'error from grep is not reported. actual: ' + err.message);
                         done();
