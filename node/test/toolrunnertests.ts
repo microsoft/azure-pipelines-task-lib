@@ -585,40 +585,37 @@ describe('Toolrunner Tests', function () {
                 });
         }
         else {
-            // grep runs too fast on Ubuntu and can cause ECONNRESET
-            // call ping first to slow things down a little
-            var grep = tl.tool(tl.which('bash', true));
-            grep.arg('--noprofile');
-            grep.arg('--norc');
-            grep.arg('--c');
-            grep.arg('ping -i 0.1 -c 2 127.0.0.1 ; grep --?');
+            var grep = tl.tool(tl.which('grep', true));
+            grep.arg('--?');
 
-            var ps = tl.tool(tl.which('ps', true));
-            ps.arg('ax');
-            ps.pipeExecOutputToTool(grep);
+            // if the first tool runs too fast, then ECONNRESET may result
+            // when the second tool attempts to read the stream.
+            var ping = tl.tool(tl.which('ping', true));
+            ping.line('-i 0.1 -c 2 127.0.0.1');
+            ping.pipeExecOutputToTool(grep);
 
             var output = '';
-            ps.on('stdout', (data) => {
+            ping.on('stdout', (data) => {
                 output += data.toString();
             });
 
             var errOut = '';
-            ps.on('stderr', (data) => {
+            ping.on('stderr', (data) => {
                 errOut += data.toString();
             })
 
             var succeeded = false;
-            ps.exec(_testExecOptions)
+            ping.exec(_testExecOptions)
                 .then(function (code) {
                     succeeded = true;
-                    assert.fail('ps ax | grep --? was a bad command and it did not fail');
+                    assert.fail('ping -i 0.1 -c 127.0.0.1 | grep --? was a bad command and it did not fail');
                 })
                 .fail(function (err) {
                     if (succeeded) {
                         done(err);
                     }
                     else {
-                        assert(errOut && errOut.length > 0 && errOut.indexOf('grep: unrecognized option') >= 0, 'error output from ps command is expected');
+                        assert(errOut && errOut.length > 0 && errOut.indexOf('grep: unrecognized option') >= 0, 'error output from ping command is expected');
                         // grep is /bin/grep on Linux and /usr/bin/grep on OSX
                         assert(err && err.message && err.message.match(/\/[usr\/]?bin\/grep/), 'error from grep is not reported. actual: ' + err.message);
                         done();
