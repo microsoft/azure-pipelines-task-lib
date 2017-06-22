@@ -591,7 +591,7 @@ describe('Toolrunner Tests', function () {
             // if the first tool runs too fast, then ECONNRESET may result
             // when the second tool attempts to read the stream.
             var ping = tl.tool(tl.which('ping', true));
-            ping.line('-i 0.1 -c 2 127.0.0.1');
+            ping.line('-c 2 127.0.0.1');
             ping.pipeExecOutputToTool(grep);
 
             var output = '';
