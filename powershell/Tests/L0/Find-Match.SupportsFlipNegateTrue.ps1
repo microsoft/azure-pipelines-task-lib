@@ -8,36 +8,13 @@ Invoke-VstsTaskScript -ScriptBlock {
     New-Item -Path $tempDirectory -ItemType Directory |
         ForEach-Object { $_.FullName }
     try {
-<#
-    it('supports flipNegate true', (done: MochaDone) => {
-        this.timeout(1000);
-
-        // create the following layout:
-        //   !hello-world.txt
-        //   hello-world.txt
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-flipNegate-true');
-        tl.mkdirP(root);
-        fs.writeFileSync(path.join(root, '!hello-world.txt'), '');
-        fs.writeFileSync(path.join(root, 'hello-world.txt'), '');
-        let patterns: string[] = [
-            '!hello-world.txt',
-        ];
-        let actual: string[] = tl.findMatch(root, patterns, null, <tl.MatchOptions>{ flipNegate: true });
-        let expected: string[] = [
-            path.join(root, 'hello-world.txt'),
-        ];
-        assert.deepEqual(actual, expected);
-
-        done();
-    });
-#>
         # Create the following layout:
         #   {hello,world}.txt
         #   world.txt
         #   world.txt
-        New-Item -Path "$tempDirectory\{hello,world}.txt"
-        New-Item -Path "$tempDirectory\hello.txt"
-        New-Item -Path "$tempDirectory\world.txt"
+        New-Item -Path "$tempDirectory\{hello,world}.txt" -ItemType File
+        New-Item -Path "$tempDirectory\hello.txt" -ItemType File
+        New-Item -Path "$tempDirectory\world.txt" -ItemType File
         $patterns = @(
             '{hello,world}.txt'
         )
@@ -53,6 +30,6 @@ Invoke-VstsTaskScript -ScriptBlock {
         )
         Assert-AreEqual $expected $actual
     } finally {
-        Remove-Item $tempDirectory -Recurse
+        Remove-Item $tempDirectory -Recurse -Force
     }
 }

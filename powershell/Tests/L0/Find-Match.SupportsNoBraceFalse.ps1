@@ -12,9 +12,9 @@ Invoke-VstsTaskScript -ScriptBlock {
         #   {hello,world}.txt
         #   world.txt
         #   world.txt
-        New-Item -Path "$tempDirectory\{hello,world}.txt"
-        New-Item -Path "$tempDirectory\hello.txt"
-        New-Item -Path "$tempDirectory\world.txt"
+        New-Item -Path "$tempDirectory\{hello,world}.txt" -ItemType File
+        New-Item -Path "$tempDirectory\hello.txt" -ItemType File
+        New-Item -Path "$tempDirectory\world.txt" -ItemType File
         $patterns = @(
             '{hello,world}.txt'
         )
@@ -30,6 +30,6 @@ Invoke-VstsTaskScript -ScriptBlock {
         )
         Assert-AreEqual $expected $actual
     } finally {
-        Remove-Item $tempDirectory -Recurse
+        Remove-Item $tempDirectory -Recurse -Force
     }
 }

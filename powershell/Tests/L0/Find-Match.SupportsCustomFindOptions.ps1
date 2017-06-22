@@ -31,6 +31,9 @@ Invoke-VstsTaskScript -ScriptBlock {
         )
         Assert-AreEqual ($expected | Sort-Object) $actual
     } finally {
+        # Remove the junction folder first. Otherwise PowerShell 4 may fail recursively
+        # deleting $tempDirectory.
+        Remove-Item $tempDirectory\world -Recurse -Force -ErrorAction Ignore
         Remove-Item $tempDirectory -Recurse -Force
     }
 }
