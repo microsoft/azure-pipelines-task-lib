@@ -1,5 +1,8 @@
 # Release Notes
 
+## 0.8.2
+ * Fixed issue with env block size limit.
+
 ## 0.8.0
  * Added `Find-VstsMatch` and `Select-VstsMatch` for finding files with advanced pattern matching.
 
