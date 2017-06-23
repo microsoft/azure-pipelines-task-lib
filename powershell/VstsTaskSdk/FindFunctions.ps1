@@ -297,6 +297,9 @@ Array of paths.
 .PARAMETER Pattern
 Patterns to apply. Supports interleaved exclude patterns.
 
+.PARAMETER PatternRoot
+Default root to apply to unrooted patterns. Not applied to basename-only patterns when Options.MatchBase is true.
+
 .PARAMETER Options
 When the Options parameter is not specified, defaults to (New-VstsMatchOptions -Dot -NoBrace -NoCase).
 #>
@@ -307,6 +310,8 @@ function Select-Match {
         [string[]]$ItemPath,
         [Parameter()]
         [string[]]$Pattern,
+        [Parameter()]
+        [string]$PatternRoot,
         $Options)
 
 
@@ -344,7 +349,7 @@ function Select-Match {
                 continue
             }
 
-            # Set NoComment.
+            # Set NoComment. Brace expansion could result in a leading '#'.
             $Options.NoComment = $true
 
             # Determine whether pattern is include or exclude.
@@ -368,46 +373,80 @@ function Select-Match {
             $Options.NoNegate = $true
             $Options.FlipNegate = $false
 
-            # Trim and skip empty.
-            $pat = "$pat".Trim()
-            if (!$pat) {
-                Write-Verbose 'Skipping empty pattern.'
-                continue
+            # Expand braces - required to accurately root patterns.
+            $expanded = $null
+            $preExpanded = $pat
+            if ($Options.NoBrace) {
+                $expanded = @( $pat )
+            } else {
+                # Convert slashes on Windows before calling braceExpand(). Unfortunately this means braces cannot
+                # be escaped on Windows, this limitation is consistent with current limitations of minimatch (3.0.3).
+                Write-Verbose "Expanding braces."
+                $convertedPattern = $pat -replace '\\', '/'
+                $expanded = [Minimatch.Minimatcher]::BraceExpand(
+                    $convertedPattern,
+                    (ConvertTo-MinimatchOptions -Options $Options))
             }
 
-            if ($isIncludePattern) {
-                # Apply the pattern.
-                Write-Verbose 'Applying include pattern against original list'
-                $matchResults = [Minimatch.Minimatcher]::Filter(
-                    $ItemPath,
-                    $pat,
-                    (ConvertTo-MinimatchOptions -Options $Options))
+            # Set NoBrace.
+            $Options.NoBrace = $true
 
-                # Union the results.
-                $matchCount = 0
-                foreach ($matchResult in $matchResults) {
-                    $matchCount++
-                    $map[$matchResult] = $true
+            foreach ($pat in $expanded) {
+                if ($pat -ne $preExpanded) {
+                    Write-Verbose "Pattern: '$pat'"
                 }
 
-                Write-Verbose "$matchCount matches"
-            }
-            else {
-                # Apply the pattern.
-                Write-Verbose 'Applying exclude pattern against original list'
-                $matchResults = [Minimatch.Minimatcher]::Filter(
-                    $ItemPath,
-                    $pat,
-                    (ConvertTo-MinimatchOptions -Options $Options))
-
-                # Subtract the results.
-                $matchCount = 0
-                foreach ($matchResult in $matchResults) {
-                    $matchCount++
-                    $map.Remove($matchResult)
+                # Trim and skip empty.
+                $pat = "$pat".Trim()
+                if (!$pat) {
+                    Write-Verbose "Skipping empty pattern."
+                    continue
                 }
 
-                Write-Verbose "$matchCount matches"
+                # Root the pattern when all of the following conditions are true:
+                if ($PatternRoot -and               # PatternRoot is supplied
+                    !(Test-Rooted -Path $pat) -and  # AND pattern is not rooted
+                    #                               # AND MatchBase=false or not basename only
+                    (!$Options.MatchBase -or ($pat -replace '\\', '/').IndexOf('/') -ge 0)) {
+
+                    # Root the include pattern.
+                    $pat = Get-RootedPattern -DefaultRoot $PatternRoot -Pattern $pat
+                    Write-Verbose "After Get-RootedPattern, pattern: '$pat'"
+                }
+
+                if ($isIncludePattern) {
+                    # Apply the pattern.
+                    Write-Verbose 'Applying include pattern against original list.'
+                    $matchResults = [Minimatch.Minimatcher]::Filter(
+                        $ItemPath,
+                        $pat,
+                        (ConvertTo-MinimatchOptions -Options $Options))
+
+                    # Union the results.
+                    $matchCount = 0
+                    foreach ($matchResult in $matchResults) {
+                        $matchCount++
+                        $map[$matchResult] = $true
+                    }
+
+                    Write-Verbose "$matchCount matches"
+                } else {
+                    # Apply the pattern.
+                    Write-Verbose 'Applying exclude pattern against original list'
+                    $matchResults = [Minimatch.Minimatcher]::Filter(
+                        $ItemPath,
+                        $pat,
+                        (ConvertTo-MinimatchOptions -Options $Options))
+
+                    # Subtract the results.
+                    $matchCount = 0
+                    foreach ($matchResult in $matchResults) {
+                        $matchCount++
+                        $map.Remove($matchResult)
+                    }
+
+                    Write-Verbose "$matchCount matches"
+                }
             }
         }
 

@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.8.3
+ * Updated `Select-VstsMatch`. Added `-PatternRoot` parameter.
+ * Breaking change for `Select-VstsMatch` due to positional parameter changes and partial parameter name impact.
+
 ## 0.8.2
  * Fixed issue with env block size limit.
 
