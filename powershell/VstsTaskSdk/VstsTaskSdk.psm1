@@ -72,6 +72,7 @@ Export-ModuleMember -Function @(
         'Get-VssCredentials'
         'Get-VssHttpClient'
         # Tool functions.
+        'Assert-Agent'
         'Assert-Path'
         'Invoke-Tool'
         # Trace functions.

@@ -1,5 +1,29 @@
 <#
 .SYNOPSIS
+Asserts the agent version is at least the specified minimum.
+
+.PARAMETER Minimum
+Minimum version - must be 2.104.1 or higher.
+#>
+function Assert-Agent {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [version]$Minimum)
+
+    if (([version]'2.104.1').CompareTo($Minimum) -ge 1) {
+        Write-Error "Assert-Agent requires the parameter to be 2.104.1 or higher."
+        return
+    }
+
+    $agent = Get-TaskVariable -Name 'agent.version'
+    if (!$agent -or $Minimum.CompareTo([version]$agent) -ge 1) {
+        Write-Error (Get-LocString -Key 'PSLIB_AgentVersion0Required' -ArgumentList $Minimum)
+    }
+}
+
+<#
+.SYNOPSIS
 Asserts that a path exists. Throws if the path does not exist.
 
 .PARAMETER PassThru

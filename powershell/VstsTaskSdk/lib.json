@@ -1,5 +1,6 @@
 {
   "messages": {
+    "PSLIB_AgentVersion0Required": "Agent version {0} or higher is required.",
     "PSLIB_ContainerPathNotFound0": "Container path not found: '{0}'",
     "PSLIB_EndpointAuth0": "'{0}' service endpoint credentials",
     "PSLIB_EndpointUrl0": "'{0}' service endpoint URL",
