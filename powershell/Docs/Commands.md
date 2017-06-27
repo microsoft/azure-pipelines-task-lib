@@ -1,4 +1,4 @@
-# Commands (v0.8.0)
+# Commands (v0.9.0)
 ## <a name="toc" />Table of Contents
  * [Find](#find)
   * [Find-VstsMatch](#find-vstsmatch)
@@ -39,6 +39,7 @@
   * [Get-VstsVssCredentials](#get-vstsvsscredentials)
   * [Get-VstsVssHttpClient](#get-vstsvsshttpclient)
  * [Tool](#tool)
+  * [Assert-VstsAgent](#assert-vstsagent)
   * [Assert-VstsPath](#assert-vstspath)
   * [Invoke-VstsTool](#invoke-vststool)
  * [Trace](#trace)
@@ -108,8 +109,8 @@ SYNOPSIS
     Applies match patterns against a list of files.
 
 SYNTAX
-    Select-VstsMatch [[-ItemPath] <String[]>] [[-Pattern] <String[]>] [[-Options] <Object>]
-    [<CommonParameters>]
+    Select-VstsMatch [[-ItemPath] <String[]>] [[-Pattern] <String[]>] [[-PatternRoot] <String>] [[-Options]
+    <Object>] [<CommonParameters>]
 
 DESCRIPTION
     Applies match patterns to a list of paths. Supports interleaved exclude patterns.
@@ -576,6 +577,18 @@ DESCRIPTION
     working with the VSTS REST SDK from a task.
 ```
 ## <a name="tool" />Tool
+### <a name="assert-vstsagent" />Assert-VstsAgent
+[table of contents](#toc) | [full](FullHelp/Assert-VstsAgent.md)
+```
+NAME
+    Assert-VstsAgent
+
+SYNOPSIS
+    Asserts the agent version is at least the specified minimum.
+
+SYNTAX
+    Assert-VstsAgent [-Minimum] <Version> [<CommonParameters>]
+```
 ### <a name="assert-vstspath" />Assert-VstsPath
 [table of contents](#toc) | [full](FullHelp/Assert-VstsPath.md)
 ```
