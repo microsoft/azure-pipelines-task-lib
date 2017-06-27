@@ -70,11 +70,11 @@ var test = function (options, p) {
 exports.test = test;
 //------------------------------------------------------------------------------
 
-var run = function (cl) {
+var run = function (cl, stdio) {
     console.log();
     console.log('> ' + cl);
     var options = {
-        stdio: 'inherit'
+        stdio: (stdio || 'inherit')
     };
     var rc = 0;
     var output;

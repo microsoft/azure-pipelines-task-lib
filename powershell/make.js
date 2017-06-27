@@ -50,7 +50,10 @@ target.build = function() {
         throw new Error('Commit hash token not found in PSD1.');
     }
 
-    var commitHash = util.run('git rev-parse HEAD');
+    var commitHash = util.run('git rev-parse HEAD', 'pipe');
+    if (!commitHash) {
+        throw new Error('Failed to determine commit hash.');
+    }
     psd1Contents = psd1Contents.substring(0, tokenStart) + commitHash + psd1Contents.substring(tokenStart + token.length);
 
     // save the updated psd1 file
