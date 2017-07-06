@@ -1646,3 +1646,26 @@ if (semver.lt(process.versions.node, '4.2.0')) {
 if (!global['_vsts_task_lib_loaded']) {
     im._loadData();
 }
+
+//-------------------------------------------------------------------
+// Telemetry command event
+//-------------------------------------------------------------------
+/**
+ * Publishes the telemetry data
+ *
+ * @param area    Area path where the telemetry will be published
+ * @param feature   Feature group where the telemetry will be published
+ * @param properties   telemetry data which will be published
+ * @returns         void
+ */
+export function publishTelemetry(area: string, feature: string, properties: { [key: string]: any }): void {
+
+    let agent = getVariable('Agent.Version');
+    if (!agent || semver.lt(agent, '2.120.0')) {
+        return;
+    }
+
+    let data = JSON.stringify(properties);
+    debug('telemetry area: ' + area + ' feature: ' + feature + ' data: ' + data);
+    command('telemetry.publish', { 'area': area, 'feature': feature }, data);
+}
