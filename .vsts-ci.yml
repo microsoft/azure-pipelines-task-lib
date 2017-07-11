@@ -5,17 +5,11 @@ steps:
   ################################################################################
 
   # npm install
-  - task: CmdLine@1.*
+  - task: Npm@1.*
     name: (vsts-task-lib) npm install
     inputs:
-      filename: npm
-      arguments: install
-      workingFolder: node
-  # - task: Npm@1.*
-  #   name: npm install
-  #   inputs:
-  #     command: install
-  #     workingDir: node
+      command: install
+      workingDir: node
 
   # use node 5
   - task: NodeTool@0.*
@@ -57,18 +51,12 @@ steps:
   ################################################################################
 
   # npm install
-  - task: CmdLine@1.*
+  - task: Npm@1.*
     name: (VstsTaskSdk) npm install
     condition: and(succeeded(), eq(variables.os, 'windows'))
     inputs:
-      filename: npm
-      arguments: install
-      workingFolder: powershell
-  # - task: Npm@1.*
-  #   name: npm install
-  #   inputs:
-  #     command: install
-  #     workingDir: powershell
+      command: install
+      workingDir: powershell
 
   # npm test
   - task: CmdLine@1.*
