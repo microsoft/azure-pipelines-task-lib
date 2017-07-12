@@ -257,6 +257,7 @@ Param | Type | Description
 name | string | name of the variable to set
 val | string | value to set
 secret | boolean | whether variable is secret.  optional, defaults to false
+asOutput | boolean | whether variable is an output variable.  optional, defaults to false
  
 <br/>
 <div id="taskgetTaskVariable">
