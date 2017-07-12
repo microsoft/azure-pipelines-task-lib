@@ -1531,6 +1531,43 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
 }
 
 //-----------------------------------------------------
+// Http Proxy Helper
+//-----------------------------------------------------
+
+export interface ProxyConfiguration {
+    proxyUrl: string;
+    proxyUsername?: string;
+    proxyPassword?: string;
+    proxyBypassHosts?: string[];
+}
+
+/**
+ * Gets http proxy configuration used by Build/Release agent
+ *
+ * @return  ProxyConfiguration
+ */
+export function getHttpProxyConfiguration(): ProxyConfiguration {
+    // min agent version that supports proxy
+    assertAgent('2.105.7');
+    let proxyUrl: string = getVariable('Agent.ProxyUrl');
+    if (proxyUrl && proxyUrl.length > 0) {
+        let proxyUsername: string = getVariable('Agent.ProxyUsername');
+        let proxyPassword: string = getVariable('Agent.ProxyPassword');
+        let proxyBypassHosts: string[] = JSON.parse(getVariable('Agent.ProxyBypassList') || '[]');
+
+        return {
+            proxyUrl: proxyUrl,
+            proxyUsername: proxyUsername,
+            proxyPassword: proxyPassword,
+            proxyBypassHosts: proxyBypassHosts
+        };
+    }
+    else {
+        return null;
+    }
+}
+
+//-----------------------------------------------------
 // Test Publisher
 //-----------------------------------------------------
 export class TestPublisher {

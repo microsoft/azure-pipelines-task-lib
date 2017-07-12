@@ -79,6 +79,8 @@ Export-ModuleMember -Function @(
         'Trace-EnteringInvocation'
         'Trace-LeavingInvocation'
         'Trace-Path'
+        # Proxy functions
+        'Get-WebProxy'
     )
 
 # Override Out-Default globally.
