@@ -111,23 +111,4 @@ describe('Result Tests', function () {
 
         done();
     })
-
-    it('setResult failed outputs with some code', function (done) {
-        this.timeout(1000);
-
-        var stdStream = testutil.createStringStream();
-        tl.setStdStream(stdStream);
-        tl.setResult(tl.TaskResult.Failed, 'failed msg', '100');
-
-        var expected = testutil.buildOutput(
-            ['##vso[task.debug]task result: Failed',
-                '##vso[task.issue type=error;]failed msg',
-                '##vso[task.complete result=Failed;code=100;]failed msg']);
-
-        var output = stdStream.getContents();
-
-        assert.equal(output, expected);
-
-        done();
-    })
 });
