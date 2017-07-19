@@ -93,14 +93,14 @@ var ensureTool = function (name, versionArgs, validate) {
     console.log(name + ' tool:');
     var toolPath = which(name);
     if (!toolPath) {
-        fail(name + ' not found.  might need to run npm install');
+        throw new Error(name + ' not found.  might need to run npm install');
     }
 
     if (versionArgs) {
         var result = exec(name + ' ' + versionArgs);
         if (typeof validate == 'string') {
             if (result.output.trim() != validate) {
-                fail('expected version: ' + validate);
+                throw new Error('expected version: ' + validate);
             }
         }
         else {
