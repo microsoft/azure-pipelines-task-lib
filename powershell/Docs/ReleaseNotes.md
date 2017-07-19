@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.10.0
+ * Updated `Get-VstsVssHttpClient`. Added `-WebProxy` parameter. `Get-VstsVssHttpClient` will follow agent proxy setting by default.
+ * Added `Get-VstsWebProxy` to retrieve agent proxy settings.
+
 ## 0.9.0
  * Breaking change for `Select-VstsMatch` due to positional parameter changes and partial parameter name impact.
  * Updated `Select-VstsMatch`. Added `-PatternRoot` parameter.
