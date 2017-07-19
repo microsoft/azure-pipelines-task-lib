@@ -9,7 +9,7 @@ SYNOPSIS
 
 SYNTAX
     Get-VstsVssHttpClient [-TypeName] <String> [[-OMDirectory] <String>] [[-Uri] <String>] [[-VssCredentials]
-    <Object>] [<CommonParameters>]
+    <Object>] [[-WebProxy] <Object>] [<CommonParameters>]
 
 DESCRIPTION
     Gets an instance of an VSS HTTP client.
@@ -49,6 +49,10 @@ PARAMETERS
         scope selected in the build/release definition (either the project collection build/release service
         identity, or the project build/release service identity).
 
+        # .PARAMETER WebProxy
+        # WebProxy to use when intializing the HTTP client. If not specified, the default uses the proxy
+        configuration agent current has.
+
         Required?                    false
         Position?                    2
         Default value
@@ -68,6 +72,14 @@ PARAMETERS
         Required?                    false
         Position?                    4
         Default value
+        Accept pipeline input?       false
+        Accept wildcard characters?  false
+
+    -WebProxy <Object>
+
+        Required?                    false
+        Position?                    5
+        Default value                (Get-WebProxy)
         Accept pipeline input?       false
         Accept wildcard characters?  false
 

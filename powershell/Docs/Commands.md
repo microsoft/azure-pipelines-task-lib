@@ -38,6 +38,7 @@
   * [Get-VstsTfsService](#get-vststfsservice)
   * [Get-VstsVssCredentials](#get-vstsvsscredentials)
   * [Get-VstsVssHttpClient](#get-vstsvsshttpclient)
+  * [Get-VstsWebProxy](#get-vstswebproxy)
  * [Tool](#tool)
   * [Assert-VstsAgent](#assert-vstsagent)
   * [Assert-VstsPath](#assert-vstspath)
@@ -567,7 +568,7 @@ SYNOPSIS
 
 SYNTAX
     Get-VstsVssHttpClient [-TypeName] <String> [[-OMDirectory] <String>] [[-Uri] <String>] [[-VssCredentials]
-    <Object>] [<CommonParameters>]
+    <Object>] [[-WebProxy] <Object>] [<CommonParameters>]
 
 DESCRIPTION
     Gets an instance of an VSS HTTP client.
@@ -575,6 +576,23 @@ DESCRIPTION
     *** DO NOT USE Agent.ServerOMDirectory *** See
     https://github.com/Microsoft/vsts-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
     working with the VSTS REST SDK from a task.
+```
+### <a name="get-vstswebproxy" />Get-VstsWebProxy
+[table of contents](#toc) | [full](FullHelp/Get-VstsWebProxy.md)
+```
+NAME
+    Get-VstsWebProxy
+
+SYNOPSIS
+    Gets a VstsTaskSdk.VstsWebProxy
+
+SYNTAX
+    Get-VstsWebProxy [<CommonParameters>]
+
+DESCRIPTION
+    Gets an instance of a VstsTaskSdk.VstsWebProxy that has same proxy configuration as Build/Release agent.
+
+    VstsTaskSdk.VstsWebProxy implement System.Net.IWebProxy interface.
 ```
 ## <a name="tool" />Tool
 ### <a name="assert-vstsagent" />Assert-VstsAgent
