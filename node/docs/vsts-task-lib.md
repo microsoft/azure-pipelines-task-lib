@@ -94,6 +94,10 @@ import tl = require('vsts-task-lib/task')
 <a href="#tasksetResourcePath">setResourcePath</a> <br/>
 <a href="#taskloc">loc</a> <br/>
  
+### Proxy <a href="#Proxy">(v)</a>
+ 
+<a href="#taskgetHttpProxyConfiguration">getHttpProxyConfiguration</a> <br/>
+ 
 <br/>
 <div id="InputFunctions">
  
@@ -1050,4 +1054,24 @@ Param | Type | Description
 --- | --- | ---
 key | string | key of the resources string in the resource file
 param | any\[\] | additional params for formatting the string
+ 
+ 
+<br/>
+<div id="Proxy">
+ 
+## Proxy
+ 
+---
+ 
+Funtions for web proxy settings
+<br/>
+<div id="taskgetHttpProxyConfiguration">
+ 
+### task.getHttpProxyConfiguration <a href="#index">(^)</a>
+Gets http proxy configuration used by Build/Release agent
+
+@return  ProxyConfiguration
+```javascript
+getHttpProxyConfiguration():ProxyConfiguration
+```
  

@@ -2102,6 +2102,47 @@
             }
           ]
         },
+        "ProxyConfiguration": {
+          "name": "ProxyConfiguration",
+          "members": {
+            "proxyUrl": {
+              "documentation": "",
+              "name": "proxyUrl",
+              "return": "string"
+            },
+            "proxyUsername": {
+              "documentation": "",
+              "name": "proxyUsername",
+              "return": "string"
+            },
+            "proxyPassword": {
+              "documentation": "",
+              "name": "proxyPassword",
+              "return": "string"
+            },
+            "proxyBypassHosts": {
+              "documentation": "",
+              "name": "proxyBypassHosts",
+              "return": "string[]"
+            }
+          },
+          "documentation": "",
+          "kind": "interface"
+        },
+        "getHttpProxyConfiguration": {
+          "name": "getHttpProxyConfiguration",
+          "members": {},
+          "documentation": "Gets http proxy configuration used by Build/Release agent\n\n@return  ProxyConfiguration",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [],
+              "members": {},
+              "return": "ProxyConfiguration",
+              "documentation": "Gets http proxy configuration used by Build/Release agent\n\n@return  ProxyConfiguration"
+            }
+          ]
+        },
         "TestPublisher": {
           "name": "TestPublisher",
           "members": {
@@ -2275,6 +2316,39 @@
               "members": {},
               "return": "CodeCoverageEnabler",
               "documentation": ""
+            }
+          ]
+        },
+        "publishTelemetry": {
+          "name": "publishTelemetry",
+          "members": {},
+          "documentation": "Publishes the telemetry data\n\n@returns         void",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "area",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": "Area path where the telemetry will be published"
+                },
+                {
+                  "name": "feature",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": "Feature group where the telemetry will be published"
+                },
+                {
+                  "name": "properties",
+                  "type": "{ [key: string]: any; }",
+                  "optional": false,
+                  "documentation": "telemetry data which will be published"
+                }
+              ],
+              "members": {},
+              "return": "void",
+              "documentation": "Publishes the telemetry data\n\n@returns         void"
             }
           ]
         }

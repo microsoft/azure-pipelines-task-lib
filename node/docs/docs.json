@@ -97,6 +97,12 @@
                 "task.setResourcePath",
                 "task.loc"
             ]
+        },
+        "Proxy": {
+            "Summary": "Funtions for web proxy settings",
+            "Document": [
+                "task.getHttpProxyConfiguration"
+            ]
         }     
     }
 }
