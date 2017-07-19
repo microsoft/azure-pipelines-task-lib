@@ -41,3 +41,7 @@ node/docs/vsotask.json
 
 # tests
 node/.taskKey
+
+# powershell compiled helper
+powershell/CompiledHelpers/bin
+powershell/CompiledHelpers/obj

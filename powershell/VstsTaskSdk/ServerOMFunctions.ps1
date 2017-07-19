@@ -324,6 +324,9 @@ If not specified, defaults to the directory of the entry script for the task.
 # .PARAMETER VssCredentials
 # Credentials to use when intializing the HTTP client. If not specified, the default uses the agent job token to construct the credentials object. The identity associated with the token depends on the scope selected in the build/release definition (either the project collection build/release service identity, or the project build/release service identity).
 
+# .PARAMETER WebProxy
+# WebProxy to use when intializing the HTTP client. If not specified, the default uses the proxy configuration agent current has.
+
 .EXAMPLE
 $projectHttpClient = Get-VstsVssHttpClient -TypeName Microsoft.TeamFoundation.Core.WebApi.ProjectHttpClient
 $projectHttpClient.GetProjects().Result
@@ -338,7 +341,9 @@ function Get-VssHttpClient {
 
         [string]$Uri,
 
-        $VssCredentials)
+        $VssCredentials,
+        
+        $WebProxy = (Get-WebProxy))
 
     Trace-EnteringInvocation -InvocationInfo $MyInvocation
     $originalErrorActionPreference = $ErrorActionPreference
@@ -361,6 +366,9 @@ function Get-VssHttpClient {
         # Validate the type can be loaded.
         $null = Get-OMType -TypeName $TypeName -OMKind 'WebApi' -OMDirectory $OMDirectory -Require
 
+        # Update proxy setting for vss http client
+        [Microsoft.VisualStudio.Services.Common.VssHttpMessageHandler]::DefaultWebProxy = $WebProxy
+        
         # Try to construct the HTTP client.
         Write-Verbose "Constructing HTTP client."
         try {
@@ -417,6 +425,42 @@ function Get-VssHttpClient {
         $ErrorActionPreference = $originalErrorActionPreference
         Write-Error $_
     } finally {
+        Trace-LeavingInvocation -InvocationInfo $MyInvocation
+    }
+}
+
+<#
+.SYNOPSIS
+Gets a VstsTaskSdk.VstsWebProxy
+
+.DESCRIPTION
+Gets an instance of a VstsTaskSdk.VstsWebProxy that has same proxy configuration as Build/Release agent.
+
+VstsTaskSdk.VstsWebProxy implement System.Net.IWebProxy interface.
+
+.EXAMPLE
+$webProxy = Get-VstsWebProxy
+$webProxy.GetProxy(New-Object System.Uri("https://github.com/Microsoft/vsts-task-lib"))
+#>
+function Get-WebProxy {
+    [CmdletBinding()]
+    param()
+
+    Trace-EnteringInvocation -InvocationInfo $MyInvocation
+    try
+    {
+        # Min agent version that supports proxy
+        Assert-Agent -Minimum '2.105.7'
+
+        $proxyUrl = Get-TaskVariable -Name Agent.ProxyUrl
+        $proxyUserName = Get-TaskVariable -Name Agent.ProxyUserName
+        $proxyPassword = Get-TaskVariable -Name Agent.ProxyPassword
+        $proxyBypassListJson = Get-TaskVariable -Name Agent.ProxyBypassList
+        [string[]]$ProxyBypassList = ConvertFrom-Json -InputObject $ProxyBypassListJson
+        
+        return New-Object -TypeName VstsTaskSdk.VstsWebProxy -ArgumentList @($proxyUrl, $proxyUserName, $proxyPassword, $proxyBypassList)
+    }
+    finally {
         Trace-LeavingInvocation -InvocationInfo $MyInvocation
     }
 }
