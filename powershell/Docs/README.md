@@ -16,4 +16,5 @@ The [MSBuild Task](https://github.com/Microsoft/vsts-tasks/blob/master/Tasks/MSB
 ### [Finding Files](FindingFiles.md)
 ### [Using the VSTS .NET SDKs](UsingOM.md)
 ### [Minimum agent version](../../node/docs/minagent.md)
+### [Proxy](../../node/docs/proxy.md)
 ### [Release notes](ReleaseNotes.md)
