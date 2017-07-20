@@ -17,7 +17,7 @@ Step by Step: [Create Task](docs/stepbystep.md)
 
 Documentation: [Typescript API](docs/vsts-task-lib.md)
 
-Guidance: [Finding Files](docs/findingfiles.md), [Minimum agent version](docs/minagent.md)
+Guidance: [Finding Files](docs/findingfiles.md), [Minimum agent version](docs/minagent.md), [Proxy](docs/proxy.md)
 
 ## Reference Examples
 
