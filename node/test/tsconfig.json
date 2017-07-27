@@ -4,7 +4,7 @@
         "module": "commonjs",
         "declaration": false,
         "outDir": "../_test",
-        "moduleResolution": "node"
+        "moduleResolution": "node"      
     },
     "files": [
         "dirtests.ts",
@@ -16,12 +16,11 @@
         "legacyfindfilestests.ts",
         "vaulttests.ts",
         "toolrunnertests.ts",
-        "cctests.ts",
-        "loctests.ts",
-        "matchtests.ts",
-        "filtertests.ts",
-        "findmatchtests.ts",
-        "mocktests.ts",
-        "telemetrytests.ts"
+        "cctests",
+        "loctests",
+        "matchtests",
+        "filtertests",
+        "findmatchtests",
+        "mocktests"
     ]
 }
