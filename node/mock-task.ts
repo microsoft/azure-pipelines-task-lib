@@ -89,7 +89,7 @@ module.exports.getEndpointAuthorizationScheme = task.getEndpointAuthorizationSch
 module.exports.getEndpointAuthorizationParameter = task.getEndpointAuthorizationParameter;
 module.exports.getEndpointAuthorization = task.getEndpointAuthorization;
 
-// TODO: should go away when task lib
+// TODO: should go away when task lib 
 export interface EndpointAuthorization {
     parameters: {
         [key: string]: string;
@@ -427,7 +427,7 @@ export class CodeCoveragePublisher {
             properties['additionalcodecoveragefiles'] = additionalCodeCoverageFiles;
         }
 
-        module.exports.command('codecoverage.publish', properties, "");
+        module.exports.command('codecoverage.publish', properties, "");        
     }
 }
 
@@ -456,8 +456,3 @@ export class CodeCoverageEnabler {
 exports.TaskCommand = tcm.TaskCommand;
 exports.commandFromString = tcm.commandFromString;
 exports.ToolRunner = trm.ToolRunner;
-
-//-----------------------------------------------------
-// Telemetry command
-//-----------------------------------------------------
-module.exports.publishTelemetry = task.publishTelemetry;
