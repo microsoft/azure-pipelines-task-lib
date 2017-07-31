@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.4</TargetFramework>
+    <PackageTargetFallback>portable-net451+win8</PackageTargetFallback>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VstsTaskLib\VstsTaskLib.csproj" />
+    <PackageReference Include="vss-api-netcore" Version="0.5.45-private" />
+  </ItemGroup>
+</Project>

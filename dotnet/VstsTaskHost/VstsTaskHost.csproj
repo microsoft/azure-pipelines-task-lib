@@ -7,5 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\VstsTaskLib\VstsTaskLib.csproj" />
+
+    <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
   </ItemGroup>
 </Project>

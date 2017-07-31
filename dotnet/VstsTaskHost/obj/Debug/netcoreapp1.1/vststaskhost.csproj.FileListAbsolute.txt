@@ -1,8 +1,0 @@
-H:\Source\vststaskhost\bin\Debug\netcoreapp1.1\vststaskhost.deps.json
-H:\Source\vststaskhost\bin\Debug\netcoreapp1.1\vststaskhost.runtimeconfig.json
-H:\Source\vststaskhost\bin\Debug\netcoreapp1.1\vststaskhost.runtimeconfig.dev.json
-H:\Source\vststaskhost\bin\Debug\netcoreapp1.1\vststaskhost.dll
-H:\Source\vststaskhost\bin\Debug\netcoreapp1.1\vststaskhost.pdb
-H:\Source\vststaskhost\obj\Debug\netcoreapp1.1\vststaskhost.AssemblyInfo.cs
-H:\Source\vststaskhost\obj\Debug\netcoreapp1.1\vststaskhost.dll
-H:\Source\vststaskhost\obj\Debug\netcoreapp1.1\vststaskhost.pdb
