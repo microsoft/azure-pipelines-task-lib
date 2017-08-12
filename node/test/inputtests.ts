@@ -728,7 +728,7 @@ describe('Input Tests', function () {
     })
 
     // assertAgent tests
-    it('assert agent fails when empty', function (done) {
+    it('assert agent does not fail when empty', function (done) {
         this.timeout(1000);
 
         let originalAgentVersion = process.env['AGENT_VERSION'];
@@ -742,7 +742,7 @@ describe('Input Tests', function () {
                 failed = true;
             }
 
-            assert(failed, 'assert should have thrown');
+            assert(!failed, 'assert should not have thrown');
         }
         finally {
             process.env['AGENT_VERSION'] = originalAgentVersion;

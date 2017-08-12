@@ -83,7 +83,7 @@ export function assertAgent(minimum: string): void {
     }
 
     let agent = getVariable('Agent.Version');
-    if (!agent || semver.lt(agent, minimum)) {
+    if (agent && semver.lt(agent, minimum)) {
         throw new Error(`Agent version ${minimum} or higher is required`);
     }
 }
@@ -1546,8 +1546,6 @@ export interface ProxyConfiguration {
  * @return  ProxyConfiguration
  */
 export function getHttpProxyConfiguration(): ProxyConfiguration {
-    // min agent version that supports proxy
-    assertAgent('2.105.7');
     let proxyUrl: string = getVariable('Agent.ProxyUrl');
     if (proxyUrl && proxyUrl.length > 0) {
         let proxyUsername: string = getVariable('Agent.ProxyUsername');
