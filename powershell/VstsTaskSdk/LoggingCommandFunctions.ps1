@@ -3,8 +3,8 @@ $script:loggingCommandEscapeMappings = @( # TODO: WHAT ABOUT "="? WHAT ABOUT "%"
     New-Object psobject -Property @{ Token = ';' ; Replacement = '%3B' }
     New-Object psobject -Property @{ Token = "`r" ; Replacement = '%0D' }
     New-Object psobject -Property @{ Token = "`n" ; Replacement = '%0A' }
+    New-Object psobject -Property @{ Token = "]" ; Replacement = '%5D' }
 )
-# TODO: BUG: Escape ]
 # TODO: BUG: Escape % ???
 # TODO: Add test to verify don't need to escape "=".
 
