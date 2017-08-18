@@ -35,6 +35,6 @@
   "devDependencies": {
     "mocha": "^2.2.5",
     "sync-request": "3.0.1",
-    "typescript": "1.8.7"
+    "typescript": "2.4.2"
   }
 }
