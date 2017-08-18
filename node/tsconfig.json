@@ -5,7 +5,8 @@
         "declaration": true,                        /* Generates corresponding '.d.ts' file. */
         "moduleResolution": "node",                 /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */
         "strict": true,                             /* Enable all strict type-checking options. */
-        "alwaysStrict": false                       /* Parse in strict mode and emit "use strict" for each source file. */
+        "alwaysStrict": false,                      /* Parse in strict mode and emit "use strict" for each source file. */
+        "noImplicitThis": true
     },
     "files": [
         "index.ts",
