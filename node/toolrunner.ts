@@ -1,5 +1,3 @@
-
-
 import Q = require('q');
 import os = require('os');
 import events = require('events');
@@ -600,11 +598,11 @@ export class ToolRunner extends events.EventEmitter {
                     s.write(data);
                 }
             });
-            cpFirst.on('error', (err) => {
+            cpFirst.on('error', (err: Error) => {
                 cp.stdin.end();
                 defer.reject(new Error(toolPathFirst + ' failed. ' + err.message));
             });
-            cpFirst.on('close', (code, signal) => {
+            cpFirst.on('close', (code: number, signal: string) => {
                 if (code != 0 && !options.ignoreReturnCode) {
                     successFirst = false;
                     returnCodeFirst = code;
@@ -668,11 +666,11 @@ export class ToolRunner extends events.EventEmitter {
             });            
         });
 
-        cp.on('error', (err) => {
+        cp.on('error', (err: Error) => {
             defer.reject(new Error(toolPath + ' failed. ' + err.message));
         });
 
-        cp.on('close', (code, signal) => {
+        cp.on('close', (code: number, signal: string) => {
             this._debug('rc:' + code);
 
             if (stdbuffer.length > 0) {
