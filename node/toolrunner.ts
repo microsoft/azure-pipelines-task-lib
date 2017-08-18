@@ -58,7 +58,7 @@ export interface IExecSyncResult {
 }
 
 export class ToolRunner extends events.EventEmitter {
-    constructor(toolPath) {
+    constructor(toolPath: string) {
         super();
 
         if (!toolPath) {
@@ -74,7 +74,7 @@ export class ToolRunner extends events.EventEmitter {
     private args: string[];
     private pipeOutputToTool: ToolRunner;
 
-    private _debug(message) {
+    private _debug(message: string) {
         this.emit('debug', message);
     }
 
@@ -85,7 +85,7 @@ export class ToolRunner extends events.EventEmitter {
         var escaped =false;
         var arg = '';
 
-        var append = function(c) {
+        var append = function(c: string) {
             // we only escape double quotes.
             if (escaped && c !== '"') {
                 arg += '\\';
@@ -561,7 +561,7 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         // TODO: filter process.env
-        let cp;
+        let cp: child.ChildProcess;
         let toolPath: string = this.toolPath;
         let toolPathFirst: string;
         let successFirst = true;

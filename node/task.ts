@@ -618,7 +618,7 @@ export function mkdirP(p: string): void {
 
     // create each directory
     while (stack.length) {
-        let dir = stack.pop();
+        let dir: string = stack.pop();
         debug(`mkdir '${dir}'`);
         try {
             fs.mkdirSync(dir);
@@ -1354,7 +1354,7 @@ function _getDefaultMatchOptions(): MatchOptions {
 export function findMatch(defaultRoot: string, patterns: string[] | string, findOptions?: FindOptions, matchOptions?: MatchOptions): string[] {
 
     // apply defaults for parameters and trace
-    defaultRoot = defaultRoot || this.getVariable('system.defaultWorkingDirectory') || process.cwd();
+    defaultRoot = defaultRoot || getVariable('system.defaultWorkingDirectory') || process.cwd();
     debug(`defaultRoot: '${defaultRoot}'`);
     patterns = patterns || [];
     patterns = typeof patterns == 'string' ? [patterns] as string[] : patterns;
@@ -1568,13 +1568,13 @@ export function getHttpProxyConfiguration(): ProxyConfiguration {
 // Test Publisher
 //-----------------------------------------------------
 export class TestPublisher {
-    constructor(testRunner) {
+    constructor(testRunner: string) {
         this.testRunner = testRunner;
     }
 
     public testRunner: string;
 
-    public publish(resultFiles, mergeResults, platform, config, runTitle, publishRunAttachments) {
+    public publish(resultFiles: string, mergeResults: string, platform: string, config: string, runTitle: string, publishRunAttachments: string) {
 
         var properties = <{ [key: string]: string }>{};
         properties['type'] = this.testRunner;
@@ -1613,7 +1613,7 @@ export class TestPublisher {
 export class CodeCoveragePublisher {
     constructor() {
     }
-    public publish(codeCoverageTool, summaryFileLocation, reportDirectory, additionalCodeCoverageFiles) {
+    public publish(codeCoverageTool: string, summaryFileLocation: string, reportDirectory: string, additionalCodeCoverageFiles: string) {
 
         var properties = <{ [key: string]: string }>{};
 

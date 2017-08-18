@@ -8,6 +8,7 @@ export interface TaskLibAnswerExecResult {
 }
 
 export interface TaskLibAnswers {
+    [key:string]: any;
     which?: { [key: string]: string; },
     exec?: { [ key: string]: TaskLibAnswerExecResult },
     checkPath?: { [key: string]: boolean },

@@ -9,7 +9,7 @@
 let CMD_PREFIX = '##vso[';
 
 export class TaskCommand {
-    constructor(command, properties, message) {
+    constructor(command: string, properties: {[key: string]: string}, message: string) {
         if (!command) {
             command = 'missing.command';
         }
@@ -49,7 +49,7 @@ export class TaskCommand {
     }
 }
 
-export function commandFromString(commandLine) {
+export function commandFromString(commandLine: string) {
     var preLen = CMD_PREFIX.length;
     var lbPos = commandLine.indexOf('[');
     var rbPos = commandLine.indexOf(']');
@@ -60,7 +60,7 @@ export function commandFromString(commandLine) {
     var spaceIdx = cmdInfo.indexOf(' ');
 
     var command = cmdInfo;
-    var properties = {};
+    var properties: {[key: string]: string} = {};
 
     if (spaceIdx > 0) {
         command = cmdInfo.trim().substring(0, spaceIdx);
@@ -88,14 +88,14 @@ export function commandFromString(commandLine) {
     return cmd;
 }
 
-function escape(s) : string {
+function escape(s: string) : string {
     return s.replace(/\r/g, '%0D')
             .replace(/\n/g, '%0A')
             .replace(/]/g, '%5D')
             .replace(/;/g, '%3B');
 }
 
-function unescape(s) : string {
+function unescape(s: string) : string {
     return s.replace(/%0D/g, '\r')
             .replace(/%0A/g, '\n')
             .replace(/%5D/g, ']')

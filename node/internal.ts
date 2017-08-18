@@ -26,7 +26,7 @@ export var _vault: vm.Vault;
 
 // async await needs generators in node 4.x+
 if (semver.lt(process.versions.node, '4.2.0')) {
-    this.warning('Tasks require a new agent.  Upgrade your agent or node to 4.2.0 or later');
+    _warning('Tasks require a new agent.  Upgrade your agent or node to 4.2.0 or later');
 }
 
 //-----------------------------------------------------
@@ -52,11 +52,11 @@ export function _writeLine(str: string): void {
     _outStream.write(str + os.EOL);
 }
 
-export function _setStdStream(stdStream): void {
+export function _setStdStream(stdStream: NodeJS.WritableStream): void {
     _outStream = stdStream;
 }
 
-export function _setErrStream(errStream): void {
+export function _setErrStream(errStream: NodeJS.WritableStream): void {
     _errStream = errStream;
 }
 
@@ -70,7 +70,7 @@ let _libResourceFileLoaded: boolean = false;
 let _resourceCulture: string = 'en-US';
 
 function _loadResJson(resjsonFile: string): any {
-    var resJson: {} = null;
+    var resJson: any = null;
     if (_exist(resjsonFile)) {
         var resjsonContent = fs.readFileSync(resjsonFile, 'utf8').toString();
         // remove BOM
@@ -106,7 +106,7 @@ function _loadLocStrings(resourceFile: string, culture: string): { [key: string]
 
             var localizedResourceFile = path.join(path.dirname(resourceFile), 'Strings', 'resources.resjson');
             var upperCulture = culture.toUpperCase();
-            var cultures = [];
+            var cultures: string[] = [];
             try { cultures = fs.readdirSync(localizedResourceFile); }
             catch (ex) { }
             for (var i = 0; i < cultures.length; i++) {
@@ -273,7 +273,7 @@ export interface _KnownVariableInfo {
 // Cmd Helpers
 //-----------------------------------------------------
 
-export function _command(command: string, properties, message: string) {
+export function _command(command: string, properties: {[key: string]: string}, message: string) {
     var taskCmd = new tcm.TaskCommand(command, properties, message);
     _writeLine(taskCmd.toString());
 }
@@ -301,7 +301,7 @@ export function _debug(message: string): void {
  * @returns   boolean 
  */
 export function _exist(path: string): boolean {
-    var exist = false;
+    var exist: boolean = false;
     try {
         exist = path && fs.statSync(path) != null;
     } catch (err) {

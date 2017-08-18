@@ -44,12 +44,12 @@ export interface IExecSyncResult {
     error: Error;
 }
 
-export function debug(message) {
+export function debug(message: string) {
     // do nothing, overridden
 };
 
 export class ToolRunner extends events.EventEmitter {
-    constructor(toolPath) {
+    constructor(toolPath: string) {
         debug('toolRunner toolPath: ' + toolPath);
 
         super();
@@ -62,7 +62,7 @@ export class ToolRunner extends events.EventEmitter {
     private args: string[];
     private pipeOutputToTool: ToolRunner;
 
-    private _debug(message) {
+    private _debug(message: string) {
         debug(message);
         this.emit('debug', message);
     }
@@ -74,7 +74,7 @@ export class ToolRunner extends events.EventEmitter {
         var escaped =false;
         var arg = '';
 
-        var append = function(c) {
+        var append = function(c: string) {
             // we only escape double quotes.
             if (escaped && c !== '"') {
                 arg += '\\';

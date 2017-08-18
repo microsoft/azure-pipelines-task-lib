@@ -69,8 +69,8 @@ module.exports.getBoolInput = task.getBoolInput;
 module.exports.getDelimitedInput = task.getDelimitedInput;
 module.exports.filePathSupplied = task.filePathSupplied;
 
-function getPathInput(name, required, check) {
-    var inval = module.exports.getInput(name, required);
+function getPathInput(name: string, required: boolean, check: boolean) {
+    var inval: string = module.exports.getInput(name, required);
     if (inval) {
         if (check) {
             checkPath(inval, name);
@@ -131,25 +131,25 @@ export class FsStats implements fs.Stats {
     ctime: Date;
     birthtime: Date;
 
-    setAnswers(mockResponses) {
-        this.m_isFile = mockResponses['isFile'] || false;
-        this.m_isDirectory = mockResponses['isDirectory'] || false;
-        this.m_isBlockDevice = mockResponses['isBlockDevice'] || false;
-        this.m_isCharacterDevice = mockResponses['isCharacterDevice'] || false;
-        this.m_isSymbolicLink = mockResponses['isSymbolicLink'] || false;
-        this.m_isFIFO = mockResponses['isFIFO'] || false;
-        this.m_isSocket = mockResponses['isSocket'] || false;
+    setAnswers(mockResponses: { [key: string]: string|undefined }) {
+        this.m_isFile = Boolean(mockResponses['isFile']) || false;
+        this.m_isDirectory = Boolean(mockResponses['isDirectory']) || false;
+        this.m_isBlockDevice = Boolean(mockResponses['isBlockDevice']) || false;
+        this.m_isCharacterDevice = Boolean(mockResponses['isCharacterDevice']) || false;
+        this.m_isSymbolicLink = Boolean(mockResponses['isSymbolicLink']) || false;
+        this.m_isFIFO = Boolean(mockResponses['isFIFO']) || false;
+        this.m_isSocket = Boolean(mockResponses['isSocket']) || false;
 
-        this.dev = mockResponses['dev'];
-        this.ino = mockResponses['ino'];
-        this.mode = mockResponses['mode'];
-        this.nlink = mockResponses['nlink'];
-        this.uid = mockResponses['uid'];
-        this.gid = mockResponses['gid'];
-        this.rdev = mockResponses['rdev'];
-        this.size = mockResponses['size'];
-        this.blksize = mockResponses['blksize'];
-        this.blocks = mockResponses['blocks'];
+        this.dev = Number(mockResponses['dev']);
+        this.ino = Number(mockResponses['ino']);
+        this.mode = Number(mockResponses['mode']);
+        this.nlink = Number(mockResponses['nlink']);
+        this.uid = Number(mockResponses['uid']);
+        this.gid = Number(mockResponses['gid']);
+        this.rdev = Number(mockResponses['rdev']);
+        this.size = Number(mockResponses['size']);
+        this.blksize = Number(mockResponses['blksize']);
+        this.blocks = Number(mockResponses['blocks']);
         this.atime = mockResponses['atime'];
         this.mtime = mockResponses['mtime'];
         this.ctime = mockResponses['ctime'];
@@ -251,7 +251,7 @@ export function checkPath(p: string, name: string): void {
 // - inject system.debug info
 // - have option to switch internal impl (shelljs now)
 //-----------------------------------------------------
-export function mkdirP(p): void {
+export function mkdirP(p: string): void {
     module.exports.debug('creating path: ' + p);
 }
 
@@ -362,13 +362,13 @@ export function findMatch(defaultRoot: string, patterns: string[] | string) : st
 // Test Publisher
 //-----------------------------------------------------
 export class TestPublisher {
-    constructor(testRunner) {
+    constructor(testRunner: string) {
         this.testRunner = testRunner;
     }
 
     public testRunner: string;
 
-    public publish(resultFiles, mergeResults, platform, config, runTitle, publishRunAttachments) {
+    public publish(resultFiles: string, mergeResults: string, platform: string, config: string, runTitle: string, publishRunAttachments: string) {
 
         var properties = <{ [key: string]: string }>{};
         properties['type'] = this.testRunner;
@@ -407,7 +407,7 @@ export class TestPublisher {
 export class CodeCoveragePublisher {
     constructor() {
     }
-    public publish(codeCoverageTool, summaryFileLocation, reportDirectory, additionalCodeCoverageFiles) {
+    public publish(codeCoverageTool: string, summaryFileLocation: string, reportDirectory: string, additionalCodeCoverageFiles: string) {
 
         var properties = <{ [key: string]: string }>{};
 
