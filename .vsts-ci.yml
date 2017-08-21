@@ -1,42 +1,26 @@
-steps:
+phases:
+- phase: Windows
+  queue:
+    demands: agent.os -equals Windows_NT
 
-  ################################################################################
-  # vsts-task-lib
-  ################################################################################
+  steps:
+  ########################################
+  # vsts-task-lib (Windows)
+  ########################################
 
   # npm install
-  - task: CmdLine@1
-    name: (vsts-task-lib) npm install
-    inputs:
-      filename: npm
-      arguments: install
-      workingFolder: node
-  # - task: Npm@1.*
-  #   name: npm install
-  #   inputs:
-  #     command: install
-  #     workingDir: node
+  - script: npm install
+    displayName: (vsts-task-lib) npm install
+    workingDirectory: node
 
   # use node 5
-  - task: NodeTool@0
+  - powershell: . res/UseNode5.ps1
     name: (vsts-task-lib) use node 5.10.1
-    condition: and(succeeded(), ne(variables.os, 'windows'))
-    inputs:
-      versionSpec: "5.10.1"
-  - task: CmdLine@1
-    name: (vsts-task-lib) use node 5.10.1
-    condition: and(succeeded(), eq(variables.os, 'windows'))
-    inputs:
-      filename: powershell.exe
-      arguments: -noninteractive -noprofile -file "$(build.sourcesDirectory)/res/UseNode5.ps1"
 
   # build/test
-  - task: CmdLine@1
+  - script: node make.js test
     name: (vsts-task-lib) node make.js test
-    inputs:
-      filename: node
-      arguments: make.js test
-      workingFolder: node
+    workingDirectory: node
 
   # use node 6
   - task: NodeTool@0
@@ -45,36 +29,92 @@ steps:
       versionSpec: "6.10.3"
 
   # build/test
-  - task: CmdLine@1
+  - script: node make.js test
     name: (vsts-task-lib) node make.js test
-    inputs:
-      filename: node
-      arguments: make.js test
-      workingFolder: node
+    workingDirectory: node
 
-  ################################################################################
-  # VstsTaskSdk
-  ################################################################################
+  ########################################
+  # VstsTaskSdk (Windows)
+  ########################################
 
   # npm install
-  - task: CmdLine@1
+  - script: npm install
     name: (VstsTaskSdk) npm install
-    condition: and(succeeded(), eq(variables.os, 'windows'))
-    inputs:
-      filename: npm
-      arguments: install
-      workingFolder: powershell
-  # - task: Npm@1.*
-  #   name: npm install
-  #   inputs:
-  #     command: install
-  #     workingDir: powershell
+    workingDirectory: powershell
 
   # npm test
-  - task: CmdLine@1
+  - script: npm test
     name: (VstsTaskSdk) npm test
-    condition: and(succeeded(), eq(variables.os, 'windows'))
+    workingDirectory: powershell
+
+- phase: macOS
+  queue:
+    demands: agent.os -equals Darwin
+
+  steps:
+  ########################################
+  # vsts-task-lib (macOS)
+  ########################################
+
+  # npm install
+  - script: npm install
+    displayName: npm install
+    workingDirectory: node
+
+  # use node 5
+  - task: NodeTool@0
+    name: use node 5.10.1
     inputs:
-      filename: npm
-      arguments: test
-      workingFolder: powershell
+      versionSpec: "5.10.1"
+
+  # build/test
+  - script: node make.js test
+    name: node make.js test
+    workingDirectory: node
+
+  # use node 6
+  - task: NodeTool@0
+    name: use node 6.10.3
+    inputs:
+      versionSpec: "6.10.3"
+
+  # build/test
+  - script: node make.js test
+    name: node make.js test
+    workingDirectory: node
+
+- phase: Linux
+  queue:
+    demands: agent.os -equals Darwin
+
+  steps:
+  ########################################
+  # vsts-task-lib (Linux)
+  ########################################
+
+  # npm install
+  - script: npm install
+    displayName: npm install
+    workingDirectory: node
+
+  # use node 5
+  - task: NodeTool@0
+    name: use node 5.10.1
+    inputs:
+      versionSpec: "5.10.1"
+
+  # build/test
+  - script: node make.js test
+    name: node make.js test
+    workingDirectory: node
+
+  # use node 6
+  - task: NodeTool@0
+    name: use node 6.10.3
+    inputs:
+      versionSpec: "6.10.3"
+
+  # build/test
+  - script: node make.js test
+    name: node make.js test
+    workingDirectory: node
