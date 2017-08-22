@@ -1,11 +1,16 @@
 phases:
+
+########################################
+# Windows
+########################################
 - phase: Windows
   queue:
     demands: agent.os -equals Windows_NT
 
   steps:
+
   ########################################
-  # vsts-task-lib (Windows)
+  # vsts-task-lib
   ########################################
 
   # npm install
@@ -14,46 +19,50 @@ phases:
     workingDirectory: node
 
   # use node 5
-  - powershell: . res/UseNode5.ps1
-    name: (vsts-task-lib) use node 5.10.1
+  - powershell: ./res/UseNode5.ps1
+    displayName: (vsts-task-lib) use node 5.10.1
 
   # build/test
   - script: node make.js test
-    name: (vsts-task-lib) node make.js test
+    displayName: (vsts-task-lib) node make.js test
     workingDirectory: node
 
   # use node 6
   - task: NodeTool@0
-    name: (vsts-task-lib) use node 6.10.3
+    displayName: (vsts-task-lib) use node 6.10.3
     inputs:
       versionSpec: "6.10.3"
 
   # build/test
   - script: node make.js test
-    name: (vsts-task-lib) node make.js test
+    displayName: (vsts-task-lib) node make.js test
     workingDirectory: node
 
   ########################################
-  # VstsTaskSdk (Windows)
+  # VstsTaskSdk
   ########################################
 
   # npm install
   - script: npm install
-    name: (VstsTaskSdk) npm install
+    displayName: (VstsTaskSdk) npm install
     workingDirectory: powershell
 
   # npm test
   - script: npm test
-    name: (VstsTaskSdk) npm test
+    displayName: (VstsTaskSdk) npm test
     workingDirectory: powershell
 
+########################################
+# macOS
+########################################
 - phase: macOS
   queue:
     demands: agent.os -equals Darwin
 
   steps:
+
   ########################################
-  # vsts-task-lib (macOS)
+  # vsts-task-lib
   ########################################
 
   # npm install
@@ -63,33 +72,37 @@ phases:
 
   # use node 5
   - task: NodeTool@0
-    name: use node 5.10.1
+    displayName: use node 5.10.1
     inputs:
       versionSpec: "5.10.1"
 
   # build/test
   - script: node make.js test
-    name: node make.js test
+    displayName: node make.js test
     workingDirectory: node
 
   # use node 6
   - task: NodeTool@0
-    name: use node 6.10.3
+    displayName: use node 6.10.3
     inputs:
       versionSpec: "6.10.3"
 
   # build/test
   - script: node make.js test
-    name: node make.js test
+    displayName: node make.js test
     workingDirectory: node
 
+########################################
+# Linux
+########################################
 - phase: Linux
   queue:
-    demands: agent.os -equals Darwin
+    demands: agent.os -equals Linux
 
   steps:
+
   ########################################
-  # vsts-task-lib (Linux)
+  # vsts-task-lib
   ########################################
 
   # npm install
@@ -99,22 +112,22 @@ phases:
 
   # use node 5
   - task: NodeTool@0
-    name: use node 5.10.1
+    displayName: use node 5.10.1
     inputs:
       versionSpec: "5.10.1"
 
   # build/test
   - script: node make.js test
-    name: node make.js test
+    displayName: node make.js test
     workingDirectory: node
 
   # use node 6
   - task: NodeTool@0
-    name: use node 6.10.3
+    displayName: use node 6.10.3
     inputs:
       versionSpec: "6.10.3"
 
   # build/test
   - script: node make.js test
-    name: node make.js test
+    displayName: node make.js test
     workingDirectory: node
