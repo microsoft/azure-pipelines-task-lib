@@ -55,7 +55,7 @@ export function setResult(result: TaskResult, message: string): void {
 //
 // Catching all exceptions
 //
-process.on('uncaughtException', (err) => {
+process.on('uncaughtException', (err: Error) => {
     setResult(TaskResult.Failed, loc('LIB_UnhandledEx', err.message));
 });
 
@@ -221,8 +221,8 @@ export function getDelimitedInput(name: string, delim: string, required?: boolea
  */
 export function filePathSupplied(name: string): boolean {
     // normalize paths
-    var pathValue = this.resolve(this.getPathInput(name) || '');
-    var repoRoot = this.resolve(getVariable('build.sourcesDirectory') || getVariable('system.defaultWorkingDirectory') || '');
+    var pathValue = resolve(getPathInput(name) || '');
+    var repoRoot = resolve(getVariable('build.sourcesDirectory') || getVariable('system.defaultWorkingDirectory') || '');
 
     var supplied = pathValue !== repoRoot;
     debug(name + 'path supplied :' + supplied);
@@ -618,7 +618,7 @@ export function mkdirP(p: string): void {
 
     // create each directory
     while (stack.length) {
-        let dir: string = stack.pop();
+        let dir: string|undefined = stack.pop();
         debug(`mkdir '${dir}'`);
         try {
             fs.mkdirSync(dir);
