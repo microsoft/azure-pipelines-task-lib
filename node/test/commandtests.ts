@@ -48,10 +48,10 @@ describe('Command Tests', function () {
     it('toString escapes message', function (done) {
         this.timeout(1000);
 
-        var tc = new tcm.TaskCommand('some.cmd', { foo: 'bar' }, 'cr \r lf \n crlf \r\n eom ]');
+        var tc = new tcm.TaskCommand('some.cmd', { foo: 'bar' }, 'cr \r lf \n crlf \r\n eom ] ;');
         assert(tc, 'TaskCommand constructor works');
         var cmdStr = tc.toString();
-        assert.equal(cmdStr, '##vso[some.cmd foo=bar;]cr %0D lf %0A crlf %0D%0A eom %5D');
+        assert.equal(cmdStr, '##vso[some.cmd foo=bar;]cr %0D lf %0A crlf %0D%0A eom ] ;');
         done();
     })
 
@@ -123,11 +123,11 @@ describe('Command Tests', function () {
     })
 
     it('parses and unescapes message', function (done) {
-        var cmdStr = '##vso[basic.command]cr %0D lf %0A crlf %0D%0A eom %5D';
+        var cmdStr = '##vso[basic.command]cr %0D lf %0A crlf %0D%0A eom ] ;';
 
         var tc = tcm.commandFromString(cmdStr);
         assert.equal(tc.command, 'basic.command', 'cmd should be basic.command');
-        assert.equal(tc.message, 'cr \r lf \n crlf \r\n eom ]');
+        assert.equal(tc.message, 'cr \r lf \n crlf \r\n eom ] ;');
         done();
     })
 

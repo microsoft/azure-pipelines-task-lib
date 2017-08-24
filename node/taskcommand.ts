@@ -43,7 +43,7 @@ export class TaskCommand {
         // safely append the message - avoid blowing up when attempting to
         // call .replace() if message is not a string for some reason
         let message: string = '' + (this.message || '');
-        cmdStr += escape(message);
+        cmdStr += escapedata(message);
 
         return cmdStr;
     }
@@ -83,9 +83,19 @@ export function commandFromString(commandLine) {
         });
     }
 
-    let msg: string = unescape(commandLine.substring(rbPos + 1));
+    let msg: string = unescapedata(commandLine.substring(rbPos + 1));
     var cmd = new TaskCommand(command, properties, msg);
     return cmd;
+}
+
+function escapedata(s) : string {
+    return s.replace(/\r/g, '%0D')
+            .replace(/\n/g, '%0A');
+}
+
+function unescapedata(s) : string {
+    return s.replace(/%0D/g, '\r')
+            .replace(/%0A/g, '\n');
 }
 
 function escape(s) : string {
