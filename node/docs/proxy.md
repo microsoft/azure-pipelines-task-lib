@@ -36,7 +36,10 @@ async function run() {
     let token = "g6zzur6bfypfwuqdxxupv3y3qfcoudlgh26bjz77t3mgylzmvjiq";
     let authHandler = api.getPersonalAccessTokenHandler(token);
 
-    // Options for VSTS-Node-Api
+    // Options for VSTS-Node-Api, 
+    // this is not required if you want to send http request to the same VSTS/TFS
+    // instance the agent currently connect to.
+    // VSTS-Node-Api will pick up proxy setting from VSTS-Task-Lib automatically 
     let option: VsoBaseInterfaces.IRequestOptions = {
         proxy: {
                 proxyUrl: proxy.proxyUrl,
