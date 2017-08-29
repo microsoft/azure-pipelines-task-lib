@@ -9,7 +9,7 @@ var algorithm = "aes-256-ctr";
 
 //
 // Store sensitive data in proc.
-// Main goal: Protects tasks which would dump envvars from leaking secrets innadvertantly
+// Main goal: Protects tasks which would dump envvars from leaking secrets inadvertently
 //            the task lib clears after storing.
 // Also protects against a dump of a process getting the secrets
 // The secret is generated and stored externally for the lifetime of the task.

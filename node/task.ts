@@ -1565,6 +1565,49 @@ export function getHttpProxyConfiguration(): ProxyConfiguration {
 }
 
 //-----------------------------------------------------
+// Http Certificate Helper
+//-----------------------------------------------------
+
+export interface CertConfiguration {
+    caFile?: string;
+    certFile?: string;
+    keyFile?: string;
+    certArchiveFile?: string;
+    passphrase?: string;
+}
+
+/**
+ * Gets http certificate configuration used by Build/Release agent
+ *
+ * @return  CertConfiguration
+ */
+export function getHttpCertConfiguration(): CertConfiguration {
+    let ca: string = getVariable('Agent.CAInfo');
+    let clientCert: string = getVariable('Agent.ClientCert');
+
+    if (ca || clientCert) {
+        let certConfig: CertConfiguration = {};
+        certConfig.caFile = ca;
+        certConfig.certFile = clientCert;
+
+        if (clientCert) {
+            let clientCertKey: string = getVariable('Agent.ClientCertKey');
+            let clientCertArchive: string = getVariable('Agent.ClientCertArchive');
+            let clientCertPassword: string = getVariable('Agent.ClientCertPassword');
+
+            certConfig.keyFile = clientCertKey;
+            certConfig.certArchiveFile = clientCertArchive;
+            certConfig.passphrase = clientCertPassword;
+        }
+
+        return certConfig;
+    }
+    else {
+        return null;
+    }
+}
+
+//-----------------------------------------------------
 // Test Publisher
 //-----------------------------------------------------
 export class TestPublisher {
@@ -1679,4 +1722,6 @@ if (semver.lt(process.versions.node, '4.2.0')) {
 // avoid loading twice (overwrites .taskkey)
 if (!global['_vsts_task_lib_loaded']) {
     im._loadData();
+    im._exposeProxySettings();
+    im._exposeCertSettings();
 }

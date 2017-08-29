@@ -6,6 +6,7 @@ import util = require('util');
 import tcm = require('./taskcommand');
 import vm = require('./vault');
 import semver = require('semver');
+import crypto = require('crypto');
 
 /**
  * Hash table of known variable info. The formatted env var name is the lookup key.
@@ -391,7 +392,7 @@ export function _which(tool: string, check?: boolean): string {
         // it feels like we should not do this. Checking the current directory seems like more of a use
         // case of a shell, and the which() function exposed by the task lib should strive for consistency
         // across platforms.
-        let directories: string[] = [ ];
+        let directories: string[] = [];
         if (process.env['PATH']) {
             for (let p of process.env['PATH'].split(path.delimiter)) {
                 if (p) {
@@ -686,9 +687,9 @@ export function _ensurePatternRooted(root: string, p: string) {
 //-------------------------------------------------------------------
 
 export function _loadData(): void {
-    // in agent, workFolder is set.
+    // in agent, prefer TempDirectory then workFolder.
     // In interactive dev mode, it won't be
-    let keyPath: string = _getVariable("agent.workFolder") || process.cwd();
+    let keyPath: string = _getVariable("agent.TempDirectory") || _getVariable("agent.workFolder") || process.cwd();
     _vault = new vm.Vault(keyPath);
     _knownVariableMap = {};
     _debug('loading inputs and endpoints');
@@ -913,4 +914,68 @@ export function _normalizeSeparators(p: string): string {
 
     // remove redundant slashes
     return p.replace(/\/\/+/g, '/');
+}
+
+//-----------------------------------------------------
+// Expose proxy information to vsts-node-api
+//-----------------------------------------------------
+export function _exposeProxySettings(): void {
+    let proxyUrl: string = _getVariable('Agent.ProxyUrl');
+    if (proxyUrl && proxyUrl.length > 0) {
+        let proxyUsername: string = _getVariable('Agent.ProxyUsername');
+        let proxyPassword: string = _getVariable('Agent.ProxyPassword');
+        let proxyBypassHostsJson: string = _getVariable('Agent.ProxyBypassList');
+
+        global['_vsts_task_lib_proxy_url'] = proxyUrl;
+        global['_vsts_task_lib_proxy_username'] = proxyUsername;
+        global['_vsts_task_lib_proxy_bypass'] = proxyBypassHostsJson;
+        global['_vsts_task_lib_proxy_password'] = _exposeTaskLibSecret('proxy', proxyPassword);
+
+        _debug('expose agent proxy configuration.')
+        global['_vsts_task_lib_proxy'] = true;
+    }
+}
+
+//-----------------------------------------------------
+// Expose certificate information to vsts-node-api
+//-----------------------------------------------------
+export function _exposeCertSettings(): void {
+    let ca: string = _getVariable('Agent.CAInfo');
+    if (ca) {
+        global['_vsts_task_lib_cert_ca'] = ca;
+    }
+
+    let clientCert: string = _getVariable('Agent.ClientCert');
+    if (clientCert) {
+        let clientCertKey: string = _getVariable('Agent.ClientCertKey');
+        let clientCertArchive: string = _getVariable('Agent.ClientCertArchive');
+        let clientCertPassword: string = _getVariable('Agent.ClientCertPassword');
+
+        global['_vsts_task_lib_cert_clientcert'] = clientCert;
+        global['_vsts_task_lib_cert_key'] = clientCertKey;
+        global['_vsts_task_lib_cert_archive'] = clientCertArchive;
+        global['_vsts_task_lib_cert_passphrase'] = _exposeTaskLibSecret('cert', clientCertPassword);
+    }
+
+    if (ca || clientCert) {
+        _debug('expose agent certificate configuration.')
+        global['_vsts_task_lib_cert'] = true;
+    }
+}
+
+// We store the encryption key on disk and hold the encrypted content and key file in memory
+// return base64encoded<keyFilePath>:base64encoded<encryptedContent>
+// downstream vsts-node-api will retrieve the secret later
+function _exposeTaskLibSecret(keyFile: string, secret: string): string {
+    if (secret) {
+        let encryptKey = crypto.randomBytes(256);
+        let cipher = crypto.createCipher("aes-256-ctr", encryptKey);
+        let encryptedContent = cipher.update(secret, "utf8", "hex");
+        encryptedContent += cipher.final("hex");
+
+        let storageFile = path.join(_getVariable('Agent.TempDirectory') || _getVariable("agent.workFolder") || process.cwd(), keyFile);
+        fs.writeFileSync(storageFile, encryptKey.toString('base64'), { encoding: 'utf8' });
+
+        return new Buffer(storageFile).toString('base64') + ':' + new Buffer(encryptedContent).toString('base64');
+    }
 }
