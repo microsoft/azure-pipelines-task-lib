@@ -666,6 +666,12 @@
                   "type": "boolean",
                   "optional": true,
                   "documentation": "whether variable is secret.  optional, defaults to false"
+                },
+                {
+                  "name": "asOutput",
+                  "type": "boolean",
+                  "optional": true,
+                  "documentation": "whether variable is an output variable.  optional, defaults to false"
                 }
               ],
               "members": {},

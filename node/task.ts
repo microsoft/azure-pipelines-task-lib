@@ -115,9 +115,10 @@ export function getVariables(): VariableInfo[] {
  * @param     name    name of the variable to set
  * @param     val     value to set
  * @param     secret  whether variable is secret.  optional, defaults to false
+ * @param     asOutput  whether variable is secret.  optional, defaults to false
  * @returns   void
  */
-export function setVariable(name: string, val: string, secret: boolean = false): void {
+export function setVariable(name: string, val: string, secret: boolean = false, asOutput: boolean = false): void {
     // once a secret always a secret
     let key: string = im._getVariableKey(name);
     if (im._knownVariableMap.hasOwnProperty(key)) {
@@ -138,7 +139,7 @@ export function setVariable(name: string, val: string, secret: boolean = false):
     im._knownVariableMap[key] = <im._KnownVariableInfo>{ name: name, secret: secret };
 
     // write the command
-    command('task.setvariable', { 'variable': name || '', 'issecret': (secret || false).toString() }, varValue);
+    command('task.setvariable', { 'variable': name || '', 'issecret': (secret || false).toString(), 'isOutput' : (!!asOutput).toString() }, varValue);
 }
 
 /** Snapshot of a variable at the time when getVariables was called. */
