@@ -32,7 +32,7 @@ export class TaskCommand {
                 if (this.properties.hasOwnProperty(key)) {
                     var val = this.properties[key];
                     if (val) {
-                        cmdStr += key + '=' + val + ';';
+                        cmdStr += key + '=' + escape(val) + ';';
                     }
                 }
             }
@@ -43,7 +43,7 @@ export class TaskCommand {
         // safely append the message - avoid blowing up when attempting to
         // call .replace() if message is not a string for some reason
         let message: string = '' + (this.message || '');
-        cmdStr += message.replace(/\r/g, '%0D').replace(/\n/g, '%0A');
+        cmdStr += escapedata(message);
 
         return cmdStr;
     }
@@ -66,22 +66,48 @@ export function commandFromString(commandLine) {
         command = cmdInfo.trim().substring(0, spaceIdx);
         var propSection = cmdInfo.trim().substring(spaceIdx+1);
 
-        var propLines = propSection.split(';');
-        propLines.forEach(function (propLine) {
+        var propLines: string[] = propSection.split(';');
+        propLines.forEach(function (propLine: string) {
             propLine = propLine.trim();
             if (propLine.length > 0) {
-                var propParts = propLine.split('=');
-                if (propParts.length != 2) {
+                var eqIndex = propLine.indexOf('=');
+                if (eqIndex == -1){
                     throw new Error('Invalid property: ' + propLine);
                 }
-                properties[propParts[0]] = propParts[1];
+
+                var key: string = propLine.substring(0, eqIndex);
+                var val: string = propLine.substring(eqIndex+1);
+
+                properties[key] = unescape(val);
             }
         });
     }
 
-    var msg = commandLine.substring(rbPos + 1)
-        .replace(/%0D/g, '\r')
-        .replace(/%0A/g, '\n');
+    let msg: string = unescapedata(commandLine.substring(rbPos + 1));
     var cmd = new TaskCommand(command, properties, msg);
     return cmd;
+}
+
+function escapedata(s) : string {
+    return s.replace(/\r/g, '%0D')
+            .replace(/\n/g, '%0A');
+}
+
+function unescapedata(s) : string {
+    return s.replace(/%0D/g, '\r')
+            .replace(/%0A/g, '\n');
+}
+
+function escape(s) : string {
+    return s.replace(/\r/g, '%0D')
+            .replace(/\n/g, '%0A')
+            .replace(/]/g, '%5D')
+            .replace(/;/g, '%3B');
+}
+
+function unescape(s) : string {
+    return s.replace(/%0D/g, '\r')
+            .replace(/%0A/g, '\n')
+            .replace(/%5D/g, ']')
+            .replace(/%3B/g, ';');
 }

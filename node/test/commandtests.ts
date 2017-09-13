@@ -34,6 +34,7 @@ describe('Command Tests', function () {
 
         done();
     })
+
     it('toStrings', function (done) {
         this.timeout(1000);
 
@@ -43,15 +44,27 @@ describe('Command Tests', function () {
         assert.equal(cmdStr, '##vso[some.cmd foo=bar;]a message');
         done();
     })
+
     it('toString escapes message', function (done) {
         this.timeout(1000);
 
-        var tc = new tcm.TaskCommand('some.cmd', { foo: 'bar' }, 'cr \r lf \n crlf \r\n eom');
+        var tc = new tcm.TaskCommand('some.cmd', { foo: 'bar' }, 'cr \r lf \n crlf \r\n eom ] ;');
         assert(tc, 'TaskCommand constructor works');
         var cmdStr = tc.toString();
-        assert.equal(cmdStr, '##vso[some.cmd foo=bar;]cr %0D lf %0A crlf %0D%0A eom');
+        assert.equal(cmdStr, '##vso[some.cmd foo=bar;]cr %0D lf %0A crlf %0D%0A eom ] ;');
         done();
     })
+
+    it ('toString escapes properties', function (done) {
+        this.timeout(1000);
+
+        var tc = new tcm.TaskCommand('some.cmd', { foo: ';=\r=\n' }, 'dog');
+        assert(tc, 'TaskCommand constructor works');
+        var cmdStr = tc.toString();
+        assert.equal(cmdStr, '##vso[some.cmd foo=%3B=%0D=%0A;]dog');
+        done();
+    })
+
     it('handles null properties', function (done) {
         this.timeout(1000);
 
@@ -59,6 +72,7 @@ describe('Command Tests', function () {
         assert.equal(tc.toString(), '##vso[some.cmd]a message');
         done();
     })
+
     it('parses cmd with no properties', function (done) {
         var cmdStr = '##vso[basic.command]messageVal';
 
@@ -69,6 +83,7 @@ describe('Command Tests', function () {
         assert.equal(tc.message, 'messageVal', 'message is correct');
         done();
     })
+
     it('parses basic cmd with values', function (done) {
         var cmdStr = '##vso[basic.command prop1=val1;]messageVal';
 
@@ -81,6 +96,7 @@ describe('Command Tests', function () {
         assert.equal(tc.message, 'messageVal', 'message is correct');
         done();
     })
+
     it('parses basic cmd with multiple properties no trailing semi', function (done) {
         var cmdStr = '##vso[basic.command prop1=val1;prop2=val2]messageVal';
 
@@ -94,6 +110,7 @@ describe('Command Tests', function () {
         assert.equal(tc.message, 'messageVal', 'message is correct');
         done();
     })
+
     it('parses values with spaces in them', function (done) {
         var cmdStr = '##vso[task.setvariable variable=task variable;]task variable set value';
 
@@ -104,14 +121,26 @@ describe('Command Tests', function () {
         assert.equal(tc.message, 'task variable set value');
         done();
     })
+
     it('parses and unescapes message', function (done) {
-        var cmdStr = '##vso[basic.command]cr %0D lf %0A crlf %0D%0A eom';
+        var cmdStr = '##vso[basic.command]cr %0D lf %0A crlf %0D%0A eom ] ;';
 
         var tc = tcm.commandFromString(cmdStr);
         assert.equal(tc.command, 'basic.command', 'cmd should be basic.command');
-        assert.equal(tc.message, 'cr \r lf \n crlf \r\n eom');
+        assert.equal(tc.message, 'cr \r lf \n crlf \r\n eom ] ;');
         done();
     })
+
+    it ('parses and unescapes properties', function (done) {
+        var cmdStr = '##vso[basic.command foo=%3B=%0D=%0A;]dog';
+
+        var tc = tcm.commandFromString(cmdStr);
+        assert.equal(tc.command, 'basic.command', 'cmd should be basic.command');
+        assert.equal(tc.properties['foo'], ';=\r=\n', 'property should be unescaped')
+        assert.equal(tc.message, 'dog');
+        done();
+    })
+
     it('handles empty properties', function (done) {
         this.timeout(1000);
 
