@@ -5,9 +5,9 @@ phases:
 #################################################
   displayName: (vsts-task-lib) Windows
   queue:
-    name: Hosted
-    #name: buildDevs
-    #demands: agent.os -equals Windows_NT
+    #name: Hosted
+    name: buildDevs
+    demands: agent.os -equals Windows_NT
 
   steps:
   ################################################################################
