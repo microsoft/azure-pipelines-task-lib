@@ -20,7 +20,8 @@ phases:
       workingDir: node
 
   # use node 5
-  - powershell: & "$(build.sourcesDirectory)/res/UseNode5.ps1"
+  - powershell: |
+      & "$(build.sourcesDirectory)/res/UseNode5.ps1"
     displayName: (vsts-task-lib) use node 5.10.1
 
   # build/test
