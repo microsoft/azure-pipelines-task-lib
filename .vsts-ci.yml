@@ -24,7 +24,7 @@ steps:
 
   # build/test
   - script: node make.js test
-    workingFolder: node
+    workingDirectory: node
     displayName: (vsts-task-lib) node make.js test  
 
   # use node 6
@@ -36,7 +36,7 @@ steps:
   # build/test
   - script: node make.js test
     displayName: (vsts-task-lib) node make.js test
-    workingFolder: node
+    workingDirectory: node
 
   ################################################################################
   # VstsTaskSdk
@@ -54,4 +54,4 @@ steps:
   - script: npm test
     displayName: (VstsTaskSdk) npm test
     condition: and(succeeded(), eq(variables.os, 'windows'))
-    workingFolder: powershell
+    workingDirectory: powershell
