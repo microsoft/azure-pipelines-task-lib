@@ -5,76 +5,53 @@ steps:
   ################################################################################
 
   # npm install
-  - task: CmdLine@1
-    name: (vsts-task-lib) npm install
+  - task: Npm@1.*
+    displayName: (vsts-task-lib) npm install
     inputs:
-      filename: npm
-      arguments: install
-      workingFolder: node
-  # - task: Npm@1.*
-  #   name: npm install
-  #   inputs:
-  #     command: install
-  #     workingDir: node
+      command: install
+      workingDir: node
 
   # use node 5
   - task: NodeTool@0
-    name: (vsts-task-lib) use node 5.10.1
+    displayName: (vsts-task-lib) use node 5.10.1
     condition: and(succeeded(), ne(variables.os, 'windows'))
     inputs:
       versionSpec: "5.10.1"
-  - task: CmdLine@1
-    name: (vsts-task-lib) use node 5.10.1
+  - powershell: |
+      & "$(build.sourcesDirectory)/res/UseNode5.ps1"
+    displayName: (vsts-task-lib) use node 5.10.1
     condition: and(succeeded(), eq(variables.os, 'windows'))
-    inputs:
-      filename: powershell.exe
-      arguments: -noninteractive -noprofile -file "$(build.sourcesDirectory)/res/UseNode5.ps1"
 
   # build/test
-  - task: CmdLine@1
-    name: (vsts-task-lib) node make.js test
-    inputs:
-      filename: node
-      arguments: make.js test
-      workingFolder: node
+  - script: node make.js test
+    workingFolder: node
+    displayName: (vsts-task-lib) node make.js test  
 
   # use node 6
   - task: NodeTool@0
-    name: (vsts-task-lib) use node 6.10.3
+    displayName: (vsts-task-lib) use node 6.10.3
     inputs:
       versionSpec: "6.10.3"
 
   # build/test
-  - task: CmdLine@1
-    name: (vsts-task-lib) node make.js test
-    inputs:
-      filename: node
-      arguments: make.js test
-      workingFolder: node
+  - script: node make.js test
+    displayName: (vsts-task-lib) node make.js test
+    workingFolder: node
 
   ################################################################################
   # VstsTaskSdk
   ################################################################################
 
   # npm install
-  - task: CmdLine@1
-    name: (VstsTaskSdk) npm install
-    condition: and(succeeded(), eq(variables.os, 'windows'))
-    inputs:
-      filename: npm
-      arguments: install
-      workingFolder: powershell
-  # - task: Npm@1.*
-  #   name: npm install
-  #   inputs:
-  #     command: install
-  #     workingDir: powershell
+ - task: Npm@1.*
+   displayName: (VstsTaskSdk) npm install
+   condition: and(succeeded(), eq(variables.os, 'windows'))
+   inputs:
+     command: install
+     workingDir: powershell
 
   # npm test
-  - task: CmdLine@1
-    name: (VstsTaskSdk) npm test
+  - script: npm test
+    displayName: (VstsTaskSdk) npm test
     condition: and(succeeded(), eq(variables.os, 'windows'))
-    inputs:
-      filename: npm
-      arguments: test
-      workingFolder: powershell
+    workingFolder: powershell
