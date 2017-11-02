@@ -25,8 +25,7 @@ Use the details below to determine when specific agent features were added:
   - `prejobexecution` and `postjobexecution` handler sections were added in 2.115.0
 * `node` handler
   - Added in 1.95.1. Used node v5.10.1.
-  - Updated in 2.117.0 to use node v6.10.3
-  - Updated in 2.117.0. Previously used v5.10.1
+  - Updated in 2.117.0 to use node v6.10.3.
 * `powershell3` handler
   - Added in 1.95.1
   - Updated in 1.97 to propagate `Data` property for endpoints
