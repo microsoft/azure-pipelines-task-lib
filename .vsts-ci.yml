@@ -5,7 +5,7 @@ steps:
   ################################################################################
 
   # npm install
-  - task: Npm@1.*
+  - task: Npm@1
     displayName: (vsts-task-lib) npm install
     inputs:
       command: install
@@ -43,12 +43,12 @@ steps:
   ################################################################################
 
   # npm install
- - task: Npm@1.*
-   displayName: (VstsTaskSdk) npm install
-   condition: and(succeeded(), eq(variables.os, 'windows'))
-   inputs:
-     command: install
-     workingDir: powershell
+  - task: Npm@1
+    displayName: (VstsTaskSdk) npm install
+    condition: and(succeeded(), eq(variables.os, 'windows'))
+    inputs:
+      command: install
+      workingDir: powershell
 
   # npm test
   - script: npm test
