@@ -870,7 +870,7 @@ describe('Toolrunner Tests', function () {
         });
 
         it('exec .exe with space AND verbatim args (Windows)', function (done) {
-            this.timeout(1000);
+            this.timeout(5000);
 
             // this test validates the quoting that tool runner adds around the tool path
             // when using the windowsVerbatimArguments option. otherwise the target process
