@@ -961,6 +961,11 @@ export function _exposeCertSettings(): void {
         _debug('expose agent certificate configuration.')
         global['_vsts_task_lib_cert'] = true;
     }
+
+    let skipCertValidation: string = _getVariable('Agent.SkipCertValidation') || 'false';
+    if (skipCertValidation) {
+        global['_vsts_task_lib_skip_cert_validation'] = skipCertValidation.toUpperCase() === 'TRUE';
+    }
 }
 
 // We store the encryption key on disk and hold the encrypted content and key file in memory

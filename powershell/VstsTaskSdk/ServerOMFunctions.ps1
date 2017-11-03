@@ -330,6 +330,9 @@ If not specified, defaults to the directory of the entry script for the task.
 # .PARAMETER ClientCert
 # ClientCert to use when initializing the HTTP client. If not specified, the default uses the client certificate agent current has.
 
+# .PARAMETER IgnoreSslError
+# Skip SSL server certificate validation on all requests made by this HTTP client. If not specified, the default is to validate SSL server certificate.
+
 .EXAMPLE
 $projectHttpClient = Get-VstsVssHttpClient -TypeName Microsoft.TeamFoundation.Core.WebApi.ProjectHttpClient
 $projectHttpClient.GetProjects().Result
@@ -348,7 +351,9 @@ function Get-VssHttpClient {
         
         $WebProxy = (Get-WebProxy),
         
-        $ClientCert = (Get-ClientCertificate))
+        $ClientCert = (Get-ClientCertificate),
+        
+        [switch]$IgnoreSslError)
 
     Trace-EnteringInvocation -InvocationInfo $MyInvocation
     $originalErrorActionPreference = $ErrorActionPreference
@@ -379,12 +384,25 @@ function Get-VssHttpClient {
         $null = Get-OMType -TypeName 'Microsoft.VisualStudio.Services.WebApi.VssClientHttpRequestSettings' -OMKind 'WebApi' -OMDirectory $OMDirectory -Require
         [Microsoft.VisualStudio.Services.Common.VssHttpRequestSettings]$Settings = [Microsoft.VisualStudio.Services.WebApi.VssClientHttpRequestSettings]::Default.Clone()
 
-        if($ClientCert){
+        if ($ClientCert) {
             $null = Get-OMType -TypeName 'Microsoft.VisualStudio.Services.WebApi.VssClientCertificateManager' -OMKind 'WebApi' -OMDirectory $OMDirectory -Require
             $null = [Microsoft.VisualStudio.Services.WebApi.VssClientCertificateManager]::Instance.ClientCertificates.Add($ClientCert)
             
             $Settings.ClientCertificateManager = [Microsoft.VisualStudio.Services.WebApi.VssClientCertificateManager]::Instance
         }        
+
+        # Skip SSL server certificate validation
+        [bool]$SkipCertValidation = (Get-TaskVariable -Name Agent.SkipCertValidation -AsBool) -or $IgnoreSslError
+        if ($SkipCertValidation) {
+            if ($Settings.GetType().GetProperty('ServerCertificateValidationCallback')) {
+                Write-Verbose "Ignore any SSL server certificate validation errors.";
+                $Settings.ServerCertificateValidationCallback = [VstsTaskSdk.VstsHttpHandlerSettings]::UnsafeSkipServerCertificateValidation
+            }
+            else {
+                # OMDirectory has older version of Microsoft.VisualStudio.Services.Common.dll
+                Write-Verbose "The version of 'Microsoft.VisualStudio.Services.Common.dll' does not support skip SSL server certificate validation."
+            }
+        }
 
         # Try to construct the HTTP client.
         Write-Verbose "Constructing HTTP client."
@@ -416,7 +434,7 @@ function Get-VssHttpClient {
             # dependency on the 6.0.0.0 Newtonsoft.Json DLL, while other parts reference
             # the 8.0.0.0 Newtonsoft.Json DLL.
             Write-Verbose "Adding assembly resolver."
-            $onAssemblyResolve = [System.ResolveEventHandler]{
+            $onAssemblyResolve = [System.ResolveEventHandler] {
                 param($sender, $e)
 
                 if ($e.Name -like 'Newtonsoft.Json, *') {
@@ -464,8 +482,7 @@ function Get-WebProxy {
     param()
 
     Trace-EnteringInvocation -InvocationInfo $MyInvocation
-    try
-    {
+    try {
         # Min agent version that supports proxy
         Assert-Agent -Minimum '2.105.7'
 
@@ -498,15 +515,14 @@ function Get-ClientCertificate {
     param()
 
     Trace-EnteringInvocation -InvocationInfo $MyInvocation
-    try
-    {
+    try {
         # Min agent version that supports client certificate
         Assert-Agent -Minimum '2.122.0'
 
         [string]$clientCert = Get-TaskVariable -Name Agent.ClientCertArchive
         [string]$clientCertPassword = Get-TaskVariable -Name Agent.ClientCertPassword
         
-        if((Test-Path -LiteralPath $clientCert -PathType Leaf)) {
+        if ($clientCert -and (Test-Path -LiteralPath $clientCert -PathType Leaf)) {
             return New-Object -TypeName System.Security.Cryptography.X509Certificates.X509Certificate2 -ArgumentList @($clientCert, $clientCertPassword)
         }        
     }
