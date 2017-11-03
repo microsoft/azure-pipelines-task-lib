@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Security;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 
 namespace VstsTaskSdk
@@ -87,6 +89,17 @@ namespace VstsTaskSdk
             }
 
             return false;
+        }
+    }
+
+    public sealed class VstsHttpHandlerSettings
+    {
+        public static RemoteCertificateValidationCallback UnsafeSkipServerCertificateValidation
+        {
+            get
+            {
+                return ((object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) => { return true; });
+            }
         }
     }
 }
