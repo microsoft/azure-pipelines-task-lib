@@ -66,7 +66,11 @@ export function _setErrStream(errStream): void {
 //-----------------------------------------------------
 
 let _locStringCache: { [key: string]: string } = {};
-let _resourceFile: string;
+
+// Created as dictionary for fast access but we only care about existence of keys.
+let _resourceFiles: { [key: string]: string } = {};
+
+// Is this now representative of 1 or more files loaded?
 let _libResourceFileLoaded: boolean = false;
 let _resourceCulture: string = 'en-US';
 
@@ -153,21 +157,27 @@ export function _setResourcePath(path: string): void {
         _resourceCulture = 'en-US';
     }
 
-    if (!_resourceFile) {
+    if (!_resourceFiles[path]) {
         _checkPath(path, 'resource file path');
-        _resourceFile = path;
-        _debug('set resource file to: ' + _resourceFile);
+        _resourceFiles[path] = path;
+        _debug('adding resource file: ' + path);
 
         _resourceCulture = _getVariable('system.culture') || _resourceCulture;
-        var locStrs = _loadLocStrings(_resourceFile, _resourceCulture);
+        var locStrs = _loadLocStrings(_resourceFiles[path], _resourceCulture);
         for (var key in locStrs) {
-            //cache loc string
-            _locStringCache[key] = locStrs[key];
+            if (_locStringCache[key]){
+                // loc string with this key already exists
+                _warning("Loc string for key " + key + "already exists");
+            } 
+            else {
+                //cache loc string
+                _locStringCache[key] = locStrs[key];
+            }
         }
 
     }
     else {
-        _warning(_loc('LIB_ResourceFileAlreadySet', _resourceFile));
+        _warning(_loc('LIB_ResourceFileAlreadySet', _resourceFiles[path]));
     }
 }
 
