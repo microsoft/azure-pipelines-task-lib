@@ -146,7 +146,7 @@ function _loadLocStrings(resourceFile: string, culture: string): { [key: string]
  * @returns   void
  */
 export function _setResourcePath(path: string): void {
-    if (process.env['TASKLIB_INPROC_UNITS'] && process.env['TASKLIB_INPROC_UNITS'] != '0') {
+    if (process.env['TASKLIB_INPROC_UNITS']) {
         _resourceFiles = {};
         _libResourceFileLoaded = false;
         _locStringCache = {};
