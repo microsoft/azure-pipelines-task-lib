@@ -76,7 +76,7 @@ describe('Loc Tests', function () {
         this.timeout(1000);
 
         // Don't reset values each time we call setResourcesPath for this test.
-        process.env['TASKLIB_INPROC_UNITS'] = '0';
+        process.env['TASKLIB_INPROC_UNITS'] = '';
 
         // Arrange
         var tempFolder = path.join(testutil.getTestTemp(), 'loc-str-from-loc-res-json2');
