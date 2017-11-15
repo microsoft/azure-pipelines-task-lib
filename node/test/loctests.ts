@@ -190,7 +190,7 @@ describe('Loc Tests', function () {
         fs.writeFileSync(jsonPath, jsonStr);
 
         tl.setResourcePath(jsonPath);
-        assert.equal(tl.loc('key9', 9), 'key9 9', 'key and params not return for non-exist key.');
+        assert.equal(tl.loc('key3', 3), 'key3 3', 'key and params not return for non-exist key.');
 
         done();
     })
