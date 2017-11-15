@@ -66,7 +66,6 @@ export function _setErrStream(errStream): void {
 //-----------------------------------------------------
 
 let _locStringCache: { [key: string]: string } = {};
-//let _resourceFile: string;
 let _resourceFiles: { [key: string]: string } = {};
 let _libResourceFileLoaded: boolean = false;
 let _resourceCulture: string = 'en-US';
