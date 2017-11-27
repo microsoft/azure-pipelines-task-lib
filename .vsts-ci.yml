@@ -62,8 +62,7 @@ phases:
 - phase: build_on_linux
 #################################################
   displayName: (vsts-task-lib) linux
-  queue:
-    name: Hosted Linux Preview
+  queue: Hosted Linux Preview
 
   steps:
   ################################################################################
@@ -103,6 +102,7 @@ phases:
 - phase: build_on_osx
 #################################################
   displayName: (vsts-task-lib) osx
+  queue: Hosted Mac Preview
 
   steps:
   ################################################################################
