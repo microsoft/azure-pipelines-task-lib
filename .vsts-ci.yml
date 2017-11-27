@@ -102,7 +102,7 @@ phases:
 - phase: build_on_osx
 #################################################
   displayName: (vsts-task-lib) osx
-  queue: Hosted Mac Preview
+  queue: Hosted Mac Internal
 
   steps:
   ################################################################################
