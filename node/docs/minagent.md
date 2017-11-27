@@ -47,6 +47,7 @@ The following chart details the agent versions that shipped with each on-premise
 
 | Agent   | TFS               |
 |---------|-------------------|
+| 2.122.1 | TFS 2017 Update 3 |
 | 2.117.x | TFS 2017 Update 2 |
 | 2.112.0 | TFS 2017 Update 1 |
 | 2.105.7 | TFS 2017 RTM      |
