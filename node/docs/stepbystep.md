@@ -9,7 +9,7 @@ Note: The tutorial was done on a mac.  Attempted to make generic for all platfor
 
 ## Video
 
-TODO: posting soon
+https://youtu.be/O_34c7p4GlM?t=1173
 
 ## Tools 
 
