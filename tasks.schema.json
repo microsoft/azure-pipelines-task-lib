@@ -29,17 +29,6 @@
     "author": {
       "type": "string"
     },
-    "visibility": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "enum": [
-          "Build",
-          "Release",
-          "Preview"
-        ]
-      }
-    },
     "runsOn": {
       "type": "array",
       "items": {
@@ -81,15 +70,6 @@
           },
           "isExpanded": {
             "type": "boolean"
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "Preview"
-              ]
-            }
           }
         }
       }
@@ -108,7 +88,7 @@
     "version": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Always update this when you release your task, so that the agents utilise the latest code.",
+      "description": "Always update this when you release your task, so that the agents utilize the latest code.",
       "required": [
         "Major",
         "Minor",
@@ -196,7 +176,7 @@
           "properties": {
             "type": "object",
             "properties": {
-              "EditableOptions": {
+              "editableOptions": {
                 "type": "string",
                 "enum": [
                   "True",
@@ -268,25 +248,7 @@
         "Node": {
           "$ref": "#/definitions/executionObject"
         },
-        "Bash": {
-          "$ref": "#/definitions/executionObject"
-        },
-        "AzurePowerShell": {
-          "$ref": "#/definitions/executionObject"
-        },
-        "PowerShell": {
-          "$ref": "#/definitions/executionObject"
-        },
         "PowerShell3": {
-          "$ref": "#/definitions/executionObject"
-        },
-        "PowerShellExe": {
-          "$ref": "#/definitions/executionObject"
-        },
-        "Process": {
-          "$ref": "#/definitions/executionObject"
-        },
-        "RM:ManualIntervention": {
           "$ref": "#/definitions/executionObject"
         }
       }
@@ -306,19 +268,6 @@
         "target": {
           "type": "string",
           "description": "The target file to be executed. You can use variables here in brackets e.g. $(currentDirectory)\filename.ps1"
-        },
-        "argumentFormat": {
-          "type": "string"
-        },
-        "workingDirectory": {
-          "type": "string",
-          "description": "The directory to execute the task from e.g. $(currentDirectory)"
-        },
-        "modifyEnvironment": {
-          "type": [
-            "boolean",
-            "string"
-          ]
         },
         "platforms": {
           "type": "array",
