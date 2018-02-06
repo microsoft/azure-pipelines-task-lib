@@ -76,7 +76,7 @@ Change `tsconfig.json` file to ES6 to match the sample gist.  ES6 is for async a
 
 Now that the scaffolding is out of the way, let's create the task!
 
-Create a `task.json` file using `sample_task.json` as a starting point.    
+Create a `task.json` file using `sample_task.json` as a starting point. The full task JSON schema is [here](https://aka.ms/vsts-tasks.schema.json).
 
 Replace the `{{placeholders}}`.  The most important being a [unique guid](http://www.guidgen.com/).
 Note: copy from web view since file needs property names in quotes (browser might strip in raw view)
