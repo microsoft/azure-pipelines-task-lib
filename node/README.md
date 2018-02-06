@@ -15,7 +15,7 @@ Cross platform tasks are written in Typescript.  It is the preferred way to writ
 
 Step by Step: [Create Task](docs/stepbystep.md)  
 
-Documentation: [Typescript API](docs/vsts-task-lib.md)
+Documentation: [Typescript API](docs/vsts-task-lib.md), [task JSON schema](https://aka.ms/vsts-tasks.schema.json)
 
 Guidance: [Finding Files](docs/findingfiles.md), [Minimum agent version](docs/minagent.md), [Proxy](docs/proxy.md), [Certificate](docs/cert.md)
 
