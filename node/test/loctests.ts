@@ -13,7 +13,7 @@ import testutil = require('./testutil');
 
 describe('Loc Tests', function () {
 
-    before(function (done) {
+    beforeEach(function (done) {
         try {
             testutil.initialize();
         }
@@ -72,6 +72,54 @@ describe('Loc Tests', function () {
 
         done();
     })
+    it('gets loc string from second loc resources.json', function (done) {
+        this.timeout(1000);
+
+        // Don't reset values each time we call setResourcesPath for this test.
+        process.env['TASKLIB_INPROC_UNITS'] = '';
+
+        // Arrange
+        var tempFolder = path.join(testutil.getTestTemp(), 'loc-str-from-loc-res-json2');
+        shell.mkdir('-p', tempFolder);
+
+        // Create first task.json and resources file
+        var jsonStr = "{\"messages\": {\"key6\" : \"string for key 6.\"}}";
+        var jsonPath = path.join(tempFolder, 'task.json');
+        fs.writeFileSync(jsonPath, jsonStr);
+
+        var tempLocFolder = path.join(tempFolder, 'Strings', 'resources.resjson', 'zh-CN');
+        shell.mkdir('-p', tempLocFolder);
+        var locJsonStr = "{\"loc.messages.key6\" : \"loc cn-string for key 6.\"}";
+        var locJsonPath = path.join(tempLocFolder, 'resources.resjson');
+        fs.writeFileSync(locJsonPath, locJsonStr);
+
+        // Create second task.json and resources file
+        var nestedLocFolder = path.join(tempFolder, 'nested');
+        shell.mkdir('-p', nestedLocFolder);
+
+        var jsonStr2 = "{\"messages\": {\"keySecondFile\" : \"string for keySecondFile.\"}}";
+        var jsonPath2 = path.join(nestedLocFolder, 'task.json');
+        fs.writeFileSync(jsonPath2, jsonStr2);
+
+        var tempLocFolder2 = path.join(nestedLocFolder, 'Strings', 'resources.resjson', 'zh-CN');
+        shell.mkdir('-p', tempLocFolder2);
+        var locJsonStr2 = "{\"loc.messages.keySecondFile\" : \"loc cn-string for keySecondFile.\"}";
+        var locJsonPath2 = path.join(tempLocFolder2, 'resources.resjson');
+        fs.writeFileSync(locJsonPath2, locJsonStr2);
+
+        process.env['SYSTEM_CULTURE'] = 'ZH-cn'; // Lib should handle casing differences for culture.
+
+        // Act
+        tl.setResourcePath(jsonPath);
+        tl.setResourcePath(jsonPath2);
+
+        // Assert
+        assert.equal(tl.loc('key6'), 'loc cn-string for key 6.', 'string not found for key.');
+        assert.equal(tl.loc('keySecondFile'), 'loc cn-string for keySecondFile.', 'string not found for keySecondFile.');
+
+        done();
+    })
+    
     it('fallback to current string if culture resources.resjson not found', function (done) {
         this.timeout(1000);
 
