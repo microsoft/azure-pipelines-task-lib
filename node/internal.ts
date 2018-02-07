@@ -66,7 +66,7 @@ export function _setErrStream(errStream): void {
 //-----------------------------------------------------
 
 let _locStringCache: { [key: string]: string } = {};
-let _resourceFile: string;
+let _resourceFiles: { [key: string]: string } = {};
 let _libResourceFileLoaded: boolean = false;
 let _resourceCulture: string = 'en-US';
 
@@ -147,19 +147,19 @@ function _loadLocStrings(resourceFile: string, culture: string): { [key: string]
  */
 export function _setResourcePath(path: string): void {
     if (process.env['TASKLIB_INPROC_UNITS']) {
-        _resourceFile = null;
+        _resourceFiles = {};
         _libResourceFileLoaded = false;
         _locStringCache = {};
         _resourceCulture = 'en-US';
     }
 
-    if (!_resourceFile) {
+    if (!_resourceFiles[path]) {
         _checkPath(path, 'resource file path');
-        _resourceFile = path;
-        _debug('set resource file to: ' + _resourceFile);
+        _resourceFiles[path] = path;
+        _debug('adding resource file: ' + path);
 
         _resourceCulture = _getVariable('system.culture') || _resourceCulture;
-        var locStrs = _loadLocStrings(_resourceFile, _resourceCulture);
+        var locStrs: { [key: string]: string; } = _loadLocStrings(path, _resourceCulture);
         for (var key in locStrs) {
             //cache loc string
             _locStringCache[key] = locStrs[key];
@@ -167,7 +167,7 @@ export function _setResourcePath(path: string): void {
 
     }
     else {
-        _warning(_loc('LIB_ResourceFileAlreadySet', _resourceFile));
+        _warning(_loc('LIB_ResourceFileAlreadySet', path));
     }
 }
 
@@ -196,7 +196,7 @@ export function _loc(key: string, ...param: any[]): string {
         locString = _locStringCache[key];
     }
     else {
-        if (!_resourceFile) {
+        if (Object.keys(_resourceFiles).length <= 0) {
             _warning(_loc('LIB_ResourceFileNotSet', key));
         }
         else {
