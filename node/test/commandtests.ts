@@ -55,7 +55,7 @@ describe('Command Tests', function () {
         done();
     })
 
-    it('toString handles array value in properties', function (done) {
+    it('toString handles non string value in properties', function (done) {
         this.timeout(1000);
 
         var tc = new tcm.TaskCommand('some.cmd', { foo: ['bar', 'baz'] }, 'cr \r lf \n crlf \r\n eom ] ;');
@@ -103,22 +103,6 @@ describe('Command Tests', function () {
         assert(tc.properties['prop1'], 'should be a property names prop1');
         assert.equal(Object.keys(tc.properties).length, 1, 'should have one property.');
         assert.equal(tc.properties['prop1'], 'val1', 'property value is correct');
-        assert.equal(tc.message, 'messageVal', 'message is correct');
-        done();
-    })
-
-    it('parses cmd with array value in properties', function (done) {
-        var cmdStr = '##vso[basic.command prop1=bar,baz;]messageVal';
-
-        var tc = tcm.commandFromString(cmdStr);
-
-        assert(tc.command === 'basic.command', 'cmd should be correct');
-        assert(tc.properties['prop1'], 'should be a property names prop1');
-        assert.equal(Object.keys(tc.properties).length, 1, 'should have one property.');
-
-        console.log('UNKWNOWN VALUE: ' + JSON.stringify(tc.properties['prop1']));
-
-        assert.equal(tc.properties['prop1'], ['bar', 'baz'], 'property value is correct');
         assert.equal(tc.message, 'messageVal', 'message is correct');
         done();
     })
