@@ -32,7 +32,9 @@ export class TaskCommand {
                 if (this.properties.hasOwnProperty(key)) {
                     var val = this.properties[key];
                     if (val) {
-                        cmdStr += key + '=' + escape(val) + ';';
+                        // safely append the val - avoid blowing up when attempting to
+                        // call .replace() if message is not a string for some reason
+                        cmdStr += key + '=' + escape('' + (val || '')) + ';';
                     }
                 }
             }
