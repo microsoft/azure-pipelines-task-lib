@@ -32,7 +32,7 @@ export class TaskCommand {
                 if (this.properties.hasOwnProperty(key)) {
                     var val = this.properties[key];
                     if (val) {
-                        cmdStr += key + '=' + escape(val) + ';';
+                        cmdStr += key + '=' + escape('' + (val || '')) + ';';
                     }
                 }
             }
