@@ -114,7 +114,7 @@ export function getVariables(): VariableInfo[] {
  * 
  * @param     name    name of the variable to set
  * @param     val     value to set
- * @param     secret  whether variable is secret.  optional, defaults to false
+ * @param     secret  whether variable is secret.  Multi-line secrets are not allowed.  Optional, defaults to false
  * @returns   void
  */
 export function setVariable(name: string, val: string, secret: boolean = false): void {
@@ -128,6 +128,10 @@ export function setVariable(name: string, val: string, secret: boolean = false):
     let varValue = val || '';
     debug('set ' + name + '=' + (secret && varValue ? '********' : varValue));
     if (secret) {
+        if (varValue && varValue.match(/\r|\n/) && `${process.env['SYSTEM_UNSAFEALLOWMULTILINESECRET']}`.toUpperCase() != 'TRUE') {
+            throw new Error(loc('LIB_MultilineSecret'));
+        }
+
         im._vault.storeSecret('SECRET_' + key, varValue);
         delete process.env[key];
     } else {
@@ -139,6 +143,20 @@ export function setVariable(name: string, val: string, secret: boolean = false):
 
     // write the command
     command('task.setvariable', { 'variable': name || '', 'issecret': (secret || false).toString() }, varValue);
+}
+
+/**
+ * Registers a value with the logger, so the value will be masked from the logs.  Multi-line secrets are not allowed.
+ *
+ * @param val value to register
+ */
+export function setSecret(val: string): void {
+    if (val) {
+        if (val.match(/\r|\n/) && `${process.env['SYSTEM_UNSAFEALLOWMULTILINESECRET']}`.toUpperCase() !== 'TRUE') {
+            throw new Error(loc('LIB_MultilineSecret'));
+        }
+        command('task.setsecret', {}, val);
+    }
 }
 
 /** Snapshot of a variable at the time when getVariables was called. */

@@ -1,5 +1,9 @@
 # VSTS-TASK-LIB RELEASES
 
+## 2.3.0
+ * Updated `setVariable` to fail when a secret contains multiple lines.
+ * Added `setSecret` to register a secret with the log scrubber, without registering a variable. Multi-line secrets are not supported.
+
 ## 2.0.4-preview
  * Updated `ToolRunner` to validate the specified tool can be found and is executable.
  * Updated `which` to validate the file is executable and also on Windows to apply PATHEXT.

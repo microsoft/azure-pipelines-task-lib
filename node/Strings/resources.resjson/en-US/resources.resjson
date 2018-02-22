@@ -5,6 +5,7 @@
   "loc.messages.LIB_MkdirFailedFileExists": "Unable to create directory '%s'. Conflicting file exists: '%s'",
   "loc.messages.LIB_MkdirFailedInvalidDriveRoot": "Unable to create directory '%s'. Root directory does not exist: '%s'",
   "loc.messages.LIB_MkdirFailedInvalidShare": "Unable to create directory '%s'. Unable to verify the directory exists: '%s'. If directory is a file share, please verify the share name is correct, the share is online, and the current process has permission to access the share.",
+  "loc.messages.LIB_MultilineSecret": "Secrets cannot contain multiple lines",
   "loc.messages.LIB_ReturnCode": "Return code: %d",
   "loc.messages.LIB_ResourceFileNotExist": "Resource file doesn\\'t exist: %s",
   "loc.messages.LIB_ResourceFileAlreadySet": "Resource file has already set to: %s",
