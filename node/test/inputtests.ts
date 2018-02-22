@@ -222,6 +222,92 @@ describe('Input Tests', function () {
 
         done();
     })
+    it('does not allow setting a multi-line secret variable', function (done) {
+        this.timeout(1000);
+
+        im._loadData();
+
+        // test carriage return
+        let failed = false;
+        try {
+            tl.setVariable('my.secret', 'line1\rline2', true);
+        }
+        catch (err) {
+            failed = true;
+        }
+        assert(failed, 'Should have failed setting a secret variable with a carriage return');
+
+        // test line feed
+        failed = false;
+        try {
+            tl.setVariable('my.secret', 'line1\nline2', true);
+        }
+        catch (err) {
+            failed = true;
+        }
+        assert(failed, 'Should have failed setting a secret variable with a line feed');
+
+        done();
+    })
+    it('allows unsafe setting a multi-line secret variable', function (done) {
+        this.timeout(1000);
+
+        im._loadData();
+        try {
+            process.env['SYSTEM_UNSAFEALLOWMULTILINESECRET'] = 'true';
+            tl.setVariable('my.secret', 'line1\r\nline2', true);
+        }
+        finally {
+            delete process.env['SYSTEM_UNSAFEALLOWMULTILINESECRET'];
+        }
+
+        assert.equal(tl.getVariable('my.secret'), 'line1\r\nline2');
+
+        done();
+    })
+
+    // setSecret tests
+    it('does not allow setting a multi-line secret', function (done) {
+        this.timeout(1000);
+
+        im._loadData();
+
+        // test carriage return
+        let failed = false;
+        try {
+            tl.setSecret('line1\rline2');
+        }
+        catch (err) {
+            failed = true;
+        }
+        assert(failed, 'Should have failed setting a secret with a carriage return');
+
+        // test line feed
+        failed = false;
+        try {
+            tl.setSecret('line1\nline2');
+        }
+        catch (err) {
+            failed = true;
+        }
+        assert(failed, 'Should have failed setting a secret with a line feed');
+
+        done();
+    })
+    it('allows unsafe setting a multi-line secret', function (done) {
+        this.timeout(1000);
+
+        im._loadData();
+        try {
+            process.env['SYSTEM_UNSAFEALLOWMULTILINESECRET'] = 'true';
+            tl.setSecret('line1\r\nline2');
+        }
+        finally {
+            delete process.env['SYSTEM_UNSAFEALLOWMULTILINESECRET'];
+        }
+
+        done();
+    })
 
     // getVariables tests
     it('gets public variables from initial load', function (done) {
