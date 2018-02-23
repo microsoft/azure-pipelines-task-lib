@@ -5,6 +5,7 @@
   "loc.messages.LIB_MkdirFailedFileExists": "No se puede crear el directorio '%s'. Hay un conflicto entre archivos: '%s'",
   "loc.messages.LIB_MkdirFailedInvalidDriveRoot": "No se puede crear el directorio '%s'. El directorio raíz no existe: '%s'",
   "loc.messages.LIB_MkdirFailedInvalidShare": "No se puede crear el directorio '%s'. No se puede comprobar si el directorio existe: '%s'. Si el directorio es un recurso compartido de archivos, compruebe que el nombre es correcto, que está en línea y que el proceso actual tiene permiso de acceso a este.",
+  "loc.messages.LIB_MultilineSecret": "Secrets cannot contain multiple lines",
   "loc.messages.LIB_ReturnCode": "Código de retorno: %d",
   "loc.messages.LIB_ResourceFileNotExist": "El archivo de recursos no existe: %s",
   "loc.messages.LIB_ResourceFileAlreadySet": "El archivo de recursos se ha establecido ya en: %s",

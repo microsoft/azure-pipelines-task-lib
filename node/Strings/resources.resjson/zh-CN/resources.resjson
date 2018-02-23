@@ -5,6 +5,7 @@
   "loc.messages.LIB_MkdirFailedFileExists": "无法创建目录“%s”。存在冲突文件:“%s”",
   "loc.messages.LIB_MkdirFailedInvalidDriveRoot": "无法创建目录“%s”。根目录不存在:“%s”",
   "loc.messages.LIB_MkdirFailedInvalidShare": "无法创建目录“%s”。无法验证“%s”目录是否存在。如果目录是文件共享，请验证共享名称是否正确、共享是否已联机以及当前进程是否有权访问该共享。",
+  "loc.messages.LIB_MultilineSecret": "Secrets cannot contain multiple lines",
   "loc.messages.LIB_ReturnCode": "返回代码: %d",
   "loc.messages.LIB_ResourceFileNotExist": "资源文件不存在: %s",
   "loc.messages.LIB_ResourceFileAlreadySet": "资源文件已被设置为 %s",

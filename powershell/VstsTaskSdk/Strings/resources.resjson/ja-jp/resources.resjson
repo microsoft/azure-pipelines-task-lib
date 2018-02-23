@@ -1,4 +1,5 @@
 {
+  "loc.messages.PSLIB_AgentVersion0Required": "バージョン {0} 以降のエージェントが必要です。",
   "loc.messages.PSLIB_ContainerPathNotFound0": "コンテナーのパスが見つかりません: '{0}'",
   "loc.messages.PSLIB_EndpointAuth0": "'{0}' サービス エンドポイントの資格情報",
   "loc.messages.PSLIB_EndpointUrl0": "'{0}' サービス エンドポイントの URL",

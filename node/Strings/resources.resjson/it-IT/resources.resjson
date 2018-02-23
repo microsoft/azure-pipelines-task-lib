@@ -5,6 +5,7 @@
   "loc.messages.LIB_MkdirFailedFileExists": "Non è possibile creare la directory '%s'. Esiste un file in conflitto: '%s'",
   "loc.messages.LIB_MkdirFailedInvalidDriveRoot": "Non è possibile creare la directory '%s'. La directory radice non esiste: '%s'",
   "loc.messages.LIB_MkdirFailedInvalidShare": "Non è possibile creare la directory '%s' perché non è possibile verificarne l'esistenza: '%s'. Se la directory è una condivisione file, verificare che il nome della condivisione sia corretto, che la condivisione sia online e che il processo corrente sia autorizzato ad accedervi.",
+  "loc.messages.LIB_MultilineSecret": "Secrets cannot contain multiple lines",
   "loc.messages.LIB_ReturnCode": "Codice restituito: %d",
   "loc.messages.LIB_ResourceFileNotExist": "Il file di risorse non esiste: %s",
   "loc.messages.LIB_ResourceFileAlreadySet": "Il file di risorse è già stato impostato su %s",

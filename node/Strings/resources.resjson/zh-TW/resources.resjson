@@ -5,6 +5,7 @@
   "loc.messages.LIB_MkdirFailedFileExists": "無法建立目錄 '%s'。存在衝突的檔案: '%s'",
   "loc.messages.LIB_MkdirFailedInvalidDriveRoot": "無法建立目錄 '%s'。根目錄不存在: '%s'",
   "loc.messages.LIB_MkdirFailedInvalidShare": "無法建立目錄 '%s'。無法驗證目錄是否存在: '%s'。如果目錄是檔案共用，請驗證共用名稱正確、共用在線上，而且目前的流程具有存取共用的權限。",
+  "loc.messages.LIB_MultilineSecret": "Secrets cannot contain multiple lines",
   "loc.messages.LIB_ReturnCode": "傳回程式碼: %d",
   "loc.messages.LIB_ResourceFileNotExist": "資源檔案不存在: %s",
   "loc.messages.LIB_ResourceFileAlreadySet": "資源檔案已設定至: %s",

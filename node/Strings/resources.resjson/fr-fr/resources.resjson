@@ -5,6 +5,7 @@
   "loc.messages.LIB_MkdirFailedFileExists": "Impossible de créer le répertoire '%s'. Présence d'un fichier en conflit : '%s'",
   "loc.messages.LIB_MkdirFailedInvalidDriveRoot": "Impossible de créer le répertoire '%s'. Le répertoire racine n'existe pas : '%s'",
   "loc.messages.LIB_MkdirFailedInvalidShare": "Impossible de créer le répertoire '%s'. Impossible de vérifier l'existence du répertoire : '%s'. Si le répertoire est un partage de fichiers, vérifiez que le nom du partage est correct, que le partage est en ligne, et que le processus actuel est autorisé à accéder au partage.",
+  "loc.messages.LIB_MultilineSecret": "Secrets cannot contain multiple lines",
   "loc.messages.LIB_ReturnCode": "Code de retour : %d",
   "loc.messages.LIB_ResourceFileNotExist": "Le fichier de ressources n'existe pas : %s",
   "loc.messages.LIB_ResourceFileAlreadySet": "Le fichier de ressources est déjà défini : %s",
