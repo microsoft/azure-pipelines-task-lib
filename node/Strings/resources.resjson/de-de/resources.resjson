@@ -5,6 +5,7 @@
   "loc.messages.LIB_MkdirFailedFileExists": "Das Verzeichnis \"%s\" kann nicht erstellt werden. Eine in Konflikt stehende Datei ist vorhanden: \"%s\"",
   "loc.messages.LIB_MkdirFailedInvalidDriveRoot": "Das Verzeichnis \"%s\" kann nicht erstellt werden. Das Stammverzeichnis ist nicht vorhanden: %s",
   "loc.messages.LIB_MkdirFailedInvalidShare": "Das Verzeichnis \"%s\" kann nicht erstellt werden. Es kann nicht überprüft werden, ob das Verzeichnis vorhanden ist: {%s}. Wenn das Verzeichnis eine Dateifreigabe ist, stellen Sie sicher, dass der Freigabename richtig, die Freigabe online und der aktuelle Prozess berechtigt ist, auf die Freigabe zuzugreifen.",
+  "loc.messages.LIB_MultilineSecret": "Secrets cannot contain multiple lines",
   "loc.messages.LIB_ReturnCode": "Rückgabecode: %d",
   "loc.messages.LIB_ResourceFileNotExist": "Die Ressourcendatei ist nicht vorhanden: %s",
   "loc.messages.LIB_ResourceFileAlreadySet": "Die Ressourcendatei wurde bereits festgelegt auf: %s",

@@ -1,4 +1,5 @@
 {
+  "loc.messages.PSLIB_AgentVersion0Required": "L'agent version {0} (ou une version ultérieure) est obligatoire.",
   "loc.messages.PSLIB_ContainerPathNotFound0": "Le chemin du conteneur est introuvable : '{0}'",
   "loc.messages.PSLIB_EndpointAuth0": "Informations d'identification du point de terminaison de service '{0}'",
   "loc.messages.PSLIB_EndpointUrl0": "URL du point de terminaison de service '{0}'",
