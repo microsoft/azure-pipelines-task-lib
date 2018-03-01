@@ -33,7 +33,7 @@ describe('Toolrunner Tests', function () {
 
 
     it('ExecSync convenience with stdout', function (done) {
-        this.timeout(1000);
+        this.timeout(10000);
 
         var _testExecOptions = <trm.IExecOptions>{
             cwd: __dirname,
@@ -58,7 +58,7 @@ describe('Toolrunner Tests', function () {
         done();
     })
     it('ExecSync with stdout', function (done) {
-        this.timeout(1000);
+        this.timeout(10000);
 
         var _testExecOptions = <trm.IExecOptions>{
             cwd: __dirname,
@@ -90,7 +90,7 @@ describe('Toolrunner Tests', function () {
         done();
     })
     it('ExecSync fails with rc 1 and stderr', function (done) {
-        this.timeout(1000);
+        this.timeout(10000);
 
         var _testExecOptions = <trm.IExecOptions>{
             cwd: __dirname,
@@ -120,7 +120,7 @@ describe('Toolrunner Tests', function () {
         done();
     })
     it('Exec convenience with stdout', function (done) {
-        this.timeout(1000);
+        this.timeout(10000);
 
         var _testExecOptions = <trm.IExecOptions>{
             cwd: __dirname,
@@ -154,7 +154,7 @@ describe('Toolrunner Tests', function () {
         }
     })
     it('ToolRunner writes debug', function (done) {
-        this.timeout(1000);
+        this.timeout(10000);
 
         var stdStream = testutil.createStringStream();
         tl.setStdStream(stdStream);
@@ -203,7 +203,7 @@ describe('Toolrunner Tests', function () {
         }
     })
     it('Execs with stdout', function (done) {
-        this.timeout(1000);
+        this.timeout(10000);
 
         var _testExecOptions = <trm.IExecOptions>{
             cwd: __dirname,
@@ -255,7 +255,7 @@ describe('Toolrunner Tests', function () {
         }
     })
     it('Fails on return code 1 with stderr', function (done) {
-        this.timeout(1000);
+        this.timeout(10000);
 
         var _testExecOptions = <trm.IExecOptions>{
             cwd: __dirname,
@@ -329,7 +329,7 @@ describe('Toolrunner Tests', function () {
         }
     })
     it('Succeeds on stderr by default', function (done) {
-        this.timeout(2000);
+        this.timeout(10000);
 
         var scriptPath = path.join(__dirname, 'scripts', 'stderroutput.js');
         var ls = tl.tool(tl.which('node', true));
@@ -354,7 +354,7 @@ describe('Toolrunner Tests', function () {
             })
     })
     it('Fails on stderr if specified', function (done) {
-        this.timeout(1000);
+        this.timeout(10000);
 
         var scriptPath = path.join(__dirname, 'scripts', 'stderroutput.js');
         var node = tl.tool(tl.which('node', true))
@@ -395,8 +395,68 @@ describe('Toolrunner Tests', function () {
                 done(err);
             });
     })
+    // function to compile a .NET program that prints lines.
+    // the helper program is used on Windows to validate piping output between tools.
+    let compileOutputExe = (): string => {
+        let directory = path.join(testutil.getTestTemp(), 'print-output-exe');
+        tl.mkdirP(directory);
+        let exePath = path.join(directory, 'print-output.exe');
+
+        // short-circuit if already compiled
+        try {
+            fs.statSync(exePath);
+            return exePath;
+        }
+        catch (err) {
+            if (err.code != 'ENOENT') {
+                throw err;
+            }
+        }
+
+        let sourceFile = path.join(__dirname, 'scripts', 'print-output-exe.cs');
+        let cscPath = 'C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe';
+        fs.statSync(cscPath);
+        child_process.execFileSync(
+            cscPath,
+            [
+                '/target:exe',
+                `/out:${exePath}`,
+                sourceFile
+            ]);
+        return exePath;
+    }
+    // function to compile a .NET program that matches input lines.
+    // the helper program is used on Windows to validate piping output between tools.
+    let compileMatchExe = (): string => {
+        let directory = path.join(testutil.getTestTemp(), 'match-input-exe');
+        tl.mkdirP(directory);
+        let exePath = path.join(directory, 'match-input.exe');
+
+        // short-circuit if already compiled
+        try {
+            fs.statSync(exePath);
+            return exePath;
+        }
+        catch (err) {
+            if (err.code != 'ENOENT') {
+                throw err;
+            }
+        }
+
+        let sourceFile = path.join(__dirname, 'scripts', 'match-input-exe.cs');
+        let cscPath = 'C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe';
+        fs.statSync(cscPath);
+        child_process.execFileSync(
+            cscPath,
+            [
+                '/target:exe',
+                `/out:${exePath}`,
+                sourceFile
+            ]);
+        return exePath;
+    }
     it('Exec pipe output to another tool, succeeds if both tools succeed', function(done) {
-        this.timeout(1000);
+        this.timeout(20000);
 
         var _testExecOptions = <trm.IExecOptions>{
             cwd: __dirname,
@@ -409,21 +469,25 @@ describe('Toolrunner Tests', function () {
         };
 
         if (os.platform() === 'win32') {
-            var find = tl.tool(tl.which('FIND', true))
-                .arg('System Idle Process');
-
-            var tasklist = tl.tool(tl.which('tasklist', true));
-            tasklist.pipeExecOutputToTool(find);
+            var matchExe = tl.tool(compileMatchExe())
+                .arg('0') // exit code
+                .arg('line 2'); // match value
+            var outputExe = tl.tool(compileOutputExe())
+                .arg('0') // exit code
+                .arg('line 1')
+                .arg('line 2')
+                .arg('line 3');
+            outputExe.pipeExecOutputToTool(matchExe);
 
             var output = '';
-            tasklist.on('stdout', (data) => {
+            outputExe.on('stdout', (data) => {
                 output += data.toString();
             });
 
-            tasklist.exec(_testExecOptions)
+            outputExe.exec(_testExecOptions)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code of exec should be 0');
-                    assert(output && output.length > 0 && output.indexOf('System Idle Process') >= 0, 'should have emitted stdout ' + output);
+                    assert(output && output.length > 0 && output.indexOf('line 2') >= 0, 'should have emitted stdout ' + output);
                     done();
                 })
                 .fail(function (err) {
@@ -455,7 +519,7 @@ describe('Toolrunner Tests', function () {
         }
     })
     it('Exec pipe output to another tool, fails if first tool fails', function(done) {
-        this.timeout(1000);
+        this.timeout(20000);
 
         var _testExecOptions = <trm.IExecOptions>{
             cwd: __dirname,
@@ -468,31 +532,33 @@ describe('Toolrunner Tests', function () {
         };
 
         if (os.platform() === 'win32') {
-            var find = tl.tool(tl.which('FIND', true));
-            find.arg('System Idle Process');
-
-            var tasklist = tl.tool(tl.which('tasklist', true));
-            tasklist.arg('bad');
-            tasklist.pipeExecOutputToTool(find);
+            var matchExe = tl.tool(compileMatchExe())
+                .arg('0') // exit code
+                .arg('line 2'); // match value
+            var outputExe = tl.tool(compileOutputExe())
+                .arg('1') // exit code
+                .arg('line 1')
+                .arg('line 2')
+                .arg('line 3');
+            outputExe.pipeExecOutputToTool(matchExe);
 
             var output = '';
-            tasklist.on('stdout', (data) => {
+            outputExe.on('stdout', (data) => {
                 output += data.toString();
             });
 
             var succeeded = false;
-            tasklist.exec(_testExecOptions)
+            outputExe.exec(_testExecOptions)
                 .then(function () {
                     succeeded = true;
-                    assert.fail('tasklist bad | findstr cmd was a bad command and it did not fail');
+                    assert.fail('print-output.exe | findstr "line 2" was a bad command and it did not fail');
                 })
                 .fail(function (err) {
                     if (succeeded) {
                         done(err);
                     }
                     else {
-                        //assert(output && output.length > 0 && output.indexOf('ERROR: Invalid argument/option') >= 0, 'error output from tasklist command does not match expected. actual: ' + output);
-                        assert(err && err.message && err.message.indexOf('tasklist.exe') >=0, 'error from tasklist is not reported');
+                        assert(err && err.message && err.message.indexOf('print-output.exe') >=0, 'error from print-output.exe is not reported');
                         done();
                     }
                 })
@@ -535,7 +601,7 @@ describe('Toolrunner Tests', function () {
         }
     })
     it('Exec pipe output to another tool, fails if second tool fails', function(done) {
-        this.timeout(1000);
+        this.timeout(20000);
 
         var _testExecOptions = <trm.IExecOptions>{
             cwd: __dirname,
@@ -548,35 +614,40 @@ describe('Toolrunner Tests', function () {
         };
 
         if (os.platform() === 'win32') {
-            var find = tl.tool(tl.which('FIND.exe', true));
-            find.arg('bad');
-
-            var tasklist = tl.tool(tl.which('tasklist', true));
-            tasklist.pipeExecOutputToTool(find);
+            var matchExe = tl.tool(compileMatchExe())
+                .arg('1') // exit code
+                .arg('line 2') // match value
+                .arg('some error message'); // error
+            var outputExe = tl.tool(compileOutputExe())
+                .arg('0') // exit code
+                .arg('line 1')
+                .arg('line 2')
+                .arg('line 3');
+            outputExe.pipeExecOutputToTool(matchExe);
 
             var output = '';
-            tasklist.on('stdout', (data) => {
+            outputExe.on('stdout', (data) => {
                 output += data.toString();
             });
 
             var errOut = '';
-            tasklist.on('stderr', (data) => {
+            outputExe.on('stderr', (data) => {
                 errOut += data.toString();
             });
 
             var succeeded = false;
-            tasklist.exec(_testExecOptions)
+            outputExe.exec(_testExecOptions)
                 .then(function (code) {
                     succeeded = true;
-                    assert.fail('tasklist bad | find "cmd" was a bad command and it did not fail');
+                    assert.fail('print-output.exe 0 "line 1" "line 2" "line 3" | match-input.exe 1 "line 2" "some error message" was a bad command and it did not fail');
                 })
                 .fail(function (err) {
                     if (succeeded) {
                         done(err);
                     }
                     else {
-                        assert(errOut && errOut.length > 0 && errOut.indexOf('FIND: Parameter format not correct') >= 0, 'error output from FIND command is expected');
-                        assert(err && err.message && err.message.indexOf('FIND.exe') >=0, 'error from find does not match expeced. actual: ' + err.message);
+                        assert(errOut && errOut.length > 0 && errOut.indexOf('some error message') >= 0, 'error output from match-input.exe is expected');
+                        assert(err && err.message && err.message.indexOf('match-input.exe') >=0, 'error from find does not match expeced. actual: ' + err.message);
                         done();
                     }
                 })
@@ -625,7 +696,7 @@ describe('Toolrunner Tests', function () {
         }
     })
     it('handles single args', function (done) {
-        this.timeout(1000);
+        this.timeout(10000);
 
         var node = tl.tool(tl.which('node', true));
         node.arg('one');
@@ -635,7 +706,7 @@ describe('Toolrunner Tests', function () {
         done();
     })
     it('handles arg chaining', function (done) {
-        this.timeout(1000);
+        this.timeout(10000);
 
         var node = tl.tool(tl.which('node', true));
         node.arg('one').arg('two').argIf(true, 'three').line('four five');
@@ -645,7 +716,7 @@ describe('Toolrunner Tests', function () {
         done();
     })        
     it('handles padded spaces', function (done) {
-        this.timeout(1000);
+        this.timeout(10000);
 
         var node = tl.tool(tl.which('node', true));
         node.arg(' one ');
@@ -655,7 +726,7 @@ describe('Toolrunner Tests', function () {
         done();
     })
     it('handles basic arg string with spaces', function (done) {
-        this.timeout(1000);
+        this.timeout(10000);
 
         var node = tl.tool(tl.which('node', true));
         node.line('one two');
@@ -665,7 +736,7 @@ describe('Toolrunner Tests', function () {
         done();
     })
     it('handles arg string with extra spaces', function (done) {
-        this.timeout(1000);
+        this.timeout(10000);
 
         var node = tl.tool(tl.which('node', true));
         node.line('one   two');
@@ -675,7 +746,7 @@ describe('Toolrunner Tests', function () {
         done();
     })
     it('handles arg string with backslash', function (done) {
-        this.timeout(1000);
+        this.timeout(10000);
 
         var node = tl.tool(tl.which('node', true));
         node.line('one two\\arg');
@@ -685,7 +756,7 @@ describe('Toolrunner Tests', function () {
         done();
     })
     it('handles equals and switches', function (done) {
-        this.timeout(1000);
+        this.timeout(10000);
 
         var node = tl.tool(tl.which('node', true));
         node.line('foo=bar -x');
@@ -695,7 +766,7 @@ describe('Toolrunner Tests', function () {
         done();
     })
     it('handles double quotes', function (done) {
-        this.timeout(1000);
+        this.timeout(10000);
 
         var node = tl.tool(tl.which('node', true));
         node.line('foo="bar baz" -x');
@@ -705,7 +776,7 @@ describe('Toolrunner Tests', function () {
         done();
     })
     it('handles quote in double quotes', function (done) {
-        this.timeout(1000);
+        this.timeout(10000);
 
         var node = tl.tool(tl.which('node', true));
         node.line('foo="bar \\" baz" -x');
@@ -715,7 +786,7 @@ describe('Toolrunner Tests', function () {
         done();
     })
     it('handles literal path', function (done) {
-        this.timeout(1000);
+        this.timeout(10000);
 
         var node = tl.tool(tl.which('node', true));
         node.arg('--path').arg('/bin/working folder1');
@@ -726,7 +797,7 @@ describe('Toolrunner Tests', function () {
 
     if (process.platform != 'win32') {
         it('exec prints [command] (OSX/Linux)', function (done) {
-            this.timeout(1000);
+            this.timeout(10000);
             let bash = tl.tool(tl.which('bash'))
                 .arg('--norc')
                 .arg('--noprofile')
@@ -793,7 +864,7 @@ describe('Toolrunner Tests', function () {
         // --------------------------
 
         it('exec .exe AND verbatim args (Windows)', function (done) {
-            this.timeout(1000);
+            this.timeout(10000);
 
             // the echo built-in is a good tool for this test
             let exePath = process.env.ComSpec;
@@ -827,7 +898,7 @@ describe('Toolrunner Tests', function () {
         });
 
         it('exec .exe AND arg quoting (Windows)', function (done) {
-            this.timeout(1000);
+            this.timeout(10000);
 
             // the echo built-in is a good tool for this test
             let exePath = process.env.ComSpec;
@@ -870,7 +941,7 @@ describe('Toolrunner Tests', function () {
         });
 
         it('exec .exe with space AND verbatim args (Windows)', function (done) {
-            this.timeout(1000);
+            this.timeout(20000);
 
             // this test validates the quoting that tool runner adds around the tool path
             // when using the windowsVerbatimArguments option. otherwise the target process
@@ -904,7 +975,7 @@ describe('Toolrunner Tests', function () {
         });
 
         it('exec .cmd with space AND verbatim args (Windows)', function (done) {
-            this.timeout(1000);
+            this.timeout(10000);
 
             // this test validates the quoting that tool runner adds around the script path.
             // otherwise cmd.exe will not be able to resolve the path to the script.
@@ -939,7 +1010,7 @@ describe('Toolrunner Tests', function () {
         });
 
         it('exec .cmd with space AND arg with space (Windows)', function (done) {
-            this.timeout(1000);
+            this.timeout(10000);
 
             // this test validates the command is wrapped in quotes (i.e. cmd.exe /S /C "<COMMAND>").
             // otherwise the leading quote (around the script with space path) would be stripped
@@ -974,7 +1045,7 @@ describe('Toolrunner Tests', function () {
         });
 
         it('exec .cmd AND arg quoting (Windows)', function (done) {
-            this.timeout(1000);
+            this.timeout(10000);
 
             // this test validates .cmd quoting rules are applied, not the default libuv rules
             let cmdPath = path.join(__dirname, 'scripts', 'print args cmd with spaces.cmd');
@@ -1080,7 +1151,7 @@ describe('Toolrunner Tests', function () {
         // -------------------------------
 
         it('exec sync .exe AND verbatim args (Windows)', function (done) {
-            this.timeout(1000);
+            this.timeout(10000);
 
             // the echo built-in is a good tool for this test
             let exePath = process.env.ComSpec;
@@ -1105,7 +1176,7 @@ describe('Toolrunner Tests', function () {
         });
 
         it('exec sync .exe AND arg quoting (Windows)', function (done) {
-            this.timeout(1000);
+            this.timeout(10000);
 
             // the echo built-in is a good tool for this test
             let exePath = process.env.ComSpec;
@@ -1139,7 +1210,7 @@ describe('Toolrunner Tests', function () {
         });
 
         it('exec sync .exe with space AND verbatim args (Windows)', function (done) {
-            this.timeout(1000);
+            this.timeout(20000);
 
             // this test validates the quoting that tool runner adds around the tool path
             // when using the windowsVerbatimArguments option. otherwise the target process
@@ -1163,7 +1234,7 @@ describe('Toolrunner Tests', function () {
         });
 
         it('exec sync .cmd with space AND verbatim args (Windows)', function (done) {
-            this.timeout(1000);
+            this.timeout(10000);
 
             // this test validates the quoting that tool runner adds around the script path.
             // otherwise cmd.exe will not be able to resolve the path to the script.
@@ -1188,7 +1259,7 @@ describe('Toolrunner Tests', function () {
         });
 
         it('exec sync .cmd with space AND arg with space (Windows)', function (done) {
-            this.timeout(1000);
+            this.timeout(10000);
 
             // this test validates the command is wrapped in quotes (i.e. cmd.exe /S /C "<COMMAND>").
             // otherwise the leading quote (around the script with space path) would be stripped
@@ -1213,7 +1284,7 @@ describe('Toolrunner Tests', function () {
         });
 
         it('exec sync .cmd AND arg quoting (Windows)', function (done) {
-            this.timeout(1000);
+            this.timeout(10000);
 
             // this test validates .cmd quoting rules are applied, not the default libuv rules
             let cmdPath = path.join(__dirname, 'scripts', 'print args cmd with spaces.cmd');
@@ -1309,7 +1380,7 @@ describe('Toolrunner Tests', function () {
         // -------------------------------
 
         it('exec pipe .cmd to .exe AND arg quoting (Windows)', function (done) {
-            this.timeout(1000);
+            this.timeout(10000);
 
             let cmdPath = path.join(__dirname, 'scripts', 'print args cmd with spaces.cmd');
             let cmdRunner = tl.tool(cmdPath)
@@ -1346,7 +1417,7 @@ describe('Toolrunner Tests', function () {
         });
 
         it('exec pipe .cmd to .exe AND verbatim args (Windows)', function (done) {
-            this.timeout(1000);
+            this.timeout(10000);
 
             let cmdPath = path.join(__dirname, 'scripts', 'print args cmd with spaces.cmd');
             let cmdRunner = tl.tool(cmdPath)
@@ -1387,7 +1458,7 @@ describe('Toolrunner Tests', function () {
         // --------------------------------------
 
         it('_windowsQuoteCmdArg quotes .exe args (Windows)', function (done) {
-            this.timeout(1000);
+            this.timeout(10000);
 
             // create a .exe file
             let testPath = path.join(testutil.getTestTemp(), 'which-finds-file-name');
@@ -1477,7 +1548,7 @@ describe('Toolrunner Tests', function () {
         });
 
         it('_windowsQuoteCmdArg quotes .cmd args (Windows)', function (done) {
-            this.timeout(1000);
+            this.timeout(10000);
 
             // create a .cmd file
             let testPath = path.join(testutil.getTestTemp(), 'which-finds-file-name');
@@ -1536,7 +1607,7 @@ describe('Toolrunner Tests', function () {
         });
 
         it('_windowsQuoteCmdArg quotes .bat args (Windows)', function (done) {
-            this.timeout(1000);
+            this.timeout(10000);
 
             // create a .bat file
             let testPath = path.join(testutil.getTestTemp(), 'which-finds-file-name');
