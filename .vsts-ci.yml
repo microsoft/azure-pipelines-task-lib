@@ -4,13 +4,10 @@ trigger:
 
 phases:
 #################################################
-- phase: build_on_windows
+- phase: windows
 #################################################
-  displayName: (vsts-task-lib) Windows
-  queue:
-    #name: Hosted
-    name: buildDevs
-    demands: agent.os -equals Windows_NT
+  condition: and(succeeded(), eq(variables.os, 'Windows_NT'))
+  queue: Hosted VS2017
 
   steps:
   ################################################################################
@@ -62,9 +59,9 @@ phases:
     workingDirectory: powershell
 
 #################################################
-- phase: build_on_linux
+- phase: linux
 #################################################
-  displayName: (vsts-task-lib) linux
+  condition: and(succeeded(), eq(variables.os, 'Linux'))
   queue: Hosted Linux Preview
 
   steps:
@@ -102,10 +99,10 @@ phases:
     workingDirectory: node
 
 #################################################
-- phase: build_on_osx
+- phase: macOS
 #################################################
-  displayName: (vsts-task-lib) osx
-  queue: Hosted Mac Internal
+  condition: and(succeeded(), eq(variables.os, 'Darwin'))
+  queue: Hosted macOS Preview
 
   steps:
   ################################################################################
