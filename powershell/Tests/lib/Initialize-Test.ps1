@@ -14,6 +14,12 @@ Import-Module 'Microsoft.PowerShell.Utility' -Verbose:$false
 Write-Verbose "Importing module: Microsoft.PowerShell.Security"
 Import-Module 'Microsoft.PowerShell.Security' -Verbose:$false
 
+if ($env:AGENT_TEMPDIRECTORY) {
+    Write-Verbose "Overriding env:TMP and env:TEMP with env:AGENT_TEMPDIRECTORY"
+    $env:TEMP = $env:AGENT_TEMPDIRECTORY
+    $env:TMP = $env:AGENT_TEMPDIRECTORY
+}
+
 Write-Verbose "Importing module: TestHelpersModule"
 Import-Module $PSScriptRoot\TestHelpersModule -Verbose:$false
 
