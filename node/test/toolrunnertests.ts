@@ -31,7 +31,6 @@ describe('Toolrunner Tests', function () {
 
     });
 
-
     it('ExecSync convenience with stdout', function (done) {
         this.timeout(10000);
 
@@ -395,66 +394,6 @@ describe('Toolrunner Tests', function () {
                 done(err);
             });
     })
-    // function to compile a .NET program that prints lines.
-    // the helper program is used on Windows to validate piping output between tools.
-    let compileOutputExe = (): string => {
-        let directory = path.join(testutil.getTestTemp(), 'print-output-exe');
-        tl.mkdirP(directory);
-        let exePath = path.join(directory, 'print-output.exe');
-
-        // short-circuit if already compiled
-        try {
-            fs.statSync(exePath);
-            return exePath;
-        }
-        catch (err) {
-            if (err.code != 'ENOENT') {
-                throw err;
-            }
-        }
-
-        let sourceFile = path.join(__dirname, 'scripts', 'print-output-exe.cs');
-        let cscPath = 'C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe';
-        fs.statSync(cscPath);
-        child_process.execFileSync(
-            cscPath,
-            [
-                '/target:exe',
-                `/out:${exePath}`,
-                sourceFile
-            ]);
-        return exePath;
-    }
-    // function to compile a .NET program that matches input lines.
-    // the helper program is used on Windows to validate piping output between tools.
-    let compileMatchExe = (): string => {
-        let directory = path.join(testutil.getTestTemp(), 'match-input-exe');
-        tl.mkdirP(directory);
-        let exePath = path.join(directory, 'match-input.exe');
-
-        // short-circuit if already compiled
-        try {
-            fs.statSync(exePath);
-            return exePath;
-        }
-        catch (err) {
-            if (err.code != 'ENOENT') {
-                throw err;
-            }
-        }
-
-        let sourceFile = path.join(__dirname, 'scripts', 'match-input-exe.cs');
-        let cscPath = 'C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe';
-        fs.statSync(cscPath);
-        child_process.execFileSync(
-            cscPath,
-            [
-                '/target:exe',
-                `/out:${exePath}`,
-                sourceFile
-            ]);
-        return exePath;
-    }
     it('Exec pipe output to another tool, succeeds if both tools succeed', function(done) {
         this.timeout(20000);
 
@@ -828,36 +767,6 @@ describe('Toolrunner Tests', function () {
         });
     }
     else { // process.platform == 'win32'
-        // function to compile a .NET program that prints the command line args.
-        // the helper program is used to validate that command line args are passed correctly.
-        let compileArgsExe = (fileNameOnly: string): string => {
-            let directory = path.join(testutil.getTestTemp(), 'print-args-exe');
-            tl.mkdirP(directory);
-            let exePath = path.join(directory, fileNameOnly);
-
-            // short-circuit if already compiled
-            try {
-                fs.statSync(exePath);
-                return exePath;
-            }
-            catch (err) {
-                if (err.code != 'ENOENT') {
-                    throw err;
-                }
-            }
-
-            let sourceFile = path.join(__dirname, 'scripts', 'print-args-exe.cs');
-            let cscPath = 'C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe';
-            fs.statSync(cscPath);
-            child_process.execFileSync(
-                cscPath,
-                [
-                    '/target:exe',
-                    `/out:${exePath}`,
-                    sourceFile
-                ]);
-            return exePath;
-        }
 
         // --------------------------
         // exec arg tests (Windows)
@@ -1622,5 +1531,53 @@ describe('Toolrunner Tests', function () {
 
             done();
         });
+    }
+
+    // function to compile a .NET program on Windows.
+    let compileExe = (sourceFileName: string, targetFileName: string): string => {
+        let directory = path.join(testutil.getTestTemp(), sourceFileName);
+        tl.mkdirP(directory);
+        let exePath = path.join(directory, targetFileName);
+
+        // short-circuit if already compiled
+        try {
+            fs.statSync(exePath);
+            return exePath;
+        }
+        catch (err) {
+            if (err.code != 'ENOENT') {
+                throw err;
+            }
+        }
+
+        let sourceFile = path.join(__dirname, 'scripts', sourceFileName);
+        let cscPath = 'C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe';
+        fs.statSync(cscPath);
+        child_process.execFileSync(
+            cscPath,
+            [
+                '/target:exe',
+                `/out:${exePath}`,
+                sourceFile
+            ]);
+        return exePath;
+    }
+
+    // function to compile a .NET program that prints the command line args.
+    // the helper program is used to validate that command line args are passed correctly.
+    let compileArgsExe = (targetFileName: string): string => {
+        return compileExe('print-args-exe.cs', targetFileName);
+    }
+
+    // function to compile a .NET program that matches input lines.
+    // the helper program is used on Windows to validate piping output between tools.
+    let compileMatchExe = (): string => {
+        return compileExe('match-input-exe.cs', 'match-input.exe');
+    }
+
+    // function to compile a .NET program that prints lines.
+    // the helper program is used on Windows to validate piping output between tools.
+    let compileOutputExe = (): string => {
+        return compileExe('print-output-exe.cs', 'print-output.exe');
     }
 });
