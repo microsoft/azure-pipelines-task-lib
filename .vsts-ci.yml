@@ -1,6 +1,7 @@
 trigger:
 - master
 - features/*
+- refs/pull/*
 
 phases:
 #################################################
