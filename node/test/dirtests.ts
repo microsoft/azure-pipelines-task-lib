@@ -1107,7 +1107,7 @@ describe('Dir Operation Tests', function () {
     });
 
     it('removes folder with locked file with rmRF', function (done) {
-        this.timeout(1000);
+        this.timeout(2000);
 
         var testPath = path.join(testutil.getTestTemp(), 'testFolder');
         tl.mkdirP(testPath);
