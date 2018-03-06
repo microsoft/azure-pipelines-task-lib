@@ -1563,19 +1563,33 @@ export interface ProxyConfiguration {
  *
  * @return  ProxyConfiguration
  */
-export function getHttpProxyConfiguration(): ProxyConfiguration {
+export function getHttpProxyConfiguration(requestUrl?: string): ProxyConfiguration {
     let proxyUrl: string = getVariable('Agent.ProxyUrl');
     if (proxyUrl && proxyUrl.length > 0) {
         let proxyUsername: string = getVariable('Agent.ProxyUsername');
         let proxyPassword: string = getVariable('Agent.ProxyPassword');
         let proxyBypassHosts: string[] = JSON.parse(getVariable('Agent.ProxyBypassList') || '[]');
 
-        return {
-            proxyUrl: proxyUrl,
-            proxyUsername: proxyUsername,
-            proxyPassword: proxyPassword,
-            proxyBypassHosts: proxyBypassHosts
-        };
+        let bypass: boolean = false;
+        if (requestUrl) {
+            this._httpProxyBypassHosts.forEach(bypassHost => {
+                if (bypassHost.test(requestUrl)) {
+                    bypass = true;
+                }
+            });
+        }
+
+        if (bypass) {
+            return null;
+        }
+        else {
+            return {
+                proxyUrl: proxyUrl,
+                proxyUsername: proxyUsername,
+                proxyPassword: proxyPassword,
+                proxyBypassHosts: proxyBypassHosts
+            };
+        }
     }
     else {
         return null;
