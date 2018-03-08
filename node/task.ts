@@ -1572,8 +1572,8 @@ export function getHttpProxyConfiguration(requestUrl?: string): ProxyConfigurati
 
         let bypass: boolean = false;
         if (requestUrl) {
-            this._httpProxyBypassHosts.forEach(bypassHost => {
-                if (bypassHost.test(requestUrl)) {
+            proxyBypassHosts.forEach(bypassHost => {
+                if (new RegExp(bypassHost, 'i').test(requestUrl)) {
                     bypass = true;
                 }
             });
