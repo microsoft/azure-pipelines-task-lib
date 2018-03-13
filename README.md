@@ -39,3 +39,11 @@ Documentation: [PowerShell API](powershell/Docs/README.md)
 [npm-lib-url]: https://www.npmjs.com/package/vsts-task-lib
 [npm-sdk-image]: https://img.shields.io/npm/v/vsts-task-sdk.svg?style=flat
 [npm-sdk-url]: https://www.npmjs.com/package/vsts-task-sdk
+
+## Contributing
+
+To contribute to this repository, see the [contribution guide](./CONTRIBUTING.md)
+
+## Code of Conduct
+
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
