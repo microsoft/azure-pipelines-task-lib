@@ -7,6 +7,7 @@ import child = require('child_process');
 import stream = require('stream');
 import im = require('./internal');
 import tcm = require('./taskcommand');
+import fs = require('fs');
 
 /**
  * Interface for exec options
@@ -73,6 +74,7 @@ export class ToolRunner extends events.EventEmitter {
     private toolPath: string;
     private args: string[];
     private pipeOutputToTool: ToolRunner;
+    private pipeOutputToFile: string;
 
     private _debug(message) {
         this.emit('debug', message);
@@ -528,10 +530,12 @@ export class ToolRunner extends events.EventEmitter {
     /**
      * Pipe output of exec() to another tool
      * @param tool
+     * @param file  optional filename to additionally stream the output to.
      * @returns {ToolRunner}
      */
-    public pipeExecOutputToTool(tool: ToolRunner) : ToolRunner {
+    public pipeExecOutputToTool(tool: ToolRunner, file?: string) : ToolRunner {
         this.pipeOutputToTool = tool;
+        this.pipeOutputToFile = file;
         return this;
     }
 
@@ -584,9 +588,17 @@ export class ToolRunner extends events.EventEmitter {
                 this.pipeOutputToTool._getSpawnArgs(options),
                 this.pipeOutputToTool._getSpawnOptions(options));
 
+            let fileStream: fs.WriteStream = this.pipeOutputToFile ? fs.createWriteStream(this.pipeOutputToFile) : null;
+            if (fileStream) {
+                fileStream.write(this._getCommandString(options) + os.EOL);
+            }
+
             //pipe stdout of first tool to stdin of second tool
             cpFirst.stdout.on('data', (data: Buffer) => {
                 try {
+                    if (fileStream) {
+                        fileStream.write(data.toString());
+                    }
                     cp.stdin.write(data);
                 } catch (err) {
                     this._debug('Failed to pipe output of ' + toolPathFirst + ' to ' + toolPath);
@@ -594,6 +606,9 @@ export class ToolRunner extends events.EventEmitter {
                 }
             });
             cpFirst.stderr.on('data', (data: Buffer) => {
+                if (fileStream) {
+                    fileStream.write(data.toString());
+                }
                 successFirst = !options.failOnStdErr;
                 if (!options.silent) {
                     var s = options.failOnStdErr ? options.errStream : options.outStream;
@@ -601,10 +616,20 @@ export class ToolRunner extends events.EventEmitter {
                 }
             });
             cpFirst.on('error', (err) => {
+                if (fileStream) {
+                    fileStream.on('finish', () => {  
+                        fileStream.close();
+                    });
+                }
                 cp.stdin.end();
                 defer.reject(new Error(toolPathFirst + ' failed. ' + err.message));
             });
             cpFirst.on('close', (code, signal) => {
+                if (fileStream) {
+                    fileStream.on('finish', () => {  
+                        fileStream.close();
+                    });
+                }
                 if (code != 0 && !options.ignoreReturnCode) {
                     successFirst = false;
                     returnCodeFirst = code;
