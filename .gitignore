@@ -45,3 +45,6 @@ node/.taskKey
 # powershell compiled helper
 powershell/CompiledHelpers/bin
 powershell/CompiledHelpers/obj
+
+# generate third party notice script
+!generate-third-party-notice.js
