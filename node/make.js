@@ -27,13 +27,7 @@ target.build = function() {
     target.clean();
     target.loc();
 
-    //run('tsc --outDir ' + buildPath);
-
-    //run('tsc --outDir ' + outDir + ' --rootDir ' + taskPath);
-    run(path.join(__dirname, 'node_modules/.bin/tsc') + ' --outDir ' + buildPath + ' --rootDir ' + __dirname);
-    //cp('-Rf', rp('node_modules), buildPath);
-
-
+    run('tsc --outDir ' + buildPath);
     cp(rp('dependencies/typings.json'), buildPath);
     cp(rp('package.json'), buildPath);
     cp(rp('package-lock.json'), buildPath);
