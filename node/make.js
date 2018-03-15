@@ -27,7 +27,7 @@ target.build = function() {
     target.clean();
     target.loc();
 
-    run('tsc --outDir ' + buildPath);
+    run(path.join(__dirname, 'node_modules/.bin/tsc') + ' --outDir ' + buildPath);
     cp(rp('dependencies/typings.json'), buildPath);
     cp(rp('package.json'), buildPath);
     cp(rp('package-lock.json'), buildPath);
@@ -35,6 +35,7 @@ target.build = function() {
     cp(rp('../LICENSE'), buildPath);
     cp(rp('lib.json'), buildPath);
     cp('-Rf', rp('Strings'), buildPath);
+    cp('-Rf', rp('node_modules'), buildPath);
     // just a bootstrap file to avoid /// in final js and .d.ts file
     rm(path.join(buildPath, 'index.*'));
 }
