@@ -42,3 +42,9 @@ Set environment variable TASK_TEST_TRACE=1 to display test output.
 
 [npm-lib-image]: https://img.shields.io/npm/v/vsts-task-lib.svg?style=flat
 [npm-lib-url]: https://www.npmjs.com/package/vsts-task-lib
+
+## Third Party Notices
+To generate/update third party notice file run:
+```bash
+$ node generate-third-party-notice.js
+```
