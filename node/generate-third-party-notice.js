@@ -41,19 +41,20 @@ function readPackageJson(packagePath) {
  * @returns Absolute path to the license file, or `null` if the license file can't be found
  */
 function findLicense(packagePath) {
-    log.info(`Finding the license for ${packagePath}`);
+    log.info(`Finding the license for '${packagePath}'`);
     const children = fs.readdirSync(packagePath);
     const licenseNames = [
         'LICENSE',
         'LICENSE.md',
-        'LICENSE.txt'
+        'LICENSE.txt',
+        'LICENSE-MIT.txt'
     ].map(x => x.toLowerCase());
-
     const candidates = children.filter(x => licenseNames.includes(x.toLowerCase()));
-    if (!candidates) {
+    if (!candidates || candidates.length === 0) {
         log.warning(`Could not find a license for ${packagePath}`);
         return null;
     } else {
+        //console.log(JSON.stringify(candidates));
         if (candidates.length > 1) {
             log.warning(`Found multiple license files for ${packagePath}: ${candidates.join(', ')}`);
         }
@@ -90,7 +91,13 @@ function* collectLicenseInfo(modulesRoot) {
 
         const manifest = readPackageJson(absolutePath);
         const license = findLicense(absolutePath);
-        const licenseText = fs.readFileSync(license, { encoding: 'utf-8' });
+
+        let licenseText;
+        if (license) {
+            licenseText = fs.readFileSync(license, { encoding: 'utf-8' });
+        } else {
+            licenseText = 'No license text available.';
+        }
 
         yield {
             name: name,
@@ -101,13 +108,13 @@ function* collectLicenseInfo(modulesRoot) {
 }
 
 /** Generate the third party notice line-by-line. */
-function* thirdPartyNotice(taskName, licenseInfo) {
+function* thirdPartyNotice(libName, licenseInfo) {
     // Preamble
     yield '';
     yield 'THIRD-PARTY SOFTWARE NOTICES AND INFORMATION';
     yield 'Do Not Translate or Localize';
     yield '';
-    yield `This Visual Studio Team Services extension (${taskName}) is based on or incorporates material from the projects listed below (Third Party IP). The original copyright notice and the license under which Microsoft received such Third Party IP, are set forth below. Such licenses and notices are provided for informational purposes only. Microsoft licenses the Third Party IP to you under the licensing terms for the Visual Studio Team Services extension. Microsoft reserves all other rights not expressly granted under this agreement, whether by implication, estoppel or otherwise.`;
+    yield `This Visual Studio Team Services extension (${libName}) is based on or incorporates material from the projects listed below (Third Party IP). The original copyright notice and the license under which Microsoft received such Third Party IP, are set forth below. Such licenses and notices are provided for informational purposes only. Microsoft licenses the Third Party IP to you under the licensing terms for the Visual Studio Team Services extension. Microsoft reserves all other rights not expressly granted under this agreement, whether by implication, estoppel or otherwise.`;
     yield '';
 
     // Enumerated modules
@@ -151,8 +158,8 @@ function main(args) {
         const nodeModuleDir = path.join(__dirname, 'node_modules');
         const licenseInfo = Array.from(collectLicenseInfo(nodeModuleDir));
 
-        const writeStream = fs.createWriteStream(path.join(taskPath, 'ThirdPartyNotice.txt'));
-        writeLines(writeStream, thirdPartyNotice(taskName, licenseInfo));
+        const writeStream = fs.createWriteStream(path.join(__dirname, 'ThirdPartyNotice.txt'));
+        writeLines(writeStream, thirdPartyNotice('vsts-task-lib', licenseInfo));
         writeStream.end();
     } catch (e) {
         log.error(e.message);
