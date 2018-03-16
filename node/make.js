@@ -36,7 +36,7 @@ target.build = function() {
     cp(rp('lib.json'), buildPath);
     cp(rp('ThirdPartyNotice.txt'), buildPath);
     cp('-Rf', rp('Strings'), buildPath);
-    cp('-Rf', rp('node_modules'), buildPath);
+    //cp('-Rf', rp('node_modules'), buildPath);
     // just a bootstrap file to avoid /// in final js and .d.ts file
     rm(path.join(buildPath, 'index.*'));
 }
