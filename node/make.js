@@ -51,6 +51,15 @@ target.test = function() {
     run('mocha ' + testPath + ' --recursive');
 }
 
+target.publish = function() {
+    target.build();
+    target.test();
+
+    // move in to the build output folder and prune dev dependencies
+    cd(buildPath);
+    run('npm prune --production');
+}
+
 target.loc = function() {
     var lib = require('./lib.json');
     var strPath = path.join('Strings', 'resources.resjson', 'en-US')

@@ -6,7 +6,8 @@
   "typings": "./task.d.ts",
   "scripts": {
     "build": "node make.js build",
-    "test": "node make.js test"
+    "test": "node make.js test",
+    "publish": "node make.js publish"
   },
   "repository": {
     "type": "git",

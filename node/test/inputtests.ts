@@ -877,7 +877,7 @@ describe('Input Tests', function () {
 
     // _loadData tests
     it('_loadData does not run twice', function (done) {
-        this.timeout(2000);
+        this.timeout(5000);
 
         // intialize an input (stored in vault)
         process.env['INPUT_SOMEINPUT'] = 'some input value';
