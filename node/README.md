@@ -7,15 +7,15 @@ Libraries for writing [Visual Studio Team Services](https://www.visualstudio.com
 
 Reference examples of our in the box tasks [are here](https://github.com/Microsoft/vsts-tasks)
 
-## Typescript Tasks  
+## TypeScript Tasks
 
-Cross platform tasks are written in Typescript.  It is the preferred way to write tasks once.
+Cross platform tasks are written in TypeScript.  It is the preferred way to write tasks once.
 
 [![NPM version][npm-lib-image]][npm-lib-url]
 
 Step by Step: [Create Task](docs/stepbystep.md)  
 
-Documentation: [Typescript API](docs/vsts-task-lib.md), [task JSON schema](https://aka.ms/vsts-tasks.schema.json)
+Documentation: [TypeScript API](docs/vsts-task-lib.md), [task JSON schema](https://aka.ms/vsts-tasks.schema.json)
 
 Guidance: [Finding Files](docs/findingfiles.md), [Minimum agent version](docs/minagent.md), [Proxy](docs/proxy.md), [Certificate](docs/cert.md)
 
