@@ -34,6 +34,7 @@ target.build = function() {
     cp(rp('README.md'), buildPath);
     cp(rp('../LICENSE'), buildPath);
     cp(rp('lib.json'), buildPath);
+    cp(rp('ThirdPartyNotice.txt'), buildPath);
     cp('-Rf', rp('Strings'), buildPath);
     cp('-Rf', rp('node_modules'), buildPath);
     // just a bootstrap file to avoid /// in final js and .d.ts file
