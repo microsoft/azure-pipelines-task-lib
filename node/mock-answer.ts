@@ -8,13 +8,15 @@ export interface TaskLibAnswerExecResult {
 }
 
 export interface TaskLibAnswers {
-    which?: { [key: string]: string; },
-    exec?: { [ key: string]: TaskLibAnswerExecResult },
     checkPath?: { [key: string]: boolean },
+    cwd?: { [key: string]: string },
+    exec?: { [ key: string]: TaskLibAnswerExecResult },
     exist?: { [key: string]: boolean },
     find?: { [key: string]: string[] },
     findMatch?: { [key: string]: string[] },
+    ls?: { [key: string]: string },
     rmRF?: { [key: string]: { success: boolean } },
+    which?: { [key: string]: string; },
 }
 
 export class MockAnswers {
