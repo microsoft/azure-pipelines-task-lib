@@ -3,9 +3,7 @@
         "target": "ES5",
         "module": "commonjs",
         "declaration": true,
-        "outDir": "_build",
-        "moduleResolution": "node",
-        "rootDir": "./"
+        "moduleResolution": "node"
     },
     "files": [
         "index.ts",
