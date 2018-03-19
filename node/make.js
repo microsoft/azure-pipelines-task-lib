@@ -27,7 +27,7 @@ target.build = function() {
     target.clean();
     target.loc();
 
-    run(path.join(__dirname, 'node_modules/.bin/tsc') + ' --outDir ' + buildPath);
+    run('tsc --outDir ' + buildPath);
     cp(rp('dependencies/typings.json'), buildPath);
     cp(rp('package.json'), buildPath);
     cp(rp('package-lock.json'), buildPath);
@@ -36,28 +36,23 @@ target.build = function() {
     cp(rp('lib.json'), buildPath);
     cp(rp('ThirdPartyNotice.txt'), buildPath);
     cp('-Rf', rp('Strings'), buildPath);
-    //cp('-Rf', rp('node_modules'), buildPath);
     // just a bootstrap file to avoid /// in final js and .d.ts file
     rm(path.join(buildPath, 'index.*'));
 }
 
 target.test = function() {
-    target.build();
+    //target.build();
+
+    // install the just built lib into the test proj
+    pushd('test');
+    run('npm install ../_build');
+    popd();
 
     buildutils.getExternals();
     run('tsc -p ./test');
     cp('-Rf', rp('test/scripts'), testPath);
     process.env['TASKLIB_INPROC_UNITS'] = '1'; // export task-lib internals for internal unit testing
     run('mocha ' + testPath + ' --recursive');
-}
-
-target.publish = function() {
-    target.build();
-    target.test();
-
-    // move in to the build output folder and prune dev dependencies
-    cd(buildPath);
-    run('npm prune --production');
 }
 
 target.loc = function() {
