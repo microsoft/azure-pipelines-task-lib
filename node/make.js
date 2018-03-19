@@ -41,12 +41,7 @@ target.build = function() {
 }
 
 target.test = function() {
-    //target.build();
-
-    // install the just built lib into the test proj
-    pushd('test');
-    run('npm install ../_build');
-    popd();
+    target.build();
 
     buildutils.getExternals();
     run('tsc -p ./test');
