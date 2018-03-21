@@ -46,7 +46,7 @@ export interface IExecSyncResult {
 
 export function debug(message) {
     // do nothing, overridden
-};
+}
 
 export class ToolRunner extends events.EventEmitter {
     constructor(toolPath) {
