@@ -785,7 +785,8 @@ describe('Toolrunner Tests', function () {
                         assert(err && err.message && err.message.indexOf('/bin/ps') >= 0, 'error from ps is not reported');
                         assert(fs.existsSync(testFile), 'Log of first tool output is created when first tool fails');
                         const fileContents = fs.readFileSync(testFile);
-                        assert(fileContents.indexOf('illegal option') >= 0, 'error from first tool should be written to log file: ' + fileContents);
+                        assert(fileContents.indexOf('illegal option') >= 0 || fileContents.indexOf('unsupported option') >= 0, 
+                            'error from first tool should be written to log file: ' + fileContents);
                         done();
                     }
                 })
