@@ -570,7 +570,7 @@ export class ToolRunner extends events.EventEmitter {
         let toolPathFirst: string;
         let successFirst = true;
         let returnCodeFirst: number;
-
+        
         if(this.pipeOutputToTool) {
             toolPath = this.pipeOutputToTool.toolPath;
             toolPathFirst = this.toolPath;
@@ -588,7 +588,7 @@ export class ToolRunner extends events.EventEmitter {
                 this.pipeOutputToTool._getSpawnArgs(options),
                 this.pipeOutputToTool._getSpawnOptions(options));
 
-            let fileStream: fs.WriteStream = this.pipeOutputToFile ? fs.createWriteStream(this.pipeOutputToFile) : null;
+                let fileStream: fs.WriteStream = this.pipeOutputToFile ? fs.createWriteStream(this.pipeOutputToFile) : null;
             
             //pipe stdout of first tool to stdin of second tool
             cpFirst.stdout.on('data', (data: Buffer) => {
@@ -614,18 +614,14 @@ export class ToolRunner extends events.EventEmitter {
             });
             cpFirst.on('error', (err) => {
                 if (fileStream) {
-                    fileStream.on('finish', () => {  
-                        fileStream.close();
-                    });
+                    fileStream.end();
                 }
                 cp.stdin.end();
                 defer.reject(new Error(toolPathFirst + ' failed. ' + err.message));
             });
             cpFirst.on('close', (code, signal) => {
                 if (fileStream) {
-                    fileStream.on('finish', () => {  
-                        fileStream.close();
-                    });
+                    fileStream.end();
                 }
                 if (code != 0 && !options.ignoreReturnCode) {
                     successFirst = false;

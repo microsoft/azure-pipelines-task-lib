@@ -670,7 +670,8 @@ describe('Toolrunner Tests', function () {
                     assert.equal(code, 0, 'return code of exec should be 0');
                     assert(output && output.length > 0 && output.indexOf('line 2') >= 0, 'should have emitted stdout ' + output);
                     assert(fs.existsSync(testFile), 'Log of first tool output is created when both tools succeed');
-                    assert(fs.readFileSync(testFile).indexOf('line 2') >= 0, 'Log file of first toool should have stdout from first tool')
+                    const fileContents = fs.readFileSync(testFile);
+                    assert(fileContents.indexOf('line 2') >= 0, 'Log file of first tool should have stdout from first tool: ' + fileContents);
                     done();
                 })
                 .fail(function (err) {
@@ -695,7 +696,8 @@ describe('Toolrunner Tests', function () {
                     assert.equal(code, 0, 'return code of exec should be 0');
                     assert(output && output.length > 0 && output.indexOf('node') >= 0, 'should have emitted stdout ' + output);
                     assert(fs.existsSync(testFile), 'Log of first tool output is created when both tools succeed');
-                    assert(fs.readFileSync(testFile).indexOf('PID') >= 0, 'Log of first tool should have stdout from first tool');
+                    const fileContents = fs.readFileSync(testFile);
+                    assert(fileContents.indexOf('PID') >= 0, 'Log of first tool should have stdout from first tool: ' + fileContents);
                     done();
                 })
                 .fail(function (err) {
@@ -747,7 +749,8 @@ describe('Toolrunner Tests', function () {
                     else {
                         assert(err && err.message && err.message.indexOf('print-output.exe') >= 0, 'error from print-output.exe is not reported');
                         assert(fs.existsSync(testFile), 'Log of first tool output is created when first tool fails');
-                        assert(fs.readFileSync(testFile).indexOf('line 3') >= 0, 'Error from first tool should be written to log file');
+                        const fileContents = fs.readFileSync(testFile);
+                        assert(fileContents.indexOf('line 3') >= 0, 'Error from first tool should be written to log file: ' + fileContents);
                         done();
                     }
                 })
@@ -781,7 +784,8 @@ describe('Toolrunner Tests', function () {
                     else {
                         assert(err && err.message && err.message.indexOf('/bin/ps') >= 0, 'error from ps is not reported');
                         assert(fs.existsSync(testFile), 'Log of first tool output is created when first tool fails');
-                        assert(fs.readFileSync(testFile).indexOf('illegal option') >= 0, 'error from first tool should be written to log file');
+                        const fileContents = fs.readFileSync(testFile);
+                        assert(fileContents.indexOf('illegal option') >= 0, 'error from first tool should be written to log file: ' + fileContents);
                         done();
                     }
                 })
@@ -841,7 +845,8 @@ describe('Toolrunner Tests', function () {
                         assert(errOut && errOut.length > 0 && errOut.indexOf('some error message') >= 0, 'error output from match-input.exe is expected');
                         assert(err && err.message && err.message.indexOf('match-input.exe') >= 0, 'error from find does not match expeced. actual: ' + err.message);
                         assert(fs.existsSync(testFile), 'Log of first tool output is created when second tool fails');
-                        assert(fs.readFileSync(testFile).indexOf('some error message') < 0, 'error from second tool should not be in the log for first tool');
+                        const fileContents = fs.readFileSync(testFile);
+                        assert(fileContents.indexOf('some error message') < 0, 'error from second tool should not be in the log for first tool: ' + fileContents);
                         done();
                     }
                 })
@@ -882,7 +887,8 @@ describe('Toolrunner Tests', function () {
                         // grep is /bin/grep on Linux and /usr/bin/grep on OSX
                         assert(err && err.message && err.message.match(/\/[usr\/]?bin\/grep/), 'error from grep is not reported. actual: ' + err.message);
                         assert(fs.existsSync(testFile), 'Log of first tool output is created when second tool fails');
-                        assert(fs.readFileSync(testFile).indexOf('unrecognized option') < 0, 'error from second tool should not be in the first tool log file');
+                        const fileContents = fs.readFileSync(testFile);
+                        assert(fileContents.indexOf('unrecognized option') < 0, 'error from second tool should not be in the first tool log file: ' + fileContents);
                         done();
                     }
                 })
