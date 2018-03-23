@@ -84,10 +84,10 @@ export class ToolRunner extends events.EventEmitter {
         var args = [];
 
         var inQuotes = false;
-        var escaped =false;
+        var escaped = false;
         var arg = '';
 
-        var append = function(c) {
+        var append = function (c) {
             // we only escape double quotes.
             if (escaped && c !== '"') {
                 arg += '\\';
@@ -97,7 +97,7 @@ export class ToolRunner extends events.EventEmitter {
             escaped = false;
         }
 
-        for (var i=0; i < argString.length; i++) {
+        for (var i = 0; i < argString.length; i++) {
             var c = argString.charAt(i);
 
             if (c === '"') {
@@ -109,7 +109,7 @@ export class ToolRunner extends events.EventEmitter {
                 }
                 continue;
             }
-            
+
             if (c === "\\" && inQuotes) {
                 escaped = true;
                 continue;
@@ -180,9 +180,9 @@ export class ToolRunner extends events.EventEmitter {
 
     private _getSpawnFileName(): string {
         if (process.platform == 'win32') {
-             if (this._isCmdFile()) {
-                 return process.env['COMSPEC'] || 'cmd.exe';
-             }
+            if (this._isCmdFile()) {
+                return process.env['COMSPEC'] || 'cmd.exe';
+            }
         }
 
         return this.toolPath;
@@ -192,13 +192,13 @@ export class ToolRunner extends events.EventEmitter {
         if (process.platform == 'win32') {
             if (this._isCmdFile()) {
                 let argline: string = `/D /S /C "${this._windowsQuoteCmdArg(this.toolPath)}`;
-                for (let i = 0 ; i < this.args.length ; i++) {
+                for (let i = 0; i < this.args.length; i++) {
                     argline += ' ';
                     argline += options.windowsVerbatimArguments ? this.args[i] : this._windowsQuoteCmdArg(this.args[i]);
                 }
 
                 argline += '"';
-                return [ argline ];
+                return [argline];
             }
 
             if (options.windowsVerbatimArguments) {
@@ -275,7 +275,7 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         // determine whether the arg needs to be quoted
-        const cmdSpecialChars = [ ' ', '\t', '&', '(', ')', '[', ']', '{', '}', '^', '=', ';', '!', '\'', '+', ',', '`', '~', '|', '<', '>', '"' ];
+        const cmdSpecialChars = [' ', '\t', '&', '(', ')', '[', ']', '{', '}', '^', '=', ';', '!', '\'', '+', ',', '`', '~', '|', '<', '>', '"'];
         let needsQuotes = false;
         for (let char of arg) {
             if (cmdSpecialChars.some(x => x == char)) {
@@ -338,7 +338,7 @@ export class ToolRunner extends events.EventEmitter {
         // % can be escaped within a .cmd file.
         let reverse: string = '"';
         let quote_hit = true;
-        for (let i = arg.length ; i > 0 ; i--) { // walk the string in reverse
+        for (let i = arg.length; i > 0; i--) { // walk the string in reverse
             reverse += arg[i - 1];
             if (quote_hit && arg[i - 1] == '\\') {
                 reverse += '\\'; // double the slash
@@ -419,7 +419,7 @@ export class ToolRunner extends events.EventEmitter {
         //                             but it appears the comment is wrong, it should be "hello world\\"
         let reverse: string = '"';
         let quote_hit = true;
-        for (let i = arg.length ; i > 0 ; i--) { // walk the string in reverse
+        for (let i = arg.length; i > 0; i--) { // walk the string in reverse
             reverse += arg[i - 1];
             if (quote_hit && arg[i - 1] == '\\') {
                 reverse += '\\';
@@ -485,7 +485,7 @@ export class ToolRunner extends events.EventEmitter {
             this._debug(this.toolPath + ' arg: ' + JSON.stringify(val));
             this.args = this.args.concat(val);
         }
-        else if (typeof(val) === 'string') {
+        else if (typeof (val) === 'string') {
             this._debug(this.toolPath + ' arg: ' + val);
             this.args = this.args.concat(val.trim());
         }
@@ -508,9 +508,9 @@ export class ToolRunner extends events.EventEmitter {
 
         this._debug(this.toolPath + ' arg: ' + val);
         this.args = this.args.concat(this._argStringToArray(val));
-        return this;    
+        return this;
     }
-    
+
     /**
      * Add argument(s) if a condition is met
      * Wraps arg().  See arg for details
@@ -533,7 +533,7 @@ export class ToolRunner extends events.EventEmitter {
      * @param file  optional filename to additionally stream the output to.
      * @returns {ToolRunner}
      */
-    public pipeExecOutputToTool(tool: ToolRunner, file?: string) : ToolRunner {
+    public pipeExecOutputToTool(tool: ToolRunner, file?: string): ToolRunner {
         this.pipeOutputToTool = tool;
         this.pipeOutputToFile = file;
         return this;
@@ -570,8 +570,9 @@ export class ToolRunner extends events.EventEmitter {
         let toolPathFirst: string;
         let successFirst = true;
         let returnCodeFirst: number;
-        
-        if(this.pipeOutputToTool) {
+        let fileStream: fs.WriteStream;
+
+        if (this.pipeOutputToTool) {
             toolPath = this.pipeOutputToTool.toolPath;
             toolPathFirst = this.toolPath;
 
@@ -588,8 +589,13 @@ export class ToolRunner extends events.EventEmitter {
                 this.pipeOutputToTool._getSpawnArgs(options),
                 this.pipeOutputToTool._getSpawnOptions(options));
 
-                let fileStream: fs.WriteStream = this.pipeOutputToFile ? fs.createWriteStream(this.pipeOutputToFile) : null;
-            
+            fileStream = this.pipeOutputToFile ? fs.createWriteStream(this.pipeOutputToFile) : null;
+            if (fileStream) {
+                fileStream.on('finish', () => {
+                    fileStream = null;
+                })
+            }
+
             //pipe stdout of first tool to stdin of second tool
             cpFirst.stdout.on('data', (data: Buffer) => {
                 try {
@@ -635,12 +641,12 @@ export class ToolRunner extends events.EventEmitter {
             cp = child.spawn(this._getSpawnFileName(), this._getSpawnArgs(options), this._getSpawnOptions(options));
         }
 
-        var processLineBuffer = (data: Buffer, strBuffer: string, onLine:(line: string) => void): void => {
+        var processLineBuffer = (data: Buffer, strBuffer: string, onLine: (line: string) => void): void => {
             try {
                 var s = strBuffer + data.toString();
                 var n = s.indexOf(os.EOL);
 
-                while(n > -1) {
+                while (n > -1) {
                     var line = s.substring(0, n);
                     onLine(line);
 
@@ -649,7 +655,7 @@ export class ToolRunner extends events.EventEmitter {
                     n = s.indexOf(os.EOL);
                 }
 
-                strBuffer = s;                
+                strBuffer = s;
             }
             catch (err) {
                 // streaming lines to console is best effort.  Don't fail a build.
@@ -667,7 +673,7 @@ export class ToolRunner extends events.EventEmitter {
             }
 
             processLineBuffer(data, stdbuffer, (line: string) => {
-                this.emit('stdline', line);    
+                this.emit('stdline', line);
             });
         });
 
@@ -682,12 +688,18 @@ export class ToolRunner extends events.EventEmitter {
             }
 
             processLineBuffer(data, errbuffer, (line: string) => {
-                this.emit('errline', line);    
-            });            
+                this.emit('errline', line);
+            });
         });
 
         cp.on('error', (err) => {
-            defer.reject(new Error(toolPath + ' failed. ' + err.message));
+            if (!fileStream) {
+                defer.reject(new Error(toolPath + ' failed. ' + err.message));
+            } else {
+                fileStream.on('finish', () => {
+                    defer.reject(new Error(toolPath + ' failed. ' + err.message));
+                });
+            }
         });
 
         cp.on('close', (code, signal) => {
@@ -696,7 +708,7 @@ export class ToolRunner extends events.EventEmitter {
             if (stdbuffer.length > 0) {
                 this.emit('stdline', stdbuffer);
             }
-            
+
             if (errbuffer.length > 0) {
                 this.emit('errline', errbuffer);
             }
@@ -706,13 +718,27 @@ export class ToolRunner extends events.EventEmitter {
             }
 
             this._debug('success:' + success);
-            if(!successFirst) { //in the case output is piped to another tool, check exit code of both tools
-                defer.reject(new Error(toolPathFirst + ' failed with return code: ' + returnCodeFirst));
-            } else if (!success) {
-                defer.reject(new Error(toolPath + ' failed with return code: ' + code));
-            }
-            else {
-                defer.resolve(code);
+                
+            if (!fileStream) {
+                if (!successFirst) { //in the case output is piped to another tool, check exit code of both tools
+                    defer.reject(new Error(toolPathFirst + ' failed with return code: ' + returnCodeFirst));
+                } else if (!success) {
+                    defer.reject(new Error(toolPath + ' failed with return code: ' + code));
+                }
+                else {
+                    defer.resolve(code);
+                }
+            } else {
+                fileStream.on('finish', () => {
+                    if (!successFirst) { //in the case output is piped to another tool, check exit code of both tools
+                        defer.reject(new Error(toolPathFirst + ' failed with return code: ' + returnCodeFirst));
+                    } else if (!success) {
+                        defer.reject(new Error(toolPath + ' failed with return code: ' + code));
+                    }
+                    else {
+                        defer.resolve(code);
+                    }
+                });
             }
         });
 
