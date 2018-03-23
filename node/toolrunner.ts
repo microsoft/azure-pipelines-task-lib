@@ -589,15 +589,12 @@ export class ToolRunner extends events.EventEmitter {
                 this.pipeOutputToTool._getSpawnOptions(options));
 
             let fileStream: fs.WriteStream = this.pipeOutputToFile ? fs.createWriteStream(this.pipeOutputToFile) : null;
-            if (fileStream) {
-                fileStream.write(this._getCommandString(options) + os.EOL);
-            }
-
+            
             //pipe stdout of first tool to stdin of second tool
             cpFirst.stdout.on('data', (data: Buffer) => {
                 try {
                     if (fileStream) {
-                        fileStream.write(data.toString());
+                        fileStream.write(data);
                     }
                     cp.stdin.write(data);
                 } catch (err) {
@@ -607,7 +604,7 @@ export class ToolRunner extends events.EventEmitter {
             });
             cpFirst.stderr.on('data', (data: Buffer) => {
                 if (fileStream) {
-                    fileStream.write(data.toString());
+                    fileStream.write(data);
                 }
                 successFirst = !options.failOnStdErr;
                 if (!options.silent) {
