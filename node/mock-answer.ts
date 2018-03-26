@@ -21,7 +21,7 @@ export interface TaskLibAnswers {
     which?: { [key: string]: string },
 }
 
-// TODO TypeScript 2.1: use `keyof`
+// TODO TypeScript 2.1: replace with `keyof TaskLibAnswers`
 export type MockedCommand = 'checkPath'
     | 'cwd'
     | 'exec'
