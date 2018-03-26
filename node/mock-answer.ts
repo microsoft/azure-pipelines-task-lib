@@ -22,7 +22,7 @@ export interface TaskLibAnswers {
 }
 
 // TODO TypeScript 2.1: use `keyof`
-export type MockedCommand = "checkPath"
+export type MockedCommand = 'checkPath'
     | 'cwd'
     | 'exec'
     | 'exist'
@@ -51,7 +51,7 @@ export class MockAnswers {
         }
 
         if (!this._answers[cmd]) {
-            debug(`no mock responses registered for given cmd`);
+            debug(`no mock responses registered for ${JSON.stringify(cmd)}`);
             return null;
         }
 
