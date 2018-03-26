@@ -571,6 +571,9 @@ export class ToolRunner extends events.EventEmitter {
         let successFirst = true;
         let returnCodeFirst: number;
         let fileStream: fs.WriteStream;
+        let waiting = 1;
+        let _code = 0;
+        let _error;
 
         if (this.pipeOutputToTool) {
             toolPath = this.pipeOutputToTool.toolPath;
@@ -591,8 +594,17 @@ export class ToolRunner extends events.EventEmitter {
 
             fileStream = this.pipeOutputToFile ? fs.createWriteStream(this.pipeOutputToFile) : null;
             if (fileStream) {
+                waiting++;
                 fileStream.on('finish', () => {
                     fileStream = null;
+                    if (--waiting == 0) {
+                        if (_error) {
+                            defer.reject(_error);
+                        }
+                        else {
+                            defer.resolve(_code);
+                        }
+                    }
                 })
             }
 
@@ -718,27 +730,24 @@ export class ToolRunner extends events.EventEmitter {
             }
 
             this._debug('success:' + success);
-                
-            if (!fileStream) {
-                if (!successFirst) { //in the case output is piped to another tool, check exit code of both tools
-                    defer.reject(new Error(toolPathFirst + ' failed with return code: ' + returnCodeFirst));
-                } else if (!success) {
-                    defer.reject(new Error(toolPath + ' failed with return code: ' + code));
+
+            if (--waiting == 0) {
+                if (_error) {
+                    defer.reject(_error);
                 }
                 else {
-                    defer.resolve(code);
+                    defer.resolve(_code);
                 }
-            } else {
-                fileStream.on('finish', () => {
-                    if (!successFirst) { //in the case output is piped to another tool, check exit code of both tools
-                        defer.reject(new Error(toolPathFirst + ' failed with return code: ' + returnCodeFirst));
-                    } else if (!success) {
-                        defer.reject(new Error(toolPath + ' failed with return code: ' + code));
-                    }
-                    else {
-                        defer.resolve(code);
-                    }
-                });
+            }
+            else {
+                if (!successFirst) { //in the case output is piped to another tool, check exit code of both tools
+                    _error = new Error(toolPathFirst + ' failed with return code: ' + returnCodeFirst);
+                } else if (!success) {
+                    _error = new Error(toolPath + ' failed with return code: ' + code);
+                }
+                else {
+                    _code = code;
+                }
             }
         });
 
