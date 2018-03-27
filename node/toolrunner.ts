@@ -178,6 +178,29 @@ export class ToolRunner extends events.EventEmitter {
         return cmd;
     }
 
+    private _processLineBuffer(data: Buffer, strBuffer: string, onLine: (line: string) => void): void {
+        try {
+            var s = strBuffer + data.toString();
+            var n = s.indexOf(os.EOL);
+
+            while (n > -1) {
+                var line = s.substring(0, n);
+                onLine(line);
+
+                // the rest of the string ...
+                s = s.substring(n + os.EOL.length);
+                n = s.indexOf(os.EOL);
+            }
+
+            strBuffer = s;
+        }
+        catch (err) {
+            // streaming lines to console is best effort.  Don't fail a build.
+            this._debug('error processing line');
+        }
+
+    }
+
     private _getSpawnFileName(): string {
         if (process.platform == 'win32') {
             if (this._isCmdFile()) {
@@ -571,6 +594,9 @@ export class ToolRunner extends events.EventEmitter {
         let successFirst = true;
         let returnCodeFirst: number;
         let fileStream: fs.WriteStream;
+        let waitingEvents: number = 0; // number of process or stream events we are waiting on to complete
+        let returnCode: number = 0;
+        let error;
 
         if (this.pipeOutputToTool) {
             toolPath = this.pipeOutputToTool.toolPath;
@@ -580,10 +606,13 @@ export class ToolRunner extends events.EventEmitter {
             // https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options
 
             //start the child process for both tools
+            waitingEvents++;
             var cpFirst = child.spawn(
                 this._getSpawnFileName(),
                 this._getSpawnArgs(options),
                 this._getSpawnOptions(options));
+            
+            waitingEvents ++;
             cp = child.spawn(
                 this.pipeOutputToTool._getSpawnFileName(),
                 this.pipeOutputToTool._getSpawnArgs(options),
@@ -591,8 +620,29 @@ export class ToolRunner extends events.EventEmitter {
 
             fileStream = this.pipeOutputToFile ? fs.createWriteStream(this.pipeOutputToFile) : null;
             if (fileStream) {
+                waitingEvents ++;
                 fileStream.on('finish', () => {
+                    waitingEvents--; //file write is complete
                     fileStream = null;
+                    if(waitingEvents == 0) {
+                        if (error) {
+                            defer.reject(error);
+                        } else {
+                            defer.resolve(returnCode);
+                        }
+                    }
+                });
+                fileStream.on('error', (err) => {
+                    waitingEvents--; //there were errors writing to the file, write is done
+                    this._debug(`Failed to pipe output of ${toolPathFirst} to file ${this.pipeOutputToFile}. Error = ${err}`);
+                    fileStream = null;
+                    if(waitingEvents == 0) {
+                        if (error) {
+                            defer.reject(error);
+                        } else {
+                            defer.resolve(returnCode);
+                        }
+                    }
                 })
             }
 
@@ -619,49 +669,40 @@ export class ToolRunner extends events.EventEmitter {
                 }
             });
             cpFirst.on('error', (err) => {
+                waitingEvents--; //first process is complete with errors
                 if (fileStream) {
                     fileStream.end();
                 }
                 cp.stdin.end();
-                defer.reject(new Error(toolPathFirst + ' failed. ' + err.message));
+                error = new Error(toolPathFirst + ' failed. ' + err.message);
+                if(waitingEvents == 0) {
+                    defer.reject(error);
+                }
             });
             cpFirst.on('close', (code, signal) => {
+                waitingEvents--; //first process is complete
                 if (fileStream) {
                     fileStream.end();
                 }
                 if (code != 0 && !options.ignoreReturnCode) {
                     successFirst = false;
                     returnCodeFirst = code;
+                    returnCode = returnCodeFirst;
                 }
                 this._debug('success of first tool:' + successFirst);
                 cp.stdin.end();
+                if(waitingEvents == 0) {
+                    if (error) {
+                        defer.reject(error);
+                    } else {
+                        defer.resolve(returnCode);
+                    }
+                }
             });
 
         } else {
+            waitingEvents++;
             cp = child.spawn(this._getSpawnFileName(), this._getSpawnArgs(options), this._getSpawnOptions(options));
-        }
-
-        var processLineBuffer = (data: Buffer, strBuffer: string, onLine: (line: string) => void): void => {
-            try {
-                var s = strBuffer + data.toString();
-                var n = s.indexOf(os.EOL);
-
-                while (n > -1) {
-                    var line = s.substring(0, n);
-                    onLine(line);
-
-                    // the rest of the string ...
-                    s = s.substring(n + os.EOL.length);
-                    n = s.indexOf(os.EOL);
-                }
-
-                strBuffer = s;
-            }
-            catch (err) {
-                // streaming lines to console is best effort.  Don't fail a build.
-                this._debug('error processing line');
-            }
-
         }
 
         var stdbuffer: string = '';
@@ -672,7 +713,7 @@ export class ToolRunner extends events.EventEmitter {
                 options.outStream.write(data);
             }
 
-            processLineBuffer(data, stdbuffer, (line: string) => {
+            this._processLineBuffer(data, stdbuffer, (line: string) => {
                 this.emit('stdline', line);
             });
         });
@@ -687,23 +728,23 @@ export class ToolRunner extends events.EventEmitter {
                 s.write(data);
             }
 
-            processLineBuffer(data, errbuffer, (line: string) => {
+            this._processLineBuffer(data, errbuffer, (line: string) => {
                 this.emit('errline', line);
             });
         });
 
         cp.on('error', (err) => {
-            if (!fileStream) {
-                defer.reject(new Error(toolPath + ' failed. ' + err.message));
-            } else {
-                fileStream.on('finish', () => {
-                    defer.reject(new Error(toolPath + ' failed. ' + err.message));
-                });
+            waitingEvents--; //process is done with errors
+            error = new Error(toolPath + ' failed. ' + err.message);
+            if(waitingEvents == 0) {
+                defer.reject(error);
             }
         });
 
         cp.on('close', (code, signal) => {
+            waitingEvents--; //process is complete
             this._debug('rc:' + code);
+            returnCode = code;
 
             if (stdbuffer.length > 0) {
                 this.emit('stdline', stdbuffer);
@@ -719,26 +760,18 @@ export class ToolRunner extends events.EventEmitter {
 
             this._debug('success:' + success);
                 
-            if (!fileStream) {
-                if (!successFirst) { //in the case output is piped to another tool, check exit code of both tools
-                    defer.reject(new Error(toolPathFirst + ' failed with return code: ' + returnCodeFirst));
-                } else if (!success) {
-                    defer.reject(new Error(toolPath + ' failed with return code: ' + code));
+            if (!successFirst) { //in the case output is piped to another tool, check exit code of both tools
+                error = new Error(toolPathFirst + ' failed with return code: ' + returnCodeFirst);
+            } else if (!success) {
+                error = new Error(toolPath + ' failed with return code: ' + code);
+            }
+
+            if(waitingEvents == 0) {
+                if (error) {
+                    defer.reject(error);
+                } else {
+                    defer.resolve(returnCode);
                 }
-                else {
-                    defer.resolve(code);
-                }
-            } else {
-                fileStream.on('finish', () => {
-                    if (!successFirst) { //in the case output is piped to another tool, check exit code of both tools
-                        defer.reject(new Error(toolPathFirst + ' failed with return code: ' + returnCodeFirst));
-                    } else if (!success) {
-                        defer.reject(new Error(toolPath + ' failed with return code: ' + code));
-                    }
-                    else {
-                        defer.resolve(code);
-                    }
-                });
             }
         });
 
