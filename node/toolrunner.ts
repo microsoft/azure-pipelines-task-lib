@@ -681,15 +681,15 @@ export class ToolRunner extends events.EventEmitter {
             });
             cpFirst.on('close', (code, signal) => {
                 waitingEvents--; //first process is complete
-                if (fileStream) {
-                    fileStream.end();
-                }
                 if (code != 0 && !options.ignoreReturnCode) {
                     successFirst = false;
                     returnCodeFirst = code;
                     returnCode = returnCodeFirst;
                 }
                 this._debug('success of first tool:' + successFirst);
+                if (fileStream) {
+                    fileStream.end();
+                }
                 cp.stdin.end();
                 if(waitingEvents == 0) {
                     if (error) {
