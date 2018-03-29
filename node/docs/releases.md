@@ -1,5 +1,13 @@
 # VSTS-TASK-LIB RELEASES
 
+## vNext
+ * Add optional parameter to getHttpProxyConfig to allow bypass filter.
+ * Add third party notices to library.
+ * Add package-lock.json to library.
+ * String translation.
+ * Add option to pipe to file and another tool.
+ * In mock-answer, add type for MockedResponse in getCommand.
+
 ## 2.3.0
  * Updated `setVariable` to fail when a secret contains multiple lines.
  * Added `setSecret` to register a secret with the log scrubber, without registering a variable. Multi-line secrets are not supported.
