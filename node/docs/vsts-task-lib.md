@@ -260,7 +260,7 @@ Param | Type | Description
 --- | --- | ---
 name | string | name of the variable to set
 val | string | value to set
-secret | boolean | whether variable is secret.  optional, defaults to false
+secret | boolean | whether variable is secret.  Multi\-line secrets are not allowed.  Optional, defaults to false
  
 <br/>
 <div id="taskgetTaskVariable">
@@ -441,12 +441,13 @@ options | IExecSyncOptions | optional exec options.  See IExecSyncOptions
 Pipe output of exec() to another tool
 @returns {ToolRunner}
 ```javascript
-pipeExecOutputToTool(tool:ToolRunner):ToolRunner
+pipeExecOutputToTool(tool:ToolRunner, file?:string):ToolRunner
 ```
  
 Param | Type | Description
 --- | --- | ---
 tool | ToolRunner | 
+file | string | optional filename to additionally stream the output to.
  
 <br/>
 <div id="toolrunnerIExecSyncResult">
