@@ -394,7 +394,7 @@ describe('Toolrunner Tests', function () {
                 done(err);
             });
     })
-    it('Exec pipe output to another tool, succeeds if both tools succeed', function(done) {
+    it('Exec pipe output to another tool, succeeds if both tools succeed', function (done) {
         this.timeout(20000);
 
         var _testExecOptions = <trm.IExecOptions>{
@@ -457,7 +457,7 @@ describe('Toolrunner Tests', function () {
                 });
         }
     })
-    it('Exec pipe output to another tool, fails if first tool fails', function(done) {
+    it('Exec pipe output to another tool, fails if first tool fails', function (done) {
         this.timeout(20000);
 
         var _testExecOptions = <trm.IExecOptions>{
@@ -497,7 +497,7 @@ describe('Toolrunner Tests', function () {
                         done(err);
                     }
                     else {
-                        assert(err && err.message && err.message.indexOf('print-output.exe') >=0, 'error from print-output.exe is not reported');
+                        assert(err && err.message && err.message.indexOf('print-output.exe') >= 0, 'error from print-output.exe is not reported');
                         done();
                     }
                 })
@@ -530,7 +530,7 @@ describe('Toolrunner Tests', function () {
                     }
                     else {
                         //assert(output && output.length > 0 && output.indexOf('ps: illegal option') >= 0, `error output "ps: illegal option" is expected. actual "${output}"`);
-                        assert(err && err.message && err.message.indexOf('/bin/ps') >=0, 'error from ps is not reported');
+                        assert(err && err.message && err.message.indexOf('/bin/ps') >= 0, 'error from ps is not reported');
                         done();
                     }
                 })
@@ -539,7 +539,7 @@ describe('Toolrunner Tests', function () {
                 })
         }
     })
-    it('Exec pipe output to another tool, fails if second tool fails', function(done) {
+    it('Exec pipe output to another tool, fails if second tool fails', function (done) {
         this.timeout(20000);
 
         var _testExecOptions = <trm.IExecOptions>{
@@ -586,7 +586,7 @@ describe('Toolrunner Tests', function () {
                     }
                     else {
                         assert(errOut && errOut.length > 0 && errOut.indexOf('some error message') >= 0, 'error output from match-input.exe is expected');
-                        assert(err && err.message && err.message.indexOf('match-input.exe') >=0, 'error from find does not match expeced. actual: ' + err.message);
+                        assert(err && err.message && err.message.indexOf('match-input.exe') >= 0, 'error from find does not match expeced. actual: ' + err.message);
                         done();
                     }
                 })
@@ -634,6 +634,270 @@ describe('Toolrunner Tests', function () {
                 });
         }
     })
+    it('Exec pipe output to file and another tool, succeeds if both tools succeed', function (done) {
+        this.timeout(20000);
+
+        var _testExecOptions = <trm.IExecOptions>{
+            cwd: __dirname,
+            env: {},
+            silent: false,
+            failOnStdErr: false,
+            ignoreReturnCode: false,
+            outStream: testutil.getNullStream(),
+            errStream: testutil.getNullStream()
+        };
+
+        const testFile = path.join(testutil.getTestTemp(), 'BothToolsSucceed.log');
+
+        if (os.platform() === 'win32') {
+            var matchExe = tl.tool(compileMatchExe())
+                .arg('0') // exit code
+                .arg('line 2'); // match value
+            var outputExe = tl.tool(compileOutputExe())
+                .arg('0') // exit code
+                .arg('line 1')
+                .arg('line 2')
+                .arg('line 3');
+            outputExe.pipeExecOutputToTool(matchExe, testFile);
+
+            var output = '';
+            outputExe.on('stdout', (data) => {
+                output += data.toString();
+            });
+
+            outputExe.exec(_testExecOptions)
+                .then(function (code) {
+                    assert.equal(code, 0, 'return code of exec should be 0');
+                    assert(output && output.length > 0 && output.indexOf('line 2') >= 0, 'should have emitted stdout ' + output);
+                    assert(fs.existsSync(testFile), 'Log of first tool output is created when both tools succeed');
+                    const fileContents = fs.readFileSync(testFile);
+                    assert(fileContents.indexOf('line 2') >= 0, 'Log file of first tool should have stdout from first tool: ' + fileContents);
+                    done();
+                })
+                .fail(function (err) {
+                    done(err);
+                });
+        }
+        else {
+            var grep = tl.tool(tl.which('grep', true));
+            grep.arg('node');
+
+            var ps = tl.tool(tl.which('ps', true));
+            ps.arg('ax');
+            ps.pipeExecOutputToTool(grep, testFile);
+
+            var output = '';
+            ps.on('stdout', (data) => {
+                output += data.toString();
+            });
+
+            ps.exec(_testExecOptions)
+                .then(function (code) {
+                    assert.equal(code, 0, 'return code of exec should be 0');
+                    assert(output && output.length > 0 && output.indexOf('node') >= 0, 'should have emitted stdout ' + output);
+                    assert(fs.existsSync(testFile), 'Log of first tool output is created when both tools succeed');
+                    const fileContents = fs.readFileSync(testFile);
+                    assert(fileContents.indexOf('PID') >= 0, 'Log of first tool should have stdout from first tool: ' + fileContents);
+                    done();
+                })
+                .fail(function (err) {
+                    done(err);
+                });
+        }
+    })
+    it('Exec pipe output to another tool, fails if first tool fails', function (done) {
+        this.timeout(20000);
+
+        var _testExecOptions = <trm.IExecOptions>{
+            cwd: __dirname,
+            env: {},
+            silent: false,
+            failOnStdErr: false,
+            ignoreReturnCode: false,
+            outStream: testutil.getNullStream(),
+            errStream: testutil.getNullStream()
+        };
+
+        const testFile = path.join(testutil.getTestTemp(), 'FirstToolFails.log');
+
+        if (os.platform() === 'win32') {
+            var matchExe = tl.tool(compileMatchExe())
+                .arg('0') // exit code
+                .arg('line 2'); // match value
+            var outputExe = tl.tool(compileOutputExe())
+                .arg('1') // exit code
+                .arg('line 1')
+                .arg('line 2')
+                .arg('line 3');
+            outputExe.pipeExecOutputToTool(matchExe, testFile);
+
+            var output = '';
+            outputExe.on('stdout', (data) => {
+                output += data.toString();
+            });
+
+            var succeeded = false;
+            outputExe.exec(_testExecOptions)
+                .then(function () {
+                    succeeded = true;
+                    assert.fail('print-output.exe | findstr "line 2" was a bad command and it did not fail');
+                })
+                .fail(function (err) {
+                    if (succeeded) {
+                        done(err);
+                    }
+                    else {
+                        assert(err && err.message && err.message.indexOf('print-output.exe') >= 0, 'error from print-output.exe is not reported');
+                        assert(fs.existsSync(testFile), 'Log of first tool output is created when first tool fails');
+                        const fileContents = fs.readFileSync(testFile);
+                        assert(fileContents.indexOf('line 3') >= 0, 'Error from first tool should be written to log file: ' + fileContents);
+                        done();
+                    }
+                })
+                .fail(function (err) {
+                    done(err);
+                });
+        }
+        else {
+            var grep = tl.tool(tl.which('grep', true));
+            grep.arg('ssh');
+
+            var ps = tl.tool(tl.which('ps', true));
+            ps.arg('bad');
+            ps.pipeExecOutputToTool(grep, testFile);
+
+            var output = '';
+            ps.on('stdout', (data) => {
+                output += data.toString();
+            });
+
+            var succeeded = false;
+            ps.exec(_testExecOptions)
+                .then(function () {
+                    succeeded = true;
+                    assert.fail('ps bad | grep ssh was a bad command and it did not fail');
+                })
+                .fail(function (err) {
+                    if (succeeded) {
+                        done(err);
+                    }
+                    else {
+                        assert(err && err.message && err.message.indexOf('/bin/ps') >= 0, 'error from ps is not reported');
+                        assert(fs.existsSync(testFile), 'Log of first tool output is created when first tool fails');
+                        const fileContents = fs.readFileSync(testFile);
+                        assert(fileContents.indexOf('illegal option') >= 0 || fileContents.indexOf('unsupported option') >= 0, 
+                            'error from first tool should be written to log file: ' + fileContents);
+                        done();
+                    }
+                })
+                .fail(function (err) {
+                    done(err);
+                })
+        }
+    })
+    it('Exec pipe output to another tool, fails if second tool fails', function (done) {
+        this.timeout(20000);
+
+        var _testExecOptions = <trm.IExecOptions>{
+            cwd: __dirname,
+            env: {},
+            silent: false,
+            failOnStdErr: false,
+            ignoreReturnCode: false,
+            outStream: testutil.getNullStream(),
+            errStream: testutil.getNullStream()
+        };
+
+        const testFile = path.join(testutil.getTestTemp(), 'SecondToolFails.log');
+
+        if (os.platform() === 'win32') {
+            var matchExe = tl.tool(compileMatchExe())
+                .arg('1') // exit code
+                .arg('line 2') // match value
+                .arg('some error message'); // error
+            var outputExe = tl.tool(compileOutputExe())
+                .arg('0') // exit code
+                .arg('line 1')
+                .arg('line 2')
+                .arg('line 3');
+            outputExe.pipeExecOutputToTool(matchExe, testFile);
+
+            var output = '';
+            outputExe.on('stdout', (data) => {
+                output += data.toString();
+            });
+
+            var errOut = '';
+            outputExe.on('stderr', (data) => {
+                errOut += data.toString();
+            });
+
+            var succeeded = false;
+            outputExe.exec(_testExecOptions)
+                .then(function (code) {
+                    succeeded = true;
+                    assert.fail('print-output.exe 0 "line 1" "line 2" "line 3" | match-input.exe 1 "line 2" "some error message" was a bad command and it did not fail');
+                })
+                .fail(function (err) {
+                    if (succeeded) {
+                        done(err);
+                    }
+                    else {
+                        assert(errOut && errOut.length > 0 && errOut.indexOf('some error message') >= 0, 'error output from match-input.exe is expected');
+                        assert(err && err.message && err.message.indexOf('match-input.exe') >= 0, 'error from find does not match expeced. actual: ' + err.message);
+                        assert(fs.existsSync(testFile), 'Log of first tool output is created when second tool fails');
+                        const fileContents = fs.readFileSync(testFile);
+                        assert(fileContents.indexOf('some error message') < 0, 'error from second tool should not be in the log for first tool: ' + fileContents);
+                        done();
+                    }
+                })
+                .fail(function (err) {
+                    done(err);
+                });
+        }
+        else {
+            var grep = tl.tool(tl.which('grep', true));
+            grep.arg('--?');
+
+            var ps = tl.tool(tl.which('ps', true));
+            ps.arg('ax');
+            ps.pipeExecOutputToTool(grep, testFile);
+
+            var output = '';
+            ps.on('stdout', (data) => {
+                output += data.toString();
+            });
+
+            var errOut = '';
+            ps.on('stderr', (data) => {
+                errOut += data.toString();
+            })
+
+            var succeeded = false;
+            ps.exec(_testExecOptions)
+                .then(function (code) {
+                    succeeded = true;
+                    assert.fail('ps ax | grep --? was a bad command and it did not fail');
+                })
+                .fail(function (err) {
+                    if (succeeded) {
+                        done(err);
+                    }
+                    else {
+                        assert(errOut && errOut.length > 0 && errOut.indexOf('grep: unrecognized option') >= 0, 'error output from ps command is expected');
+                        // grep is /bin/grep on Linux and /usr/bin/grep on OSX
+                        assert(err && err.message && err.message.match(/\/[usr\/]?bin\/grep/), 'error from grep is not reported. actual: ' + err.message);
+                        assert(fs.existsSync(testFile), 'Log of first tool output is created when second tool fails');
+                        const fileContents = fs.readFileSync(testFile);
+                        assert(fileContents.indexOf('unrecognized option') < 0, 'error from second tool should not be in the first tool log file: ' + fileContents);
+                        done();
+                    }
+                })
+                .fail(function (err) {
+                    done(err);
+                });
+        }
+    })
     it('handles single args', function (done) {
         this.timeout(10000);
 
@@ -653,7 +917,7 @@ describe('Toolrunner Tests', function () {
         assert.equal((node as any).args.length, 5, 'should have 5 args');
         assert.equal((node as any).args.toString(), 'one,two,three,four,five', 'should be one,two,three,four,five');
         done();
-    })        
+    })
     it('handles padded spaces', function (done) {
         this.timeout(10000);
 
