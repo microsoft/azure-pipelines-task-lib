@@ -1,5 +1,8 @@
 # VSTS-TASK-LIB RELEASES
 
+## vNext
+ * 
+
 ## 2.4.0 (2018-04-02)
  * Add optional parameter to getHttpProxyConfig to allow bypass filter.
  * Add third party notices to library.
