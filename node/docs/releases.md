@@ -1,29 +1,29 @@
 # VSTS-TASK-LIB RELEASES
 
-## vNext
+## 2.4.0 (2018-04-02)
  * Add optional parameter to getHttpProxyConfig to allow bypass filter.
  * Add third party notices to library.
  * Add package-lock.json to library.
  * String translation.
- * Add option to pipe to file and another tool.
+ * Add option in ToolRunner exec method to pipe to file and another tool.
  * In mock-answer, add type for MockedResponse in getCommand.
 
-## 2.3.0
+## 2.3.0 (2018-02-22)
  * Updated `setVariable` to fail when a secret contains multiple lines.
  * Added `setSecret` to register a secret with the log scrubber, without registering a variable. Multi-line secrets are not supported.
 
-## 2.0.4-preview
+## 2.0.4-preview (2017-04-04)
  * Updated `ToolRunner` to validate the specified tool can be found and is executable.
  * Updated `which` to validate the file is executable and also on Windows to apply PATHEXT.
 
-## 2.0.2-preview
+## 2.0.2-preview (2017-03-22)
  * Updated `ToolRunner` to cleanup `execSync` interface, for `execSync` to follow `options.silent`, and removed all fields from the public interface.
  * Updated `TaskResult` to include `SucceededWithIssues`.
  * Updated `rmRF` to remove `continueOnError`.
  * Removed `startsWith`, `endsWith`, and `isEqual` prototype functions for `String`.
  * Added `getSecureFiles`, `getSecureFileName` and `getSecureFileTicket` to help tasks working with secure files.
 
-## 2.0.1-preview
+## 2.0.1-preview (2016-11-30)
  * Updated `match` to expose optional pattern-root parameter.
  * Updated `find` to normalize the specified path so the results are consistent.
  * Updated `mock-task.filter` and `mock-task.match` to passthru to `task.filter` and `task.match`.
@@ -31,7 +31,7 @@
  * Removed `setEnvVar`.
  * Removed `_writeLine`. Use console.log().
 
-## 2.0.0-preview
+## 2.0.0-preview (2016-11-15)
  * Added `findMatch` that interprets the find root from a glob pattern. Supports interleaved exclude.
  * Updated `find`, `match`, and `filter` to change the default value for the options parameter, when undefined or null.
  * Updated `match` to change the behavior for exclude patterns. Interleaved exclude patterns are now supported, and exclude patterns filter results out now.
