@@ -740,8 +740,6 @@ export interface FindOptions {
  * @returns   string[]
  */
 export function find(findPath: string, options?: FindOptions): string[] {
-    options = options || _getDefaultFindOptions();
-    _debugFindOptions(options)
     return _internalFind(findPath, options, false).matchesFound;
 }
 
@@ -1275,10 +1273,6 @@ function _getDefaultMatchOptions(): MatchOptions {
  * @param  matchOptions  defaults to { dot: true, nobrace: true, nocase: process.platform == 'win32' }
  */
 export function findMatch(defaultRoot: string, patterns: string[] | string, findOptions?: FindOptions, matchOptions?: MatchOptions): string[] {
-    findOptions = findOptions || _getDefaultFindOptions();
-    _debugFindOptions(findOptions);
-    matchOptions = matchOptions || _getDefaultMatchOptions();
-    _debugMatchOptions(matchOptions);
     return _internalFindMatch(defaultRoot, patterns, findOptions, matchOptions, false).matchesFound;
 }
 
@@ -1288,6 +1282,10 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
     defaultRoot = defaultRoot || this.getVariable('system.defaultWorkingDirectory') || process.cwd();
     debug(`defaultRoot: '${defaultRoot}'`);
     patterns = patterns || [];
+    findOptions = findOptions || _getDefaultFindOptions();
+    _debugFindOptions(findOptions);
+    matchOptions = matchOptions || _getDefaultMatchOptions();
+    _debugMatchOptions(matchOptions);
     patterns = typeof patterns == 'string' ? [patterns] as string[] : patterns;
 
     // normalize slashes for root dir
@@ -1465,15 +1463,15 @@ const _internalFind = (findPath: string, options?: FindOptions, ignoreErrors?:bo
         return output;
     }
 
-    let errorList: string [];
+    let errorList: string [] = [];
     // normalize the path, otherwise the first result is inconsistently formatted from the rest of the results
     // because path.join() performs normalization.
     findPath = path.normalize(findPath);
 
     // debug trace the parameters
     debug(`findPath: '${findPath}'`);
-    // options = options || _getDefaultFindOptions();
-    // _debugFindOptions(options)
+    options = options || _getDefaultFindOptions();
+    _debugFindOptions(options)
 
     // return empty if not exists
     try {
@@ -1614,11 +1612,6 @@ const _internalFind = (findPath: string, options?: FindOptions, ignoreErrors?:bo
  * @returns   string[]
  */
 export function tryFindMatch(defaultRoot: string, patterns: string[] | string, findOptions?: FindOptions, matchOptions?: MatchOptions) : {matchesFound: string[], errors: string[]} {
-    findOptions = findOptions || _getDefaultFindOptions();
-    _debugFindOptions(findOptions);
-    matchOptions = matchOptions || _getDefaultMatchOptions();
-    _debugMatchOptions(matchOptions);
-
     return _internalFindMatch(defaultRoot, patterns, findOptions, matchOptions, true);
 }
 
