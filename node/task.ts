@@ -522,6 +522,7 @@ export function writeFile(file: string, data: string | Buffer, options?: string 
 }
 
 /**
+ * @deprecated Use `getPlatform`
  * Useful for determining the host operating system.
  * see [os.type](https://nodejs.org/api/os.html#os_os_type)
  * 
@@ -529,6 +530,25 @@ export function writeFile(file: string, data: string | Buffer, options?: string 
  */
 export function osType(): string {
     return os.type();
+}
+
+export enum Platform {
+    Windows,
+    MacOS,
+    Linux
+}
+
+/**
+ * Determine the operating system the build agent is running on.
+ * @returns Platform, or throws an `Error` if the platform is not recognized
+ */
+export function getPlatform(): Platform {
+    switch (process.platform) {
+        case 'win32': return Platform.Windows;
+        case 'darwin': return Platform.MacOS;
+        case 'linux': return Platform.Linux;
+        default: throw Error(loc('LIB_PlatformNotRecognized', process.platform));
+    }
 }
 
 /**
