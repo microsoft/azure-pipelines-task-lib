@@ -532,6 +532,7 @@ export function osType(): string {
     return os.type();
 }
 
+/** Platforms supported by our build agent */
 export enum Platform {
     Windows,
     MacOS,
@@ -540,14 +541,14 @@ export enum Platform {
 
 /**
  * Determine the operating system the build agent is running on.
- * @returns Platform, or throws an `Error` if the platform is not recognized
+ * @returns Platform, or throws an `Error` if the platform is not supported by our agent
  */
 export function getPlatform(): Platform {
     switch (process.platform) {
         case 'win32': return Platform.Windows;
         case 'darwin': return Platform.MacOS;
         case 'linux': return Platform.Linux;
-        default: throw Error(loc('LIB_PlatformNotRecognized', process.platform));
+        default: throw Error(loc('LIB_PlatformNotSupported', process.platform));
     }
 }
 
