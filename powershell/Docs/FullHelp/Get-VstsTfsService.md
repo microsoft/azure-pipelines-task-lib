@@ -56,7 +56,7 @@ PARAMETERS
         Accept wildcard characters?  false
 
     -TfsClientCredentials <Object>
-        Credentials to use when intializing the service. If not specified, the default uses the agent job
+        Credentials to use when initializing the service. If not specified, the default uses the agent job
         token to construct the credentials object. The identity associated with the token depends on the
         scope selected in the build/release definition (either the project collection build/release service
         identity, or the project build/release service identity).
