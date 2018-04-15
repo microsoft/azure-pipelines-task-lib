@@ -9,7 +9,7 @@ SYNOPSIS
 
 SYNTAX
     Get-VstsVssHttpClient [-TypeName] <String> [[-OMDirectory] <String>] [[-Uri] <String>] [[-VssCredentials]
-    <Object>] [[-WebProxy] <Object>] [<CommonParameters>]
+    <Object>] [[-WebProxy] <Object>] [[-ClientCert] <Object>] [-IgnoreSslError] [<CommonParameters>]
 
 DESCRIPTION
     Gets an instance of an VSS HTTP client.
@@ -44,14 +44,22 @@ PARAMETERS
         System.TeamFoundationCollectionUri.
 
         # .PARAMETER VssCredentials
-        # Credentials to use when intializing the HTTP client. If not specified, the default uses the agent
+        # Credentials to use when initializing the HTTP client. If not specified, the default uses the agent
         job token to construct the credentials object. The identity associated with the token depends on the
         scope selected in the build/release definition (either the project collection build/release service
         identity, or the project build/release service identity).
 
         # .PARAMETER WebProxy
-        # WebProxy to use when intializing the HTTP client. If not specified, the default uses the proxy
+        # WebProxy to use when initializing the HTTP client. If not specified, the default uses the proxy
         configuration agent current has.
+
+        # .PARAMETER ClientCert
+        # ClientCert to use when initializing the HTTP client. If not specified, the default uses the client
+        certificate agent current has.
+
+        # .PARAMETER IgnoreSslError
+        # Skip SSL server certificate validation on all requests made by this HTTP client. If not specified,
+        the default is to validate SSL server certificate.
 
         Required?                    false
         Position?                    2
@@ -80,6 +88,22 @@ PARAMETERS
         Required?                    false
         Position?                    5
         Default value                (Get-WebProxy)
+        Accept pipeline input?       false
+        Accept wildcard characters?  false
+
+    -ClientCert <Object>
+
+        Required?                    false
+        Position?                    6
+        Default value                (Get-ClientCertificate)
+        Accept pipeline input?       false
+        Accept wildcard characters?  false
+
+    -IgnoreSslError [<SwitchParameter>]
+
+        Required?                    false
+        Position?                    named
+        Default value                False
         Accept pipeline input?       false
         Accept wildcard characters?  false
 

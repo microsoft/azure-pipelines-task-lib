@@ -11,9 +11,9 @@ SYNTAX
     Get-VstsAssemblyReference [-LiteralPath] <String> [<CommonParameters>]
 
 DESCRIPTION
-    Not supported for use during task exection. This function is only intended to help developers resolve the
-    minimal set of DLLs that need to be bundled when consuming the VSTS REST SDK or TFS Extended Client SDK.
-    The interface and output may change between patch releases of the VSTS Task SDK.
+    Not supported for use during task execution. This function is only intended to help developers resolve
+    the minimal set of DLLs that need to be bundled when consuming the VSTS REST SDK or TFS Extended Client
+    SDK. The interface and output may change between patch releases of the VSTS Task SDK.
 
     Only a subset of the referenced assemblies may actually be required, depending on the functionality used
     by your task. It is best to bundle only the DLLs required for your scenario.

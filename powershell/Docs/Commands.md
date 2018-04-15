@@ -1,4 +1,4 @@
-# Commands (v0.9.0)
+# Commands (v0.10.1)
 ## <a name="toc" />Table of Contents
 * [Find](#find)
   * [Find-VstsMatch](#find-vstsmatch)
@@ -34,6 +34,7 @@
   * [Write-VstsUploadBuildLog](#write-vstsuploadbuildlog)
 * [Server OM](#serverom)
   * [Get-VstsAssemblyReference](#get-vstsassemblyreference)
+  * [Get-VstsClientCertificate](#get-vstsclientcertificate)
   * [Get-VstsTfsClientCredentials](#get-vststfsclientcredentials)
   * [Get-VstsTfsService](#get-vststfsservice)
   * [Get-VstsVssCredentials](#get-vstsvsscredentials)
@@ -477,9 +478,9 @@ SYNTAX
     Get-VstsAssemblyReference [-LiteralPath] <String> [<CommonParameters>]
 
 DESCRIPTION
-    Not supported for use during task exection. This function is only intended to help developers resolve the
-    minimal set of DLLs that need to be bundled when consuming the VSTS REST SDK or TFS Extended Client SDK.
-    The interface and output may change between patch releases of the VSTS Task SDK.
+    Not supported for use during task execution. This function is only intended to help developers resolve
+    the minimal set of DLLs that need to be bundled when consuming the VSTS REST SDK or TFS Extended Client
+    SDK. The interface and output may change between patch releases of the VSTS Task SDK.
 
     Only a subset of the referenced assemblies may actually be required, depending on the functionality used
     by your task. It is best to bundle only the DLLs required for your scenario.
@@ -490,6 +491,21 @@ DESCRIPTION
 
     See https://github.com/Microsoft/vsts-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage
     when working with the TFS extended client SDK from a task.
+```
+### <a name="get-vstsclientcertificate" />Get-VstsClientCertificate
+[table of contents](#toc) | [full](FullHelp/Get-VstsClientCertificate.md)
+```
+NAME
+    Get-VstsClientCertificate
+
+SYNOPSIS
+    Gets a client certificate for current connected TFS instance
+
+SYNTAX
+    Get-VstsClientCertificate [<CommonParameters>]
+
+DESCRIPTION
+    Gets an instance of a X509Certificate2 that is the client certificate Build/Release agent used.
 ```
 ### <a name="get-vststfsclientcredentials" />Get-VstsTfsClientCredentials
 [table of contents](#toc) | [full](FullHelp/Get-VstsTfsClientCredentials.md)
@@ -568,7 +584,7 @@ SYNOPSIS
 
 SYNTAX
     Get-VstsVssHttpClient [-TypeName] <String> [[-OMDirectory] <String>] [[-Uri] <String>] [[-VssCredentials]
-    <Object>] [[-WebProxy] <Object>] [<CommonParameters>]
+    <Object>] [[-WebProxy] <Object>] [[-ClientCert] <Object>] [-IgnoreSslError] [<CommonParameters>]
 
 DESCRIPTION
     Gets an instance of an VSS HTTP client.
