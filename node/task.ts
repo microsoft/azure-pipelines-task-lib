@@ -784,17 +784,27 @@ export function find(findPath: string, options?: FindOptions): string[] {
             // stat returns info about the target of a symlink (or symlink chain),
             // lstat returns info about a symlink itself
             let stats: fs.Stats;
-            if (options.followSymbolicLinks) {
-                // use stat (following all symlinks)
-                stats = fs.statSync(item.path);
+            try {
+                if (options.followSymbolicLinks) {
+                    // use stat (following all symlinks)
+                    stats = fs.statSync(item.path);
+                }
+                else if (options.followSpecifiedSymbolicLink && result.length == 1) {
+                    // use stat (following symlinks for the specified path and this is the specified path)
+                    stats = fs.statSync(item.path);
+                }
+                else {
+                    // use lstat (not following symlinks)
+                    stats = fs.lstatSync(item.path);
+                }
             }
-            else if (options.followSpecifiedSymbolicLink && result.length == 1) {
-                // use stat (following symlinks for the specified path and this is the specified path)
-                stats = fs.statSync(item.path);
-            }
-            else {
-                // use lstat (not following symlinks)
-                stats = fs.lstatSync(item.path);
+            catch (err) {
+                if (err.code == 'ENOENT') {
+                    debug('0 results (potential symlink failure)')
+                    return [];
+                }
+
+                throw err;
             }
 
             // note, isDirectory() returns false for the lstat of a symlink
