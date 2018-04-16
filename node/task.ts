@@ -740,104 +740,7 @@ export interface FindOptions {
  * @returns   string[]
  */
 export function find(findPath: string, options?: FindOptions): string[] {
-    if (!findPath) {
-        debug('no path specified');
-        return [];
-    }
-
-    // normalize the path, otherwise the first result is inconsistently formatted from the rest of the results
-    // because path.join() performs normalization.
-    findPath = path.normalize(findPath);
-
-    // debug trace the parameters
-    debug(`findPath: '${findPath}'`);
-    options = options || _getDefaultFindOptions();
-    _debugFindOptions(options)
-
-    // return empty if not exists
-    try {
-        fs.lstatSync(findPath);
-    }
-    catch (err) {
-        if (err.code == 'ENOENT') {
-            debug('0 results')
-            return [];
-        }
-
-        throw err;
-    }
-
-    try {
-        let result: string[] = [];
-
-        // push the first item
-        let stack: _FindItem[] = [new _FindItem(findPath, 1)];
-        let traversalChain: string[] = []; // used to detect cycles
-
-        while (stack.length) {
-            // pop the next item and push to the result array
-            let item: _FindItem = stack.pop();
-            result.push(item.path);
-
-            // stat the item.  the stat info is used further below to determine whether to traverse deeper
-            //
-            // stat returns info about the target of a symlink (or symlink chain),
-            // lstat returns info about a symlink itself
-            let stats: fs.Stats;
-            if (options.followSymbolicLinks) {
-                // use stat (following all symlinks)
-                stats = fs.statSync(item.path);
-            }
-            else if (options.followSpecifiedSymbolicLink && result.length == 1) {
-                // use stat (following symlinks for the specified path and this is the specified path)
-                stats = fs.statSync(item.path);
-            }
-            else {
-                // use lstat (not following symlinks)
-                stats = fs.lstatSync(item.path);
-            }
-
-            // note, isDirectory() returns false for the lstat of a symlink
-            if (stats.isDirectory()) {
-                debug(`  ${item.path} (directory)`);
-
-                if (options.followSymbolicLinks) {
-                    // get the realpath
-                    let realPath: string = fs.realpathSync(item.path);
-
-                    // fixup the traversal chain to match the item level
-                    while (traversalChain.length >= item.level) {
-                        traversalChain.pop();
-                    }
-
-                    // test for a cycle
-                    if (traversalChain.some((x: string) => x == realPath)) {
-                        debug('    cycle detected');
-                        continue;
-                    }
-
-                    // update the traversal chain
-                    traversalChain.push(realPath);
-                }
-
-                // push the child items in reverse onto the stack
-                let childLevel: number = item.level + 1;
-                let childItems: _FindItem[] =
-                    fs.readdirSync(item.path)
-                        .map((childName: string) => new _FindItem(path.join(item.path, childName), childLevel));
-                stack.push(...childItems.reverse());
-            }
-            else {
-                debug(`  ${item.path} (file)`);
-            }
-        }
-
-        debug(`${result.length} results`);
-        return result;
-    }
-    catch (err) {
-        throw new Error(loc('LIB_OperationFailed', 'find', err.message));
-    }
+    return _internalFind(findPath, options, false).matchesFound;
 }
 
 class _FindItem {
@@ -1370,16 +1273,20 @@ function _getDefaultMatchOptions(): MatchOptions {
  * @param  matchOptions  defaults to { dot: true, nobrace: true, nocase: process.platform == 'win32' }
  */
 export function findMatch(defaultRoot: string, patterns: string[] | string, findOptions?: FindOptions, matchOptions?: MatchOptions): string[] {
+    return _internalFindMatch(defaultRoot, patterns, findOptions, matchOptions, false).matchesFound;
+}
 
+ const _internalFindMatch = (defaultRoot: string, patterns: string[] | string, findOptions?: FindOptions, matchOptions?: MatchOptions, ignoreErrors?:boolean) : {matchesFound: string[], errors:string[]} =>  {
+    let output = {matchesFound: [], errors:[]};
     // apply defaults for parameters and trace
     defaultRoot = defaultRoot || this.getVariable('system.defaultWorkingDirectory') || process.cwd();
     debug(`defaultRoot: '${defaultRoot}'`);
     patterns = patterns || [];
-    patterns = typeof patterns == 'string' ? [patterns] as string[] : patterns;
     findOptions = findOptions || _getDefaultFindOptions();
     _debugFindOptions(findOptions);
     matchOptions = matchOptions || _getDefaultMatchOptions();
     _debugMatchOptions(matchOptions);
+    patterns = typeof patterns == 'string' ? [patterns] as string[] : patterns;
 
     // normalize slashes for root dir
     defaultRoot = im._normalizeSeparators(defaultRoot);
@@ -1487,7 +1394,8 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
                     }
                 }
                 else {
-                    findResults = find(findPath, findOptions);
+                    output = _internalFind(findPath, findOptions,ignoreErrors);
+                    findResults = output.matchesFound;
                 }
 
                 debug(`found ${findResults.length} paths`);
@@ -1544,7 +1452,167 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
         .map((key: string) => results[key])
         .sort();
     debug(finalResult.length + ' final results');
-    return finalResult;
+    output.matchesFound = finalResult;
+    return output;
+}
+
+const _internalFind = (findPath: string, options?: FindOptions, ignoreErrors?:boolean) : {matchesFound: string[], errors: string[]} => {
+    let output = {matchesFound: [], errors:[]};
+    if (!findPath) {
+        debug('no path specified');
+        return output;
+    }
+
+    let errorList: string [] = [];
+    // normalize the path, otherwise the first result is inconsistently formatted from the rest of the results
+    // because path.join() performs normalization.
+    findPath = path.normalize(findPath);
+
+    // debug trace the parameters
+    debug(`findPath: '${findPath}'`);
+    options = options || _getDefaultFindOptions();
+    _debugFindOptions(options)
+
+    // return empty if not exists
+    try {
+        fs.lstatSync(findPath);
+    }
+    catch (err) {
+        if (err.code == 'ENOENT') {
+            debug('0 results')
+            return output;
+        }
+
+        throw err;
+    }
+
+    try {
+        let result: string[] = [];
+
+        // push the first item
+        let stack: _FindItem[] = [new _FindItem(findPath, 1)];
+        let traversalChain: string[] = []; // used to detect cycles
+
+        while (stack.length) {
+            // pop the next item and push to the result array
+            let item: _FindItem = stack.pop();
+            result.push(item.path);
+
+            // stat the item.  the stat info is used further below to determine whether to traverse deeper
+            //
+            // stat returns info about the target of a symlink (or symlink chain),
+            // lstat returns info about a symlink itself
+            let stats: fs.Stats;
+            if (options.followSymbolicLinks) {
+                // use stat (following all symlinks)
+                try {
+                    stats = fs.statSync(item.path);
+                }
+                catch (err) {
+                    if(ignoreErrors) {
+                        errorList.push(`Error occurred while following the symlink ${item.path} : ${err}`);
+                        //warning(`Error occurred while following the symlink ${item.path} : ${err}`);
+                        // ignore this path from results
+                        const ignoredItem = result.pop();
+                        //debug(`Ignoring ${ignoredItem}, as continueOnError is true`)
+                        continue;
+                    }
+                    else {
+                        throw err;
+                    }
+                }
+            }
+            else if (options.followSpecifiedSymbolicLink && result.length == 1) {
+                // use stat (following symlinks for the specified path and this is the specified path)
+                try {
+                    stats = fs.statSync(item.path);
+                }
+                catch (err) {
+                    if(ignoreErrors) {
+                        errorList.push(`Error occurred while following the specified symlink ${item.path} : ${err}`);
+                        const ignoredItem = result.pop();
+                        //debug(`Ignoring ${ignoredItem}, as continueOnError is true`)
+                        continue;
+                    }
+                    else {
+                        throw err;
+                    }
+                }
+            }
+            else {
+                // use lstat (not following symlinks)
+                try {
+                    stats = fs.lstatSync(item.path);
+                }
+                catch (err) {
+                    if(ignoreErrors) {
+                        errorList.push(`Error occurred while finding ${item.path} : ${err}`);
+                        const ignoredItem = result.pop();
+                        //debug(`Ignoring ${ignoredItem}, as continueOnError is true`)
+                        continue;
+                    }
+                    else {
+                        throw err;
+                    }
+                }
+            }
+
+            // note, isDirectory() returns false for the lstat of a symlink
+            if (stats.isDirectory()) {
+                debug(`  ${item.path} (directory)`);
+
+                if (options.followSymbolicLinks) {
+                    // get the realpath
+                    let realPath: string = fs.realpathSync(item.path);
+
+                    // fixup the traversal chain to match the item level
+                    while (traversalChain.length >= item.level) {
+                        traversalChain.pop();
+                    }
+
+                    // test for a cycle
+                    if (traversalChain.some((x: string) => x == realPath)) {
+                        debug('    cycle detected');
+                        continue;
+                    }
+
+                    // update the traversal chain
+                    traversalChain.push(realPath);
+                }
+
+                // push the child items in reverse onto the stack
+                let childLevel: number = item.level + 1;
+                let childItems: _FindItem[] =
+                    fs.readdirSync(item.path)
+                        .map((childName: string) => new _FindItem(path.join(item.path, childName), childLevel));
+                stack.push(...childItems.reverse());
+            }
+            else {
+                debug(`  ${item.path} (file)`);
+            }
+        }
+
+        debug(`${result.length} results`);
+        output.matchesFound = result;
+        output.errors = errorList;
+        return output;
+    }
+    catch (err) {
+        throw new Error(loc('LIB_OperationFailed', 'find', err.message));
+    }
+}
+
+
+/**
+ * Recursively finds all paths a given path. Returns an array of paths. Will ignore errors if the path doesn't exist.
+ * Returns matched files that exist and list of errors also if any.
+ *
+ * @param     findPath  path to search
+ * @param     options   optional. defaults to { followSymbolicLinks: true }. following soft links is generally appropriate unless deleting files.
+ * @returns   string[]
+ */
+export function tryFindMatch(defaultRoot: string, patterns: string[] | string, findOptions?: FindOptions, matchOptions?: MatchOptions) : {matchesFound: string[], errors: string[]} {
+    return _internalFindMatch(defaultRoot, patterns, findOptions, matchOptions, true);
 }
 
 //-----------------------------------------------------

@@ -749,6 +749,60 @@ describe('Find and Match Tests', function () {
         done();
     });
 
+    it('works with tryfindmatch also', (done: MochaDone) => {
+        this.timeout(1000);
+
+        // create the following layout:
+        //   hello/hello.txt
+        //   world -> hello
+        let root: string = path.join(testutil.getTestTemp(), 'try-find-and-match_applies-default-find-options');
+        tl.mkdirP(path.join(root, 'hello'));
+        fs.writeFileSync(path.join(root, 'hello', 'hello.txt'), '');
+        testutil.createSymlinkDir(path.join(root, 'hello'), path.join(root, 'world'));
+
+        const output = tl.tryFindMatch(root, path.join('**', '*'))
+        let actual: string[] = output.matchesFound;
+        let expected: string[] = [
+            path.join(root, 'hello'),
+            path.join(root, 'hello', 'hello.txt'),
+            path.join(root, 'world'),
+            path.join(root, 'world', 'hello.txt'),
+        ];
+        assert.deepEqual(actual, expected.sort());
+        assert.equal(output.errors.length, 0);
+        done();
+    });
+
+    it('tryfindmatch ignores errors and gives output of error and matched files', (done: MochaDone) => {
+        this.timeout(1000);
+
+        // create the following layout:
+        //   hello/hello.txt
+        //   world -> hello
+        //   goodFolder/file1.txt
+        //   delete the symlink.
+        let root: string = path.join(testutil.getTestTemp(), 'try-find-and-match_applies-default-find-options-error');
+        tl.mkdirP(path.join(root, 'hello'));
+        tl.mkdirP(path.join(root, 'world'));
+        fs.writeFileSync(path.join(root, 'hello', 'hello.txt'), '');
+        tl.mkdirP(path.join(root, 'goodFolder'));
+        fs.writeFileSync(path.join(root, 'goodFolder', 'file1.txt'), '');
+        testutil.createSymlinkDir(path.join(root, 'hello', 'hello.txt'), path.join(root, 'world', 'hello.txt'));
+        testutil.deleteFile(path.join(root, 'hello', 'hello.txt'));
+
+        const output = tl.tryFindMatch(root, path.join('**', '*'))
+        let actual: string[] = output.matchesFound;
+        let expected: string[] = [
+            path.join(root, 'hello'),
+            path.join(root, 'goodFolder'),
+            path.join(root, 'goodFolder', 'file1.txt'),
+            path.join(root, 'world')
+        ];
+        assert.deepEqual(actual, expected.sort());
+        assert.equal(output.errors.length, 1);
+        done();
+    });
+
     it('supports custom find options', (done: MochaDone) => {
         this.timeout(1000);
 
