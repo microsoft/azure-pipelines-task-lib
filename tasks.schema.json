@@ -148,6 +148,7 @@
                   "multiLine",
                   "pickList",
                   "radio",
+                  "secureFile",
                   "string"
                 ]
               },
