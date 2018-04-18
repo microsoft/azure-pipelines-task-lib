@@ -718,6 +718,12 @@ export function mv(source: string, dest: string, options?: string, continueOnErr
  * Contains properties to control whether to follow symlinks
  */
 export interface FindOptions {
+
+    /**
+     * When true, broken symbolic link will not cause an error.
+     */
+    allowBrokenSymbolicLinks: boolean,
+
     /**
      * Equivalent to the -H command line option. Indicates whether to traverse descendants if
      * the specified path is a symbolic link directory. Does not cause nested symbolic link
@@ -785,12 +791,36 @@ export function find(findPath: string, options?: FindOptions): string[] {
             // lstat returns info about a symlink itself
             let stats: fs.Stats;
             if (options.followSymbolicLinks) {
-                // use stat (following all symlinks)
-                stats = fs.statSync(item.path);
+                try {
+                    // use stat (following all symlinks)
+                    stats = fs.statSync(item.path);
+                }
+                catch (err) {
+                    if (err.code == 'ENOENT' && options.allowBrokenSymbolicLinks) {
+                        // fallback to lstat (broken symlinks allowed)
+                        stats = fs.lstatSync(item.path);
+                        debug(`  ${item.path} (broken symlink)`);
+                    }
+                    else {
+                        throw err;
+                    }
+                }
             }
             else if (options.followSpecifiedSymbolicLink && result.length == 1) {
-                // use stat (following symlinks for the specified path and this is the specified path)
-                stats = fs.statSync(item.path);
+                try {
+                    // use stat (following symlinks for the specified path and this is the specified path)
+                    stats = fs.statSync(item.path);
+                }
+                catch (err) {
+                    if (err.code == 'ENOENT' && options.allowBrokenSymbolicLinks) {
+                        // fallback to lstat (broken symlinks allowed)
+                        stats = fs.lstatSync(item.path);
+                        debug(`  ${item.path} (broken symlink)`);
+                    }
+                    else {
+                        throw err;
+                    }
+                }
             }
             else {
                 // use lstat (not following symlinks)
@@ -851,12 +881,14 @@ class _FindItem {
 }
 
 function _debugFindOptions(options: FindOptions): void {
+    debug(`findOptions.allowBrokenSymbolicLinks: '${options.allowBrokenSymbolicLinks}'`);
     debug(`findOptions.followSpecifiedSymbolicLink: '${options.followSpecifiedSymbolicLink}'`);
     debug(`findOptions.followSymbolicLinks: '${options.followSymbolicLinks}'`);
 }
 
 function _getDefaultFindOptions(): FindOptions {
     return <FindOptions>{
+        allowBrokenSymbolicLinks: false,
         followSpecifiedSymbolicLink: true,
         followSymbolicLinks: true
     };
