@@ -1,5 +1,8 @@
 # VSTS-TASK-LIB RELEASES
 
+## 2.5.0
+ * Updated `FindOptions` to expose `allowBrokenSymbolicLinks`.
+
 ## 2.3.0
  * Updated `setVariable` to fail when a secret contains multiple lines.
  * Added `setSecret` to register a secret with the log scrubber, without registering a variable. Multi-line secrets are not supported.
