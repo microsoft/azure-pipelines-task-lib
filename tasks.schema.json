@@ -29,6 +29,10 @@
     "author": {
       "type": "string"
     },
+    "showEnvironmentBlock": {
+      "type": "boolean"
+      "description": "Toggles showing the environment variable editor in the task editor UI. Allows passing environment variables to script based tasks."
+    },
     "runsOn": {
       "type": "array",
       "items": {
