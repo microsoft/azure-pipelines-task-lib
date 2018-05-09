@@ -34,6 +34,11 @@ A task which automates Powershell technologies can be written with our Powershel
 
 Documentation: [PowerShell API](powershell/Docs/README.md)
 
+## Agentless Tasks
+
+A task that do not require an agent to run, and execute entirely on the VSTS or TFS. 
+
+Documentation: [Agentless Tasks](https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/servertaskauthoring.md)
 
 [npm-lib-image]: https://img.shields.io/npm/v/vsts-task-lib.svg?style=flat
 [npm-lib-url]: https://www.npmjs.com/package/vsts-task-lib
