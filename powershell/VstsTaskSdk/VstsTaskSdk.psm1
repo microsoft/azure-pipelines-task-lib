@@ -38,6 +38,8 @@ Export-ModuleMember -Function @(
         'Select-Match'
         # Input functions.
         'Get-Endpoint'
+        'Get-SecureFileTicket'
+        'Get-SecureFileName'
         'Get-Input'
         'Get-TaskVariable'
         'Get-TaskVariableInfo'
