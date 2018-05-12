@@ -5,13 +5,13 @@ param()
 . $PSScriptRoot\..\lib\Initialize-Test.ps1
 Invoke-VstsTaskScript -ScriptBlock {
     $originalLocation = $PWD
-    $tempDirectory = [System.IO.Path]::Combine($env:TMP, [System.IO.Path]::GetRandomFileName())
+    $tempDirectory = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), [System.IO.Path]::GetRandomFileName())
     New-Item -Path $tempDirectory -ItemType Directory | ForEach-Object { $_.FullName }
     try {
         Set-Location $env:TMP
         $variableSets = @(
-            @{ Expected = $env:TMP ; Splat = @{ } }
-            @{ Expected = $env:TMP ; Splat = @{ WorkingDirectory = $env:TMP } }
+            @{ Expected = [System.IO.Path]::GetTempPath().TrimEnd('\') ; Splat = @{ } }
+            @{ Expected = [System.IO.Path]::GetTempPath().TrimEnd('\') ; Splat = @{ WorkingDirectory = [System.IO.Path]::GetTempPath() } }
             @{ Expected = $tempDirectory ; Splat = @{ WorkingDirectory = $tempDirectory } }
         )
         foreach ($variableSet in $variableSets) {
@@ -22,7 +22,7 @@ Invoke-VstsTaskScript -ScriptBlock {
 
             # Assert.
             Assert-AreEqual $variableSet.Expected $actual
-            Assert-AreEqual $env:TMP (Get-Location).Path
+            Assert-AreEqual ([System.IO.Path]::GetTempPath().TrimEnd('\')) (Get-Location).Path
         }
     } finally {
         Set-Location $originalLocation
