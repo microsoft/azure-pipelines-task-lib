@@ -6,7 +6,7 @@ param()
 Invoke-VstsTaskScript -ScriptBlock {
     $originalSystemDefaultWorkingDirectory = $env:SYSTEM_DEFAULTWORKINGDIRECTORY
     $originalCwd = Get-Location
-    $tempDirectory = [System.IO.Path]::Combine($env:TMP, [System.IO.Path]::GetRandomFileName())
+    $tempDirectory = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), [System.IO.Path]::GetRandomFileName())
     New-Item -Path $tempDirectory -ItemType Directory |
         ForEach-Object { $_.FullName }
     try {

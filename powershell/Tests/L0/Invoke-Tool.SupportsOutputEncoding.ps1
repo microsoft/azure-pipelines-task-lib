@@ -4,7 +4,7 @@ param()
 # Arrange.
 . $PSScriptRoot\..\lib\Initialize-Test.ps1
 Invoke-VstsTaskScript -ScriptBlock {
-    $tempDirectory = [System.IO.Path]::Combine($env:TMP, [System.IO.Path]::GetRandomFileName())
+    $tempDirectory = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), [System.IO.Path]::GetRandomFileName())
     New-Item -Path $tempDirectory -ItemType Directory | ForEach-Object { $_.FullName }
     try {
         set-Content -LiteralPath $tempDirectory\Program.cs -Value @"
