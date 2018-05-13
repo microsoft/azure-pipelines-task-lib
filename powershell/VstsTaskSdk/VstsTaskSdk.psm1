@@ -52,6 +52,8 @@ Export-ModuleMember -Function @(
         'Write-AddBuildTag'
         'Write-AssociateArtifact'
         'Write-LogDetail'
+        'Write-PrependPath'
+        'Write-SetEndpointField'
         'Write-SetProgress'
         'Write-SetResult'
         'Write-SetSecret'
@@ -61,8 +63,11 @@ Export-ModuleMember -Function @(
         'Write-TaskVerbose'
         'Write-TaskWarning'
         'Write-UpdateBuildNumber'
+        'Write-UpdateReleaseName'
         'Write-UploadArtifact'
         'Write-UploadBuildLog'
+        'Write-UploadFile'
+        'Write-UploadSummary'
         # Out functions.
         'Out-Default'
         # Server OM functions.
