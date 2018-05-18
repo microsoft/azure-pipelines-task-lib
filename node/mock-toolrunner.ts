@@ -68,7 +68,7 @@ export class ToolRunner extends events.EventEmitter {
     }
 
     private _argStringToArray(argString: string): string[] {
-        var args = [];
+        var args: string[] = [];
 
         var inQuotes = false;
         var escaped =false;

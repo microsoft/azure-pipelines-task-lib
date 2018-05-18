@@ -174,7 +174,7 @@ export interface VariableInfo {
  * @param     required whether input is required.  optional, defaults to false
  * @returns   string
  */
-export function getInput(name: string, required?: boolean): string {
+export function getInput(name: string, required?: boolean): string | undefined {
     var inval = im._vault.retrieveSecret('INPUT_' + name.replace(' ', '_').toUpperCase());
     if (inval) {
         inval = inval.trim();
@@ -258,7 +258,7 @@ export function filePathSupplied(name: string): boolean {
  * @param     check     whether path is checked.  optional, defaults to false 
  * @returns   string
  */
-export function getPathInput(name: string, required?: boolean, check?: boolean): string {
+export function getPathInput(name: string, required?: boolean, check?: boolean): string | undefined {
     var inval = getInput(name, required);
     if (inval) {
         if (check) {
@@ -320,7 +320,7 @@ export function getEndpointDataParameter(id: string, key: string, optional: bool
  * @param optional whether the endpoint authorization scheme is optional
  * @returns {string} value of the endpoint authorization scheme
  */
-export function getEndpointAuthorizationScheme(id: string, optional: boolean): string {
+export function getEndpointAuthorizationScheme(id: string, optional: boolean): string | undefined {
     var authScheme = im._vault.retrieveSecret('ENDPOINT_AUTH_SCHEME_' + id);
 
     if (!optional && !authScheme) {
@@ -340,7 +340,7 @@ export function getEndpointAuthorizationScheme(id: string, optional: boolean): s
  * @param optional optional whether the endpoint authorization scheme is optional
  * @returns {string} value of the endpoint authorization parameter value
  */
-export function getEndpointAuthorizationParameter(id: string, key: string, optional: boolean): string {
+export function getEndpointAuthorizationParameter(id: string, key: string, optional: boolean): string | undefined {
     var authParam = im._vault.retrieveSecret('ENDPOINT_AUTH_PARAMETER_' + id + '_' + key.toUpperCase());
 
     if (!optional && !authParam) {
@@ -372,7 +372,7 @@ export interface EndpointAuthorization {
  * @param     optional  whether the url is optional
  * @returns   string
  */
-export function getEndpointAuthorization(id: string, optional: boolean): EndpointAuthorization {
+export function getEndpointAuthorization(id: string, optional: boolean): EndpointAuthorization | undefined {
     var aval = im._vault.retrieveSecret('ENDPOINT_AUTH_' + id);
 
     if (!optional && !aval) {
@@ -382,9 +382,11 @@ export function getEndpointAuthorization(id: string, optional: boolean): Endpoin
     console.log(id + ' exists ' + (aval !== null));
     debug(id + ' exists ' + (aval !== null));
 
-    var auth: EndpointAuthorization;
+    var auth: EndpointAuthorization | undefined;
     try {
-        auth = <EndpointAuthorization>JSON.parse(aval);
+        if (aval) {
+            auth = <EndpointAuthorization>JSON.parse(aval);
+        }
     }
     catch (err) {
         throw new Error(loc('LIB_InvalidEndpointAuth', aval));
@@ -416,7 +418,7 @@ export function getSecureFileName(id: string): string {
   * @param id name of the secure file
   * @returns {string} secure file ticket
   */
-export function getSecureFileTicket(id: string): string {
+export function getSecureFileTicket(id: string): string | undefined {
     var ticket = im._vault.retrieveSecret('SECUREFILE_TICKET_' + id);
 
     debug('secure file ticket for id ' + id + ' = ' + ticket);
@@ -433,7 +435,7 @@ export function getSecureFileTicket(id: string): string {
  * @param     name     name of the variable to get
  * @returns   string
  */
-export function getTaskVariable(name: string): string {
+export function getTaskVariable(name: string): string | undefined {
     assertAgent('2.115.0');
     var inval = im._vault.retrieveSecret('VSTS_TASKVARIABLE_' + name.replace(' ', '_').toUpperCase());
     if (inval) {
@@ -1597,12 +1599,12 @@ export interface ProxyConfiguration {
  *
  * @return  ProxyConfiguration
  */
-export function getHttpProxyConfiguration(requestUrl?: string): ProxyConfiguration {
-    let proxyUrl: string = getVariable('Agent.ProxyUrl');
+export function getHttpProxyConfiguration(requestUrl?: string): ProxyConfiguration | null {
+    let proxyUrl = getVariable('Agent.ProxyUrl');
     if (proxyUrl && proxyUrl.length > 0) {
-        let proxyUsername: string = getVariable('Agent.ProxyUsername');
-        let proxyPassword: string = getVariable('Agent.ProxyPassword');
-        let proxyBypassHosts: string[] = JSON.parse(getVariable('Agent.ProxyBypassList') || '[]');
+        let proxyUsername = getVariable('Agent.ProxyUsername');
+        let proxyPassword = getVariable('Agent.ProxyPassword');
+        let proxyBypassHosts = JSON.parse(getVariable('Agent.ProxyBypassList') || '[]');
 
         let bypass: boolean = false;
         if (requestUrl) {
@@ -1648,8 +1650,8 @@ export interface CertConfiguration {
  * @return  CertConfiguration
  */
 export function getHttpCertConfiguration(): CertConfiguration | null {
-    let ca: string = getVariable('Agent.CAInfo');
-    let clientCert: string = getVariable('Agent.ClientCert');
+    let ca = getVariable('Agent.CAInfo');
+    let clientCert = getVariable('Agent.ClientCert');
 
     if (ca || clientCert) {
         let certConfig: CertConfiguration = {};
@@ -1657,9 +1659,9 @@ export function getHttpCertConfiguration(): CertConfiguration | null {
         certConfig.certFile = clientCert;
 
         if (clientCert) {
-            let clientCertKey: string = getVariable('Agent.ClientCertKey');
-            let clientCertArchive: string = getVariable('Agent.ClientCertArchive');
-            let clientCertPassword: string = getVariable('Agent.ClientCertPassword');
+            let clientCertKey = getVariable('Agent.ClientCertKey');
+            let clientCertArchive = getVariable('Agent.ClientCertArchive');
+            let clientCertPassword = getVariable('Agent.ClientCertPassword');
 
             certConfig.keyFile = clientCertKey;
             certConfig.certArchiveFile = clientCertArchive;
