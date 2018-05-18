@@ -69,7 +69,7 @@ module.exports.getBoolInput = task.getBoolInput;
 module.exports.getDelimitedInput = task.getDelimitedInput;
 module.exports.filePathSupplied = task.filePathSupplied;
 
-function getPathInput(name, required, check) {
+function getPathInput(name: string, required?: boolean, check?: boolean): string {
     var inval = module.exports.getInput(name, required);
     if (inval) {
         if (check) {
@@ -131,7 +131,34 @@ export class FsStats implements fs.Stats {
     ctime: Date;
     birthtime: Date;
 
-    setAnswers(mockResponses) {
+    constructor() {
+        this.m_isFile = false;
+        this.m_isDirectory = false;
+        this.m_isBlockDevice = false;
+        this.m_isCharacterDevice = false;
+        this.m_isSymbolicLink = false;
+        this.m_isFIFO = false;
+        this.m_isSocket = false;
+
+        this.dev = 0;
+        this.ino = 0;
+        this.mode = 0;
+        this.nlink = 0;
+        this.uid = 0;
+        this.gid = 0;
+        this.rdev = 0;
+        this.size = 0;
+        this.blksize = 0;
+        this.blocks = 0;
+        this.atime = new Date();
+        this.mtime = new Date();
+        this.ctime = new Date();
+        this.m_isSocket = false;
+
+        this.birthtime = new Date();
+    }
+
+    setAnswers(mockResponses: any): void {
         this.m_isFile = mockResponses['isFile'] || false;
         this.m_isDirectory = mockResponses['isDirectory'] || false;
         this.m_isBlockDevice = mockResponses['isBlockDevice'] || false;
@@ -362,13 +389,11 @@ export function findMatch(defaultRoot: string, patterns: string[] | string) : st
 // Test Publisher
 //-----------------------------------------------------
 export class TestPublisher {
-    constructor(testRunner) {
+    constructor(public testRunner: string) {
         this.testRunner = testRunner;
     }
 
-    public testRunner: string;
-
-    public publish(resultFiles, mergeResults, platform, config, runTitle, publishRunAttachments) {
+    public publish(resultFiles?: string, mergeResults?: string, platform?: string, config?: string, runTitle?: string, publishRunAttachments?: string) {
 
         var properties = <{ [key: string]: string }>{};
         properties['type'] = this.testRunner;
@@ -407,7 +432,7 @@ export class TestPublisher {
 export class CodeCoveragePublisher {
     constructor() {
     }
-    public publish(codeCoverageTool, summaryFileLocation, reportDirectory, additionalCodeCoverageFiles) {
+    public publish(codeCoverageTool?: string, summaryFileLocation?: string, reportDirectory?: string, additionalCodeCoverageFiles?: string) {
 
         var properties = <{ [key: string]: string }>{};
 

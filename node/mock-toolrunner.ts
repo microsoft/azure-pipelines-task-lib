@@ -11,7 +11,7 @@ export function setAnswers(answers: ma.TaskLibAnswers) {
     mock.initialize(answers);
 }
 
-var run = function(cmd, callback) {
+var run = function(cmd: any, callback: any) {
     console.log('running: ' + cmd);
     var output = '';
     try {
@@ -44,12 +44,12 @@ export interface IExecSyncResult {
     error: Error;
 }
 
-export function debug(message) {
+export function debug(message: any) {
     // do nothing, overridden
 }
 
 export class ToolRunner extends events.EventEmitter {
-    constructor(toolPath) {
+    constructor(toolPath: string) {
         debug('toolRunner toolPath: ' + toolPath);
 
         super();
@@ -60,9 +60,9 @@ export class ToolRunner extends events.EventEmitter {
 
     private toolPath: string;
     private args: string[];
-    private pipeOutputToTool: ToolRunner;
+    private pipeOutputToTool: ToolRunner | undefined;
 
-    private _debug(message) {
+    private _debug(message: any) {
         debug(message);
         this.emit('debug', message);
     }
@@ -74,7 +74,7 @@ export class ToolRunner extends events.EventEmitter {
         var escaped =false;
         var arg = '';
 
-        var append = function(c) {
+        var append = function(c: string) {
             // we only escape double quotes.
             if (escaped && c !== '"') {
                 arg += '\\';
@@ -122,7 +122,7 @@ export class ToolRunner extends events.EventEmitter {
 
     public arg(val: any): ToolRunner {
         if (!val) {
-            return;
+            return this;
         }
 
         if (val instanceof Array) {
@@ -147,7 +147,7 @@ export class ToolRunner extends events.EventEmitter {
 
     public line(val: string): ToolRunner {
         if (!val) {
-            return;
+            return this;
         }
 
         this._debug(this.toolPath + ' arg: ' + val);
@@ -175,7 +175,7 @@ export class ToolRunner extends events.EventEmitter {
     // Exec - use for long running tools where you need to stream live output as it runs
     //        returns a promise with return code.
     //
-    public exec(options: IExecOptions): Q.Promise<number> {
+    public exec(options?: IExecOptions): Q.Promise<number> {
         var defer = Q.defer<number>();
 
         this._debug('exec tool: ' + this.toolPath);

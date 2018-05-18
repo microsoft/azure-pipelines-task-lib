@@ -59,7 +59,7 @@ export interface IExecSyncResult {
 }
 
 export class ToolRunner extends events.EventEmitter {
-    constructor(toolPath) {
+    constructor(toolPath: string) {
         super();
 
         if (!toolPath) {
@@ -73,10 +73,10 @@ export class ToolRunner extends events.EventEmitter {
 
     private toolPath: string;
     private args: string[];
-    private pipeOutputToTool: ToolRunner;
-    private pipeOutputToFile: string;
+    private pipeOutputToTool: ToolRunner | undefined;
+    private pipeOutputToFile: string | undefined;
 
-    private _debug(message) {
+    private _debug(message: string) {
         this.emit('debug', message);
     }
 
@@ -87,7 +87,7 @@ export class ToolRunner extends events.EventEmitter {
         var escaped = false;
         var arg = '';
 
-        var append = function (c) {
+        var append = function (c: string) {
             // we only escape double quotes.
             if (escaped && c !== '"') {
                 arg += '\\';
@@ -501,7 +501,7 @@ export class ToolRunner extends events.EventEmitter {
      */
     public arg(val: string | string[]): ToolRunner {
         if (!val) {
-            return;
+            return this;
         }
 
         if (val instanceof Array) {
@@ -526,7 +526,7 @@ export class ToolRunner extends events.EventEmitter {
      */
     public line(val: string): ToolRunner {
         if (!val) {
-            return;
+            return this;
         }
 
         this._debug(this.toolPath + ' arg: ' + val);
@@ -588,15 +588,15 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         // TODO: filter process.env
-        let cp;
+        let cp: any;
         let toolPath: string = this.toolPath;
         let toolPathFirst: string;
         let successFirst = true;
         let returnCodeFirst: number;
-        let fileStream: fs.WriteStream;
+        let fileStream: fs.WriteStream | null;
         let waitingEvents: number = 0; // number of process or stream events we are waiting on to complete
         let returnCode: number = 0;
-        let error;
+        let error: any;
 
         if (this.pipeOutputToTool) {
             toolPath = this.pipeOutputToTool.toolPath;
@@ -632,7 +632,7 @@ export class ToolRunner extends events.EventEmitter {
                         }
                     }
                 });
-                fileStream.on('error', (err) => {
+                fileStream.on('error', (err: any) => {
                     waitingEvents--; //there were errors writing to the file, write is done
                     this._debug(`Failed to pipe output of ${toolPathFirst} to file ${this.pipeOutputToFile}. Error = ${err}`);
                     fileStream = null;
@@ -668,7 +668,7 @@ export class ToolRunner extends events.EventEmitter {
                     s.write(data);
                 }
             });
-            cpFirst.on('error', (err) => {
+            cpFirst.on('error', (err: Error) => {
                 waitingEvents--; //first process is complete with errors
                 if (fileStream) {
                     fileStream.end();
@@ -815,8 +815,8 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         var res: IExecSyncResult = <IExecSyncResult>{ code: r.status, error: r.error };
-        res.stdout = (r.stdout) ? r.stdout.toString() : null;
-        res.stderr = (r.stderr) ? r.stderr.toString() : null;
+        res.stdout = (r.stdout) ? r.stdout.toString() : '';
+        res.stderr = (r.stderr) ? r.stderr.toString() : '';
         return res;
     }
 }

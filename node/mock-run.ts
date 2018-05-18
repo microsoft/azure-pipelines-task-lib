@@ -7,7 +7,7 @@ export class TaskMockRunner {
     }
 
     _taskPath: string;
-    _answers: ma.TaskLibAnswers;
+    _answers: ma.TaskLibAnswers | undefined;
     _exports: {[key: string]: any} = { };
     _moduleCount: number = 0;
 

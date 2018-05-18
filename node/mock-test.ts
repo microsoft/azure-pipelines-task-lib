@@ -11,14 +11,17 @@ const COMMAND_LENGTH = COMMAND_TAG.length;
 export class MockTestRunner {
     constructor(testPath: string) {
         this._testPath = testPath;
+        this.invokedToolCount = 0;
+        this.errorIssues = [];
+        this.warningIssues = [];
     }
 
     private _testPath: string;
-    public stdout: string;
-    public stderr: string;
+    public stdout: string | undefined;
+    public stderr: string | undefined;
     public cmdlines: any;
     public invokedToolCount: number;
-    public succeeded: boolean;
+    public succeeded: boolean | undefined;
     public errorIssues: string[];
     public warningIssues: string[];
 
@@ -31,19 +34,20 @@ export class MockTestRunner {
     }
 
     public createdErrorIssue(message: string): boolean {
+        // return this.errorIssues ? this.errorIssues.indexOf(message.trim()) >= 0 : false;
         return this.errorIssues.indexOf(message.trim()) >= 0;
     }
 
     public createdWarningIssue(message: string): boolean {
         return this.warningIssues.indexOf(message.trim()) >= 0;
-    }    
+    }
 
     public stdOutContained(message: string): boolean {
-        return this.stdout && this.stdout.indexOf(message) > 0;
+        return !!(this.stdout && this.stdout.indexOf(message) > 0);
     }
 
     public stdErrContained(message: string): boolean {
-        return this.stderr && this.stderr.indexOf(message) > 0;
+        return !!(this.stderr && this.stderr.indexOf(message) > 0);
     }
 
     public run(): void {
@@ -59,7 +63,7 @@ export class MockTestRunner {
         let nodePath = shelljs.which('node');
         if (!nodePath) {
             console.error('Could not find node in path');
-            return;            
+            return;
         }
 
         let spawn = cp.spawnSync(nodePath, [this._testPath]);
@@ -80,7 +84,7 @@ export class MockTestRunner {
         let traceFile: string = this._testPath + '.log';
         lines.forEach((line: string) => {
             let ci = line.indexOf('##vso[');
-            let cmd: cmdm.TaskCommand;
+            let cmd: cmdm.TaskCommand | undefined;
             let cmi = line.indexOf(COMMAND_TAG);
             if (ci >= 0) {
                 cmd = cmdm.commandFromString(line.substring(ci));
