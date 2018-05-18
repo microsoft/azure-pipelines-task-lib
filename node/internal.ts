@@ -102,7 +102,7 @@ function _loadLocStrings(resourceFile: string, culture: string): { [key: string]
     if (_exist(resourceFile)) {
         var resourceJson = require(resourceFile);
         if (resourceJson && resourceJson.hasOwnProperty('messages')) {
-            var locResourceJson = null;
+            var locResourceJson: any;
             // load up resource resjson for different culture
 
             var localizedResourceFile = path.join(path.dirname(resourceFile), 'Strings', 'resources.resjson');
@@ -224,11 +224,11 @@ export function _loc(key: string, ...param: any[]): string {
  * @param     name     name of the variable to get
  * @returns   string
  */
-export function _getVariable(name: string): string {
-    let varval: string;
+export function _getVariable(name: string): string | undefined  {
+    let varval: string | undefined;
 
     // get the metadata
-    let info: _KnownVariableInfo;
+    let info: _KnownVariableInfo | undefined;
     let key: string = _getVariableKey(name);
     if (_knownVariableMap.hasOwnProperty(key)) {
         info = _knownVariableMap[key];
@@ -240,7 +240,7 @@ export function _getVariable(name: string): string {
     }
     else {
         // get the public value
-        varval = process.env[key];
+        varval = process.env[key] || null;
 
         // fallback for pre 2.104.1 agent
         if (!varval && name.toUpperCase() == 'AGENT.JOBSTATUS') {
@@ -922,16 +922,16 @@ export function _normalizeSeparators(p: string): string {
 // Expose proxy information to vsts-node-api
 //-----------------------------------------------------
 export function _exposeProxySettings(): void {
-    let proxyUrl: string = _getVariable('Agent.ProxyUrl');
+    let proxyUrl = _getVariable('Agent.ProxyUrl');
     if (proxyUrl && proxyUrl.length > 0) {
-        let proxyUsername: string = _getVariable('Agent.ProxyUsername');
-        let proxyPassword: string = _getVariable('Agent.ProxyPassword');
-        let proxyBypassHostsJson: string = _getVariable('Agent.ProxyBypassList');
+        let proxyUsername = _getVariable('Agent.ProxyUsername');
+        let proxyPassword = _getVariable('Agent.ProxyPassword');
+        let proxyBypassHostsJson = _getVariable('Agent.ProxyBypassList');
 
         global['_vsts_task_lib_proxy_url'] = proxyUrl;
         global['_vsts_task_lib_proxy_username'] = proxyUsername;
         global['_vsts_task_lib_proxy_bypass'] = proxyBypassHostsJson;
-        global['_vsts_task_lib_proxy_password'] = _exposeTaskLibSecret('proxy', proxyPassword);
+        global['_vsts_task_lib_proxy_password'] = _exposeTaskLibSecret('proxy', proxyPassword || '');
 
         _debug('expose agent proxy configuration.')
         global['_vsts_task_lib_proxy'] = true;
@@ -942,21 +942,21 @@ export function _exposeProxySettings(): void {
 // Expose certificate information to vsts-node-api
 //-----------------------------------------------------
 export function _exposeCertSettings(): void {
-    let ca: string = _getVariable('Agent.CAInfo');
+    let ca = _getVariable('Agent.CAInfo');
     if (ca) {
         global['_vsts_task_lib_cert_ca'] = ca;
     }
 
-    let clientCert: string = _getVariable('Agent.ClientCert');
+    let clientCert = _getVariable('Agent.ClientCert');
     if (clientCert) {
-        let clientCertKey: string = _getVariable('Agent.ClientCertKey');
-        let clientCertArchive: string = _getVariable('Agent.ClientCertArchive');
-        let clientCertPassword: string = _getVariable('Agent.ClientCertPassword');
+        let clientCertKey = _getVariable('Agent.ClientCertKey');
+        let clientCertArchive = _getVariable('Agent.ClientCertArchive');
+        let clientCertPassword = _getVariable('Agent.ClientCertPassword');
 
         global['_vsts_task_lib_cert_clientcert'] = clientCert;
         global['_vsts_task_lib_cert_key'] = clientCertKey;
         global['_vsts_task_lib_cert_archive'] = clientCertArchive;
-        global['_vsts_task_lib_cert_passphrase'] = _exposeTaskLibSecret('cert', clientCertPassword);
+        global['_vsts_task_lib_cert_passphrase'] = _exposeTaskLibSecret('cert', clientCertPassword || '');
     }
 
     if (ca || clientCert) {
@@ -973,7 +973,7 @@ export function _exposeCertSettings(): void {
 // We store the encryption key on disk and hold the encrypted content and key file in memory
 // return base64encoded<keyFilePath>:base64encoded<encryptedContent>
 // downstream vsts-node-api will retrieve the secret later
-function _exposeTaskLibSecret(keyFile: string, secret: string): string {
+function _exposeTaskLibSecret(keyFile: string, secret: string): string | undefined {
     if (secret) {
         let encryptKey = crypto.randomBytes(256);
         let cipher = crypto.createCipher("aes-256-ctr", encryptKey);

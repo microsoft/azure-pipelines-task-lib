@@ -44,17 +44,19 @@ export class MockAnswers {
             return null;
         }
 
-        if (this._answers[cmd][key]) {
+        const cmd_answer = this._answers[cmd]!;
+
+        if (cmd_answer[key]) {
             debug('found mock response');
-            return this._answers[cmd][key];
+            return cmd_answer[key];
         }
 
         if (key && process.env['MOCK_NORMALIZE_SLASHES'] === 'true') {
             // try normalizing the slashes
             var key2 = key.replace(/\\/g, "/");
-            if (this._answers[cmd][key2]) {
+            if (cmd_answer[key2]) {
                 debug('found mock response for normalized key');
-                return this._answers[cmd][key2];
+                return cmd_answer[key2];
             }
         }
 

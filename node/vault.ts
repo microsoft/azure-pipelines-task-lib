@@ -50,8 +50,8 @@ export class Vault {
         return true;
     }
 
-    public retrieveSecret(name: string): string | null {
-        var secret = null;
+    public retrieveSecret(name: string): string | undefined {
+        var secret: string | undefined;
         name = (name || '').toLowerCase()
 
         if (this._store.hasOwnProperty(name)) {
