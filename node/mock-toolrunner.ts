@@ -264,7 +264,7 @@ export class ToolRunner extends events.EventEmitter {
     // ExecSync - use for short running simple commands.  Simple and convenient (synchronous)
     //            but also has limits.  For example, no live output and limited to max buffer
     //
-    public execSync(options: IExecSyncOptions): IExecSyncResult {
+    public execSync(options?: IExecSyncOptions): IExecSyncResult {
         var defer = Q.defer();
 
         this._debug('exec tool: ' + this.toolPath);

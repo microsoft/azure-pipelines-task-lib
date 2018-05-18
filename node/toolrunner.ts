@@ -460,7 +460,7 @@ export class ToolRunner extends events.EventEmitter {
         return reverse.split('').reverse().join('');
     }
 
-    private _cloneExecOptions(options: IExecOptions): IExecOptions {
+    private _cloneExecOptions(options?: IExecOptions): IExecOptions {
         options = options || <IExecOptions>{};
         let result: IExecOptions = <IExecOptions>{
             cwd: options.cwd || process.cwd(),
@@ -581,10 +581,10 @@ export class ToolRunner extends events.EventEmitter {
         });
 
         let success = true;
-        options = this._cloneExecOptions(options);
+        const clonedOptions = this._cloneExecOptions(options);
 
-        if (!options.silent) {
-            options.outStream.write(this._getCommandString(options) + os.EOL);
+        if (!clonedOptions.silent) {
+            clonedOptions.outStream.write(this._getCommandString(clonedOptions) + os.EOL);
         }
 
         // TODO: filter process.env
@@ -609,14 +609,14 @@ export class ToolRunner extends events.EventEmitter {
             waitingEvents++;
             var cpFirst = child.spawn(
                 this._getSpawnFileName(),
-                this._getSpawnArgs(options),
-                this._getSpawnOptions(options));
+                this._getSpawnArgs(clonedOptions),
+                this._getSpawnOptions(clonedOptions));
             
             waitingEvents ++;
             cp = child.spawn(
                 this.pipeOutputToTool._getSpawnFileName(),
-                this.pipeOutputToTool._getSpawnArgs(options),
-                this.pipeOutputToTool._getSpawnOptions(options));
+                this.pipeOutputToTool._getSpawnArgs(clonedOptions),
+                this.pipeOutputToTool._getSpawnOptions(clonedOptions));
 
             fileStream = this.pipeOutputToFile ? fs.createWriteStream(this.pipeOutputToFile) : null;
             if (fileStream) {
@@ -662,9 +662,9 @@ export class ToolRunner extends events.EventEmitter {
                 if (fileStream) {
                     fileStream.write(data);
                 }
-                successFirst = !options.failOnStdErr;
-                if (!options.silent) {
-                    var s = options.failOnStdErr ? options.errStream : options.outStream;
+                successFirst = !clonedOptions.failOnStdErr;
+                if (!clonedOptions.silent) {
+                    var s = clonedOptions.failOnStdErr ? clonedOptions.errStream : clonedOptions.outStream;
                     s.write(data);
                 }
             });
@@ -681,7 +681,7 @@ export class ToolRunner extends events.EventEmitter {
             });
             cpFirst.on('close', (code, signal) => {
                 waitingEvents--; //first process is complete
-                if (code != 0 && !options.ignoreReturnCode) {
+                if (code != 0 && !clonedOptions.ignoreReturnCode) {
                     successFirst = false;
                     returnCodeFirst = code;
                     returnCode = returnCodeFirst;
@@ -702,15 +702,15 @@ export class ToolRunner extends events.EventEmitter {
 
         } else {
             waitingEvents++;
-            cp = child.spawn(this._getSpawnFileName(), this._getSpawnArgs(options), this._getSpawnOptions(options));
+            cp = child.spawn(this._getSpawnFileName(), this._getSpawnArgs(clonedOptions), this._getSpawnOptions(clonedOptions));
         }
 
         var stdbuffer: string = '';
         cp.stdout.on('data', (data: Buffer) => {
             this.emit('stdout', data);
 
-            if (!options.silent) {
-                options.outStream.write(data);
+            if (!clonedOptions.silent) {
+                clonedOptions.outStream.write(data);
             }
 
             this._processLineBuffer(data, stdbuffer, (line: string) => {
@@ -722,9 +722,9 @@ export class ToolRunner extends events.EventEmitter {
         cp.stderr.on('data', (data: Buffer) => {
             this.emit('stderr', data);
 
-            success = !options.failOnStdErr;
-            if (!options.silent) {
-                var s = options.failOnStdErr ? options.errStream : options.outStream;
+            success = !clonedOptions.failOnStdErr;
+            if (!clonedOptions.silent) {
+                var s = clonedOptions.failOnStdErr ? clonedOptions.errStream : clonedOptions.outStream;
                 s.write(data);
             }
 
@@ -754,7 +754,7 @@ export class ToolRunner extends events.EventEmitter {
                 this.emit('errline', errbuffer);
             }
 
-            if (code != 0 && !options.ignoreReturnCode) {
+            if (code != 0 && !clonedOptions.ignoreReturnCode) {
                 success = false;
             }
 
