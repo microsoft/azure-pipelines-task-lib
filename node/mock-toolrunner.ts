@@ -11,7 +11,7 @@ export function setAnswers(answers: ma.TaskLibAnswers) {
     mock.initialize(answers);
 }
 
-var run = function(cmd: any, callback: any) {
+var run = function(cmd, callback) {
     console.log('running: ' + cmd);
     var output = '';
     try {
@@ -44,7 +44,7 @@ export interface IExecSyncResult {
     error: Error;
 }
 
-export function debug(message: any) {
+export function debug(message) {
     // do nothing, overridden
 }
 
@@ -62,7 +62,7 @@ export class ToolRunner extends events.EventEmitter {
     private args: string[];
     private pipeOutputToTool: ToolRunner | undefined;
 
-    private _debug(message: any) {
+    private _debug(message) {
         debug(message);
         this.emit('debug', message);
     }
