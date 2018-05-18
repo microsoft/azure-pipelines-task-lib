@@ -53,7 +53,7 @@ Export-ModuleMember -Function @(
         'Write-AssociateArtifact'
         'Write-LogDetail'
         'Write-PrependPath'
-        'Write-SetEndpointField'
+        'Write-SetEndpoint'
         'Write-SetProgress'
         'Write-SetResult'
         'Write-SetSecret'

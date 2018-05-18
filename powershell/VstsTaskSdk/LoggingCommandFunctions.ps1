@@ -56,7 +56,7 @@ See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.
 .PARAMETER AsOutput
 Indicates whether to write the logging command directly to the host or to the output pipeline.
 #>
-function Write-SetEndpointField {
+function Write-SetEndpoint {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
