@@ -632,7 +632,7 @@ export class ToolRunner extends events.EventEmitter {
                         }
                     }
                 });
-                fileStream.on('error', (err: any) => {
+                fileStream.on('error', (err) => {
                     waitingEvents--; //there were errors writing to the file, write is done
                     this._debug(`Failed to pipe output of ${toolPathFirst} to file ${this.pipeOutputToFile}. Error = ${err}`);
                     fileStream = null;

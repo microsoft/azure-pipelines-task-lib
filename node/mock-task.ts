@@ -390,7 +390,6 @@ export function findMatch(defaultRoot: string, patterns: string[] | string) : st
 //-----------------------------------------------------
 export class TestPublisher {
     constructor(public testRunner: string) {
-        this.testRunner = testRunner;
     }
 
     public publish(resultFiles?: string, mergeResults?: string, platform?: string, config?: string, runTitle?: string, publishRunAttachments?: string) {

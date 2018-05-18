@@ -71,7 +71,7 @@ let _libResourceFileLoaded: boolean = false;
 let _resourceCulture: string = 'en-US';
 
 function _loadResJson(resjsonFile: string): any {
-    var resJson: {} | null = null;
+    var resJson: {} | undefined;
     if (_exist(resjsonFile)) {
         var resjsonContent = fs.readFileSync(resjsonFile, 'utf8').toString();
         // remove BOM
@@ -84,7 +84,6 @@ function _loadResJson(resjsonFile: string): any {
         }
         catch (err) {
             _debug('unable to parse resjson with err: ' + err.message);
-            resJson = null;
         }
     }
     else {
@@ -240,7 +239,7 @@ export function _getVariable(name: string): string | undefined  {
     }
     else {
         // get the public value
-        varval = process.env[key] || null;
+        varval = process.env[key];
 
         // fallback for pre 2.104.1 agent
         if (!varval && name.toUpperCase() == 'AGENT.JOBSTATUS') {
@@ -304,9 +303,7 @@ export function _debug(message: string): void {
 export function _exist(path: string): boolean {
     var exist = false;
     try {
-        if (path && fs.statSync(path) != null) {
-            exist = true;
-        }
+        exist = !!(path && fs.statSync(path) != null);
     } catch (err) {
         if (err && err.code === 'ENOENT') {
             exist = false;
