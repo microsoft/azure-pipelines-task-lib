@@ -50,7 +50,7 @@ export class Vault {
         return true;
     }
 
-    public retrieveSecret(name: string): string {
+    public retrieveSecret(name: string): string | null {
         var secret = null;
         name = (name || '').toLowerCase()
 
@@ -72,6 +72,6 @@ export class Vault {
     }
 
     private genKey(): void {
-        fs.writeFileSync(this._keyFile, uuidV4(), 'utf8');
-    } 
+        fs.writeFileSync(this._keyFile, uuidV4(), { encoding: 'utf8' });
+    }
 }

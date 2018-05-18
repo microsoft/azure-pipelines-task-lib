@@ -53,11 +53,11 @@ export function _writeLine(str: string): void {
     _outStream.write(str + os.EOL);
 }
 
-export function _setStdStream(stdStream): void {
+export function _setStdStream(stdStream: NodeJS.WritableStream): void {
     _outStream = stdStream;
 }
 
-export function _setErrStream(errStream): void {
+export function _setErrStream(errStream: NodeJS.WritableStream): void {
     _errStream = errStream;
 }
 
@@ -71,7 +71,7 @@ let _libResourceFileLoaded: boolean = false;
 let _resourceCulture: string = 'en-US';
 
 function _loadResJson(resjsonFile: string): any {
-    var resJson: {} = null;
+    var resJson: {} | null = null;
     if (_exist(resjsonFile)) {
         var resjsonContent = fs.readFileSync(resjsonFile, 'utf8').toString();
         // remove BOM
@@ -107,7 +107,7 @@ function _loadLocStrings(resourceFile: string, culture: string): { [key: string]
 
             var localizedResourceFile = path.join(path.dirname(resourceFile), 'Strings', 'resources.resjson');
             var upperCulture = culture.toUpperCase();
-            var cultures = [];
+            var cultures: string[] = [];
             try { cultures = fs.readdirSync(localizedResourceFile); }
             catch (ex) { }
             for (var i = 0; i < cultures.length; i++) {
@@ -274,7 +274,7 @@ export interface _KnownVariableInfo {
 // Cmd Helpers
 //-----------------------------------------------------
 
-export function _command(command: string, properties, message: string) {
+export function _command(command: string, properties: any, message: string) {
     var taskCmd = new tcm.TaskCommand(command, properties, message);
     _writeLine(taskCmd.toString());
 }
@@ -304,7 +304,9 @@ export function _debug(message: string): void {
 export function _exist(path: string): boolean {
     var exist = false;
     try {
-        exist = path && fs.statSync(path) != null;
+        if (path && fs.statSync(path) != null) {
+            exist = true;
+        }
     } catch (err) {
         if (err && err.code === 'ENOENT') {
             exist = false;

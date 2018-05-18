@@ -55,7 +55,7 @@ export function setResult(result: TaskResult, message: string): void {
 //
 // Catching all exceptions
 //
-process.on('uncaughtException', (err) => {
+process.on('uncaughtException', (err: Error) => {
     setResult(TaskResult.Failed, loc('LIB_UnhandledEx', err.message));
 });
 
@@ -517,7 +517,9 @@ export interface FsOptions {
     flag?: string;
 }
 
-export function writeFile(file: string, data: string | Buffer, options?: string | FsOptions) {
+export function writeFile(file: string, data: string | Buffer, options: string): void;
+export function writeFile(file: string, data: string | Buffer, options?: FsOptions): void;
+export function writeFile(file: string, data: string | Buffer, options: any): void {
     fs.writeFileSync(file, data, options);
 }
 
@@ -636,7 +638,7 @@ export function mkdirP(p: string): void {
 
     // create each directory
     while (stack.length) {
-        let dir = stack.pop();
+        let dir = stack.pop()!; // non-null because `stack.length` was truthy
         debug(`mkdir '${dir}'`);
         try {
             fs.mkdirSync(dir);
@@ -782,7 +784,7 @@ export function find(findPath: string, options?: FindOptions): string[] {
 
         while (stack.length) {
             // pop the next item and push to the result array
-            let item: _FindItem = stack.pop();
+            let item = stack.pop()!; // non-null because `stack.length` was truthy
             result.push(item.path);
 
             // stat the item.  the stat info is used further below to determine whether to traverse deeper
@@ -1164,7 +1166,7 @@ export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Pro
  */
 export function execSync(tool: string, args: string | string[], options?: trm.IExecSyncOptions): trm.IExecSyncResult {
     let tr: trm.ToolRunner = this.tool(tool);
-    tr.on('debug', (data) => {
+    tr.on('debug', (data: string) => {
         debug(data);
     });
 
@@ -1645,7 +1647,7 @@ export interface CertConfiguration {
  *
  * @return  CertConfiguration
  */
-export function getHttpCertConfiguration(): CertConfiguration {
+export function getHttpCertConfiguration(): CertConfiguration | null {
     let ca: string = getVariable('Agent.CAInfo');
     let clientCert: string = getVariable('Agent.ClientCert');
 
@@ -1675,13 +1677,11 @@ export function getHttpCertConfiguration(): CertConfiguration {
 // Test Publisher
 //-----------------------------------------------------
 export class TestPublisher {
-    constructor(testRunner) {
-        this.testRunner = testRunner;
+    constructor(public testRunner: string) {
     }
 
-    public testRunner: string;
 
-    public publish(resultFiles, mergeResults, platform, config, runTitle, publishRunAttachments) {
+    public publish(resultFiles?: string, mergeResults?: string, platform?: string, config?: string, runTitle?: string, publishRunAttachments?: string) {
 
         var properties = <{ [key: string]: string }>{};
         properties['type'] = this.testRunner;
@@ -1720,7 +1720,7 @@ export class TestPublisher {
 export class CodeCoveragePublisher {
     constructor() {
     }
-    public publish(codeCoverageTool, summaryFileLocation, reportDirectory, additionalCodeCoverageFiles) {
+    public publish(codeCoverageTool?: string, summaryFileLocation?: string, reportDirectory?: string, additionalCodeCoverageFiles?: string) {
 
         var properties = <{ [key: string]: string }>{};
 

@@ -21,21 +21,10 @@ export interface TaskLibAnswers {
     which?: { [key: string]: string },
 }
 
-// TODO TypeScript 2.1: replace with `keyof TaskLibAnswers`
-export type MockedCommand = 'checkPath'
-    | 'cwd'
-    | 'exec'
-    | 'exist'
-    | 'find'
-    | 'findMatch'
-    | 'ls'
-    | 'osType'
-    | 'rmRF'
-    | 'stats'
-    | 'which';
+export type MockedCommand = keyof TaskLibAnswers;
 
 export class MockAnswers {
-    private _answers: TaskLibAnswers;
+    private _answers: TaskLibAnswers | undefined;
 
     public initialize(answers: TaskLibAnswers) {
         if (!answers) {
