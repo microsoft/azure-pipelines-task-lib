@@ -9,32 +9,26 @@ const COMMAND_TAG = '[command]';
 const COMMAND_LENGTH = COMMAND_TAG.length;
 
 export class MockTestRunner {
-    constructor(testPath: string) {
-        this._testPath = testPath;
-        this.invokedToolCount = 0;
-        this.errorIssues = [];
-        this.warningIssues = [];
+    constructor(private _testPath: string) {
     }
 
-    private _testPath: string;
-    public stdout: string | undefined;
-    public stderr: string | undefined;
-    public cmdlines: any;
-    public invokedToolCount: number;
-    public succeeded: boolean | undefined;
-    public errorIssues: string[];
-    public warningIssues: string[];
+    public stdout = '';
+    public stderr = ''
+    public cmdlines = {};
+    public invokedToolCount = 0;
+    public succeeded = false;
+    public errorIssues: string[] = [];
+    public warningIssues: string[] = [];
 
     get failed(): boolean {
         return !this.succeeded;
     }
-    
+
     public ran(cmdline: string): boolean {
         return this.cmdlines.hasOwnProperty(cmdline.trim());
     }
 
     public createdErrorIssue(message: string): boolean {
-        // return this.errorIssues ? this.errorIssues.indexOf(message.trim()) >= 0 : false;
         return this.errorIssues.indexOf(message.trim()) >= 0;
     }
 
@@ -43,11 +37,11 @@ export class MockTestRunner {
     }
 
     public stdOutContained(message: string): boolean {
-        return !!(this.stdout && this.stdout.indexOf(message) > 0);
+        return this.stdout.indexOf(message.trim()) > 0;
     }
 
     public stdErrContained(message: string): boolean {
-        return !!(this.stderr && this.stderr.indexOf(message) > 0);
+        return this.stderr.indexOf(message.trim()) > 0;
     }
 
     public run(): void {
