@@ -53,11 +53,11 @@ export function _writeLine(str: string): void {
     _outStream.write(str + os.EOL);
 }
 
-export function _setStdStream(stdStream: NodeJS.WritableStream): void {
+export function _setStdStream(stdStream): void {
     _outStream = stdStream;
 }
 
-export function _setErrStream(errStream: NodeJS.WritableStream): void {
+export function _setErrStream(errStream): void {
     _errStream = errStream;
 }
 
@@ -71,7 +71,7 @@ let _libResourceFileLoaded: boolean = false;
 let _resourceCulture: string = 'en-US';
 
 function _loadResJson(resjsonFile: string): any {
-    var resJson: {} | undefined;
+    var resJson: any;
     if (_exist(resjsonFile)) {
         var resjsonContent = fs.readFileSync(resjsonFile, 'utf8').toString();
         // remove BOM
