@@ -1,4 +1,4 @@
-# Commands (v0.10.1)
+# Commands (v0.11.0)
 ## <a name="toc" />Table of Contents
 * [Find](#find)
   * [Find-VstsMatch](#find-vstsmatch)
@@ -8,6 +8,8 @@
 * [Input](#input)
   * [Get-VstsEndpoint](#get-vstsendpoint)
   * [Get-VstsInput](#get-vstsinput)
+  * [Get-VstsSecureFileName](#get-vstssecurefilename)
+  * [Get-VstsSecureFileTicket](#get-vstssecurefileticket)
   * [Get-VstsTaskVariable](#get-vststaskvariable)
   * [Get-VstsTaskVariableInfo](#get-vststaskvariableinfo)
   * [Set-VstsTaskVariable](#set-vststaskvariable)
@@ -21,6 +23,8 @@
   * [Write-VstsAddBuildTag](#write-vstsaddbuildtag)
   * [Write-VstsAssociateArtifact](#write-vstsassociateartifact)
   * [Write-VstsLogDetail](#write-vstslogdetail)
+  * [Write-VstsPrependPath](#write-vstsprependpath)
+  * [Write-VstsSetEndpoint](#write-vstssetendpoint)
   * [Write-VstsSetProgress](#write-vstssetprogress)
   * [Write-VstsSetResult](#write-vstssetresult)
   * [Write-VstsSetSecret](#write-vstssetsecret)
@@ -30,8 +34,11 @@
   * [Write-VstsTaskVerbose](#write-vststaskverbose)
   * [Write-VstsTaskWarning](#write-vststaskwarning)
   * [Write-VstsUpdateBuildNumber](#write-vstsupdatebuildnumber)
+  * [Write-VstsUpdateReleaseName](#write-vstsupdatereleasename)
   * [Write-VstsUploadArtifact](#write-vstsuploadartifact)
   * [Write-VstsUploadBuildLog](#write-vstsuploadbuildlog)
+  * [Write-VstsUploadFile](#write-vstsuploadfile)
+  * [Write-VstsUploadSummary](#write-vstsuploadsummary)
 * [Server OM](#serverom)
   * [Get-VstsAssemblyReference](#get-vstsassemblyreference)
   * [Get-VstsClientCertificate](#get-vstsclientcertificate)
@@ -152,6 +159,36 @@ SYNTAX
 
 DESCRIPTION
     Gets the value for the specified input name.
+```
+### <a name="get-vstssecurefilename" />Get-VstsSecureFileName
+[table of contents](#toc) | [full](FullHelp/Get-VstsSecureFileName.md)
+```
+NAME
+    Get-VstsSecureFileName
+
+SYNOPSIS
+    Gets a secure file name.
+
+SYNTAX
+    Get-VstsSecureFileName [-Id] <String> [-Require] [<CommonParameters>]
+
+DESCRIPTION
+    Gets the name for a secure file.
+```
+### <a name="get-vstssecurefileticket" />Get-VstsSecureFileTicket
+[table of contents](#toc) | [full](FullHelp/Get-VstsSecureFileTicket.md)
+```
+NAME
+    Get-VstsSecureFileTicket
+
+SYNOPSIS
+    Gets a secure file ticket.
+
+SYNTAX
+    Get-VstsSecureFileTicket [-Id] <String> [-Require] [<CommonParameters>]
+
+DESCRIPTION
+    Gets the secure file ticket that can be used to download the secure file contents.
 ```
 ### <a name="get-vststaskvariable" />Get-VstsTaskVariable
 [table of contents](#toc) | [full](FullHelp/Get-VstsTaskVariable.md)
@@ -327,6 +364,31 @@ SYNTAX
     <Object>] [[-StartTime] <Object>] [[-FinishTime] <Object>] [[-Progress] <Object>] [[-State] <Object>]
     [[-Result] <Object>] [[-Message] <String>] [-AsOutput] [<CommonParameters>]
 ```
+### <a name="write-vstsprependpath" />Write-VstsPrependPath
+[table of contents](#toc) | [full](FullHelp/Write-VstsPrependPath.md)
+```
+NAME
+    Write-VstsPrependPath
+
+SYNOPSIS
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
+
+SYNTAX
+    Write-VstsPrependPath [-Path] <String> [-AsOutput] [<CommonParameters>]
+```
+### <a name="write-vstssetendpoint" />Write-VstsSetEndpoint
+[table of contents](#toc) | [full](FullHelp/Write-VstsSetEndpoint.md)
+```
+NAME
+    Write-VstsSetEndpoint
+
+SYNOPSIS
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
+
+SYNTAX
+    Write-VstsSetEndpoint [-Id] <String> [-Field] <String> [-Key] <String> [-Value] <String> [-AsOutput]
+    [<CommonParameters>]
+```
 ### <a name="write-vstssetprogress" />Write-VstsSetProgress
 [table of contents](#toc) | [full](FullHelp/Write-VstsSetProgress.md)
 ```
@@ -439,6 +501,18 @@ SYNOPSIS
 SYNTAX
     Write-VstsUpdateBuildNumber [-Value] <String> [-AsOutput] [<CommonParameters>]
 ```
+### <a name="write-vstsupdatereleasename" />Write-VstsUpdateReleaseName
+[table of contents](#toc) | [full](FullHelp/Write-VstsUpdateReleaseName.md)
+```
+NAME
+    Write-VstsUpdateReleaseName
+
+SYNOPSIS
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
+
+SYNTAX
+    Write-VstsUpdateReleaseName [-Name] <String> [-AsOutput] [<CommonParameters>]
+```
 ### <a name="write-vstsuploadartifact" />Write-VstsUploadArtifact
 [table of contents](#toc) | [full](FullHelp/Write-VstsUploadArtifact.md)
 ```
@@ -463,6 +537,30 @@ SYNOPSIS
 
 SYNTAX
     Write-VstsUploadBuildLog [-Path] <String> [-AsOutput] [<CommonParameters>]
+```
+### <a name="write-vstsuploadfile" />Write-VstsUploadFile
+[table of contents](#toc) | [full](FullHelp/Write-VstsUploadFile.md)
+```
+NAME
+    Write-VstsUploadFile
+
+SYNOPSIS
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
+
+SYNTAX
+    Write-VstsUploadFile [-Path] <String> [-AsOutput] [<CommonParameters>]
+```
+### <a name="write-vstsuploadsummary" />Write-VstsUploadSummary
+[table of contents](#toc) | [full](FullHelp/Write-VstsUploadSummary.md)
+```
+NAME
+    Write-VstsUploadSummary
+
+SYNOPSIS
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
+
+SYNTAX
+    Write-VstsUploadSummary [-Path] <String> [-AsOutput] [<CommonParameters>]
 ```
 ## <a name="serverom" />Server OM
 ### <a name="get-vstsassemblyreference" />Get-VstsAssemblyReference
