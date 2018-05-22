@@ -8,13 +8,15 @@ Invoke-VstsTaskScript -ScriptBlock {
     New-Item -Path $tempDirectory -ItemType Directory |
         ForEach-Object { $_.FullName }
     try {
+        $patterns = "$tempDirectory\NotFound\*.proj"
+
         # Act.
-        $actual = & (Get-Module VstsTaskSdk) Get-FindResult -Path "$tempDirectory\nosuch" -Options (New-VstsFindOptions)
+        $actual = Find-VstsMatch -Pattern $patterns
 
         # Assert.
-        $expected = @( )
+        $expected = $null
         Assert-AreEqual $expected $actual
     } finally {
-        Remove-Item $tempDirectory -Recurse -Force
+        Remove-Item $tempDirectory -Recurse
     }
 }

@@ -625,7 +625,7 @@ function Get-FindResult {
 
     if (!(Test-Path -LiteralPath $Path)) {
         Write-Verbose 'Path not found.'
-        return
+        return ,@( )
     }
 
     $Path = ConvertTo-NormalizedSeparators -Path $Path
