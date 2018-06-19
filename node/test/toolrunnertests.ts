@@ -109,6 +109,8 @@ describe('Toolrunner Tests', function () {
         }
         else {
             tool = tl.tool(tl.which('bash', true));
+            tool.arg('--noprofile');
+            tool.arg('--norc');
             tool.arg('-c');
             tool.arg('echo hello from stderr 1>&2 ; exit 123');
         }
