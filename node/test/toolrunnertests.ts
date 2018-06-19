@@ -109,12 +109,13 @@ describe('Toolrunner Tests', function () {
         }
         else {
             tool = tl.tool(tl.which('bash', true));
+            tool.arg('--norc');
             tool.arg('-c');
             tool.arg('echo hello from stderr 1>&2 ; exit 123');
         }
 
         var ret = tool.execSync(_testExecOptions);
-        assert.equal(ret.code, 123, 'return code of tool should be 1');
+        assert.equal(ret.code, 123, 'return code of tool should be 123');
         assert.equal(ret.stderr.toString().trim(), 'hello from stderr');
         done();
     })
