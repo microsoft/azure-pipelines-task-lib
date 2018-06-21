@@ -1681,8 +1681,10 @@ export class TestPublisher {
 
     public testRunner: string;
 
-    public publish(resultFiles, mergeResults, platform, config, runTitle, publishRunAttachments) {
+    public publish(resultFiles, mergeResults, platform, config, runTitle, publishRunAttachments): void;
+    public publish(resultsFiles, mergeResults, platform, config, runTitle, publishRunAttachments, testRunSystem): void;
 
+    public publish(resultFiles, mergeResults, platform, config, runTitle, publishRunAttachments, testRunSystem = "VSTSTask") {
         var properties = <{ [key: string]: string }>{};
         properties['type'] = this.testRunner;
 
@@ -1709,6 +1711,8 @@ export class TestPublisher {
         if (resultFiles) {
             properties['resultFiles'] = resultFiles;
         }
+
+        properties['testRunSystem'] = testRunSystem;
 
         command('results.publish', properties, '');
     }
