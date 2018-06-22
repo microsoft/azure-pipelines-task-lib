@@ -919,11 +919,11 @@ export function _normalizeSeparators(p: string): string {
 // Expose proxy information to vsts-node-api
 //-----------------------------------------------------
 export function _exposeProxySettings(): void {
-    let proxyUrl = _getVariable('Agent.ProxyUrl');
+    let proxyUrl: string | undefined = _getVariable('Agent.ProxyUrl');
     if (proxyUrl && proxyUrl.length > 0) {
-        let proxyUsername = _getVariable('Agent.ProxyUsername');
-        let proxyPassword = _getVariable('Agent.ProxyPassword');
-        let proxyBypassHostsJson = _getVariable('Agent.ProxyBypassList');
+        let proxyUsername: string | undefined = _getVariable('Agent.ProxyUsername');
+        let proxyPassword: string | undefined = _getVariable('Agent.ProxyPassword');
+        let proxyBypassHostsJson: string | undefined = _getVariable('Agent.ProxyBypassList');
 
         global['_vsts_task_lib_proxy_url'] = proxyUrl;
         global['_vsts_task_lib_proxy_username'] = proxyUsername;
@@ -939,16 +939,16 @@ export function _exposeProxySettings(): void {
 // Expose certificate information to vsts-node-api
 //-----------------------------------------------------
 export function _exposeCertSettings(): void {
-    let ca = _getVariable('Agent.CAInfo');
+    let ca: string | undefined = _getVariable('Agent.CAInfo');
     if (ca) {
         global['_vsts_task_lib_cert_ca'] = ca;
     }
 
     let clientCert = _getVariable('Agent.ClientCert');
     if (clientCert) {
-        let clientCertKey = _getVariable('Agent.ClientCertKey');
-        let clientCertArchive = _getVariable('Agent.ClientCertArchive');
-        let clientCertPassword = _getVariable('Agent.ClientCertPassword');
+        let clientCertKey: string | undefined = _getVariable('Agent.ClientCertKey');
+        let clientCertArchive: string | undefined = _getVariable('Agent.ClientCertArchive');
+        let clientCertPassword: string | undefined = _getVariable('Agent.ClientCertPassword');
 
         global['_vsts_task_lib_cert_clientcert'] = clientCert;
         global['_vsts_task_lib_cert_key'] = clientCertKey;
