@@ -540,7 +540,7 @@ describe('Dir Operation Tests', function () {
 
     // find tests
     it('returns hidden files with find', (done: MochaDone) => {
-        this.timeout(1000);
+        this.timeout(3000);
 
         // create the following layout:
         //   find_hidden_files
