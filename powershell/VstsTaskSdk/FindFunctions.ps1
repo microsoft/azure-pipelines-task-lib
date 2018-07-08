@@ -155,7 +155,7 @@ function Find-Match {
                             $findResults += $findPath
                         }
                     } else {
-                        $findResults = Get-FindResult -Path $findPath -Options $FindOptions
+                        $findResults = @( Get-FindResult -Path $findPath -Options $FindOptions )
                     }
 
                     Write-Verbose "Found $($findResults.Count) paths."
@@ -625,7 +625,7 @@ function Get-FindResult {
 
     if (!(Test-Path -LiteralPath $Path)) {
         Write-Verbose 'Path not found.'
-        return ,@( )
+        return
     }
 
     $Path = ConvertTo-NormalizedSeparators -Path $Path

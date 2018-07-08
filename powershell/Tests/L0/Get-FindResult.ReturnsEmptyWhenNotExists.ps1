@@ -12,7 +12,7 @@ Invoke-VstsTaskScript -ScriptBlock {
         $actual = & (Get-Module VstsTaskSdk) Get-FindResult -Path "$tempDirectory\nosuch" -Options (New-VstsFindOptions)
 
         # Assert.
-        $expected = @( )
+        $expected = $null
         Assert-AreEqual $expected $actual
     } finally {
         Remove-Item $tempDirectory -Recurse -Force
