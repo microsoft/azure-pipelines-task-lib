@@ -49,7 +49,7 @@ import tl = require('vsts-task-lib/task')
 <a href="#taskexecSync">execSync</a> <br/>
 <a href="#tasksetResult">setResult</a> <br/>
  
-### Service Endpoints <a href="#ServiceEndpoints">(v)</a>
+### Service Connections <a href="#ServiceConnections">(v)</a>
  
 <a href="#taskgetEndpointUrl">getEndpointUrl</a> <br/>
 <a href="#taskgetEndpointDataParameter">getEndpointDataParameter</a> <br/>
@@ -57,6 +57,10 @@ import tl = require('vsts-task-lib/task')
 <a href="#taskgetEndpointAuthorizationParameter">getEndpointAuthorizationParameter</a> <br/>
 <a href="#taskEndpointAuthorization">EndpointAuthorization</a> <br/>
 <a href="#taskgetEndpointAuthorization">getEndpointAuthorization</a> <br/>
+ 
+### Secrets <a href="#Secrets">(v)</a>
+ 
+<a href="#tasksetSecret">setSecret</a> <br/>
  
 ### Secure Files <a href="#SecureFiles">(v)</a>
  
@@ -260,7 +264,7 @@ Param | Type | Description
 --- | --- | ---
 name | string | name of the variable to set
 val | string | value to set
-secret | boolean | whether variable is secret.  optional, defaults to false
+secret | boolean | whether variable is secret.  Multi\-line secrets are not allowed.  Optional, defaults to false
  
 <br/>
 <div id="taskgetTaskVariable">
@@ -441,12 +445,13 @@ options | IExecSyncOptions | optional exec options.  See IExecSyncOptions
 Pipe output of exec() to another tool
 @returns {ToolRunner}
 ```javascript
-pipeExecOutputToTool(tool:ToolRunner):ToolRunner
+pipeExecOutputToTool(tool:ToolRunner, file?:string):ToolRunner
 ```
  
 Param | Type | Description
 --- | --- | ---
 tool | ToolRunner | 
+file | string | optional filename to additionally stream the output to.
  
 <br/>
 <div id="toolrunnerIExecSyncResult">
@@ -521,13 +526,13 @@ message | string | A message which will be logged as an error issue if the resul
  
  
 <br/>
-<div id="ServiceEndpoints">
+<div id="ServiceConnections">
  
-## Service Endpoints
+## Service Connections
  
 ---
  
-Retrieve service endpoints and authorization details
+Retrieve service connections (previously called "service endpoints") and authorization details
 <br/>
 <div id="taskgetEndpointUrl">
  
@@ -622,6 +627,28 @@ Param | Type | Description
 --- | --- | ---
 id | string | name of the service endpoint
 optional | boolean | whether the url is optional
+ 
+ 
+<br/>
+<div id="Secrets">
+ 
+## Secrets
+ 
+---
+ 
+Functions for managing pipeline secrets
+<br/>
+<div id="tasksetSecret">
+ 
+### task.setSecret <a href="#index">(^)</a>
+Registers a value with the logger, so the value will be masked from the logs.  Multi-line secrets are not allowed.
+```javascript
+setSecret(val:string):void
+```
+ 
+Param | Type | Description
+--- | --- | ---
+val | string | value to register
  
  
 <br/>
@@ -792,6 +819,7 @@ Contains properties to control whether to follow symlinks
  
 Property | Type | Description
 --- | --- | ---
+allowBrokenSymbolicLinks | boolean | When true, broken symbolic link will not cause an error.
 followSpecifiedSymbolicLink | boolean | Equivalent to the \-H command line option. Indicates whether to traverse descendants if the specified path is a symbolic link directory. Does not cause nested symbolic link directories to be traversed.
 followSymbolicLinks | boolean | Equivalent to the \-L command line option. Indicates whether to traverse descendants of symbolic link directories.
  
@@ -1072,6 +1100,10 @@ Gets http proxy configuration used by Build/Release agent
 
 @return  ProxyConfiguration
 ```javascript
-getHttpProxyConfiguration():ProxyConfiguration
+getHttpProxyConfiguration(requestUrl?:string):ProxyConfiguration
 ```
+ 
+Param | Type | Description
+--- | --- | ---
+requestUrl | string | 
  

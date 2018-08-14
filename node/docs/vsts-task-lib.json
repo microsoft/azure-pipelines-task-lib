@@ -157,6 +157,39 @@
                 }
               ]
             },
+            "_processLineBuffer": {
+              "name": "_processLineBuffer",
+              "members": {},
+              "documentation": "",
+              "kind": "method",
+              "signatures": [
+                {
+                  "parameters": [
+                    {
+                      "name": "data",
+                      "type": "any",
+                      "optional": false,
+                      "documentation": ""
+                    },
+                    {
+                      "name": "strBuffer",
+                      "type": "string",
+                      "optional": false,
+                      "documentation": ""
+                    },
+                    {
+                      "name": "onLine",
+                      "type": "(line: string) => void",
+                      "optional": false,
+                      "documentation": ""
+                    }
+                  ],
+                  "members": {},
+                  "return": "void",
+                  "documentation": ""
+                }
+              ]
+            },
             "_getSpawnFileName": {
               "name": "_getSpawnFileName",
               "members": {},
@@ -393,6 +426,12 @@
                       "type": "ToolRunner",
                       "optional": false,
                       "documentation": ""
+                    },
+                    {
+                      "name": "file",
+                      "type": "string",
+                      "optional": true,
+                      "documentation": "optional filename to additionally stream the output to."
                     }
                   ],
                   "members": {},
@@ -665,12 +704,33 @@
                   "name": "secret",
                   "type": "boolean",
                   "optional": true,
-                  "documentation": "whether variable is secret.  optional, defaults to false"
+                  "documentation": "whether variable is secret.  Multi-line secrets are not allowed.  Optional, defaults to false"
                 }
               ],
               "members": {},
               "return": "void",
               "documentation": "Sets a variable which will be available to subsequent tasks as well.\n\n@returns   void"
+            }
+          ]
+        },
+        "setSecret": {
+          "name": "setSecret",
+          "members": {},
+          "documentation": "Registers a value with the logger, so the value will be masked from the logs.  Multi-line secrets are not allowed.",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "val",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": "value to register"
+                }
+              ],
+              "members": {},
+              "return": "void",
+              "documentation": "Registers a value with the logger, so the value will be masked from the logs.  Multi-line secrets are not allowed."
             }
           ]
         },
@@ -1611,6 +1671,11 @@
         "FindOptions": {
           "name": "FindOptions",
           "members": {
+            "allowBrokenSymbolicLinks": {
+              "documentation": "When true, broken symbolic link will not cause an error.",
+              "name": "allowBrokenSymbolicLinks",
+              "return": "boolean"
+            },
             "followSpecifiedSymbolicLink": {
               "documentation": "Equivalent to the -H command line option. Indicates whether to traverse descendants if\nthe specified path is a symbolic link directory. Does not cause nested symbolic link\ndirectories to be traversed.",
               "name": "followSpecifiedSymbolicLink",
@@ -2136,10 +2201,63 @@
           "kind": "function",
           "signatures": [
             {
-              "parameters": [],
+              "parameters": [
+                {
+                  "name": "requestUrl",
+                  "type": "string",
+                  "optional": true,
+                  "documentation": ""
+                }
+              ],
               "members": {},
               "return": "ProxyConfiguration",
               "documentation": "Gets http proxy configuration used by Build/Release agent\n\n@return  ProxyConfiguration"
+            }
+          ]
+        },
+        "CertConfiguration": {
+          "name": "CertConfiguration",
+          "members": {
+            "caFile": {
+              "documentation": "",
+              "name": "caFile",
+              "return": "string"
+            },
+            "certFile": {
+              "documentation": "",
+              "name": "certFile",
+              "return": "string"
+            },
+            "keyFile": {
+              "documentation": "",
+              "name": "keyFile",
+              "return": "string"
+            },
+            "certArchiveFile": {
+              "documentation": "",
+              "name": "certArchiveFile",
+              "return": "string"
+            },
+            "passphrase": {
+              "documentation": "",
+              "name": "passphrase",
+              "return": "string"
+            }
+          },
+          "documentation": "",
+          "kind": "interface"
+        },
+        "getHttpCertConfiguration": {
+          "name": "getHttpCertConfiguration",
+          "members": {},
+          "documentation": "Gets http certificate configuration used by Build/Release agent\n\n@return  CertConfiguration",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [],
+              "members": {},
+              "return": "CertConfiguration",
+              "documentation": "Gets http certificate configuration used by Build/Release agent\n\n@return  CertConfiguration"
             }
           ]
         },
@@ -2186,6 +2304,55 @@
                     },
                     {
                       "name": "publishRunAttachments",
+                      "type": "any",
+                      "optional": false,
+                      "documentation": ""
+                    }
+                  ],
+                  "members": {},
+                  "return": "void",
+                  "documentation": ""
+                },
+                {
+                  "parameters": [
+                    {
+                      "name": "resultsFiles",
+                      "type": "any",
+                      "optional": false,
+                      "documentation": ""
+                    },
+                    {
+                      "name": "mergeResults",
+                      "type": "any",
+                      "optional": false,
+                      "documentation": ""
+                    },
+                    {
+                      "name": "platform",
+                      "type": "any",
+                      "optional": false,
+                      "documentation": ""
+                    },
+                    {
+                      "name": "config",
+                      "type": "any",
+                      "optional": false,
+                      "documentation": ""
+                    },
+                    {
+                      "name": "runTitle",
+                      "type": "any",
+                      "optional": false,
+                      "documentation": ""
+                    },
+                    {
+                      "name": "publishRunAttachments",
+                      "type": "any",
+                      "optional": false,
+                      "documentation": ""
+                    },
+                    {
+                      "name": "testRunSystem",
                       "type": "any",
                       "optional": false,
                       "documentation": ""
@@ -2316,39 +2483,6 @@
               "members": {},
               "return": "CodeCoverageEnabler",
               "documentation": ""
-            }
-          ]
-        },
-        "publishTelemetry": {
-          "name": "publishTelemetry",
-          "members": {},
-          "documentation": "Publishes the telemetry data\n\n@returns         void",
-          "kind": "function",
-          "signatures": [
-            {
-              "parameters": [
-                {
-                  "name": "area",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": "Area path where the telemetry will be published"
-                },
-                {
-                  "name": "feature",
-                  "type": "string",
-                  "optional": false,
-                  "documentation": "Feature group where the telemetry will be published"
-                },
-                {
-                  "name": "properties",
-                  "type": "{ [key: string]: any; }",
-                  "optional": false,
-                  "documentation": "telemetry data which will be published"
-                }
-              ],
-              "members": {},
-              "return": "void",
-              "documentation": "Publishes the telemetry data\n\n@returns         void"
             }
           ]
         }
