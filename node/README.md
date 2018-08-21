@@ -21,7 +21,7 @@ Guidance: [Finding Files](docs/findingfiles.md), [Minimum agent version](docs/mi
 
 ## Reference Examples
 
-The [ShellScript Task](https://github.com/Microsoft/vsts-tasks/tree/master/Tasks/ShellScript) and the [XCode Task](https://github.com/Microsoft/vsts-tasks/tree/master/Tasks/Xcode) are good examples.
+The [ShellScript Task](https://github.com/Microsoft/vsts-tasks/tree/master/Tasks/ShellScriptV2) and the [XCode Task](https://github.com/Microsoft/vsts-tasks/tree/master/Tasks/XcodeV5) are good examples.
 
 ## Contributing
 
