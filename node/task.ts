@@ -35,9 +35,12 @@ export const setErrStream = im._setErrStream;
  * 
  * @param result    TaskResult enum of Succeeded, SucceededWithIssues or Failed.  
  * @param message   A message which will be logged as an error issue if the result is Failed.
+ * @param done      Optional. Instructs the agent the task is done. This is helpful when child processes
+ *                  may still be running and prevent node from fully exiting. This argument is supported
+ *                  from agent version 2.142.0 or higher (otherwise will no-op).
  * @returns         void
  */
-export function setResult(result: TaskResult, message: string): void {
+export function setResult(result: TaskResult, message: string, done?: boolean): void {
     debug('task result: ' + TaskResult[result]);
 
     // add an error issue
@@ -48,8 +51,13 @@ export function setResult(result: TaskResult, message: string): void {
         warning(message);
     }
 
-    // set the task result
-    command('task.complete', { 'result': TaskResult[result] }, message);
+    // task.complete
+    var properties = { 'result': TaskResult[result] };
+    if (done) {
+        properties['done'] = 'true';
+    }
+
+    command('task.complete', properties, message);
 }
 
 //
