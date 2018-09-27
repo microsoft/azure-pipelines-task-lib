@@ -493,9 +493,9 @@ export class ToolRunner extends events.EventEmitter {
 
     /**
      * Add argument
-     * Append an argument or an array of arguments 
+     * Append an argument or an array of arguments
      * returns ToolRunner for chaining
-     * 
+     *
      * @param     val        string cmdline or array of strings
      * @returns   ToolRunner
      */
@@ -520,7 +520,7 @@ export class ToolRunner extends events.EventEmitter {
      * Parses an argument line into one or more arguments
      * e.g. .line('"arg one" two -z') is equivalent to .arg(['arg one', 'two', '-z'])
      * returns ToolRunner for chaining
-     * 
+     *
      * @param     val        string argument line
      * @returns   ToolRunner
      */
@@ -566,7 +566,7 @@ export class ToolRunner extends events.EventEmitter {
      * Exec a tool.
      * Output will be streamed to the live console.
      * Returns promise with return code
-     * 
+     *
      * @param     tool     path to tool to exec
      * @param     options  optional exec options.  See IExecOptions
      * @returns   number
@@ -611,7 +611,7 @@ export class ToolRunner extends events.EventEmitter {
                 this._getSpawnFileName(),
                 this._getSpawnArgs(options),
                 this._getSpawnOptions(options));
-            
+
             waitingEvents ++;
             cp = child.spawn(
                 this.pipeOutputToTool._getSpawnFileName(),
@@ -759,7 +759,7 @@ export class ToolRunner extends events.EventEmitter {
             }
 
             this._debug('success:' + success);
-                
+
             if (!successFirst) { //in the case output is piped to another tool, check exit code of both tools
                 error = new Error(toolPathFirst + ' failed with return code: ' + returnCodeFirst);
             } else if (!success) {
@@ -779,11 +779,11 @@ export class ToolRunner extends events.EventEmitter {
     }
 
     /**
-     * Exec a tool synchronously. 
+     * Exec a tool synchronously.
      * Output will be *not* be streamed to the live console.  It will be returned after execution is complete.
-     * Appropriate for short running tools 
+     * Appropriate for short running tools
      * Returns IExecSyncResult with output and return code
-     * 
+     *
      * @param     tool     path to tool to exec
      * @param     options  optional exec options.  See IExecSyncOptions
      * @returns   IExecSyncResult
@@ -796,6 +796,7 @@ export class ToolRunner extends events.EventEmitter {
         this.args.forEach((arg) => {
             this._debug('   ' + arg);
         });
+        this._debug('IMPORTANT: output from this command is buffered.  There may be a delay between execution and when results are printed.');
 
         var success = true;
         options = this._cloneExecOptions(options as IExecOptions);
@@ -804,8 +805,11 @@ export class ToolRunner extends events.EventEmitter {
             options.outStream.write(this._getCommandString(options as IExecOptions) + os.EOL);
         }
 
+        let t0 = new Date().getTime();
         var r = child.spawnSync(this._getSpawnFileName(), this._getSpawnArgs(options as IExecOptions), this._getSpawnSyncOptions(options));
+        let t1 = new Date().getTime();
 
+        this._debug('Execution time of command was ' + (t1-t0) + 'ms.  Spooling output...');
         if (!options.silent && r.stdout && r.stdout.length > 0) {
             options.outStream.write(r.stdout);
         }
