@@ -1397,6 +1397,20 @@
             }
           ]
         },
+        "osArch": {
+          "name": "osArch",
+          "members": {},
+          "documentation": "Useful for determining the host CPU architecture.\nsee [os.arch](https://nodejs.org/api/os.html#os_os_arch)\n\n@return      the CPU architecture of the operating system",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [],
+              "members": {},
+              "return": "string",
+              "documentation": "Useful for determining the host CPU architecture.\nsee [os.arch](https://nodejs.org/api/os.html#os_os_arch)\n\n@return      the CPU architecture of the operating system"
+            }
+          ]
+        },
         "cwd": {
           "name": "cwd",
           "members": {},

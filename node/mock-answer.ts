@@ -1,5 +1,5 @@
-import * as path from 'path';
 import * as fs from 'fs';
+import * as path from 'path';
 
 export interface TaskLibAnswerExecResult {
     code: number,
@@ -16,6 +16,7 @@ export interface TaskLibAnswers {
     findMatch?: { [key: string]: string[] },
     ls?: { [key: string]: string },
     osType?: { [key: string]: string },
+    osArch?: { [key: string]: string },
     rmRF?: { [key: string]: { success: boolean } },
     stats?: { [key: string]: any }, // Can't use `fs.Stats` as most existing uses don't mock all required properties
     which?: { [key: string]: string },
@@ -30,6 +31,7 @@ export type MockedCommand = 'checkPath'
     | 'findMatch'
     | 'ls'
     | 'osType'
+    | 'osArch'
     | 'rmRF'
     | 'stats'
     | 'which';
