@@ -209,6 +209,10 @@ export function osType(): string {
     return mock.getResponse('osType', 'osType', module.exports.debug);
 }
 
+export function osArch(): string {
+    return mock.getResponse('osArch', 'osArch', module.exports.debug);
+}
+
 export function cwd(): string {
     return mock.getResponse('cwd', 'cwd', module.exports.debug);
 }
