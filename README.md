@@ -1,7 +1,7 @@
 
-# VSTS DevOps Task SDK
+# Azure Pipelines Task SDK
 
-Libraries for writing [Visual Studio Team Services](https://www.visualstudio.com/en-us/products/visual-studio-team-services-vs.aspx) build and deployment tasks
+Libraries for writing [Azure Pipelines](https://azure.microsoft.com/en-us/services/devops/pipelines/) build and deployment tasks
 
 Reference examples of our in the box tasks [are here](https://github.com/Microsoft/vsts-tasks)
 
