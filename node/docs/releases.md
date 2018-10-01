@@ -1,5 +1,9 @@
 # VSTS-TASK-LIB RELEASES
 
+## 2.7.0
+ * Updated `setResult` to expose optional done parameter
+ * Updated `ToolRunner` to distinguish between events for process exit and STDIO streams closed
+
 ## 2.5.0
  * Updated `FindOptions` to expose `allowBrokenSymbolicLinks`.
 
