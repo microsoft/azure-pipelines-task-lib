@@ -166,7 +166,7 @@ The agent runs the task and reads key information from command output output ove
 Let's supply one of the inputs and try again.
 
 ```bash
-$ export INPUT_SAMPLESTRING="Hello World"
+$ export INPUT_SAMPLESTRING="Hello World" ##If running in a windows environment, use $ $env:INPUT_SAMPLESTRING = "Hello World" instead
 $ node index.js
 ##vso[task.debug]agent.workFolder=undefined
 ##vso[task.debug]loading inputs and endpoints
