@@ -5,8 +5,6 @@ This step by step will show how to manually create, debug and test a cross platf
 Tasks can be created using tfx as a convenience, but it's good to understand the parts of a task.  
 This tutorial walks through each manual step of creating a task.
 
-Note: The tutorial was done on a mac.  Attempted to make generic for all platforms.  Create issues in the repo.
-
 ## Video
 
 https://youtu.be/O_34c7p4GlM?t=1173
@@ -24,6 +22,14 @@ This tutorial uses [VS Code](https://code.visualstudio.com) for great intellisen
 ## Sample Files
 
 Files used for this walk through are [located here in this gist](https://gist.github.com/bryanmacfarlane/154f14dd8cb11a71ef04b0c836e5be6e)
+
+## Unix vs Windows
+
+This tutorial was done on a mac. We attempted to make it generic for all platforms, but the syntax for setting environment variables is different.
+
+If using Windows, replace any instances of ```export <var>=<val>``` with ```$env:<var>=<val>```
+
+If there are additional discrepancies or unexpected behavior, please create issues in the repo.
 
 ## Create Task Scaffolding
 
@@ -166,7 +172,7 @@ The agent runs the task and reads key information from command output output ove
 Let's supply one of the inputs and try again.
 
 ```bash
-$ export INPUT_SAMPLESTRING="Hello World" ##If running in a windows environment, use $env:INPUT_SAMPLESTRING = "Hello World"
+$ export INPUT_SAMPLESTRING="Hello World"
 $ node index.js
 ##vso[task.debug]agent.workFolder=undefined
 ##vso[task.debug]loading inputs and endpoints
