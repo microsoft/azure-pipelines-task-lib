@@ -24,7 +24,7 @@ $env:INPUT_MYINPUT = [...]
 $env:INPUT_MYENDPOINT = 'EP1'
 $env:ENDPOINT_URL_EP1 = 'https://[...]'
 $env:ENDPOINT_AUTH_EP1 = '{ "Parameters": { "UserName": "Some user", "Password": "Some password" }, "Scheme": "Some scheme" }'
-$env:ENDPOINT_DATA_EP1 = '{ "Key1": "Value1", "Key2", "Value2" }'
+$env:ENDPOINT_DATA_EP1 = '{ "Key1": "Value1", "Key2": "Value2" }'
 ```
 
 For the convenience of interactive testing, the module will prompt for undefined task variables and inputs. For example, `Get-VstsTaskInput -Name SomeVariable` will prompt for the value if the task variable is not defined. If a value is entered, then it will be stored so that subsequent calls will return the same value. Task variables are stored as environment variables. Inputs and endpoints are stored internally within the VstsTaskSdk module and can be cleared by removing and re-importing the module.
