@@ -25,7 +25,7 @@ Files used for this walk through are [located here in this gist](https://gist.gi
 
 ## Unix vs Windows
 
-This tutorial was done on a mac. We attempted to make it generic for all platforms, but the syntax for setting environment variables is different.
+This tutorial was done on a Mac. We attempted to make it generic for all platforms, but the syntax for setting environment variables is different.
 
 If using Windows, replace any instances of ```export <var>=<val>``` with ```$env:<var>=<val>```
 
