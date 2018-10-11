@@ -6,6 +6,8 @@ import crypto = require('crypto');
 
 var uuidV4 = require('uuid/v4');
 var algorithm = "aes-256-ctr";
+var encryptEncoding: 'hex' = 'hex';
+var unencryptedEncoding: 'utf8' = 'utf8';
 
 //
 // Store sensitive data in proc.
@@ -43,10 +45,14 @@ export class Vault {
         }
 
         var key = this.getKey();
-        var cipher = crypto.createCipher(algorithm, key);
-        var crypted = cipher.update(data,'utf8','hex')
-        crypted += cipher.final('hex');
-        this._store[name] = crypted;
+        var hashedKey = crypto.createHash('sha256').update(key).digest();
+        var iv = crypto.randomBytes(16);
+
+        var cipher = crypto.createCipheriv(algorithm, hashedKey, iv);
+        var crypted = cipher.update(data, unencryptedEncoding, encryptEncoding)
+        var cryptedFinal = cipher.final(encryptEncoding);
+
+        this._store[name] = iv.toString(encryptEncoding) + crypted + cryptedFinal;
         return true;
     }
 
@@ -56,11 +62,17 @@ export class Vault {
 
         if (this._store.hasOwnProperty(name)) {
             var key = this.getKey();
+            var hashedKey = crypto.createHash('sha256').update(key).digest();
             var data = this._store[name];
-            var decipher = crypto.createDecipher(algorithm, key)
-            var dec = decipher.update(data,'hex','utf8')
-            dec += decipher.final('utf8');
-            secret = dec;
+            var ivDataBuffer = Buffer.from(data, encryptEncoding);
+            var iv = ivDataBuffer.slice(0, 16);
+            var encryptedText = ivDataBuffer.slice(16);
+
+            var decipher = crypto.createDecipheriv(algorithm, hashedKey, iv);
+            var dec = decipher.update(encryptedText,encryptEncoding,unencryptedEncoding);
+            var decFinal = decipher.final(unencryptedEncoding);
+
+            secret = dec + decFinal;
         }
 
         return secret;
