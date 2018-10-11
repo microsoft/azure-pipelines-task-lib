@@ -100,6 +100,18 @@ export class ToolRunner extends events.EventEmitter {
         for (var i = 0; i < argString.length; i++) {
             var c = argString.charAt(i);
 
+            if (c === ' ' && !inQuotes) {
+                if (!lastCharWasSpace) {
+                    args.push(arg);
+                    arg = '';
+                }
+                lastCharWasSpace = true;
+                continue;
+            }
+            else {
+                lastCharWasSpace = false;
+            }
+
             if (c === '"') {
                 if (!escaped) {
                     inQuotes = !inQuotes;
@@ -107,22 +119,11 @@ export class ToolRunner extends events.EventEmitter {
                 else {
                     append(c);
                 }
-                lastCharWasSpace = false;
                 continue;
             }
 
             if (c === "\\" && inQuotes) {
                 escaped = true;
-                lastCharWasSpace = false;
-                continue;
-            }
-
-            if (c === ' ' && !inQuotes) {
-                if (!lastCharWasSpace) {
-                    args.push(arg);
-                    arg = '';
-                }
-                lastCharWasSpace = true;
                 continue;
             }
 
