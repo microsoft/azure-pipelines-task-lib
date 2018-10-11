@@ -15,6 +15,15 @@ export class TaskMockRunner {
         process.env['INPUT_' + name.replace(' ', '_').toUpperCase()] = val;
     }
 
+    public setVariableName(name: string, val: string, isSecret?: boolean) {
+        if(isSecret) {
+            process.env['SECRET_' + name.replace(' ', '_').toUpperCase()] = val;
+        }
+        else {
+            process.env['VSTS_TASKVARIABLE_' + name.replace(' ', '_').toUpperCase()] = val;
+        }
+    }
+
     /**
      * Register answers for the mock "vsts-task-lib/task" instance.
      *
