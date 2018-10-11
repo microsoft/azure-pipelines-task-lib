@@ -220,6 +220,9 @@ export class ToolRunner extends events.EventEmitter {
 
             ops.outStream.write('[command]' + cmdString + os.EOL);
         }
+        else {
+            ops.outStream.write('[command]');
+        }
 
         // TODO: filter process.env
         var res = mock.getResponse('exec', cmdString, debug);
