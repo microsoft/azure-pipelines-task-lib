@@ -183,7 +183,7 @@ export interface VariableInfo {
  * @returns   string
  */
 export function getInput(name: string, required?: boolean): string {
-    var inval = im._vault.retrieveSecret('INPUT_' + name.replace(' ', '_').toUpperCase());
+    var inval = im._vault.retrieveSecret('INPUT_' + name.replace(/\./g, '_').replace(/ /g, '_').toUpperCase());
     if (inval) {
         inval = inval.trim();
     }
