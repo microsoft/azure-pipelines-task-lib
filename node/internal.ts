@@ -442,10 +442,10 @@ function _tryGetExecutablePath(filePath: string, extensions: string[]): string {
                 }
             }
             else {
-                // on Mac/Linux, test the execute bit
+                // on Mac/Linux, test the execute bits
                 //     R   W  X  R  W X R W X
                 //   256 128 64 32 16 8 4 2 1
-                if ((stats.mode & 1) == 1) {
+                if ((stats.mode & 73) > 0) {
                     return filePath;
                 }
             }
