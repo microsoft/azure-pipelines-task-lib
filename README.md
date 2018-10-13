@@ -20,7 +20,7 @@ Reference examples of our in the box tasks [are here](https://github.com/Microso
  * __Consistent API:__ The TypeScript and PowerShell libs are largely consistent. They only differ where it makes sense (being true to the platform).
  * __Tracing for free:__ Tracing has been built-in to many of the commands. Use the SDK and get some debug tracing for free.
 
-## TypeScript Tasks
+## TypeScript Tasks (2.7.0)
 
 Cross platform tasks are written in TypeScript.  It is the preferred way to write tasks once.
 
