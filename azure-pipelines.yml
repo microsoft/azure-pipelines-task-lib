@@ -2,12 +2,13 @@ trigger:
 - master
 - features/*
 
-phases:
+jobs:
 #################################################
-- phase: windows
+- job: windows
 #################################################
-  condition: and(succeeded(), eq(variables.os, 'Windows_NT'))
-  queue: Hosted VS2017
+  displayName: windows
+  pool:
+    vmImage:vs2017-win2016
 
   steps:
   ################################################################################
@@ -61,8 +62,9 @@ phases:
 #################################################
 - phase: linux
 #################################################
-  condition: and(succeeded(), eq(variables.os, 'Linux'))
-  queue: Hosted Linux Preview
+  displayName: Linux
+  pool:
+    vmImage: ubuntu-16.04
 
   steps:
   ################################################################################
@@ -101,8 +103,9 @@ phases:
 #################################################
 - phase: macOS
 #################################################
-  condition: and(succeeded(), eq(variables.os, 'Darwin'))
-  queue: Hosted macOS Preview
+  displayName: macOS
+  pool:
+    vmImage: macOS-10.13
 
   steps:
   ################################################################################
