@@ -60,7 +60,7 @@ jobs:
     workingDirectory: powershell
 
 #################################################
-- phase: linux
+- job: linux
 #################################################
   displayName: Linux
   pool:
@@ -101,7 +101,7 @@ jobs:
     workingDirectory: node
 
 #################################################
-- phase: macOS
+- job: macOS
 #################################################
   displayName: macOS
   pool:
