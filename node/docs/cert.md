@@ -1,4 +1,4 @@
-### Get certificate configuration by using [azure-pipelines-task-lib](https://github.com/Microsoft/azure-pipelines-task-lib) method (Min Agent Version 2.122.0)
+### Get certificate configuration by using [AZURE-PIPELINES-TASK-LIB](https://github.com/Microsoft/azure-pipelines-task-lib) method (Min Agent Version 2.122.0)
 
 #### Node.js Lib
 

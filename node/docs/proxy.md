@@ -1,4 +1,4 @@
-### Get proxy configuration by using [azure-pipelines-task-lib](https://github.com/Microsoft/azure-pipelines-task-lib) method
+### Get proxy configuration by using [AZURE-DEVOPS-TASK-LIB](https://github.com/Microsoft/azure-pipelines-task-lib) method
 
 #### Node.js Lib
 
