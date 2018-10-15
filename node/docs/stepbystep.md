@@ -39,18 +39,18 @@ $ mkdir sampletask && cd sampletask
 $ npm init
 ```
 
-### Add vsts-task-lib
+### Add azure-pipelines-task-lib
 
-Add vsts-task-lib to your task.  Remember your task must carry the lib.  Ensure it's at least 0.9.5 which now carries typings.  
+Add azure-pipelines-task-lib to your task.  Remember your task must carry the lib.  Ensure it's at least 0.9.5 which now carries typings.  
 
 The package.json should have dependency with ^.  Ex: ^0.9.5.  This means you are locked to 0.9.x and will pick up patches on npm install.
 
 The npm module carries the .d.ts typecript definition files so compile and intellisense support will just work.
 
 ```
-$ npm install vsts-task-lib --save
+$ npm install azure-pipelines-task-lib --save
 ...
-└─┬ vsts-task-lib@2.0.5 
+└─┬ azure-pipelines-task-lib@2.0.5 
 ... 
 ```
 
@@ -95,8 +95,8 @@ Instellisense should just work in [VS Code](https://code.visualstudio.com)
 The code is straight forward.  As a reference:
 
 ```javascript
-import tl = require('vsts-task-lib/task');
-import trm = require('vsts-task-lib/toolrunner');
+import tl = require('azure-pipelines-task-lib/task');
+import trm = require('azure-pipelines-task-lib/toolrunner');
 import mod = require('./taskmod');
 
 async function run() {
@@ -145,7 +145,7 @@ Key Points:
  - Never process.exit your task.  You can sometimes lose output and often the last bit of output is critical
 
 If we did our job well, the code should be pretty self explanatory.    
-But, see the [API Reference](vsts-task-lib.md) for specifics.
+But, see the [API Reference](azure-pipelines-task-lib.md) for specifics.
 
 ## Compile
 
@@ -228,7 +228,7 @@ Node offers an interactive console and since the task lib is in your node_module
 
 ```bash
 $ node
-> var tl = require('vsts-task-lib/task');
+> var tl = require('azure-pipelines-task-lib/task');
 ##vso[task.debug]agent.workFolder=undefined
 ##vso[task.debug]loading inputs and endpoints
 ##vso[task.debug]loaded 0
@@ -248,7 +248,7 @@ Coming soon
 
 ## Unit testing your task scripts
 
-This requires vsts-task-lib 0.9.15 or greater.
+This requires azure-pipelines-task-lib 0.9.15 or greater.
 
 
 ### Goals:  

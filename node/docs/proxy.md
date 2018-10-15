@@ -1,4 +1,4 @@
-### Get proxy configuration by using [VSTS-Task-Lib](https://github.com/Microsoft/vsts-task-lib) method
+### Get proxy configuration by using [azure-pipelines-task-lib](https://github.com/Microsoft/azure-pipelines-task-lib) method
 
 #### Node.js Lib
 
@@ -20,7 +20,7 @@ export interface ProxyConfiguration {
 In the following example, we will retrieve proxy configuration information and use VSTS-Node-Api to make a Rest Api call back to VSTS/TFS service, the Rest call will go through the web proxy you configured in `.proxy` file.
 ```typescript
 // MyProxyExampleTask.ts
-import tl = require('vsts-task-lib/task');
+import tl = require('azure-pipelines-task-lib/task');
 import api = require('vso-node-api');
 import VsoBaseInterfaces = require('vso-node-api/interfaces/common/VsoBaseInterfaces');
 
@@ -39,7 +39,7 @@ async function run() {
     // Options for VSTS-Node-Api, 
     // this is not required if you want to send http request to the same VSTS/TFS
     // instance the agent currently connect to.
-    // VSTS-Node-Api will pick up proxy setting from VSTS-Task-Lib automatically 
+    // VSTS-Node-Api will pick up proxy setting from azure-pipelines-task-lib automatically 
     let option: VsoBaseInterfaces.IRequestOptions = {
         proxy: {
                 proxyUrl: proxy.proxyUrl,
