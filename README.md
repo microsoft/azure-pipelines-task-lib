@@ -8,9 +8,9 @@ Reference examples of our in the box tasks [are here](https://github.com/Microso
 ## Status
 |   | Build & Test |
 |---|:-----:|
-|![Win](res/win_med.png) **Windows**|![Build & Test](https://mseng.visualstudio.com/DefaultCollection/_apis/public/build/definitions/b924d696-3eae-4116-8443-9a18392d8544/2553/badge?branch=master)| 
-|![Apple](res/apple_med.png) **OSX**|![Build & Test](https://mseng.visualstudio.com/_apis/public/build/definitions/b924d696-3eae-4116-8443-9a18392d8544/5471/badge?branch=master)|
-|![Ubuntu14](res/ubuntu_med.png) **Ubuntu 14.04**|![Build & Test](https://mseng.visualstudio.com/_apis/public/build/definitions/b924d696-3eae-4116-8443-9a18392d8544/4123/badge?branch=master)|
+|![Win](res/win_med.png) **Windows**|![Build & Test](https://mseng.visualstudio.com/pipelinetools/_apis/build/status/azure-pipelines-task-lib?branchName=master&jobname=windows)| 
+|![Apple](res/apple_med.png) **OSX**|![Build & Test](https://mseng.visualstudio.com/pipelinetools/_apis/build/status/azure-pipelines-task-lib?branchName=master&jobname=macOS)|
+|![Ubuntu14](res/ubuntu_med.png) **Ubuntu 14.04**|![Build & Test](https://mseng.visualstudio.com/pipelinetools/_apis/build/status/azure-pipelines-task-lib?branchName=master&jobname=linux)|
 
 ## Highlights
 
