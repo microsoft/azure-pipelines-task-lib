@@ -6,11 +6,17 @@ Libraries for writing [Azure Pipelines](https://azure.microsoft.com/en-us/servic
 Reference examples of our in the box tasks [are here](https://github.com/Microsoft/vsts-tasks)
 
 ## Status
+
 |   | Build & Test |
 |---|:-----:|
-|![Win](res/win_med.png) **Windows**|![Build & Test](https://mseng.visualstudio.com/pipelinetools/_apis/build/status/azure-pipelines-task-lib?branchName=master&jobname=windows)| 
-|![Apple](res/apple_med.png) **OSX**|![Build & Test](https://mseng.visualstudio.com/pipelinetools/_apis/build/status/azure-pipelines-task-lib?branchName=master&jobname=macOS)|
-|![Ubuntu14](res/ubuntu_med.png) **Ubuntu 14.04**|![Build & Test](https://mseng.visualstudio.com/pipelinetools/_apis/build/status/azure-pipelines-task-lib?branchName=master&jobname=linux)|
+|![Win-x64](res/win_med.png) **Windows**|[![Build & Test][win-build-badge]][build]| 
+|![macOS](res/apple_med.png) **macOS**|[![Build & Test][macOS-build-badge]][build]| 
+|![Linux-x64](res/ubuntu_med.png) **Linux**|[![Build & Test][linux-build-badge]][build]|
+
+[win-build-badge]: https://dev.azure.com/mseng/PipelineTools/_apis/build/status/azure-pipelines-task-lib-ci?branchName=master&jobname=windows
+[macOS-build-badge]: https://dev.azure.com/mseng/PipelineTools/_apis/build/status/azure-pipelines-task-lib-ci?branchName=master&jobname=macOS
+[linux-build-badge]: https://dev.azure.com/mseng/PipelineTools/_apis/build/status/azure-pipelines-task-lib-ci?branchName=master&jobname=Linux
+[build]: https://dev.azure.com/mseng/PipelineTools/_build/latest?definitionId=7623
 
 ## Highlights
 
