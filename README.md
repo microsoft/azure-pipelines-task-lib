@@ -15,7 +15,7 @@ Reference examples of our in the box tasks [are here](https://github.com/Microso
 
 [win-build-badge]: https://dev.azure.com/mseng/PipelineTools/_apis/build/status/azure-pipelines-task-lib-ci?branchName=master&jobname=windows
 [macOS-build-badge]: https://dev.azure.com/mseng/PipelineTools/_apis/build/status/azure-pipelines-task-lib-ci?branchName=master&jobname=macOS
-[linux-build-badge]: https://dev.azure.com/mseng/PipelineTools/_apis/build/status/azure-pipelines-task-lib-ci?branchName=master&jobname=Linux
+[linux-build-badge]: https://dev.azure.com/mseng/PipelineTools/_apis/build/status/azure-pipelines-task-lib-ci?branchName=master&jobname=linux
 [build]: https://dev.azure.com/mseng/PipelineTools/_build/latest?definitionId=7623
 
 ## Highlights
