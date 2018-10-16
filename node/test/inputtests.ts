@@ -884,7 +884,7 @@ describe('Input Tests', function () {
         im._loadData();
         assert.equal(tl.getInput('SomeInput'), 'some input value');
 
-        // copy vsts-task-lib to a different dir and load it from
+        // copy azure-pipelines-task-lib to a different dir and load it from
         // there so it will be forced to load again
         let testDir = path.join(testutil.getTestTemp(), '_loadData-not-called-twice');
         tl.mkdirP(testDir);

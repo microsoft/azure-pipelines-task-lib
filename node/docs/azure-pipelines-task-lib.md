@@ -1,17 +1,17 @@
-# VSTS-TASK-LIB TYPESCRIPT API
+# AZURE-PIPELINES-TASK-LIB TYPESCRIPT API
  
 ## Dependencies
 A [cross platform agent](https://github.com/Microsoft/vso-agent) OR a TFS 2015 Update 2 Windows agent (or higher) is required to run a Node task end-to-end. However, an agent is not required for interactively testing the task.
  
 ## Importing
-For now, the built vsts-task-lib (in _build) should be packaged with your task in a node_modules folder
+For now, the built azure-pipelines-task-lib (in _build) should be packaged with your task in a node_modules folder
  
-The build generates a vsts-task-lib.d.ts file for use when compiling tasks
+The build generates a azure-pipelines-task-lib.d.ts file for use when compiling tasks
 In the example below, it is in a folder named definitions above the tasks lib
  
 ```
-/// <reference path="../definitions/vsts-task-lib.d.ts" />
-import tl = require('vsts-task-lib/task')
+/// <reference path="../definitions/azure-pipelines-task-lib.d.ts" />
+import tl = require('azure-pipelines-task-lib/task')
 ```
  
 ## [Release notes](releases.md)
@@ -311,9 +311,9 @@ secret | boolean | whether variable is secret.  optional, defaults to false
 Tasks typically execute a series of tools (cli) and set the result of the task based on the outcome of those
  
 ```javascript
-/// <reference path="../definitions/vsts-task-lib.d.ts" />
-import tl = require('vsts-task-lib/task');
-import tr = require('vsts-task-lib/toolrunner');
+/// <reference path="../definitions/azure-pipelines-task-lib.d.ts" />
+import tl = require('azure-pipelines-task-lib/task');
+import tr = require('azure-pipelines-task-lib/toolrunner');
 
 try {
     var toolPath = tl.which('atool');
@@ -1035,7 +1035,7 @@ includeDirectories | boolean | whether to include directories in the result
 Localization is optional but is supported using these functions at runtime
  
 ```javascript
-/// <reference path="../definitions/vsts-task-lib.d.ts" />
+/// <reference path="../definitions/azure-pipelines-task-lib.d.ts" />
 
 tl.setResourcePath(path.join( __dirname, 'task.json'));
 

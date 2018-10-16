@@ -16,19 +16,19 @@ When designing a task glob input experience, one of the following UI layout patt
 
 ## Task Lib Functions
 
-The above UI experiences translate to one of the following consumption patterns of the [task lib API](vsts-task-lib.md):
+The above UI experiences translate to one of the following consumption patterns of the [task lib API](azure-pipelines-task-lib.md):
 
 1. `filePath` input only
- - Call [findMatch](vsts-task-lib.md#taskfindMatch) and pass the filePath input as the pattern.
+ - Call [findMatch](azure-pipelines-task-lib.md#taskfindMatch) and pass the filePath input as the pattern.
 
 2. `filePath` input to specify a root directory, followed by a `multiLine` input for match patterns.
- - Call [find](vsts-task-lib.md#taskfind) to recursively find all paths under the specified root directory.
- - Then call [match](vsts-task-lib.md#taskmatch) to filter the results using the multiLine input as the patterns.
+ - Call [find](azure-pipelines-task-lib.md#taskfind) to recursively find all paths under the specified root directory.
+ - Then call [match](azure-pipelines-task-lib.md#taskmatch) to filter the results using the multiLine input as the patterns.
 
 3. `filePath` input to specify a *default* root directory to root any unrooted patterns, followed by a `multiLine` input for match patterns.
- - Call [findMatch](vsts-task-lib.md#taskfindMatch) and pass the filePath input as the defaultRoot and the multiLine input as the patterns.
+ - Call [findMatch](azure-pipelines-task-lib.md#taskfindMatch) and pass the filePath input as the defaultRoot and the multiLine input as the patterns.
 
-Note, use [getDelimitedInput](vsts-task-lib.md#taskgetDelimitedInput) to split a multiLine input using the delimiter `'\n'`.
+Note, use [getDelimitedInput](azure-pipelines-task-lib.md#taskgetDelimitedInput) to split a multiLine input using the delimiter `'\n'`.
 
 ## Recommended FindOptions and MatchOptions
 

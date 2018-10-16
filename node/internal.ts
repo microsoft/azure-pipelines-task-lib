@@ -180,11 +180,11 @@ export function _setResourcePath(path: string): void {
  */
 export function _loc(key: string, ...param: any[]): string {
     if (!_libResourceFileLoaded) {
-        // merge loc strings from vsts-task-lib.
+        // merge loc strings from azure-pipelines-task-lib.
         var libResourceFile = path.join(__dirname, 'lib.json');
         var libLocStrs = _loadLocStrings(libResourceFile, _resourceCulture);
         for (var libKey in libLocStrs) {
-            //cache vsts-task-lib loc string
+            //cache azure-pipelines-task-lib loc string
             _locStringCache[libKey] = libLocStrs[libKey];
         }
 

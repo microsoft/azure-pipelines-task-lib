@@ -587,7 +587,7 @@ DESCRIPTION
     dependencies, and so on until all nested dependencies have been traversed. Dependencies are searched for
     in the directory of the specified assembly. NET Framework assemblies are omitted.
 
-    See https://github.com/Microsoft/vsts-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage
+    See https://github.com/Microsoft/azure-pipelines-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage
     when working with the TFS extended client SDK from a task.
 ```
 ### <a name="get-vstsclientcertificate" />Get-VstsClientCertificate
@@ -625,7 +625,7 @@ DESCRIPTION
     Refer to Get-VstsTfsService for a more simple to get a TFS service object.
 
     *** DO NOT USE Agent.ServerOMDirectory *** See
-    https://github.com/Microsoft/vsts-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
+    https://github.com/Microsoft/azure-pipelines-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
     working with the TFS extended client SDK from a task.
 ```
 ### <a name="get-vststfsservice" />Get-VstsTfsService
@@ -645,7 +645,7 @@ DESCRIPTION
     Gets an instance of an ITfsTeamProjectCollectionObject.
 
     *** DO NOT USE Agent.ServerOMDirectory *** See
-    https://github.com/Microsoft/vsts-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
+    https://github.com/Microsoft/azure-pipelines-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
     working with the TFS extended client SDK from a task.
 ```
 ### <a name="get-vstsvsscredentials" />Get-VstsVssCredentials
@@ -668,7 +668,7 @@ DESCRIPTION
     Refer to Get-VstsVssHttpClient for a more simple to get a VSS HTTP client.
 
     *** DO NOT USE Agent.ServerOMDirectory *** See
-    https://github.com/Microsoft/vsts-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
+    https://github.com/Microsoft/azure-pipelines-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
     working with the VSTS REST SDK from a task.
 ```
 ### <a name="get-vstsvsshttpclient" />Get-VstsVssHttpClient
@@ -688,7 +688,7 @@ DESCRIPTION
     Gets an instance of an VSS HTTP client.
 
     *** DO NOT USE Agent.ServerOMDirectory *** See
-    https://github.com/Microsoft/vsts-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
+    https://github.com/Microsoft/azure-pipelines-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
     working with the VSTS REST SDK from a task.
 ```
 ### <a name="get-vstswebproxy" />Get-VstsWebProxy
