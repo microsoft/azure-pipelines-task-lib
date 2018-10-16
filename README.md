@@ -41,7 +41,7 @@ A task which automates Powershell technologies can be written with our Powershel
 Documentation: [PowerShell API](powershell/Docs/README.md)
 
 
-[npm-lib-image]: https://img.shields.io/npm/v/vsts-task-lib.svg?style=flat
-[npm-lib-url]: https://www.npmjs.com/package/vsts-task-lib
+[npm-lib-image]: https://img.shields.io/npm/v/azure-pipelines-task-lib.svg?style=flat
+[npm-lib-url]: https://www.npmjs.com/package/azure-pipelines-task-lib
 [npm-sdk-image]: https://img.shields.io/npm/v/vsts-task-sdk.svg?style=flat
 [npm-sdk-url]: https://www.npmjs.com/package/vsts-task-sdk

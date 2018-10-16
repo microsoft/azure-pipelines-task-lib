@@ -12,12 +12,12 @@ jobs:
 
   steps:
   ################################################################################
-  # vsts-task-lib
+  # azure-pipelines-task-lib
   ################################################################################
   
   # npm install
   - task: Npm@1
-    displayName: (vsts-task-lib) npm install
+    displayName: (azure-pipelines-task-lib) npm install
     inputs:
       command: install
       workingDir: node
@@ -25,22 +25,22 @@ jobs:
   # use node 5
   - powershell: |
       & "$(build.sourcesDirectory)/res/UseNode5.ps1"
-    displayName: (vsts-task-lib) use node 5.10.1
+    displayName: (azure-pipelines-task-lib) use node 5.10.1
 
   # build/test
   - script: node make.js test
     workingDirectory: node
-    displayName: (vsts-task-lib) node make.js test  
+    displayName: (azure-pipelines-task-lib) node make.js test  
 
   # use node 6
   - task: NodeTool@0
-    displayName: (vsts-task-lib) use node 6.10.3
+    displayName: (azure-pipelines-task-lib) use node 6.10.3
     inputs:
       versionSpec: "6.10.3"
 
   # build/test
   - script: node make.js test
-    displayName: (vsts-task-lib) node make.js test
+    displayName: (azure-pipelines-task-lib) node make.js test
     workingDirectory: node
 
   ################################################################################
@@ -68,36 +68,36 @@ jobs:
 
   steps:
   ################################################################################
-  # vsts-task-lib
+  # azure-pipelines-task-lib
   ################################################################################
   
   # npm install
   - task: Npm@1
-    displayName: (vsts-task-lib) npm install
+    displayName: (azure-pipelines-task-lib) npm install
     inputs:
       command: install
       workingDir: node
 
   # use node 5
   - task: NodeTool@0
-    displayName: (vsts-task-lib) use node 5.10.1
+    displayName: (azure-pipelines-task-lib) use node 5.10.1
     inputs:
       versionSpec: "5.10.1"
       
   # build/test
   - script: node make.js test
     workingDirectory: node
-    displayName: (vsts-task-lib) node make.js test  
+    displayName: (azure-pipelines-task-lib) node make.js test  
 
   # use node 6
   - task: NodeTool@0
-    displayName: (vsts-task-lib) use node 6.10.3
+    displayName: (azure-pipelines-task-lib) use node 6.10.3
     inputs:
       versionSpec: "6.10.3"
 
   # build/test
   - script: node make.js test
-    displayName: (vsts-task-lib) node make.js test
+    displayName: (azure-pipelines-task-lib) node make.js test
     workingDirectory: node
 
 #################################################
@@ -109,34 +109,34 @@ jobs:
 
   steps:
   ################################################################################
-  # vsts-task-lib
+  # azure-pipelines-task-lib
   ################################################################################
   
   # npm install
   - task: Npm@1
-    displayName: (vsts-task-lib) npm install
+    displayName: (azure-pipelines-task-lib) npm install
     inputs:
       command: install
       workingDir: node
 
   # use node 5
   - task: NodeTool@0
-    displayName: (vsts-task-lib) use node 5.10.1
+    displayName: (azure-pipelines-task-lib) use node 5.10.1
     inputs:
       versionSpec: "5.10.1"
       
   # build/test
   - script: node make.js test
     workingDirectory: node
-    displayName: (vsts-task-lib) node make.js test  
+    displayName: (azure-pipelines-task-lib) node make.js test  
 
   # use node 6
   - task: NodeTool@0
-    displayName: (vsts-task-lib) use node 6.10.3
+    displayName: (azure-pipelines-task-lib) use node 6.10.3
     inputs:
       versionSpec: "6.10.3"
 
   # build/test
   - script: node make.js test
-    displayName: (vsts-task-lib) node make.js test
+    displayName: (azure-pipelines-task-lib) node make.js test
     workingDirectory: node

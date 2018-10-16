@@ -45,7 +45,7 @@ describe('Toolrunner Tests', function () {
         };
 
         if (os.platform() === 'win32') {
-            var ret = tl.execSync('cmd', '/c echo \'vsts-task-lib\'', _testExecOptions);
+            var ret = tl.execSync('cmd', '/c echo \'azure-pipelines-task-lib\'', _testExecOptions);
             assert.equal(ret.code, 0, 'return code of cmd should be 0');
         }
         else {
@@ -71,7 +71,7 @@ describe('Toolrunner Tests', function () {
 
         if (os.platform() === 'win32') {
             var cmd = tl.tool(tl.which('cmd', true));
-            cmd.arg('/c echo \'vsts-task-lib\'');
+            cmd.arg('/c echo \'azure-pipelines-task-lib\'');
 
             var ret = cmd.execSync(_testExecOptions);
             assert.equal(ret.code, 0, 'return code of cmd should be 0');
@@ -133,7 +133,7 @@ describe('Toolrunner Tests', function () {
         };
 
         if (os.platform() === 'win32') {
-            tl.exec('cmd', '/c echo \'vsts-task-lib\'', _testExecOptions)
+            tl.exec('cmd', '/c echo \'azure-pipelines-task-lib\'', _testExecOptions)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code of cmd should be 0');
                     done();
@@ -172,7 +172,7 @@ describe('Toolrunner Tests', function () {
         if (os.platform() === 'win32') {
             var cmdPath = tl.which('cmd', true);
             var cmd = tl.tool(cmdPath);
-            cmd.arg('/c echo \'vsts-task-lib\'');
+            cmd.arg('/c echo \'azure-pipelines-task-lib\'');
 
             cmd.exec(_testExecOptions)
                 .then(function (code) {
@@ -219,7 +219,7 @@ describe('Toolrunner Tests', function () {
         if (os.platform() === 'win32') {
             var cmd = tl.tool(tl.which('cmd', true))
                 .arg('/c')
-                .arg('echo \'vsts-task-lib\'');
+                .arg('echo \'azure-pipelines-task-lib\'');
 
             cmd.on('stdout', (data) => {
                 output = data.toString();

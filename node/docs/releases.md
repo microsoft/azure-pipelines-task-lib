@@ -1,4 +1,4 @@
-# VSTS-TASK-LIB RELEASES
+# AZURE-PIPELINES-TASK-LIB RELEASES
 
 ## 2.7.0
  * Updated `setResult` to expose optional done parameter
