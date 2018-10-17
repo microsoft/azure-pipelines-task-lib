@@ -194,6 +194,11 @@ $
 
 > TIP: be careful with chars like ! in env vars.  [Example here](http://superuser.com/questions/133780/in-bash-how-do-i-escape-an-exclamation-mark) 
 
+> TIP: if you are using Visual Studio Code on Windows, you can also update the inputs using the following PowerShell command instead of EXPORT:
+```
+$env:INPUT_SAMPLESTRING="Hello World"
+```
+
 Now let's set the sample bool.  This should fail since if sample bool is true, it should need the other input.  See the code.
 
 ```bash
