@@ -1,5 +1,4 @@
-1. Please check our current Issues to see if someone already reported this https://github.com/Microsoft/azure-pipelines-task-lib/issues
-2. Take a look at our Instructions for logging issues https://github.com/Microsoft/azure-pipelines-task-lib/blob/master/CONTRIBUTING.md
+Please check our current Issues to see if someone already reported this https://github.com/Microsoft/azure-pipelines-task-lib/issues
 
 ### Environment
 azure-pipelines-task-lib version: 
