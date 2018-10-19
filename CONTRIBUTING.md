@@ -1,29 +1,3 @@
-# Instructions for Logging Issues
-
-## 1. Search for Duplicates
-
-[Search the existing issues](https://github.com/Microsoft/azure-pipelines-task-lib/issues) before logging a new one.
-
-## 2. Did you find a bug?
-
-When logging a bug, please be sure to include the following:
- * What version are you using?
- * If at all possible, an *isolated* way to reproduce the behavior
- * The behavior you expect to see, and the actual behavior
- * Ensure it doesn't reproduce on the latest version or master
-
-## 3. Do you have a suggestion?
-
-We also accept suggestions in the issue tracker.
-
-In general, things we find useful when reviewing suggestions are:
-* A description of the problem you're trying to solve
-* An overview of the suggested solution
-* Examples of how the suggestion would work in various places
-  * Code examples showing e.g. "this would be an error, this wouldn't"
-  * Code examples showing the generated JavaScript (if applicable)
-* If relevant, precedent in other languages can be useful for establishing context and expected behavior
-
 # Instructions for Contributing Code
 
 ## Contributing bug fixes
