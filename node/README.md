@@ -25,7 +25,11 @@ The [ShellScript Task](https://github.com/Microsoft/vsts-tasks/tree/master/Tasks
 
 ## Contributing
 
-We are accepting contributions and we try to stay on top of issues. Guidance on contributing code or issues can be found [here](../CONTRIBUTING.md).
+We are accepting contributions and we try to stay on top of issues. 
+
+[Contribution Guide](../CONTRIBUTING.md).
+
+[Logging Issues](https://github.com/Microsoft/azure-pipelines-task-lib/issues)
 
 ## Building the library
 
