@@ -11,7 +11,6 @@ When logging a bug, please be sure to include the following:
  * If at all possible, an *isolated* way to reproduce the behavior
  * The behavior you expect to see, and the actual behavior
  * Ensure it doesn't reproduce on the latest version or master
- * An http trace from fiddler or charles if possible (the relevant parts)
 
 ## 5. Do you have a suggestion?
 
@@ -53,7 +52,6 @@ Your pull request should:
 * It is desirable, but not necessary, for the tests to pass at each commit
 * Have clear commit messages 
     * e.g. "Refactor feature", "Fix issue", "Add tests for issue"
-* Include samples if appropriate
 * Include adequate tests 
     * At least one test should fail in the absence of your non-test code changes. If your PR does not match this criteria, please specify why
     * Tests should include reasonable permutations of the target fix/change
