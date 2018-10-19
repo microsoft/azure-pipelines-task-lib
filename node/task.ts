@@ -443,7 +443,7 @@ export function getSecureFileTicket(id: string): string {
  */
 export function getTaskVariable(name: string): string {
     assertAgent('2.115.0');
-    var inval = im._vault.retrieveSecret('VSTS_TASKVARIABLE_' + name.replace(' ', '_').toUpperCase());
+    var inval = im._vault.retrieveSecret('VSTS_TASKVARIABLE_' + name.replace(/\./g, '_').replace(/ /g, '_').toUpperCase());
     if (inval) {
         inval = inval.trim();
     }
