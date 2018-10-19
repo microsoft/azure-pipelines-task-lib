@@ -12,7 +12,7 @@ When logging a bug, please be sure to include the following:
  * The behavior you expect to see, and the actual behavior
  * Ensure it doesn't reproduce on the latest version or master
 
-## 5. Do you have a suggestion?
+## 3. Do you have a suggestion?
 
 We also accept suggestions in the issue tracker.
 
