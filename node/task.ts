@@ -183,7 +183,7 @@ export interface VariableInfo {
  * @returns   string
  */
 export function getInput(name: string, required?: boolean): string {
-    var inval = im._vault.retrieveSecret('INPUT_' + name.replace(/\./g, '_').replace(/ /g, '_').toUpperCase());
+    var inval = im._vault.retrieveSecret('INPUT_' + im._getVariableKey(name));
     if (inval) {
         inval = inval.trim();
     }
@@ -443,7 +443,7 @@ export function getSecureFileTicket(id: string): string {
  */
 export function getTaskVariable(name: string): string {
     assertAgent('2.115.0');
-    var inval = im._vault.retrieveSecret('VSTS_TASKVARIABLE_' + name.replace(/\./g, '_').replace(/ /g, '_').toUpperCase());
+    var inval = im._vault.retrieveSecret('VSTS_TASKVARIABLE_' + im._getVariableKey(name));
     if (inval) {
         inval = inval.trim();
     }
