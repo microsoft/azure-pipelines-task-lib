@@ -25,7 +25,9 @@ The [ShellScript Task](https://github.com/Microsoft/vsts-tasks/tree/master/Tasks
 
 ## Contributing
 
-### Node
+We are accepting contributions and we try to stay on top of issues. Guidance on contributing code or issues can be found [here](../CONTRIBUTING.md).
+
+## Building the library
 
 Once:
 ```bash
@@ -42,6 +44,14 @@ Set environment variable TASK_TEST_TRACE=1 to display test output.
 
 [npm-lib-image]: https://img.shields.io/npm/v/azure-pipelines-task-lib.svg?style=flat
 [npm-lib-url]: https://www.npmjs.com/package/azure-pipelines-task-lib
+
+## Powershell
+
+We also maintain a PowerShell library for Windows task development.
+
+Library: [Powershell Library](../powershell)
+
+Usage: [Consuming the SDK](../powershell/Docs/Consuming.md)
 
 ## Third Party Notices
 To generate/update third party notice file run:
