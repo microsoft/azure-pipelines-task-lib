@@ -2,7 +2,7 @@
 
 ## 1. Search for Duplicates
 
-[Search the existing issues](https://github.com/Microsoft/typed-rest-client/issues) before logging a new one.
+[Search the existing issues](https://github.com/Microsoft/azure-pipelines-task-lib/issues) before logging a new one.
 
 ## 2. Did you find a bug?
 
