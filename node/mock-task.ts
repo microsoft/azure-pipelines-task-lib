@@ -4,6 +4,7 @@ import path = require('path');
 import fs = require('fs');
 import os = require('os');
 import util = require('util');
+import im = require('./internal');
 import task = require('./task');
 import tcm = require('./taskcommand');
 import trm = require('./mock-toolrunner');
@@ -64,7 +65,18 @@ module.exports.getVariable = task.getVariable;
 module.exports.setVariable = task.setVariable;
 module.exports.getTaskVariable = task.getTaskVariable;
 module.exports.setTaskVariable = task.setTaskVariable;
-module.exports.getInput = task.getInput;
+
+var reloadedData = false;
+function getInput(name: string, required?: boolean) {
+    var input = process.env['INPUT_' + name.replace(' ', '_').toUpperCase()];
+    if (input) {
+        return input;
+    }
+    else {
+        return task.getInput(name, required);
+    }
+}
+module.exports.getInput = getInput;
 module.exports.getBoolInput = task.getBoolInput;
 module.exports.getDelimitedInput = task.getDelimitedInput;
 module.exports.filePathSupplied = task.filePathSupplied;

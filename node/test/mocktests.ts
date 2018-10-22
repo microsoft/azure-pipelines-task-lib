@@ -5,12 +5,11 @@
 /// <reference path="../_build/task.d.ts" />
 
 import assert = require('assert');
-import * as mt from '../_build/mock-task';
-import * as mtm from '../_build/mock-test';
+import * as mr from '../_build/mock-run';
 import * as mtr from '../_build/mock-toolrunner';
 import * as ma from '../_build/mock-answer';
-import * as tl from '../_build/task';
 
+const mt = require('../_build/mock-task');
 import testutil = require('./testutil');
 
 describe('Mock Tests', function () {
@@ -183,5 +182,18 @@ describe('Mock Tests', function () {
         
         assert(tool, "tool should not be null");
         assert(rc == 0, "rc is 0");
-    })                
+    })
+
+    it('getInputs gets inputs that are set', () => {
+        const runner: mr.TaskMockRunner = new mr.TaskMockRunner('path');
+        runner.setInput('key', 'val');
+
+        assert.equal(mt.getInput('key', true), 'val', 'input key should have value val');
+        process.env['AGENT_TEMPDIRECTORY'] = '/build/temp';
+        assert.equal(mt.getInput('key', true), 'val', 'input key should have value val even if AGENT_TEMPDIRECTORY is set');
+    })
+    
+    it('getInputs gets inputs that are set when AGENT_TEMPDIRECTORY is set', async () => {
+        
+    })
 });
