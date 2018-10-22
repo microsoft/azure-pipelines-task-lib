@@ -11,6 +11,7 @@ import * as mtr from '../_build/mock-toolrunner';
 import * as ma from '../_build/mock-answer';
 import * as tl from '../_build/task';
 
+import os = require('os');
 import testutil = require('./testutil');
 
 describe('Mock Tests', function () {
@@ -183,5 +184,53 @@ describe('Mock Tests', function () {
         
         assert(tool, "tool should not be null");
         assert(rc == 0, "rc is 0");
-    })                
+    })        
+    
+    it('Mock toolRunner returns correct output', async () => {
+        const expectedStdout = "atool output here" + os.EOL + "abc";
+        const expectedStderr = "atool with this stderr output" + os.EOL + "def";
+        var a: ma.TaskLibAnswers = <ma.TaskLibAnswers>{
+            "exec": {
+                "/usr/local/bin/atool --arg foo": {
+                    "code": 0,
+                    "stdout": expectedStdout,
+                    "stderr": expectedStderr
+                }
+            }
+        };
+
+        mt.setAnswers(a);
+
+        let tool: mtr.ToolRunner = mt.tool('/usr/local/bin/atool');
+        tool.arg('--arg');
+        tool.arg('foo');
+
+        let firstStdline = true;
+        let firstErrline = true;
+        tool.on('stdout', (out) => {
+            assert.equal(expectedStdout, out);
+        });
+        tool.on('stderr', (out) => {
+            assert.equal(expectedStderr, out);
+        });
+        tool.on('stdline', (out) => {
+            if (firstStdline) {
+                assert.equal("atool output here", out);
+                firstStdline = false;
+            }
+            else {
+                assert.equal("abc", out);
+            }
+        });
+        tool.on('errline', (out) => {
+            if (firstErrline) {
+                assert.equal("atool with this stderr output", out);
+                firstErrline = false;
+            }
+            else {
+                assert.equal("def", out);
+            }
+        });
+        await tool.exec(<mtr.IExecOptions>{});
+    })
 });

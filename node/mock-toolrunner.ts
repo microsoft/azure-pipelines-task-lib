@@ -228,6 +228,9 @@ export class ToolRunner extends events.EventEmitter {
             if (!ops.silent) {
                 ops.outStream.write(res.stdout + os.EOL);
             }
+            for (const line of res.stdout.split(os.EOL)) {
+                this.emit('stdline', line);
+            }
         }
 
         if (res.stderr) {
@@ -237,6 +240,9 @@ export class ToolRunner extends events.EventEmitter {
             if (!ops.silent) {
                 var s = ops.failOnStdErr ? ops.errStream : ops.outStream;
                 s.write(res.stderr + os.EOL);
+            }
+            for (const line of res.stderr.split(os.EOL)) {
+                this.emit('errline', line);
             }
         }
 
