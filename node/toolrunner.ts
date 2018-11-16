@@ -109,6 +109,12 @@ export class ToolRunner extends events.EventEmitter {
                 continue;
             }
 
+            if (c === "\\" && escaped) {
+                append(c);
+                escaped = false;
+                continue;
+            }
+
             if (c === "\\" && inQuotes) {
                 escaped = true;
                 continue;
