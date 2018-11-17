@@ -1174,6 +1174,15 @@ describe('Toolrunner Tests', function () {
         assert.equal((node as any).args.toString(), 'one,two\\arg,three', 'should be one,two,three');
         done();
     })
+    it('handles multiple escaped backslashes', function (done) {
+        this.timeout(10000);
+
+        var node = tl.tool(tl.which('node', true));
+        node.line('one "\\\\two\\arg"');
+        assert.equal((node as any).args.length, 2, 'should have 2 args');
+        assert.equal((node as any).args.toString(), 'one,\\\\two\\arg', 'should be one,\\\\two\\arg');
+        done();
+    })    
     it('handles equals and switches', function (done) {
         this.timeout(10000);
 
