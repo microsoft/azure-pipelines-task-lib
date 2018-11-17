@@ -111,7 +111,6 @@ export class ToolRunner extends events.EventEmitter {
 
             if (c === "\\" && escaped) {
                 append(c);
-                escaped = false;
                 continue;
             }
 
