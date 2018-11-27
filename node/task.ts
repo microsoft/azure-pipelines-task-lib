@@ -1904,7 +1904,7 @@ export function setProgress(percent: number, currentOperation: string) {
 export function logDetail(id: string, parentId?: string, recordType?: string,
     recordName?: string, order?: number, startTime?: string, finishTime?: string,
     progress?: number, state?: TaskState, result?: TaskResult, message?: string) {
-    const properties = { "id": id };
+    var properties = { "id": id };
 
     if (parentId) {
         properties["parentid"] = parentId;
@@ -1958,7 +1958,7 @@ export function logDetail(id: string, parentId?: string, recordType?: string,
  */
 export function logIssue(type: IssueType, sourcePath: string, lineNumber: number,
     columnNumber: number, errorCode: string, message: string) {
-    const properties = { "type": type };
+    var properties = { "type": type };
 
     if (errorCode) {
         properties["code"] = errorCode;
@@ -1994,8 +1994,14 @@ export function logIssue(type: IssueType, sourcePath: string, lineNumber: number
  * @param path              Path to the file that should be uploaded.
  * @returns                 void
  */
-export function uploadArtifact(containerFolder: string, name: string, path: string) {
-    command("artifact.upload", { "containerfolder": containerFolder, "artifactname": name }, path);
+export function uploadArtifact(containerFolder: string, path: string, name?: string) {
+    var properties = { "containerfolder": containerFolder };
+    
+    if (name) {
+        properties["artifactname"] = name;
+    }
+
+    command("artifact.upload", properties, path);
 }
 
 /**
