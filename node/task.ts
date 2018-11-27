@@ -1871,7 +1871,7 @@ export function addAttachment(type: string, name: string, path: string) {
  * @returns       void
  */
 export function setEndpoint(id: string, field: FieldType, key: string, value: string) {
-    command("task.setendpoint", { "id": id, "field": FieldType[field], "key": key }, value);
+    command("task.setendpoint", { "id": id, "field": FieldType[field].toLowerCase(), "key": key }, value);
 }
 
 /**
@@ -1934,7 +1934,7 @@ export function logDetail(id: string, message: string, parentId?: string, record
 export function logIssue(type: IssueType, message: string, sourcePath?: string, lineNumber?: number,
     columnNumber?: number, errorCode?: string) {
     const properties = {
-        "type": IssueType[type],
+        "type": IssueType[type].toLowerCase(),
         "code": errorCode,
         "sourcepath": sourcePath,
         "linenumber": lineNumber ? lineNumber.toString() : undefined,
@@ -1975,7 +1975,7 @@ export function uploadArtifact(containerFolder: string, path: string, name?: str
  * @returns                 void
  */
 export function associateArtifact(name: string, path: string, artifactType: ArtifactType) {
-    command("artifact.associate", { "type": ArtifactType[artifactType], "artifactname": name }, path);
+    command("artifact.associate", { "type": ArtifactType[artifactType].toLowerCase(), "artifactname": name }, path);
 }
 
 //-----------------------------------------------------
