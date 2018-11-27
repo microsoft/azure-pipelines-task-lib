@@ -10,6 +10,7 @@ import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
 import vm = require('./vault');
 import semver = require('semver');
+import { start } from 'repl';
 
 export enum TaskResult {
     Succeeded = 0,
@@ -1804,7 +1805,7 @@ export class CodeCoverageEnabler {
 }
 
 //-----------------------------------------------------
-// Logging Commands
+// Task Logging Commands
 //-----------------------------------------------------
 
 /**
@@ -1818,77 +1819,6 @@ export class CodeCoverageEnabler {
  */
 export function uploadFile(path: string) {
     command("task.uploadfile", null, path);
-}
-
-/**
- * Upload user interested file as additional log information 
- * to the current timeline record.
- * 
- * The file shall be available for download along with task logs.
- * 
- * @param containerFolder   Folder that the file will upload to, folder will be created if needed.
- * @param name              Artifact name.
- * @param path              Path to the file that should be uploaded.
- * @returns                 void
- */
-export function uploadArtifact(containerFolder: string, name: string, path: string) {
-    command("artifact.upload", { "containerfolder": containerFolder, "artifactname": name }, path);
-}
-
-/**
- * Upload user interested log to build’s container “logs\tool” folder.
- * 
- * @param path      Path to the file that should be uploaded.
- * @returns         void
- */
-export function uploadBuildLog(path: string) {
-    command("build.uploadlog", null, path);
-}
-
-/**
- * Update build number for current build.
- * 
- * @param value     Value to be assigned as the build number.
- * @returns         void
- */
-export function updateBuildNumber(value: string) {
-    command("build.updatebuildnumber", null, value);
-}
-
-/**
- * Add a tag for current build.
- * 
- * @param value     Tag value.
- * @returns         void
- */
-export function addBuildTag(value: string) {
-    command("build.addbuildtag", null, value);
-}
-
-/**
- * Update release name for current release.
- * 
- * @param value     Value to be assigned as the release name.
- * @returns         void
- */
-export function updateReleaseName(name: string) {
-    assertAgent("2.132");
-    command("build.updatereleasename", null, name);
-}
-
-/**
- * Create an artifact link, artifact location is required to be 
- * a file container path, VC path or UNC share path. 
- * 
- * The file shall be available for download along with task logs.
- * 
- * @param name              Artifact name.
- * @param path              Path to the file that should be associated.
- * @param artifactType      ArtifactType enum of Container, FilePath, VersionControl, GitRef or TfvcLabel.
- * @returns                 void
- */
-export function associateArtifact(name: string, path: string, artifactType: ArtifactType) {
-    command("artifact.associate", { "type": artifactType, "artifactname": name }, path);
 }
 
 /**
@@ -1972,21 +1902,46 @@ export function setProgress(percent: number, currentOperation: string) {
  * @param message       current operation
  * @returns             void
  */
-export function logDetail(id: string, parentId: string, recordType: string,
-    recordName: string, order: number, startTime: string, finishTime: string,
-    progress: number, state: TaskState, result: TaskResult, message: string) {
-    const properties = {
-        "id": id,
-        "parentid": parentId,
-        "type": recordType,
-        "name": recordName,
-        "order": order.toString(),
-        "starttime": startTime,
-        "finishtime": finishTime,
-        "progress": progress.toString(),
-        "state": TaskState[state],
-        "result": TaskResult[result]
-    };
+export function logDetail(id: string, parentId?: string, recordType?: string,
+    recordName?: string, order?: number, startTime?: string, finishTime?: string,
+    progress?: number, state?: TaskState, result?: TaskResult, message?: string) {
+    const properties = { "id": id };
+
+    if (parentId) {
+        properties["parentid"] = parentId;
+    }
+
+    if (recordType) {
+        properties["type"] = recordType;
+    }
+
+    if (recordName) {
+        properties["name"] = recordName;
+    }
+
+    if (order) {
+        properties["order"] = order.toString();
+    }
+
+    if (startTime) {
+        properties["starttime"] = startTime;
+    }
+
+    if (finishTime) {
+        properties["finishtime"] = finishTime;
+    }
+
+    if (progress) {
+        properties["progress"] = progress.toString();
+    }
+
+    if (state) {
+        properties["state"] = TaskState[state];
+    }
+
+    if (result) {
+        properties["result"] = TaskResult[result];
+    }
 
     command("task.logdetail", properties, message);
 }
@@ -2004,15 +1959,108 @@ export function logDetail(id: string, parentId: string, recordType: string,
  */
 export function logIssue(type: IssueType, sourcePath: string, lineNumber: number,
     columnNumber: number, errorCode: string, message: string) {
-    const properties = {
-        "type": type,
-        "code": errorCode,
-        "sourcepath": sourcePath,
-        "linenumber": lineNumber,
-        "columnnumber": columnNumber
-    };
+    const properties = { "type": type };
+
+    if (errorCode) {
+        properties["code"] = errorCode;
+    }
+
+    if (sourcePath) {
+        properties["sourcepath"] = sourcePath;
+    }
+
+    if (lineNumber) {
+        properties["linenumber"] = lineNumber;
+    }
+
+    if (columnNumber) {
+        properties["columnnumber"] = columnNumber;
+    }
 
     command("task.logissue", properties, message);
+}
+
+//-----------------------------------------------------
+// Artifact Logging Commands
+//-----------------------------------------------------
+
+/**
+ * Upload user interested file as additional log information 
+ * to the current timeline record.
+ * 
+ * The file shall be available for download along with task logs.
+ * 
+ * @param containerFolder   Folder that the file will upload to, folder will be created if needed.
+ * @param name              Artifact name.
+ * @param path              Path to the file that should be uploaded.
+ * @returns                 void
+ */
+export function uploadArtifact(containerFolder: string, name: string, path: string) {
+    command("artifact.upload", { "containerfolder": containerFolder, "artifactname": name }, path);
+}
+
+/**
+ * Create an artifact link, artifact location is required to be 
+ * a file container path, VC path or UNC share path. 
+ * 
+ * The file shall be available for download along with task logs.
+ * 
+ * @param name              Artifact name.
+ * @param path              Path to the file that should be associated.
+ * @param artifactType      ArtifactType enum of Container, FilePath, VersionControl, GitRef or TfvcLabel.
+ * @returns                 void
+ */
+export function associateArtifact(name: string, path: string, artifactType: ArtifactType) {
+    command("artifact.associate", { "type": artifactType, "artifactname": name }, path);
+}
+
+//-----------------------------------------------------
+// Build Logging Commands
+//-----------------------------------------------------
+
+/**
+ * Upload user interested log to build’s container “logs\tool” folder.
+ * 
+ * @param path      Path to the file that should be uploaded.
+ * @returns         void
+ */
+export function uploadBuildLog(path: string) {
+    command("build.uploadlog", null, path);
+}
+
+/**
+ * Update build number for current build.
+ * 
+ * @param value     Value to be assigned as the build number.
+ * @returns         void
+ */
+export function updateBuildNumber(value: string) {
+    command("build.updatebuildnumber", null, value);
+}
+
+/**
+ * Add a tag for current build.
+ * 
+ * @param value     Tag value.
+ * @returns         void
+ */
+export function addBuildTag(value: string) {
+    command("build.addbuildtag", null, value);
+}
+
+//-----------------------------------------------------
+// Release Logging Commands
+//-----------------------------------------------------
+
+/**
+ * Update release name for current release.
+ * 
+ * @param value     Value to be assigned as the release name.
+ * @returns         void
+ */
+export function updateReleaseName(name: string) {
+    assertAgent("2.132");
+    command("release.updatereleasename", null, name);
 }
 
 //-----------------------------------------------------
