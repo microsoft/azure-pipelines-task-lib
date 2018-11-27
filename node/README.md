@@ -11,7 +11,7 @@ Cross platform tasks are written in TypeScript.  It is the preferred way to writ
 
 [![NPM version][npm-lib-image]][npm-lib-url]
 
-Step by Step: [Create Task](docs/stepbystep.md)  
+Step by Step: [Create Task](https://docs.microsoft.com/en-us/azure/devops/extend/develop/add-build-task?view=vsts)  
 
 Documentation: [TypeScript API](docs/azure-pipelines-task-lib.md), [task JSON schema](https://aka.ms/vsts-tasks.schema.json)
 
