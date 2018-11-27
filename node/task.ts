@@ -27,22 +27,22 @@ export enum TaskState {
 }
 
 export enum IssueType {
-    Error = "error",
-    Warning = "warning"
+    Error,
+    Warning
 }
 
 export enum ArtifactType {
-    Container = "container",
-    FilePath = "filepath",
-    VersionControl = "versioncontrol",
-    GitRef = "gitref",
-    TfvcLabel = "tfvclabel"
+    Container,
+    FilePath,
+    VersionControl,
+    GitRef,
+    TfvcLabel
 }
 
 export enum FieldType {
-    AuthParameter = "authParameter",
-    DataParameter = "dataParameter",
-    Url = "url"
+    AuthParameter,
+    DataParameter,
+    Url
 }
 
 //-----------------------------------------------------
@@ -1871,7 +1871,7 @@ export function addAttachment(type: string, name: string, path: string) {
  * @returns       void
  */
 export function setEndpoint(id: string, field: FieldType, key: string, value: string) {
-    command("task.setendpoint", { "id": id, "field": field, "key": key }, value);
+    command("task.setendpoint", { "id": id, "field": FieldType[field], "key": key }, value);
 }
 
 /**
@@ -1932,9 +1932,9 @@ export function logDetail(id: string, message: string, parentId?: string, record
  * @returns             void
  */
 export function logIssue(type: IssueType, message: string, sourcePath?: string, lineNumber?: number,
-    columnNumber?: number, errorCode?: string, ) {
+    columnNumber?: number, errorCode?: string) {
     const properties = {
-        "type": type,
+        "type": IssueType[type],
         "code": errorCode,
         "sourcepath": sourcePath,
         "linenumber": lineNumber ? lineNumber.toString() : undefined,
@@ -1975,7 +1975,7 @@ export function uploadArtifact(containerFolder: string, path: string, name?: str
  * @returns                 void
  */
 export function associateArtifact(name: string, path: string, artifactType: ArtifactType) {
-    command("artifact.associate", { "type": artifactType, "artifactname": name }, path);
+    command("artifact.associate", { "type": ArtifactType[artifactType], "artifactname": name }, path);
 }
 
 //-----------------------------------------------------
