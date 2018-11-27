@@ -1901,9 +1901,9 @@ export function setProgress(percent: number, currentOperation: string) {
  * @param message       current operation
  * @returns             void
  */
-export function logDetail(id: string, parentId?: string, recordType?: string,
+export function logDetail(id: string,  message: string, parentId?: string, recordType?: string,
     recordName?: string, order?: number, startTime?: string, finishTime?: string,
-    progress?: number, state?: TaskState, result?: TaskResult, message?: string) {
+    progress?: number, state?: TaskState, result?: TaskResult) {
     var properties = { "id": id };
 
     if (parentId) {
@@ -1996,7 +1996,7 @@ export function logIssue(type: IssueType, sourcePath: string, lineNumber: number
  */
 export function uploadArtifact(containerFolder: string, path: string, name?: string) {
     var properties = { "containerfolder": containerFolder };
-    
+
     if (name) {
         properties["artifactname"] = name;
     }
