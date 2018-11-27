@@ -1901,46 +1901,21 @@ export function setProgress(percent: number, currentOperation: string) {
  * @param message       current operation
  * @returns             void
  */
-export function logDetail(id: string,  message: string, parentId?: string, recordType?: string,
+export function logDetail(id: string, message: string, parentId?: string, recordType?: string,
     recordName?: string, order?: number, startTime?: string, finishTime?: string,
     progress?: number, state?: TaskState, result?: TaskResult) {
-    var properties = { "id": id };
-
-    if (parentId) {
-        properties["parentid"] = parentId;
-    }
-
-    if (recordType) {
-        properties["type"] = recordType;
-    }
-
-    if (recordName) {
-        properties["name"] = recordName;
-    }
-
-    if (order) {
-        properties["order"] = order.toString();
-    }
-
-    if (startTime) {
-        properties["starttime"] = startTime;
-    }
-
-    if (finishTime) {
-        properties["finishtime"] = finishTime;
-    }
-
-    if (progress) {
-        properties["progress"] = progress.toString();
-    }
-
-    if (state) {
-        properties["state"] = TaskState[state];
-    }
-
-    if (result) {
-        properties["result"] = TaskResult[result];
-    }
+    const properties = {
+        "id": id,
+        "parentid": parentId,
+        "type": recordType,
+        "name": recordName,
+        "order": order ? order.toString() : undefined,
+        "starttime": startTime,
+        "finishtime": finishTime,
+        "progress": progress ? progress.toString() : undefined,
+        "state": state ? TaskState[state] : undefined,
+        "result": result ? TaskResult[result] : undefined
+    };
 
     command("task.logdetail", properties, message);
 }
@@ -1956,25 +1931,15 @@ export function logDetail(id: string,  message: string, parentId?: string, recor
  * @param message       Error or warning message.
  * @returns             void
  */
-export function logIssue(type: IssueType, sourcePath: string, lineNumber: number,
-    columnNumber: number, errorCode: string, message: string) {
-    var properties = { "type": type };
-
-    if (errorCode) {
-        properties["code"] = errorCode;
-    }
-
-    if (sourcePath) {
-        properties["sourcepath"] = sourcePath;
-    }
-
-    if (lineNumber) {
-        properties["linenumber"] = lineNumber;
-    }
-
-    if (columnNumber) {
-        properties["columnnumber"] = columnNumber;
-    }
+export function logIssue(type: IssueType, message: string, sourcePath?: string, lineNumber?: number,
+    columnNumber?: number, errorCode?: string, ) {
+    const properties = {
+        "type": type,
+        "code": errorCode,
+        "sourcepath": sourcePath,
+        "linenumber": lineNumber ? lineNumber.toString() : undefined,
+        "columnnumber": columnNumber ? columnNumber.toString() : undefined,
+    };
 
     command("task.logissue", properties, message);
 }
@@ -1990,18 +1955,12 @@ export function logIssue(type: IssueType, sourcePath: string, lineNumber: number
  * The file shall be available for download along with task logs.
  * 
  * @param containerFolder   Folder that the file will upload to, folder will be created if needed.
- * @param name              Artifact name.
  * @param path              Path to the file that should be uploaded.
+ * @param name              Artifact name.
  * @returns                 void
  */
 export function uploadArtifact(containerFolder: string, path: string, name?: string) {
-    var properties = { "containerfolder": containerFolder };
-
-    if (name) {
-        properties["artifactname"] = name;
-    }
-
-    command("artifact.upload", properties, path);
+    command("artifact.upload", { "containerfolder": containerFolder, "artifactname": name }, path);
 }
 
 /**
