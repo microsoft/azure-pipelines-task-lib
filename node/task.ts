@@ -10,7 +10,6 @@ import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
 import vm = require('./vault');
 import semver = require('semver');
-import { start } from 'repl';
 
 export enum TaskResult {
     Succeeded = 0,
