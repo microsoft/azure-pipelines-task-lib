@@ -32,6 +32,10 @@
     "preview": {
       "type": "boolean"
     },
+    "deprecated": {
+      "type": "boolean",
+      "description": "We consider that a certain task is deprecated only when the latest version of that task is marked as deprecated. When the user searches for deprecated tasks, we push these tasks to the end and group them under a collapsible section that's collapsed by default."
+    },
     "showEnvironmentVariables": {
       "type": "boolean",
       "description": "Toggles showing the environment variable editor in the task editor UI. Allows passing environment variables to script based tasks."
@@ -49,13 +53,19 @@
     },
     "category": {
       "type": "string",
-      "description": "Where the task appears in VSTS",
+      "description": "Where the task appears in VSTS. Use the 'Azure *' categories for Azure DevOps and Azure DevOps Server 2019. Use the other categories for Team Foundation Server 2018 and below.",
       "enum": [
         "Build",
         "Utility",
         "Test",
         "Package",
-        "Deploy"
+        "Deploy",
+
+        "Azure Repos",
+        "Azure Boards",
+        "Azure Pipelines",
+        "Azure Test Plans",
+        "Azure Artifacts"
       ]
     },
     "groups": {
