@@ -34,7 +34,7 @@
     },
     "deprecated": {
       "type": "boolean",
-      "description": "We consider that a certain task is deprecated only when the latest version of that task is marked as deprecated. When the user searches for deprecated tasks, we push these tasks to the end and group them under a collapsible section that's collapsed by default."
+      "description": "Task is deprecated only when the latest version is marked as deprecated. Deprecated tasks appear at the end of searches under a section that is collapsed by default."
     },
     "showEnvironmentVariables": {
       "type": "boolean",
