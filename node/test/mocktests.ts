@@ -184,7 +184,7 @@ describe('Mock Tests', function () {
         
         assert(tool, "tool should not be null");
         assert(rc == 0, "rc is 0");
-    })        
+    })
     
     it('Mock toolRunner returns correct output', async () => {
         const expectedStdout = "atool output here" + os.EOL + "abc";
@@ -207,6 +207,8 @@ describe('Mock Tests', function () {
 
         let firstStdline = true;
         let firstErrline = true;
+        let numStdLineCalls = 0;
+        let numStdErrCalls = 0;
         tool.on('stdout', (out) => {
             assert.equal(expectedStdout, out);
         });
@@ -214,6 +216,7 @@ describe('Mock Tests', function () {
             assert.equal(expectedStderr, out);
         });
         tool.on('stdline', (out) => {
+            numStdLineCalls += 1;
             if (firstStdline) {
                 assert.equal("atool output here", out);
                 firstStdline = false;
@@ -223,6 +226,7 @@ describe('Mock Tests', function () {
             }
         });
         tool.on('errline', (out) => {
+            numStdErrCalls += 1;
             if (firstErrline) {
                 assert.equal("atool with this stderr output", out);
                 firstErrline = false;
@@ -232,5 +236,48 @@ describe('Mock Tests', function () {
             }
         });
         await tool.exec(<mtr.IExecOptions>{});
+        
+        assert.equal(numStdLineCalls, 2);
+        assert.equal(numStdErrCalls, 2);
+    })
+    
+    it('Mock toolRunner returns correct output when ending on EOL', async () => {
+        const expectedStdout = os.EOL;
+        const expectedStderr = os.EOL;
+        var a: ma.TaskLibAnswers = <ma.TaskLibAnswers>{
+            "exec": {
+                "/usr/local/bin/atool --arg foo": {
+                    "code": 0,
+                    "stdout": expectedStdout,
+                    "stderr": expectedStderr
+                }
+            }
+        };
+
+        mt.setAnswers(a);
+
+        let tool: mtr.ToolRunner = mt.tool('/usr/local/bin/atool');
+        tool.arg('--arg');
+        tool.arg('foo');
+        let numStdLineCalls = 0;
+        let numStdErrCalls = 0;
+        tool.on('stdout', (out) => {
+            assert.equal(expectedStdout, out);
+        });
+        tool.on('stderr', (out) => {
+            assert.equal(expectedStderr, out);
+        });
+        tool.on('stdline', (out) => {
+            numStdLineCalls += 1;
+            assert.equal("", out);
+        });
+        tool.on('errline', (out) => {
+            numStdErrCalls += 1;
+            assert.equal("", out);
+        });
+        await tool.exec(<mtr.IExecOptions>{});
+        
+        assert.equal(numStdLineCalls, 2);
+        assert.equal(numStdErrCalls, 2);
     })
 });
