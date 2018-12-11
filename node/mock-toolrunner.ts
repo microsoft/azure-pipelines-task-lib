@@ -228,8 +228,12 @@ export class ToolRunner extends events.EventEmitter {
             if (!ops.silent) {
                 ops.outStream.write(res.stdout + os.EOL);
             }
-            for (const line of res.stdout.split(os.EOL).slice(0, -1)) {
+            const stdLineArray = res.stdout.split(os.EOL);
+            for (const line of stdLineArray.slice(0, -1)) {
                 this.emit('stdline', line);
+            }
+            if(stdLineArray.length > 0 && stdLineArray[stdLineArray.length - 1].length > 0) {
+                this.emit('stdline', stdLineArray[stdLineArray.length - 1]);
             }
         }
 
@@ -241,8 +245,12 @@ export class ToolRunner extends events.EventEmitter {
                 var s = ops.failOnStdErr ? ops.errStream : ops.outStream;
                 s.write(res.stderr + os.EOL);
             }
-            for (const line of res.stderr.split(os.EOL).slice(0, -1)) {
+            const stdErrArray = res.stderr.split(os.EOL);
+            for (const line of stdErrArray.slice(0, -1)) {
                 this.emit('errline', line);
+            }
+            if (stdErrArray.length > 0 && stdErrArray[stdErrArray.length - 1].length > 0) {
+                this.emit('errline', stdErrArray[stdErrArray.length - 1]);
             }
         }
 

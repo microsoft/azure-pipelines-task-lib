@@ -187,8 +187,8 @@ describe('Mock Tests', function () {
     })
     
     it('Mock toolRunner returns correct output', async () => {
-        const expectedStdout = "atool output here" + os.EOL + "abc" + os.EOL + "junk";
-        const expectedStderr = "atool with this stderr output" + os.EOL + "def" + os.EOL + "junk";
+        const expectedStdout = "atool output here" + os.EOL + "abc";
+        const expectedStderr = "atool with this stderr output" + os.EOL + "def";
         var a: ma.TaskLibAnswers = <ma.TaskLibAnswers>{
             "exec": {
                 "/usr/local/bin/atool --arg foo": {
