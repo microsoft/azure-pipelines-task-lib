@@ -187,8 +187,8 @@ describe('Mock Tests', function () {
     })
     
     it('Mock toolRunner returns correct output', async () => {
-        const expectedStdout = "atool output here" + os.EOL + "abc";
-        const expectedStderr = "atool with this stderr output" + os.EOL + "def";
+        const expectedStdout = "atool output here" + os.EOL + "abc" + os.EOL + "junk";
+        const expectedStderr = "atool with this stderr output" + os.EOL + "def" + os.EOL + "junk";
         var a: ma.TaskLibAnswers = <ma.TaskLibAnswers>{
             "exec": {
                 "/usr/local/bin/atool --arg foo": {
@@ -277,7 +277,7 @@ describe('Mock Tests', function () {
         });
         await tool.exec(<mtr.IExecOptions>{});
         
-        assert.equal(numStdLineCalls, 2);
-        assert.equal(numStdErrCalls, 2);
+        assert.equal(numStdLineCalls, 1);
+        assert.equal(numStdErrCalls, 1);
     })
 });
