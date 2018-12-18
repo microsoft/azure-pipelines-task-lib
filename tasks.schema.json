@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema",
   "id": "https://aka.ms/vsts-tasks.schema.json",
-  "title": "VSTS Tasks schema",
+  "title": "Azure DevOps Tasks schema",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -53,7 +53,7 @@
     },
     "category": {
       "type": "string",
-      "description": "Where the task appears in VSTS. Use the 'Azure *' categories for Azure DevOps and Azure DevOps Server 2019. Use the other categories for Team Foundation Server 2018 and below.",
+      "description": "Where the task appears in Azure DevOps. Use the 'Azure *' categories for Azure DevOps and Azure DevOps Server 2019. Use the other categories for Team Foundation Server 2018 and below.",
       "enum": [
         "Build",
         "Utility",
