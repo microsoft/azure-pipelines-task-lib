@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema",
-  "id": "https://aka.ms/vsts-tasks.schema.json",
+  "id": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
   "title": "Azure DevOps Tasks schema",
   "type": "object",
   "additionalProperties": false,
