@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/Microsoft/azure-pipelines-task-lib#readme",
   "devDependencies": {
-    "adm-zip": "0.4.9",
+    "adm-zip": "0.4.7",
     "mocha": "5.2.0",
     "q": "1.4.1",
     "shelljs": "^0.3.0",
