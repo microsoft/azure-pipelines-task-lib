@@ -187,6 +187,7 @@ export function _loc(key: string, ...param: any[]): string {
             //cache azure-pipelines-task-lib loc string
             _locStringCache[libKey] = libLocStrs[libKey];
         }
+
         _libResourceFileLoaded = true;
     }
 
