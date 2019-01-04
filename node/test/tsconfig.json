@@ -9,14 +9,18 @@
     "files": [
         "dirtests.ts",
         "inputtests.ts",
+        "internalhelpertests.ts",
         "commandtests.ts",
         "resulttests.ts",
         "disktests.ts",
+        "legacyfindfilestests.ts",
         "vaulttests.ts",
         "toolrunnertests.ts",
         "cctests",
         "loctests",
         "matchtests",
+        "filtertests",
+        "findmatchtests",
         "mocktests"
     ]
 }

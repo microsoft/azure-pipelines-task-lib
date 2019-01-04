@@ -23,17 +23,21 @@ var run = function(cmd, callback) {
 
 }
 
-export interface IExecOptions {
+export interface IExecOptions extends IExecSyncOptions {
+    failOnStdErr: boolean;
+    ignoreReturnCode: boolean;
+};
+
+export interface IExecSyncOptions {
     cwd: string;
     env: { [key: string]: string };
     silent: boolean;
-    failOnStdErr: boolean;
-    ignoreReturnCode: boolean;
     outStream: NodeJS.WritableStream;
     errStream: NodeJS.WritableStream;
+    windowsVerbatimArguments: boolean;
 };
 
-export interface IExecResult {
+export interface IExecSyncResult {
     stdout: string;
     stderr: string;
     code: number;
@@ -42,7 +46,7 @@ export interface IExecResult {
 
 export function debug(message) {
     // do nothing, overridden
-};
+}
 
 export class ToolRunner extends events.EventEmitter {
     constructor(toolPath) {
@@ -52,18 +56,14 @@ export class ToolRunner extends events.EventEmitter {
         
         this.toolPath = toolPath;
         this.args = [];
-        this.silent = false;
     }
 
-    public toolPath: string;
-    public args: string[];
-    public silent: boolean;
+    private toolPath: string;
+    private args: string[];
     private pipeOutputToTool: ToolRunner;
 
     private _debug(message) {
-        if (!this.silent) {
-            debug(message);
-        }
+        debug(message);
         this.emit('debug', message);
     }
 
@@ -194,7 +194,8 @@ export class ToolRunner extends events.EventEmitter {
             outStream: options.outStream || process.stdout,
             errStream: options.errStream || process.stderr,
             failOnStdErr: options.failOnStdErr || false,
-            ignoreReturnCode: options.ignoreReturnCode || false
+            ignoreReturnCode: options.ignoreReturnCode || false,
+            windowsVerbatimArguments: options.windowsVerbatimArguments
         };
 
         var argString = this.args.join(' ') || '';
@@ -221,11 +222,18 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         // TODO: filter process.env
-        var res = mock.getResponse('exec', cmdString);
+        var res = mock.getResponse('exec', cmdString, debug);
         if (res.stdout) {
             this.emit('stdout', res.stdout);
             if (!ops.silent) {
                 ops.outStream.write(res.stdout + os.EOL);
+            }
+            const stdLineArray = res.stdout.split(os.EOL);
+            for (const line of stdLineArray.slice(0, -1)) {
+                this.emit('stdline', line);
+            }
+            if(stdLineArray.length > 0 && stdLineArray[stdLineArray.length - 1].length > 0) {
+                this.emit('stdline', stdLineArray[stdLineArray.length - 1]);
             }
         }
 
@@ -236,6 +244,13 @@ export class ToolRunner extends events.EventEmitter {
             if (!ops.silent) {
                 var s = ops.failOnStdErr ? ops.errStream : ops.outStream;
                 s.write(res.stderr + os.EOL);
+            }
+            const stdErrArray = res.stderr.split(os.EOL);
+            for (const line of stdErrArray.slice(0, -1)) {
+                this.emit('errline', line);
+            }
+            if (stdErrArray.length > 0 && stdErrArray[stdErrArray.length - 1].length > 0) {
+                this.emit('errline', stdErrArray[stdErrArray.length - 1]);
             }
         }
 
@@ -263,7 +278,7 @@ export class ToolRunner extends events.EventEmitter {
     // ExecSync - use for short running simple commands.  Simple and convenient (synchronous)
     //            but also has limits.  For example, no live output and limited to max buffer
     //
-    public execSync(options: IExecOptions): IExecResult {
+    public execSync(options: IExecSyncOptions): IExecSyncResult {
         var defer = Q.defer();
 
         this._debug('exec tool: ' + this.toolPath);
@@ -275,14 +290,13 @@ export class ToolRunner extends events.EventEmitter {
         var success = true;
         options = options || <IExecOptions>{};
 
-        var ops: IExecOptions = {
+        var ops: IExecSyncOptions = {
             cwd: options.cwd || process.cwd(),
             env: options.env || process.env,
             silent: options.silent || false,
             outStream: options.outStream || process.stdout,
             errStream: options.errStream || process.stderr,
-            failOnStdErr: options.failOnStdErr || false,
-            ignoreReturnCode: options.ignoreReturnCode || false
+            windowsVerbatimArguments: options.windowsVerbatimArguments,
         };
 
         var argString = this.args.join(' ') || '';
@@ -299,15 +313,19 @@ export class ToolRunner extends events.EventEmitter {
             ops.outStream.write('[command]' + cmdString + os.EOL);
         }
 
-        var r = mock.getResponse('exec', cmdString);
-        if (r.stdout && r.stdout.length > 0) {
+        var r = mock.getResponse('exec', cmdString, debug);
+        if (!ops.silent && r.stdout && r.stdout.length > 0) {
             ops.outStream.write(r.stdout);
         }
 
-        if (r.stderr && r.stderr.length > 0) {
+        if (!ops.silent && r.stderr && r.stderr.length > 0) {
             ops.errStream.write(r.stderr);
         }
 
-        return <IExecResult>{ code: r.code, stdout: (r.stdout) ? r.stdout.toString() : null, stderr: (r.stderr) ? r.stderr.toString() : null };
+        return <IExecSyncResult>{
+            code: r.code,
+            stdout: (r.stdout) ? r.stdout.toString() : null,
+            stderr: (r.stderr) ? r.stderr.toString() : null
+        };
     }
 }

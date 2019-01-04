@@ -1,43 +1,42 @@
 # Errors, warnings, and task result
 
-## Error action preference
-The `Invoke-VstsTaskScript` command globally sets the error action preference to stop before running the scriptblock.
-
-This will cause error records to be terminating errors. When errors are written to the error pipeline, it will cause the statement to throw the error record. The `Invoke-VstsTaskScript` command will catch the terminating error record, log it as an error issue on the task, and set the task result to failed.
-
-Alternatively, the global error action preference can be overidden by the task script. For example, `$global:ErrorActionPreference = 'Continue'`. With an error action preference of `Continue`, error records will still be logged as error issues. However, the task result would not automatically be set to failed. In this case, merely creating an error issue would not indicate task failure.
-
 ## Error/Warning pipelines
-Messages written to the error pipeline (`Write-Error`) are written as error logging commands. This instructs the agent to create an error issue asssociated with the task.
 
-Messages written to the warning pipeline (`Write-Warning`) are written as warning logging commands. This instructs the agent to create a warning issue associated with the task. 
+Messages written to the error pipeline (`Write-Error`) are written as error logging commands. For example,
+
+```PowerShell
+Write-Error 'Something went wrong'
+```
+
+will be written over STDOUT as an instruction to the agent:
+```
+##vso[task.logissue type=error]Something went wrong
+```
+
+The agent will intercept the output and create an error issue asssociated with the task.
+
+Likewise, messages written to the warning pipeline (`Write-Warning`) instruct the agent to create a warning issue.
+
+## Default $ErrorActionPreference and outer catch handler
+
+The `$ErrorActionPreference` is globally set to `'Stop'` when the agent runs your script.
+
+This will cause error records written to the error pipeline (`Write-Error`) to be terminating errors, and an exception will be thrown.
+
+The agent runs your script within a try/catch block. If an exception bubbles to the outer catch handler, the catch handler will create an error issue associated with your task, and set the task result to failed.
+
+## Overriding $ErrorActionPreference (error issue != task failure)
+
+Alternatively, the global error action preference can be overidden by your task script. For example, `$global:ErrorActionPreference = 'Continue'`.
+
+With an error action preference of `'Continue'`, error records will still be logged as error issues. However, the task result will not automatically be set to failed.
+
+Error issues are not tightly coupled with task result. This enables scenarios where errors issues can be logged, but the task ultimately succeeds (e.g. best effort scenarios).
 
 ## External commands and STDERR
-When the agent invokes the task script, by default STDERR from external commands and will not produce an error record. Many programs treat the STDERR stream simply as an alternate stream. So this behavior is appropriate for many external commands.
 
-This default behavior is consistent with PowerShell.exe (Console Host). Other hosts may differ. For example PowerShell ISE by default converts STDERR from external commands into error records. For this reason, the recommendation is to test the task script using PowerShell.exe.
+When your task script is run by the agent, STDERR from external commands will not produce error records.
 
-However, depending upon how the pipelines are manipulated, error records may be produced in some cases.
+This is consistent with PowerShell.exe.
 
-### These cases do not produce an error record:
-* When redirection is not applied to the external command. Example:
-```PowerShell
-& cmd.exe /c nosuchcommand
-```
-* When redirection is applied indirectly to the external command and the output is (naturally or directly) piped to `Out-Default`. Examples:
-```PowerShell
-. { & cmd.exe /c nosuchcommand } 2>&1
-. { & cmd.exe /c nosuchcommand } 2>&1 | Out-Default
-```
-
-### These cases do produce an error record:
-* When redirection is applied directly to the external command. Example:
-```PowerShell
-& cmd.exe /c nosuchcommand 2>&1
-```
-* When redirection is applied indirectly to the external command, and the output is piped to any command before it is (naturally or directly) piped to `Out-Default`. Examples:
-```PowerShell
-. { & cmd.exe /c nosuchcommand } 2>&1 | Foreach-Object { $_ }
-. { & cmd.exe /c nosuchcommand } 2>&1 | Foreach-Object { $_ } | Out-Default
-. { & cmd.exe /c nosuchcommand } 2>&1 | Out-Host
-```
+Note, depending on how the pipelines are manipulated, error records may be produced in some cases. [Details here](ExternalCommandStderrDetails.md).

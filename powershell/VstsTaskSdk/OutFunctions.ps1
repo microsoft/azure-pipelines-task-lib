@@ -31,11 +31,11 @@ function Out-Default {
             Write-TaskError -Message $_.Exception.Message
         } elseif ($_ -is [System.Management.Automation.WarningRecord]) {
             Write-TaskWarning -Message (Remove-TrailingNewLine (Out-String -InputObject $_ -Width 2147483647))
-        } elseif ($_ -is [System.Management.Automation.VerboseRecord]) {
+        } elseif ($_ -is [System.Management.Automation.VerboseRecord] -and !$global:__vstsNoOverrideVerbose) {
             foreach ($private:str in (Format-DebugMessage -Object $_)) {
                 Write-TaskVerbose -Message $private:str
             }
-        } elseif ($_ -is [System.Management.Automation.DebugRecord]) {
+        } elseif ($_ -is [System.Management.Automation.DebugRecord] -and !$global:__vstsNoOverrideVerbose) {
             foreach ($private:str in (Format-DebugMessage -Object $_)) {
                 Write-TaskDebug -Message $private:str
             }

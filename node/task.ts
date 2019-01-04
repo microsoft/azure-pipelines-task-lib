@@ -4,66 +4,52 @@ import fs = require('fs');
 import path = require('path');
 import os = require('os');
 import minimatch = require('minimatch');
-import globm = require('glob');
 import util = require('util');
+import im = require('./internal');
 import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
 import vm = require('./vault');
 import semver = require('semver');
-require('./extensions');
 
 export enum TaskResult {
     Succeeded = 0,
-    Failed = 1
+    SucceededWithIssues = 1,
+    Failed = 2,
+    Cancelled = 3,
+    Skipped = 4
 }
 
-/**
- * Hash table of known variable info. The formatted env var name is the lookup key.
- *
- * The purpose of this hash table is to keep track of known variables. The hash table
- * needs to be maintained for multiple reasons:
- *  1) to distinguish between env vars and job vars
- *  2) to distinguish between secret vars and public
- *  3) to know the real variable name and not just the formatted env var name.
- */
-let knownVariableMap: { [key: string]: KnownVariableInfo; } = { };
-
-let vault: vm.Vault;
-
-//-----------------------------------------------------
-// String convenience
-//-----------------------------------------------------
-
-function startsWith(str: string, start: string): boolean {
-    return str.slice(0, start.length) == start;
+export enum TaskState {
+    Unknown = 0,
+    Initialized = 1,
+    InProgress = 2,
+    Completed = 3
 }
 
-function endsWith(str: string, end: string): boolean {
-    return str.slice(-str.length) == end;
+export enum IssueType {
+    Error,
+    Warning
+}
+
+export enum ArtifactType {
+    Container,
+    FilePath,
+    VersionControl,
+    GitRef,
+    TfvcLabel
+}
+
+export enum FieldType {
+    AuthParameter,
+    DataParameter,
+    Url
 }
 
 //-----------------------------------------------------
 // General Helpers
 //-----------------------------------------------------
-export var _outStream = process.stdout;
-export var _errStream = process.stderr;
-
-export function _writeError(str: string): void {
-    _errStream.write(str + os.EOL);
-}
-
-export function _writeLine(str: string): void {
-    _outStream.write(str + os.EOL);
-}
-
-export function setStdStream(stdStream): void {
-    _outStream = stdStream;
-}
-
-export function setErrStream(errStream): void {
-    _errStream = errStream;
-}
-
+export const setStdStream = im._setStdStream;
+export const setErrStream = im._setErrStream;
 
 //-----------------------------------------------------
 // Results
@@ -71,22 +57,35 @@ export function setErrStream(errStream): void {
 
 /**
  * Sets the result of the task.
- * If the result is Failed (1), then execution will halt.  
+ * Execution will continue.
+ * If not set, task will be Succeeded.
+ * If multiple calls are made to setResult the most pessimistic call wins (Failed) regardless of the order of calls.
  * 
- * @param result    TaskResult enum of Success or Failed.  If the result is Failed (1), then execution will halt.
+ * @param result    TaskResult enum of Succeeded, SucceededWithIssues, Failed, Cancelled or Skipped.
  * @param message   A message which will be logged as an error issue if the result is Failed.
+ * @param done      Optional. Instructs the agent the task is done. This is helpful when child processes
+ *                  may still be running and prevent node from fully exiting. This argument is supported
+ *                  from agent version 2.142.0 or higher (otherwise will no-op).
  * @returns         void
  */
-export function setResult(result: TaskResult, message: string): void {
+export function setResult(result: TaskResult, message: string, done?: boolean): void {
     debug('task result: ' + TaskResult[result]);
 
     // add an error issue
     if (result == TaskResult.Failed && message) {
         error(message);
     }
+    else if (result == TaskResult.SucceededWithIssues && message) {
+        warning(message);
+    }
 
-    // set the task result
-    command('task.complete', { 'result': TaskResult[result] }, message);
+    // task.complete
+    var properties = { 'result': TaskResult[result] };
+    if (done) {
+        properties['done'] = 'true';
+    }
+
+    command('task.complete', properties, message);
 }
 
 //
@@ -99,192 +98,30 @@ process.on('uncaughtException', (err) => {
 //-----------------------------------------------------
 // Loc Helpers
 //-----------------------------------------------------
-var locStringCache: {
-    [key: string]: string
-} = {};
-var resourceFile: string;
-var libResourceFileLoaded: boolean = false;
-var resourceCulture: string = 'en-US';
 
-function loadResJson(resjsonFile: string): any {
-    var resJson: {} = null;
-    if (exist(resjsonFile)) {
-        var resjsonContent = fs.readFileSync(resjsonFile, 'utf8').toString();
-        // remove BOM
-        if (resjsonContent.indexOf('\uFEFF') == 0) {
-            resjsonContent = resjsonContent.slice(1);
-        }
-
-        try {
-            resJson = JSON.parse(resjsonContent);
-        }
-        catch (err) {
-            debug('unable to parse resjson with err: ' + err.message);
-            resJson = null;
-        }
-    }
-    else {
-        debug('.resjson file not found: ' + resjsonFile);
-    }
-
-    return resJson;
-}
-
-function loadLocStrings(resourceFile: string, culture: string): { [key: string]: string; } {
-    var locStrings: {
-        [key: string]: string
-    } = {};
-
-    if (exist(resourceFile)) {
-        var resourceJson = require(resourceFile);
-        if (resourceJson && resourceJson.hasOwnProperty('messages')) {
-            var locResourceJson = null;
-            // load up resource resjson for different culture
-
-            var localizedResourceFile = path.join(path.dirname(resourceFile), 'Strings', 'resources.resjson');
-            var upperCulture = culture.toUpperCase();
-            var cultures = [];
-            try { cultures = fs.readdirSync(localizedResourceFile); }
-            catch (ex) { }
-            for (var i = 0; i < cultures.length; i++) {
-                if (cultures[i].toUpperCase() == upperCulture) {
-                    localizedResourceFile = path.join(localizedResourceFile, cultures[i], 'resources.resjson');
-                    if (exist(localizedResourceFile)) {
-                        locResourceJson = loadResJson(localizedResourceFile);
-                    }
-
-                    break;
-                }
-            }
-
-            for (var key in resourceJson.messages) {
-                if (locResourceJson && locResourceJson.hasOwnProperty('loc.messages.' + key)) {
-                    locStrings[key] = locResourceJson['loc.messages.' + key];
-                }
-                else {
-                    locStrings[key] = resourceJson.messages[key];
-                }
-            }
-        }
-    }
-    else {
-        warning(loc('LIB_ResourceFileNotExist', resourceFile));
-    }
-
-    return locStrings;
-}
-
-/**
- * Sets the location of the resources json.  This is typically the task.json file.
- * Call once at the beginning of the script before any calls to loc.
- * 
- * @param     path      Full path to the json.
- * @returns   void
- */
-export function setResourcePath(path: string): void {
-    if (process.env['TASKLIB_INPROC_UNITS']) {
-        resourceFile = null;
-        libResourceFileLoaded = false;
-        locStringCache = {};
-        resourceCulture = 'en-US';
-    }
-
-    if (!resourceFile) {
-        checkPath(path, 'resource file path');
-        resourceFile = path;
-        debug('set resource file to: ' + resourceFile);
-
-        resourceCulture = getVariable('system.culture') || resourceCulture;
-        var locStrs = loadLocStrings(resourceFile, resourceCulture);
-        for (var key in locStrs) {
-            //cache loc string
-            locStringCache[key] = locStrs[key];
-        }
-
-    }
-    else {
-        warning(loc('LIB_ResourceFileAlreadySet', resourceFile));
-    }
-}
-
-/**
- * Gets the localized string from the json resource file.  Optionally formats with additional params.
- * 
- * @param     key      key of the resources string in the resource file
- * @param     param    additional params for formatting the string
- * @returns   string
- */
-export function loc(key: string, ...param: any[]): string {
-    if (!libResourceFileLoaded) {
-        // merge loc strings from vsts-task-lib.
-        var libResourceFile = path.join(__dirname, 'lib.json');
-        var libLocStrs = loadLocStrings(libResourceFile, resourceCulture);
-        for (var libKey in libLocStrs) {
-            //cache vsts-task-lib loc string
-            locStringCache[libKey] = libLocStrs[libKey];
-        }
-
-        libResourceFileLoaded = true;
-    }
-
-    var locString;;
-    if (locStringCache.hasOwnProperty(key)) {
-        locString = locStringCache[key];
-    }
-    else {
-        if (!resourceFile) {
-            warning(loc('LIB_ResourceFileNotSet', key));
-        }
-        else {
-            warning(loc('LIB_LocStringNotFound', key));
-        }
-
-        locString = key;
-    }
-
-    if (param.length > 0) {
-        return util.format.apply(this, [locString].concat(param));
-    }
-    else {
-        return locString;
-    }
-}
+export const setResourcePath = im._setResourcePath;
+export const loc = im._loc;
 
 //-----------------------------------------------------
 // Input Helpers
 //-----------------------------------------------------
+
+export const getVariable = im._getVariable;
+
 /**
- * Gets a variable value that is defined on the build/release definition or set at runtime.
- * 
- * @param     name     name of the variable to get
- * @returns   string
+ * Asserts the agent version is at least the specified minimum.
+ *
+ * @param    minimum    minimum version version - must be 2.104.1 or higher
  */
-export function getVariable(name: string): string {
-    let varval: string;
-
-    // get the metadata
-    let info: KnownVariableInfo;
-    let key: string = getVariableKey(name);
-    if (knownVariableMap.hasOwnProperty(key)) {
-        info = knownVariableMap[key];
+export function assertAgent(minimum: string): void {
+    if (semver.lt(minimum, '2.104.1')) {
+        throw new Error('assertAgent() requires the parameter to be 2.104.1 or higher');
     }
 
-    if (info && info.secret) {
-        // get the secret value
-        varval = vault.retrieveSecret('SECRET_' + key);
+    let agent = getVariable('Agent.Version');
+    if (agent && semver.lt(agent, minimum)) {
+        throw new Error(`Agent version ${minimum} or higher is required`);
     }
-    else {
-        // get the public value
-        varval = process.env[key];
-
-        // fallback for pre 2.104.1 agent
-        if (!varval && name.toUpperCase() == 'AGENT.JOBSTATUS') {
-            varval = process.env['agent.jobstatus'];
-        }
-    }
-
-    debug(name + '=' + varval);
-    return varval;
 }
 
 /**
@@ -301,10 +138,10 @@ export function getVariable(name: string): string {
  * @returns VariableInfo[]
  */
 export function getVariables(): VariableInfo[] {
-    return Object.keys(knownVariableMap)
+    return Object.keys(im._knownVariableMap)
         .map((key: string) => {
-            let info: KnownVariableInfo = knownVariableMap[key];
-            return new VariableInfo(info.name, getVariable(info.name), info.secret);
+            let info: im._KnownVariableInfo = im._knownVariableMap[key];
+            return <VariableInfo>{ name: info.name, value: getVariable(info.name), secret: info.secret };
         });
 }
 
@@ -313,79 +150,68 @@ export function getVariables(): VariableInfo[] {
  * 
  * @param     name    name of the variable to set
  * @param     val     value to set
- * @param     secret  whether variable is secret.  optional, defaults to false
+ * @param     secret  whether variable is secret.  Multi-line secrets are not allowed.  Optional, defaults to false
  * @returns   void
  */
 export function setVariable(name: string, val: string, secret: boolean = false): void {
     // once a secret always a secret
-    let key: string = getVariableKey(name);
-    if (knownVariableMap.hasOwnProperty(key)) {
-        secret = secret || knownVariableMap[key].secret;
+    let key: string = im._getVariableKey(name);
+    if (im._knownVariableMap.hasOwnProperty(key)) {
+        secret = secret || im._knownVariableMap[key].secret;
     }
 
     // store the value
     let varValue = val || '';
     debug('set ' + name + '=' + (secret && varValue ? '********' : varValue));
     if (secret) {
-        vault.storeSecret('SECRET_' + key, varValue);
+        if (varValue && varValue.match(/\r|\n/) && `${process.env['SYSTEM_UNSAFEALLOWMULTILINESECRET']}`.toUpperCase() != 'TRUE') {
+            throw new Error(loc('LIB_MultilineSecret'));
+        }
+
+        im._vault.storeSecret('SECRET_' + key, varValue);
         delete process.env[key];
     } else {
         process.env[key] = varValue;
     }
 
     // store the metadata
-    knownVariableMap[key] = new KnownVariableInfo(name, secret);
+    im._knownVariableMap[key] = <im._KnownVariableInfo>{ name: name, secret: secret };
 
     // write the command
-    command('task.setvariable', { 'variable': name || '', 'secret': (secret || false).toString() }, varValue);
-}
-
-function getVariableKey(name: string): string {
-    if (!name) {
-        throw new Error(loc('LIB_ParameterIsRequired', 'name'));
-    }
-
-    return name.replace(/\./g, '_').toUpperCase();
+    command('task.setvariable', { 'variable': name || '', 'issecret': (secret || false).toString() }, varValue);
 }
 
 /**
- * Used to store the following information about job variables:
- *  1) the real variable name (not the formatted environment variable name)
- *  2) whether the variable is a secret variable
+ * Registers a value with the logger, so the value will be masked from the logs.  Multi-line secrets are not allowed.
+ *
+ * @param val value to register
  */
-class KnownVariableInfo {
-    constructor(name: string, secret: boolean) {
-        this.name = name;
-        this.secret = secret;
+export function setSecret(val: string): void {
+    if (val) {
+        if (val.match(/\r|\n/) && `${process.env['SYSTEM_UNSAFEALLOWMULTILINESECRET']}`.toUpperCase() !== 'TRUE') {
+            throw new Error(loc('LIB_MultilineSecret'));
+        }
+        command('task.setsecret', {}, val);
     }
-
-    public name: string;
-    public secret: boolean;
 }
 
 /** Snapshot of a variable at the time when getVariables was called. */
-export class VariableInfo {
-    constructor(name: string, value: string, secret: boolean) {
-        this.name = name;
-        this.value = value;
-        this.secret = secret;
-    }
-
-    public name: string;
-    public value: string;
-    public secret: boolean;
+export interface VariableInfo {
+    name: string;
+    value: string;
+    secret: boolean;
 }
 
 /**
  * Gets the value of an input.  The value is also trimmed.
- * If required is true and the value is not set, the task will fail with an error.  Execution halts.
+ * If required is true and the value is not set, it will throw.
  * 
  * @param     name     name of the input to get
  * @param     required whether input is required.  optional, defaults to false
  * @returns   string
  */
 export function getInput(name: string, required?: boolean): string {
-    var inval = vault.retrieveSecret('INPUT_' + name.replace(' ', '_').toUpperCase());
+    var inval = im._vault.retrieveSecret('INPUT_' + name.replace(' ', '_').toUpperCase());
     if (inval) {
         inval = inval.trim();
     }
@@ -400,7 +226,7 @@ export function getInput(name: string, required?: boolean): string {
 
 /**
  * Gets the value of an input and converts to a bool.  Convenience.
- * If required is true and the value is not set, the task will fail with an error.  Execution halts.
+ * If required is true and the value is not set, it will throw.
  * 
  * @param     name     name of the bool input to get
  * @param     required whether input is required.  optional, defaults to false
@@ -410,20 +236,13 @@ export function getBoolInput(name: string, required?: boolean): boolean {
     return (getInput(name, required) || '').toUpperCase() == "TRUE";
 }
 
-// deprecated - use  setVariable
-export function setEnvVar(name: string, val: string): void {
-    if (val) {
-        process.env[name] = val;
-    }
-}
-
 /**
  * Gets the value of an input and splits the value using a delimiter (space, comma, etc).
  * Empty values are removed.  This function is useful for splitting an input containing a simple
  * list of items - such as build targets.
  * IMPORTANT: Do not use this function for splitting additional args!  Instead use argString(), which
  * follows normal argument splitting rules and handles values encapsulated by quotes.
- * If required is true and the value is not set, the task will fail with an error.  Execution halts.
+ * If required is true and the value is not set, it will throw.
  * 
  * @param     name     name of the input to get
  * @param     delim    delimiter to split on
@@ -457,7 +276,7 @@ export function getDelimitedInput(name: string, delim: string, required?: boolea
 export function filePathSupplied(name: string): boolean {
     // normalize paths
     var pathValue = this.resolve(this.getPathInput(name) || '');
-    var repoRoot = this.resolve(this.getVariable('build.sourcesDirectory') || '');
+    var repoRoot = this.resolve(getVariable('build.sourcesDirectory') || getVariable('system.defaultWorkingDirectory') || '');
 
     var supplied = pathValue !== repoRoot;
     debug(name + 'path supplied :' + supplied);
@@ -467,8 +286,8 @@ export function filePathSupplied(name: string): boolean {
 /**
  * Gets the value of a path input
  * It will be quoted for you if it isn't already and contains spaces
- * If required is true and the value is not set, the task will fail with an error.  Execution halts.
- * If check is true and the path does not exist, the task will fail with an error.  Execution halts.
+ * If required is true and the value is not set, it will throw.
+ * If check is true and the path does not exist, it will throw.
  * 
  * @param     name      name of the input to get
  * @param     required  whether input is required.  optional, defaults to false
@@ -492,7 +311,7 @@ export function getPathInput(name: string, required?: boolean, check?: boolean):
 
 /**
  * Gets the url for a service endpoint
- * If the url was not set and is not optional, the task will fail with an error message. Execution will halt.
+ * If the url was not set and is not optional, it will throw.
  * 
  * @param     id        name of the service endpoint
  * @param     optional  whether the url is optional
@@ -511,7 +330,7 @@ export function getEndpointUrl(id: string, optional: boolean): string {
 
 /*
  * Gets the endpoint data parameter value with specified key for a service endpoint
- * If the endpoint data parameter was not set and is not optional, the task will fail with an error message. Execution will halt.
+ * If the endpoint data parameter was not set and is not optional, it will throw.
  *
  * @param id name of the service endpoint
  * @param key of the parameter
@@ -521,7 +340,7 @@ export function getEndpointUrl(id: string, optional: boolean): string {
 export function getEndpointDataParameter(id: string, key: string, optional: boolean): string {
     var dataParamVal = process.env['ENDPOINT_DATA_' + id + '_' + key.toUpperCase()];
 
-    if(!optional && !dataParamVal) {
+    if (!optional && !dataParamVal) {
         throw new Error(loc('LIB_EndpointDataNotExist', id, key));
     }
 
@@ -531,16 +350,16 @@ export function getEndpointDataParameter(id: string, key: string, optional: bool
 
 /**
  * Gets the endpoint authorization scheme for a service endpoint
- * If the endpoint authorization scheme is not set and is not optional, the task will fail with an error message. Execution will halt.
+ * If the endpoint authorization scheme is not set and is not optional, it will throw.
  *
  * @param id name of the service endpoint
  * @param optional whether the endpoint authorization scheme is optional
  * @returns {string} value of the endpoint authorization scheme
  */
-export function getEndpointAuthorizationScheme(id: string, optional: boolean) : string {
-    var authScheme = vault.retrieveSecret('ENDPOINT_AUTH_SCHEME_' + id);
+export function getEndpointAuthorizationScheme(id: string, optional: boolean): string {
+    var authScheme = im._vault.retrieveSecret('ENDPOINT_AUTH_SCHEME_' + id);
 
-    if(!optional && !authScheme) {
+    if (!optional && !authScheme) {
         throw new Error(loc('LIB_EndpointAuthNotExist', id));
     }
 
@@ -550,17 +369,17 @@ export function getEndpointAuthorizationScheme(id: string, optional: boolean) : 
 
 /**
  * Gets the endpoint authorization parameter value for a service endpoint with specified key
- * If the endpoint authorization parameter is not set and is not optional, the task will fail with an error message. Execution will halt.
+ * If the endpoint authorization parameter is not set and is not optional, it will throw.
  *
  * @param id name of the service endpoint
  * @param key key to find the endpoint authorization parameter
  * @param optional optional whether the endpoint authorization scheme is optional
  * @returns {string} value of the endpoint authorization parameter value
  */
-export function getEndpointAuthorizationParameter(id: string, key: string, optional: boolean) : string {
-    var authParam = vault.retrieveSecret('ENDPOINT_AUTH_PARAMETER_' + id + '_' + key.toUpperCase());
+export function getEndpointAuthorizationParameter(id: string, key: string, optional: boolean): string {
+    var authParam = im._vault.retrieveSecret('ENDPOINT_AUTH_PARAMETER_' + id + '_' + key.toUpperCase());
 
-    if(!optional && !authParam) {
+    if (!optional && !authParam) {
         throw new Error(loc('LIB_EndpointAuthNotExist', id));
     }
 
@@ -570,27 +389,27 @@ export function getEndpointAuthorizationParameter(id: string, key: string, optio
 /**
  * Interface for EndpointAuthorization
  * Contains a schema and a string/string dictionary of auth data
- * 
- * @param     parameters        string string dictionary of auth data
- * @param     scheme            auth scheme such as OAuth or username/password etc...
  */
 export interface EndpointAuthorization {
+    /** dictionary of auth data */
     parameters: {
         [key: string]: string;
     };
+
+    /** auth scheme such as OAuth or username/password etc... */
     scheme: string;
 }
 
 /**
  * Gets the authorization details for a service endpoint
- * If the authorization was not set and is not optional, the task will fail with an error message. Execution will halt.
+ * If the authorization was not set and is not optional, it will throw.
  * 
  * @param     id        name of the service endpoint
  * @param     optional  whether the url is optional
  * @returns   string
  */
 export function getEndpointAuthorization(id: string, optional: boolean): EndpointAuthorization {
-    var aval = vault.retrieveSecret('ENDPOINT_AUTH_' + id);
+    var aval = im._vault.retrieveSecret('ENDPOINT_AUTH_' + id);
 
     if (!optional && !aval) {
         setResult(TaskResult.Failed, loc('LIB_EndpointAuthNotExist', id));
@@ -610,31 +429,93 @@ export function getEndpointAuthorization(id: string, optional: boolean): Endpoin
     return auth;
 }
 
+//-----------------------------------------------------
+// SecureFile Helpers
+//-----------------------------------------------------
+
+/**
+ * Gets the name for a secure file
+ * 
+ * @param     id        secure file id
+ * @returns   string
+ */
+export function getSecureFileName(id: string): string {
+    var name = process.env['SECUREFILE_NAME_' + id];
+
+    debug('secure file name for id ' + id + ' = ' + name);
+    return name;
+}
+
+/** 
+  * Gets the secure file ticket that can be used to download the secure file contents
+  *
+  * @param id name of the secure file
+  * @returns {string} secure file ticket
+  */
+export function getSecureFileTicket(id: string): string {
+    var ticket = im._vault.retrieveSecret('SECUREFILE_TICKET_' + id);
+
+    debug('secure file ticket for id ' + id + ' = ' + ticket);
+    return ticket;
+}
+
+//-----------------------------------------------------
+// Task Variable Helpers
+//-----------------------------------------------------
+/**
+ * Gets a variable value that is set by previous step from the same wrapper task.
+ * Requires a 2.115.0 agent or higher.
+ * 
+ * @param     name     name of the variable to get
+ * @returns   string
+ */
+export function getTaskVariable(name: string): string {
+    assertAgent('2.115.0');
+    var inval = im._vault.retrieveSecret('VSTS_TASKVARIABLE_' + name.replace(' ', '_').toUpperCase());
+    if (inval) {
+        inval = inval.trim();
+    }
+
+    debug('task variable: ' + name + '=' + inval);
+    return inval;
+}
+
+/**
+ * Sets a task variable which will only be available to subsequent steps belong to the same wrapper task.
+ * Requires a 2.115.0 agent or higher.
+ * 
+ * @param     name    name of the variable to set
+ * @param     val     value to set
+ * @param     secret  whether variable is secret.  optional, defaults to false
+ * @returns   void
+ */
+export function setTaskVariable(name: string, val: string, secret: boolean = false): void {
+    assertAgent('2.115.0');
+    let key: string = im._getVariableKey(name);
+
+    // store the value
+    let varValue = val || '';
+    debug('set task variable: ' + name + '=' + (secret && varValue ? '********' : varValue));
+    im._vault.storeSecret('VSTS_TASKVARIABLE_' + key, varValue);
+    delete process.env[key];
+
+    // write the command
+    command('task.settaskvariable', { 'variable': name || '', 'issecret': (secret || false).toString() }, varValue);
+}
 
 //-----------------------------------------------------
 // Cmd Helpers
 //-----------------------------------------------------
-export function command(command: string, properties, message: string) {
-    var taskCmd = new tcm.TaskCommand(command, properties, message);
-    _writeLine(taskCmd.toString());
-}
 
-export function warning(message: string): void {
-    command('task.issue', { 'type': 'warning' }, message);
-}
-
-export function error(message: string): void {
-    command('task.issue', { 'type': 'error' }, message);
-}
-
-export function debug(message: string): void {
-    command('task.debug', null, message);
-}
+export const command = im._command;
+export const warning = im._warning;
+export const error = im._error;
+export const debug = im._debug;
 
 //-----------------------------------------------------
 // Disk Functions
 //-----------------------------------------------------
-function checkShell(cmd: string, continueOnError?: boolean) {
+function _checkShell(cmd: string, continueOnError?: boolean) {
     var se = shell.error();
 
     if (se) {
@@ -664,33 +545,15 @@ export function stats(path: string): FsStats {
     return fs.statSync(path);
 }
 
-/**
- * Returns whether a path exists.
- * 
- * @param     path      path to check
- * @returns   boolean 
- */
-export function exist(path: string): boolean {
-    var exist = false;
-    try {
-        exist = path && fs.statSync(path) != null;
-    } catch (err) {
-        if (err && err.code === 'ENOENT') {
-            exist = false;
-        } else {
-            throw err;
-        }
-    }
-    return exist;
-}
+export const exist = im._exist;
 
 export interface FsOptions {
-  encoding?: string;
-  mode?: number;
-  flag?: string;
+    encoding?: string;
+    mode?: number;
+    flag?: string;
 }
 
-export function writeFile(file: string, data: string|Buffer, options? : string|FsOptions) {
+export function writeFile(file: string, data: string | Buffer, options?: string | FsOptions) {
     fs.writeFileSync(file, data, options);
 }
 
@@ -710,24 +573,11 @@ export function osType(): string {
  * 
  * @return      the path to the current working directory of the process
  */
-export function cwd() : string {
+export function cwd(): string {
     return process.cwd();
 }
 
-/**
- * Checks whether a path exists.
- * If the path does not exist, the task will fail with an error message. Execution will halt.
- * 
- * @param     p         path to check
- * @param     name      name only used in error message to identify the path
- * @returns   void
- */
-export function checkPath(p: string, name: string): void {
-    debug('check path : ' + p);
-    if (!exist(p)) {
-        throw new Error(loc('LIB_PathNotFound', name, p));
-    }
-}
+export const checkPath = im._checkPath;
 
 /**
  * Change working directory.
@@ -738,7 +588,7 @@ export function checkPath(p: string, name: string): void {
 export function cd(path: string): void {
     if (path) {
         shell.cd(path);
-        checkShell('cd');
+        _checkShell('cd');
     }
 }
 
@@ -750,7 +600,7 @@ export function cd(path: string): void {
  */
 export function pushd(path: string): void {
     shell.pushd(path);
-    checkShell('pushd');
+    _checkShell('pushd');
 }
 
 /**
@@ -760,7 +610,7 @@ export function pushd(path: string): void {
  */
 export function popd(): void {
     shell.popd();
-    checkShell('popd');
+    _checkShell('popd');
 }
 
 /**
@@ -776,12 +626,13 @@ export function mkdirP(p: string): void {
     }
 
     // build a stack of directories to create
-    let stack: string[] = [ ];
+    let stack: string[] = [];
     let testDir: string = p;
     while (true) {
         // validate the loop is not out of control
         if (stack.length >= (process.env['TASKLIB_TEST_MKDIRP_FAILSAFE'] || 1000)) {
             // let the framework throw
+            debug('loop is out of control');
             fs.mkdirSync(p);
             return;
         }
@@ -844,72 +695,7 @@ export function resolve(...pathSegments: any[]): string {
     return absolutePath;
 }
 
-/**
- * Returns path of a tool had the tool actually been invoked.  Resolves via paths.
- * If you check and the tool does not exist, the task will fail with an error message and halt execution.
- * 
- * @param     tool       name of the tool
- * @param     check      whether to check if tool exists
- * @returns   string
- */
-export function which(tool: string, check?: boolean): string {
-    try {
-        // we can't use shelljs.which() on windows due to https://github.com/shelljs/shelljs/issues/238
-        // shelljs.which() does not prefer file with executable extensions (.exe, .bat, .cmd).
-        // we already made a PR for Shelljs, but they haven't merge it yet. https://github.com/shelljs/shelljs/pull/239
-        if (os.type().match(/^Win/)) {
-            var pathEnv = process.env.path || process.env.Path || process.env.PATH;
-            var pathArray = pathEnv.split(';');
-            var toolPath: string = null;
-
-            // No relative/absolute paths provided?
-            if (tool.search(/[\/\\]/) === -1) {
-                // Search for command in PATH
-                pathArray.forEach(function (dir) {
-                    if (toolPath)
-                        return; // already found it
-
-                    var attempt = resolve(dir + '/' + tool);
-
-                    var baseAttempt = attempt;
-                    attempt = baseAttempt + '.exe';
-                    if (exist(attempt) && stats(attempt).isFile) {
-                        toolPath = attempt;
-                        return;
-                    }
-                    attempt = baseAttempt + '.bat';
-                    if (exist(attempt) && stats(attempt).isFile) {
-                        toolPath = attempt;
-                        return;
-                    }
-                    attempt = baseAttempt + '.cmd';
-                    if (exist(attempt) && stats(attempt).isFile) {
-                        toolPath = attempt;
-                        return;
-                    }
-                });
-            }
-
-            // Command not found in Path, but the input itself is point to a file.
-            if (!toolPath && exist(tool) && stats(tool).isFile) {
-                toolPath = resolve(tool);
-            }
-        }
-        else {
-            var toolPath = shell.which(tool);
-        }
-
-        if (check) {
-            checkPath(toolPath, tool);
-        }
-
-        debug(tool + '=' + toolPath);
-        return toolPath;
-    }
-    catch (err) {
-        throw new Error(loc('LIB_OperationFailed', 'which', err.message));
-    }
-}
+export const which = im._which;
 
 /**
  * Returns array of files in the given path, or in current directory if no path provided.  See shelljs.ls
@@ -918,7 +704,7 @@ export function which(tool: string, check?: boolean): string {
  * @return {string[]}          An array of files in the given path(s).
  */
 export function ls(options: string, paths: string[]): string[] {
-    if(options){
+    if (options) {
         return shell.ls(options, paths);
     } else {
         return shell.ls(paths);
@@ -926,9 +712,7 @@ export function ls(options: string, paths: string[]): string[] {
 }
 
 /**
- * Returns path of a tool had the tool actually been invoked.  Resolves via paths.
- * If you check and the tool does not exist, the task will fail with an error message and halt execution.
- * Returns whether the copy was successful
+ * Copies a file or folder.
  * 
  * @param     source     source path
  * @param     dest       destination path
@@ -943,12 +727,11 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
         shell.cp(source, dest);
     }
 
-    checkShell('cp', continueOnError);
+    _checkShell('cp', continueOnError);
 }
 
 /**
- * Moves a path.  
- * Returns whether the copy was successful
+ * Moves a path.
  * 
  * @param     source     source path
  * @param     dest       destination path
@@ -963,17 +746,20 @@ export function mv(source: string, dest: string, options?: string, continueOnErr
         shell.mv(source, dest);
     }
 
-    checkShell('mv', continueOnError);
+    _checkShell('mv', continueOnError);
 }
 
 /**
  * Interface for FindOptions
  * Contains properties to control whether to follow symlinks
- * 
- * @param followSpecifiedSymbolicLink   Equivalent to the -H command line option. Indicates whether to traverse descendants if the specified path is a symbolic link directory. Does not cause nested symbolic link directories to be traversed.
- * @param  followSymbolicLinks          Equivalent to the -L command line option. Indicates whether to traverse descendants of symbolic link directories.
  */
 export interface FindOptions {
+
+    /**
+     * When true, broken symbolic link will not cause an error.
+     */
+    allowBrokenSymbolicLinks: boolean,
+
     /**
      * Equivalent to the -H command line option. Indicates whether to traverse descendants if
      * the specified path is a symbolic link directory. Does not cause nested symbolic link
@@ -989,34 +775,50 @@ export interface FindOptions {
 }
 
 /**
- * Find all files under a give path 
- * Returns an array of paths
- * 
- * @param     findPath     path to find files under
- * @param     options      options to control whether to follow symlinks
+ * Recursively finds all paths a given path. Returns an array of paths.
+ *
+ * @param     findPath  path to search
+ * @param     options   optional. defaults to { followSymbolicLinks: true }. following soft links is generally appropriate unless deleting files.
  * @returns   string[]
  */
 export function find(findPath: string, options?: FindOptions): string[] {
-    debug(`find findPath=${findPath}, options=${options}`);
-    options = options || {} as FindOptions;
+    if (!findPath) {
+        debug('no path specified');
+        return [];
+    }
+
+    // normalize the path, otherwise the first result is inconsistently formatted from the rest of the results
+    // because path.join() performs normalization.
+    findPath = path.normalize(findPath);
+
+    // debug trace the parameters
+    debug(`findPath: '${findPath}'`);
+    options = options || _getDefaultFindOptions();
+    _debugFindOptions(options)
 
     // return empty if not exists
-    if (!shell.test('-e', findPath)) {
-        debug('0 results')
-        return [];
+    try {
+        fs.lstatSync(findPath);
+    }
+    catch (err) {
+        if (err.code == 'ENOENT') {
+            debug('0 results')
+            return [];
+        }
+
+        throw err;
     }
 
     try {
         let result: string[] = [];
 
         // push the first item
-        let stack: FindItem[] = [ new FindItem(findPath, 1) ];
+        let stack: _FindItem[] = [new _FindItem(findPath, 1)];
         let traversalChain: string[] = []; // used to detect cycles
 
         while (stack.length) {
             // pop the next item and push to the result array
-            let item: FindItem = stack.pop();
-            debug(`  ${item.path}`);
+            let item: _FindItem = stack.pop();
             result.push(item.path);
 
             // stat the item.  the stat info is used further below to determine whether to traverse deeper
@@ -1025,12 +827,36 @@ export function find(findPath: string, options?: FindOptions): string[] {
             // lstat returns info about a symlink itself
             let stats: fs.Stats;
             if (options.followSymbolicLinks) {
-                // use stat (following all symlinks)
-                stats = fs.statSync(item.path);
+                try {
+                    // use stat (following all symlinks)
+                    stats = fs.statSync(item.path);
+                }
+                catch (err) {
+                    if (err.code == 'ENOENT' && options.allowBrokenSymbolicLinks) {
+                        // fallback to lstat (broken symlinks allowed)
+                        stats = fs.lstatSync(item.path);
+                        debug(`  ${item.path} (broken symlink)`);
+                    }
+                    else {
+                        throw err;
+                    }
+                }
             }
             else if (options.followSpecifiedSymbolicLink && result.length == 1) {
-                // use stat (following symlinks for the specified path and this is the specified path)
-                stats = fs.statSync(item.path);
+                try {
+                    // use stat (following symlinks for the specified path and this is the specified path)
+                    stats = fs.statSync(item.path);
+                }
+                catch (err) {
+                    if (err.code == 'ENOENT' && options.allowBrokenSymbolicLinks) {
+                        // fallback to lstat (broken symlinks allowed)
+                        stats = fs.lstatSync(item.path);
+                        debug(`  ${item.path} (broken symlink)`);
+                    }
+                    else {
+                        throw err;
+                    }
+                }
             }
             else {
                 // use lstat (not following symlinks)
@@ -1039,7 +865,7 @@ export function find(findPath: string, options?: FindOptions): string[] {
 
             // note, isDirectory() returns false for the lstat of a symlink
             if (stats.isDirectory()) {
-                debug('    is a directory');
+                debug(`  ${item.path} (directory)`);
 
                 if (options.followSymbolicLinks) {
                     // get the realpath
@@ -1062,13 +888,13 @@ export function find(findPath: string, options?: FindOptions): string[] {
 
                 // push the child items in reverse onto the stack
                 let childLevel: number = item.level + 1;
-                let childItems: FindItem[] =
+                let childItems: _FindItem[] =
                     fs.readdirSync(item.path)
-                    .map((childName: string) => new FindItem(path.join(item.path, childName), childLevel));
+                        .map((childName: string) => new _FindItem(path.join(item.path, childName), childLevel));
                 stack.push(...childItems.reverse());
             }
             else {
-                debug('    is a file');
+                debug(`  ${item.path} (file)`);
             }
         }
 
@@ -1080,7 +906,7 @@ export function find(findPath: string, options?: FindOptions): string[] {
     }
 }
 
-class FindItem {
+class _FindItem {
     public path: string;
     public level: number;
 
@@ -1090,15 +916,212 @@ class FindItem {
     }
 }
 
+function _debugFindOptions(options: FindOptions): void {
+    debug(`findOptions.allowBrokenSymbolicLinks: '${options.allowBrokenSymbolicLinks}'`);
+    debug(`findOptions.followSpecifiedSymbolicLink: '${options.followSpecifiedSymbolicLink}'`);
+    debug(`findOptions.followSymbolicLinks: '${options.followSymbolicLinks}'`);
+}
+
+function _getDefaultFindOptions(): FindOptions {
+    return <FindOptions>{
+        allowBrokenSymbolicLinks: false,
+        followSpecifiedSymbolicLink: true,
+        followSymbolicLinks: true
+    };
+}
+
+/**
+ * Prefer tl.find() and tl.match() instead. This function is for backward compatibility
+ * when porting tasks to Node from the PowerShell or PowerShell3 execution handler.
+ *
+ * @param    rootDirectory      path to root unrooted patterns with
+ * @param    pattern            include and exclude patterns
+ * @param    includeFiles       whether to include files in the result. defaults to true when includeFiles and includeDirectories are both false
+ * @param    includeDirectories whether to include directories in the result
+ * @returns  string[]
+ */
+export function legacyFindFiles(
+    rootDirectory: string,
+    pattern: string,
+    includeFiles?: boolean,
+    includeDirectories?: boolean): string[] {
+
+    if (!pattern) {
+        throw new Error('pattern parameter cannot be empty');
+    }
+
+    debug(`legacyFindFiles rootDirectory: '${rootDirectory}'`);
+    debug(`pattern: '${pattern}'`);
+    debug(`includeFiles: '${includeFiles}'`);
+    debug(`includeDirectories: '${includeDirectories}'`);
+    if (!includeFiles && !includeDirectories) {
+        includeFiles = true;
+    }
+
+    // organize the patterns into include patterns and exclude patterns
+    let includePatterns: string[] = [];
+    let excludePatterns: RegExp[] = [];
+    pattern = pattern.replace(/;;/g, '\0');
+    for (let pat of pattern.split(';')) {
+        if (!pat) {
+            continue;
+        }
+
+        pat = pat.replace(/\0/g, ';');
+
+        // determine whether include pattern and remove any include/exclude prefix.
+        // include patterns start with +: or anything other than -:
+        // exclude patterns start with -:
+        let isIncludePattern: boolean;
+        if (im._startsWith(pat, '+:')) {
+            pat = pat.substring(2);
+            isIncludePattern = true;
+        }
+        else if (im._startsWith(pat, '-:')) {
+            pat = pat.substring(2);
+            isIncludePattern = false;
+        }
+        else {
+            isIncludePattern = true;
+        }
+
+        // validate pattern does not end with a slash
+        if (im._endsWith(pat, '/') || (process.platform == 'win32' && im._endsWith(pat, '\\'))) {
+            throw new Error(loc('LIB_InvalidPattern', pat));
+        }
+
+        // root the pattern
+        if (rootDirectory && !path.isAbsolute(pat)) {
+            pat = path.join(rootDirectory, pat);
+
+            // remove trailing slash sometimes added by path.join() on Windows, e.g.
+            //      path.join('\\\\hello', 'world') => '\\\\hello\\world\\'
+            //      path.join('//hello', 'world') => '\\\\hello\\world\\'
+            if (im._endsWith(pat, '\\')) {
+                pat = pat.substring(0, pat.length - 1);
+            }
+        }
+
+        if (isIncludePattern) {
+            includePatterns.push(pat);
+        }
+        else {
+            excludePatterns.push(im._legacyFindFiles_convertPatternToRegExp(pat));
+        }
+    }
+
+    // find and apply patterns
+    let count = 0;
+    let result: string[] = _legacyFindFiles_getMatchingItems(includePatterns, excludePatterns, !!includeFiles, !!includeDirectories);
+    debug('all matches:');
+    for (let resultItem of result) {
+        debug(' ' + resultItem);
+    }
+
+    debug('total matched: ' + result.length);
+    return result;
+}
+
+
+function _legacyFindFiles_getMatchingItems(
+    includePatterns: string[],
+    excludePatterns: RegExp[],
+    includeFiles: boolean,
+    includeDirectories: boolean) {
+
+    debug('getMatchingItems()');
+    for (let pattern of includePatterns) {
+        debug(`includePattern: '${pattern}'`);
+    }
+
+    for (let pattern of excludePatterns) {
+        debug(`excludePattern: ${pattern}`);
+    }
+
+    debug('includeFiles: ' + includeFiles);
+    debug('includeDirectories: ' + includeDirectories);
+
+    let allFiles = {} as { [k: string]: string };
+    for (let pattern of includePatterns) {
+        // determine the directory to search
+        //
+        // note, getDirectoryName removes redundant path separators
+        let findPath: string;
+        let starIndex = pattern.indexOf('*');
+        let questionIndex = pattern.indexOf('?');
+        if (starIndex < 0 && questionIndex < 0) {
+            // if no wildcards are found, use the directory name portion of the path.
+            // if there is no directory name (file name only in pattern or drive root),
+            // this will return empty string.
+            findPath = im._getDirectoryName(pattern);
+        }
+        else {
+            // extract the directory prior to the first wildcard
+            let index = Math.min(
+                starIndex >= 0 ? starIndex : questionIndex,
+                questionIndex >= 0 ? questionIndex : starIndex);
+            findPath = im._getDirectoryName(pattern.substring(0, index));
+        }
+
+        // note, due to this short-circuit and the above usage of getDirectoryName, this
+        // function has the same limitations regarding drive roots as the powershell
+        // implementation.
+        //
+        // also note, since getDirectoryName eliminates slash redundancies, some additional
+        // work may be required if removal of this limitation is attempted.
+        if (!findPath) {
+            continue;
+        }
+
+        let patternRegex: RegExp = im._legacyFindFiles_convertPatternToRegExp(pattern);
+
+        // find files/directories
+        let items = find(findPath, <FindOptions>{ followSymbolicLinks: true })
+            .filter((item: string) => {
+                if (includeFiles && includeDirectories) {
+                    return true;
+                }
+
+                let isDir = fs.statSync(item).isDirectory();
+                return (includeFiles && !isDir) || (includeDirectories && isDir);
+            })
+            .forEach((item: string) => {
+                let normalizedPath = process.platform == 'win32' ? item.replace(/\\/g, '/') : item; // normalize separators
+                // **/times/** will not match C:/fun/times because there isn't a trailing slash
+                // so try both if including directories
+                let alternatePath = `${normalizedPath}/`;   // potential bug: it looks like this will result in a false
+                // positive if the item is a regular file and not a directory
+
+                let isMatch = false;
+                if (patternRegex.test(normalizedPath) || (includeDirectories && patternRegex.test(alternatePath))) {
+                    isMatch = true;
+
+                    // test whether the path should be excluded
+                    for (let regex of excludePatterns) {
+                        if (regex.test(normalizedPath) || (includeDirectories && regex.test(alternatePath))) {
+                            isMatch = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (isMatch) {
+                    allFiles[item] = item;
+                }
+            });
+    }
+
+    return Object.keys(allFiles).sort();
+}
+
 /**
  * Remove a path recursively with force
  * Returns whether it succeeds
  * 
  * @param     path     path to remove
- * @param     continueOnError optional. whether to continue on error
  * @returns   void
  */
-export function rmRF(path: string, continueOnError?: boolean): void {
+export function rmRF(path: string): void {
     debug('rm -rf ' + path);
 
     // get the lstats in order to workaround a bug in shelljs@0.3.0 where symlinks
@@ -1120,7 +1143,7 @@ export function rmRF(path: string, continueOnError?: boolean): void {
     if (lstats.isDirectory()) {
         debug('removing directory');
         shell.rm('-rf', path);
-        var errMsg: string = shell.error();
+        let errMsg: string = shell.error();
         if (errMsg) {
             throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
         }
@@ -1137,39 +1160,6 @@ export function rmRF(path: string, continueOnError?: boolean): void {
     }
 }
 
-export function glob(pattern: string): string[] {
-    debug('glob ' + pattern);
-    var matches: string[] = globm.sync(pattern);
-    debug('found ' + matches.length + ' matches');
-
-    if (matches.length > 0) {
-        var m = Math.min(matches.length, 10);
-        debug('matches:');
-        if (m == 10) {
-            debug('listing first 10 matches as samples');
-        }
-
-        for (var i = 0; i < m; i++) {
-            debug(matches[i]);
-        }
-    }
-
-    return matches;
-}
-
-export function globFirst(pattern: string): string {
-    debug('globFirst ' + pattern);
-    var matches = glob(pattern);
-
-    if (matches.length > 1) {
-        warning(loc('LIB_UseFirstGlobMatch'));
-    }
-
-    debug('found ' + matches.length + ' matches');
-
-    return matches[0];
-}
-
 /**
  * Exec a tool.  Convenience wrapper over ToolRunner to exec with args in one call.
  * Output will be streamed to the live console.
@@ -1181,8 +1171,7 @@ export function globFirst(pattern: string): string {
  * @returns   number
  */
 export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Promise<number> {
-    var toolPath = which(tool, true);
-    var tr: trm.ToolRunner = this.tool(toolPath);
+    let tr: trm.ToolRunner = this.tool(tool);
     tr.on('debug', (data) => {
         debug(data);
     });
@@ -1206,12 +1195,11 @@ export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Pro
  * 
  * @param     tool     path to tool to exec
  * @param     args     an arg string or array of args
- * @param     options  optionalexec options.  See IExecOptions
- * @returns   IExecResult
+ * @param     options  optional exec options.  See IExecSyncOptions
+ * @returns   IExecSyncResult
  */
-export function execSync(tool: string, args: string | string[], options?: trm.IExecOptions): trm.IExecResult {
-    var toolPath = which(tool, true);
-    var tr: trm.ToolRunner = this.tool(toolPath);
+export function execSync(tool: string, args: string | string[], options?: trm.IExecSyncOptions): trm.IExecSyncResult {
+    let tr: trm.ToolRunner = this.tool(tool);
     tr.on('debug', (data) => {
         debug(data);
     });
@@ -1235,7 +1223,7 @@ export function execSync(tool: string, args: string | string[], options?: trm.IE
  * @returns   ToolRunner
  */
 export function tool(tool: string) {
-    var tr: trm.ToolRunner = new trm.ToolRunner(tool);
+    let tr: trm.ToolRunner = new trm.ToolRunner(tool);
     tr.on('debug', (message: string) => {
         debug(message);
     })
@@ -1246,7 +1234,7 @@ export function tool(tool: string) {
 //-----------------------------------------------------
 // Matching helpers
 //-----------------------------------------------------
-// redefine to avoid folks having to typings install minimatch
+
 export interface MatchOptions {
     debug?: boolean;
     nobrace?: boolean;
@@ -1261,40 +1249,462 @@ export interface MatchOptions {
     flipNegate?: boolean;
 }
 
-export function match(list: string[], pattern: string, options?: MatchOptions): string[];
-export function match(list: string[], patterns: string[], options?: MatchOptions): string[];
-export function match(list: string[], pattern: any, options?: MatchOptions): string[] {
-    debug(`match patterns: ${pattern}`);
-    debug(`match options: ${options}`);
+/**
+ * Applies glob patterns to a list of paths. Supports interleaved exclude patterns.
+ *
+ * @param  list         array of paths
+ * @param  patterns     patterns to apply. supports interleaved exclude patterns.
+ * @param  patternRoot  optional. default root to apply to unrooted patterns. not applied to basename-only patterns when matchBase:true.
+ * @param  options      optional. defaults to { dot: true, nobrace: true, nocase: process.platform == 'win32' }.
+ */
+export function match(list: string[], patterns: string[] | string, patternRoot?: string, options?: MatchOptions): string[] {
+    // trace parameters
+    debug(`patternRoot: '${patternRoot}'`);
+    options = options || _getDefaultMatchOptions(); // default match options
+    _debugMatchOptions(options);
 
     // convert pattern to an array
-    let patterns: string[];
-    if (typeof pattern == 'string') {
-        patterns = [ pattern ];
-    }
-    else {
-        patterns = pattern;
+    if (typeof patterns == 'string') {
+        patterns = [patterns as string];
     }
 
     // hashtable to keep track of matches
     let map: { [item: string]: boolean } = {};
 
-    // perform the match
+    let originalOptions = options;
     for (let pattern of patterns) {
-        debug(`applying pattern: ${pattern}`);
-        let matches: string[] = minimatch.match(list, pattern, options);
-        debug(`matched ${matches.length} items`);
-        for (let item of matches) {
-            map[item] = true;
+        debug(`pattern: '${pattern}'`);
+
+        // trim and skip empty
+        pattern = (pattern || '').trim();
+        if (!pattern) {
+            debug('skipping empty pattern');
+            continue;
+        }
+
+        // clone match options
+        let options = im._cloneMatchOptions(originalOptions);
+
+        // skip comments
+        if (!options.nocomment && im._startsWith(pattern, '#')) {
+            debug('skipping comment');
+            continue;
+        }
+
+        // set nocomment - brace expansion could result in a leading '#'
+        options.nocomment = true;
+
+        // determine whether pattern is include or exclude
+        let negateCount = 0;
+        if (!options.nonegate) {
+            while (pattern.charAt(negateCount) == '!') {
+                negateCount++;
+            }
+
+            pattern = pattern.substring(negateCount); // trim leading '!'
+            if (negateCount) {
+                debug(`trimmed leading '!'. pattern: '${pattern}'`);
+            }
+        }
+
+        let isIncludePattern = negateCount == 0 ||
+            (negateCount % 2 == 0 && !options.flipNegate) ||
+            (negateCount % 2 == 1 && options.flipNegate);
+
+        // set nonegate - brace expansion could result in a leading '!'
+        options.nonegate = true;
+        options.flipNegate = false;
+
+        // expand braces - required to accurately root patterns
+        let expanded: string[];
+        let preExpanded: string = pattern;
+        if (options.nobrace) {
+            expanded = [pattern];
+        }
+        else {
+            // convert slashes on Windows before calling braceExpand(). unfortunately this means braces cannot
+            // be escaped on Windows, this limitation is consistent with current limitations of minimatch (3.0.3).
+            debug('expanding braces');
+            let convertedPattern = process.platform == 'win32' ? pattern.replace(/\\/g, '/') : pattern;
+            expanded = (minimatch as any).braceExpand(convertedPattern);
+        }
+
+        // set nobrace
+        options.nobrace = true;
+
+        for (let pattern of expanded) {
+            if (expanded.length != 1 || pattern != preExpanded) {
+                debug(`pattern: '${pattern}'`);
+            }
+
+            // trim and skip empty
+            pattern = (pattern || '').trim();
+            if (!pattern) {
+                debug('skipping empty pattern');
+                continue;
+            }
+
+            // root the pattern when all of the following conditions are true:
+            if (patternRoot &&          // patternRoot supplied
+                !im._isRooted(pattern) &&  // AND pattern not rooted
+                // AND matchBase:false or not basename only
+                (!options.matchBase || (process.platform == 'win32' ? pattern.replace(/\\/g, '/') : pattern).indexOf('/') >= 0)) {
+
+                pattern = im._ensureRooted(patternRoot, pattern);
+                debug(`rooted pattern: '${pattern}'`);
+            }
+
+            if (isIncludePattern) {
+                // apply the pattern
+                debug('applying include pattern against original list');
+                let matchResults: string[] = minimatch.match(list, pattern, options);
+                debug(matchResults.length + ' matches');
+
+                // union the results
+                for (let matchResult of matchResults) {
+                    map[matchResult] = true;
+                }
+            }
+            else {
+                // apply the pattern
+                debug('applying exclude pattern against original list');
+                let matchResults: string[] = minimatch.match(list, pattern, options);
+                debug(matchResults.length + ' matches');
+
+                // substract the results
+                for (let matchResult of matchResults) {
+                    delete map[matchResult];
+                }
+            }
         }
     }
 
     // return a filtered version of the original list (preserves order and prevents duplication)
-    return list.filter((item: string) => map.hasOwnProperty(item));
+    let result: string[] = list.filter((item: string) => map.hasOwnProperty(item));
+    debug(result.length + ' final results');
+    return result;
 }
 
+/**
+ * Filter to apply glob patterns
+ *
+ * @param  pattern  pattern to apply
+ * @param  options  optional. defaults to { dot: true, nobrace: true, nocase: process.platform == 'win32' }.
+ */
 export function filter(pattern: string, options?: MatchOptions): (element: string, indexed: number, array: string[]) => boolean {
+    options = options || _getDefaultMatchOptions();
     return minimatch.filter(pattern, options);
+}
+
+function _debugMatchOptions(options: MatchOptions): void {
+    debug(`matchOptions.debug: '${options.debug}'`);
+    debug(`matchOptions.nobrace: '${options.nobrace}'`);
+    debug(`matchOptions.noglobstar: '${options.noglobstar}'`);
+    debug(`matchOptions.dot: '${options.dot}'`);
+    debug(`matchOptions.noext: '${options.noext}'`);
+    debug(`matchOptions.nocase: '${options.nocase}'`);
+    debug(`matchOptions.nonull: '${options.nonull}'`);
+    debug(`matchOptions.matchBase: '${options.matchBase}'`);
+    debug(`matchOptions.nocomment: '${options.nocomment}'`);
+    debug(`matchOptions.nonegate: '${options.nonegate}'`);
+    debug(`matchOptions.flipNegate: '${options.flipNegate}'`);
+}
+
+function _getDefaultMatchOptions(): MatchOptions {
+    return <MatchOptions>{
+        debug: false,
+        nobrace: true,
+        noglobstar: false,
+        dot: true,
+        noext: false,
+        nocase: process.platform == 'win32',
+        nonull: false,
+        matchBase: false,
+        nocomment: false,
+        nonegate: false,
+        flipNegate: false
+    };
+}
+
+/**
+ * Determines the find root from a list of patterns. Performs the find and then applies the glob patterns.
+ * Supports interleaved exclude patterns. Unrooted patterns are rooted using defaultRoot, unless
+ * matchOptions.matchBase is specified and the pattern is a basename only. For matchBase cases, the
+ * defaultRoot is used as the find root.
+ *
+ * @param  defaultRoot   default path to root unrooted patterns. falls back to System.DefaultWorkingDirectory or process.cwd().
+ * @param  patterns      pattern or array of patterns to apply
+ * @param  findOptions   defaults to { followSymbolicLinks: true }. following soft links is generally appropriate unless deleting files.
+ * @param  matchOptions  defaults to { dot: true, nobrace: true, nocase: process.platform == 'win32' }
+ */
+export function findMatch(defaultRoot: string, patterns: string[] | string, findOptions?: FindOptions, matchOptions?: MatchOptions): string[] {
+
+    // apply defaults for parameters and trace
+    defaultRoot = defaultRoot || this.getVariable('system.defaultWorkingDirectory') || process.cwd();
+    debug(`defaultRoot: '${defaultRoot}'`);
+    patterns = patterns || [];
+    patterns = typeof patterns == 'string' ? [patterns] as string[] : patterns;
+    findOptions = findOptions || _getDefaultFindOptions();
+    _debugFindOptions(findOptions);
+    matchOptions = matchOptions || _getDefaultMatchOptions();
+    _debugMatchOptions(matchOptions);
+
+    // normalize slashes for root dir
+    defaultRoot = im._normalizeSeparators(defaultRoot);
+
+    let results: { [key: string]: string } = {};
+    let originalMatchOptions = matchOptions;
+    for (let pattern of (patterns || [])) {
+        debug(`pattern: '${pattern}'`);
+
+        // trim and skip empty
+        pattern = (pattern || '').trim();
+        if (!pattern) {
+            debug('skipping empty pattern');
+            continue;
+        }
+
+        // clone match options
+        let matchOptions = im._cloneMatchOptions(originalMatchOptions);
+
+        // skip comments
+        if (!matchOptions.nocomment && im._startsWith(pattern, '#')) {
+            debug('skipping comment');
+            continue;
+        }
+
+        // set nocomment - brace expansion could result in a leading '#'
+        matchOptions.nocomment = true;
+
+        // determine whether pattern is include or exclude
+        let negateCount = 0;
+        if (!matchOptions.nonegate) {
+            while (pattern.charAt(negateCount) == '!') {
+                negateCount++;
+            }
+
+            pattern = pattern.substring(negateCount); // trim leading '!'
+            if (negateCount) {
+                debug(`trimmed leading '!'. pattern: '${pattern}'`);
+            }
+        }
+
+        let isIncludePattern = negateCount == 0 ||
+            (negateCount % 2 == 0 && !matchOptions.flipNegate) ||
+            (negateCount % 2 == 1 && matchOptions.flipNegate);
+
+        // set nonegate - brace expansion could result in a leading '!'
+        matchOptions.nonegate = true;
+        matchOptions.flipNegate = false;
+
+        // expand braces - required to accurately interpret findPath
+        let expanded: string[];
+        let preExpanded: string = pattern;
+        if (matchOptions.nobrace) {
+            expanded = [pattern];
+        }
+        else {
+            // convert slashes on Windows before calling braceExpand(). unfortunately this means braces cannot
+            // be escaped on Windows, this limitation is consistent with current limitations of minimatch (3.0.3).
+            debug('expanding braces');
+            let convertedPattern = process.platform == 'win32' ? pattern.replace(/\\/g, '/') : pattern;
+            expanded = (minimatch as any).braceExpand(convertedPattern);
+        }
+
+        // set nobrace
+        matchOptions.nobrace = true;
+
+        for (let pattern of expanded) {
+            if (expanded.length != 1 || pattern != preExpanded) {
+                debug(`pattern: '${pattern}'`);
+            }
+
+            // trim and skip empty
+            pattern = (pattern || '').trim();
+            if (!pattern) {
+                debug('skipping empty pattern');
+                continue;
+            }
+
+            if (isIncludePattern) {
+                // determine the findPath
+                let findInfo: im._PatternFindInfo = im._getFindInfoFromPattern(defaultRoot, pattern, matchOptions);
+                let findPath: string = findInfo.findPath;
+                debug(`findPath: '${findPath}'`);
+
+                if (!findPath) {
+                    debug('skipping empty path');
+                    continue;
+                }
+
+                // perform the find
+                debug(`statOnly: '${findInfo.statOnly}'`);
+                let findResults: string[] = [];
+                if (findInfo.statOnly) {
+                    // simply stat the path - all path segments were used to build the path
+                    try {
+                        fs.statSync(findPath);
+                        findResults.push(findPath);
+                    }
+                    catch (err) {
+                        if (err.code != 'ENOENT') {
+                            throw err;
+                        }
+
+                        debug('ENOENT');
+                    }
+                }
+                else {
+                    findResults = find(findPath, findOptions);
+                }
+
+                debug(`found ${findResults.length} paths`);
+
+                // apply the pattern
+                debug('applying include pattern');
+                if (findInfo.adjustedPattern != pattern) {
+                    debug(`adjustedPattern: '${findInfo.adjustedPattern}'`);
+                    pattern = findInfo.adjustedPattern;
+                }
+
+                let matchResults: string[] = minimatch.match(findResults, pattern, matchOptions);
+                debug(matchResults.length + ' matches');
+
+                // union the results
+                for (let matchResult of matchResults) {
+                    let key = process.platform == 'win32' ? matchResult.toUpperCase() : matchResult;
+                    results[key] = matchResult;
+                }
+            }
+            else {
+                // check if basename only and matchBase=true
+                if (matchOptions.matchBase &&
+                    !im._isRooted(pattern) &&
+                    (process.platform == 'win32' ? pattern.replace(/\\/g, '/') : pattern).indexOf('/') < 0) {
+
+                    // do not root the pattern
+                    debug('matchBase and basename only');
+                }
+                else {
+                    // root the exclude pattern
+                    pattern = im._ensurePatternRooted(defaultRoot, pattern);
+                    debug(`after ensurePatternRooted, pattern: '${pattern}'`);
+                }
+
+                // apply the pattern
+                debug('applying exclude pattern');
+                let matchResults: string[] = minimatch.match(
+                    Object.keys(results).map((key: string) => results[key]),
+                    pattern,
+                    matchOptions);
+                debug(matchResults.length + ' matches');
+
+                // substract the results
+                for (let matchResult of matchResults) {
+                    let key = process.platform == 'win32' ? matchResult.toUpperCase() : matchResult;
+                    delete results[key];
+                }
+            }
+        }
+    }
+
+    let finalResult: string[] = Object.keys(results)
+        .map((key: string) => results[key])
+        .sort();
+    debug(finalResult.length + ' final results');
+    return finalResult;
+}
+
+//-----------------------------------------------------
+// Http Proxy Helper
+//-----------------------------------------------------
+
+export interface ProxyConfiguration {
+    proxyUrl: string;
+    proxyUsername?: string;
+    proxyPassword?: string;
+    proxyBypassHosts?: string[];
+}
+
+/**
+ * Gets http proxy configuration used by Build/Release agent
+ *
+ * @return  ProxyConfiguration
+ */
+export function getHttpProxyConfiguration(requestUrl?: string): ProxyConfiguration {
+    let proxyUrl: string = getVariable('Agent.ProxyUrl');
+    if (proxyUrl && proxyUrl.length > 0) {
+        let proxyUsername: string = getVariable('Agent.ProxyUsername');
+        let proxyPassword: string = getVariable('Agent.ProxyPassword');
+        let proxyBypassHosts: string[] = JSON.parse(getVariable('Agent.ProxyBypassList') || '[]');
+
+        let bypass: boolean = false;
+        if (requestUrl) {
+            proxyBypassHosts.forEach(bypassHost => {
+                if (new RegExp(bypassHost, 'i').test(requestUrl)) {
+                    bypass = true;
+                }
+            });
+        }
+
+        if (bypass) {
+            return null;
+        }
+        else {
+            return {
+                proxyUrl: proxyUrl,
+                proxyUsername: proxyUsername,
+                proxyPassword: proxyPassword,
+                proxyBypassHosts: proxyBypassHosts
+            };
+        }
+    }
+    else {
+        return null;
+    }
+}
+
+//-----------------------------------------------------
+// Http Certificate Helper
+//-----------------------------------------------------
+
+export interface CertConfiguration {
+    caFile?: string;
+    certFile?: string;
+    keyFile?: string;
+    certArchiveFile?: string;
+    passphrase?: string;
+}
+
+/**
+ * Gets http certificate configuration used by Build/Release agent
+ *
+ * @return  CertConfiguration
+ */
+export function getHttpCertConfiguration(): CertConfiguration {
+    let ca: string = getVariable('Agent.CAInfo');
+    let clientCert: string = getVariable('Agent.ClientCert');
+
+    if (ca || clientCert) {
+        let certConfig: CertConfiguration = {};
+        certConfig.caFile = ca;
+        certConfig.certFile = clientCert;
+
+        if (clientCert) {
+            let clientCertKey: string = getVariable('Agent.ClientCertKey');
+            let clientCertArchive: string = getVariable('Agent.ClientCertArchive');
+            let clientCertPassword: string = getVariable('Agent.ClientCertPassword');
+
+            certConfig.keyFile = clientCertKey;
+            certConfig.certArchiveFile = clientCertArchive;
+            certConfig.passphrase = clientCertPassword;
+        }
+
+        return certConfig;
+    }
+    else {
+        return null;
+    }
 }
 
 //-----------------------------------------------------
@@ -1307,8 +1717,10 @@ export class TestPublisher {
 
     public testRunner: string;
 
-    public publish(resultFiles, mergeResults, platform, config, runTitle, publishRunAttachments) {
+    public publish(resultFiles, mergeResults, platform, config, runTitle, publishRunAttachments): void;
+    public publish(resultsFiles, mergeResults, platform, config, runTitle, publishRunAttachments, testRunSystem): void;
 
+    public publish(resultFiles, mergeResults, platform, config, runTitle, publishRunAttachments, testRunSystem = "VSTSTask") {
         var properties = <{ [key: string]: string }>{};
         properties['type'] = this.testRunner;
 
@@ -1335,6 +1747,8 @@ export class TestPublisher {
         if (resultFiles) {
             properties['resultFiles'] = resultFiles;
         }
+
+        properties['testRunSystem'] = testRunSystem;
 
         command('results.publish', properties, '');
     }
@@ -1389,6 +1803,229 @@ export class CodeCoverageEnabler {
     }
 }
 
+//-----------------------------------------------------
+// Task Logging Commands
+//-----------------------------------------------------
+
+/**
+ * Upload user interested file as additional log information 
+ * to the current timeline record.
+ * 
+ * The file shall be available for download along with task logs.
+ * 
+ * @param path      Path to the file that should be uploaded.
+ * @returns         void
+ */
+export function uploadFile(path: string) {
+    command("task.uploadfile", null, path);
+}
+
+/**
+ * Instruction for the agent to update the PATH environment variable.
+ * The specified directory is prepended to the PATH.
+ * The updated environment variable will be reflected in subsequent tasks.
+ * 
+ * @param path      Local directory path.
+ * @returns         void
+ */
+export function prependPath(path: string) {
+    assertAgent("2.115.0");
+    command("task.prependpath", null, path);
+}
+
+/**
+ * Upload and attach summary markdown to current timeline record.
+ * This summary shall be added to the build/release summary and 
+ * not available for download with logs.
+ * 
+ * @param path      Local directory path.
+ * @returns         void
+ */
+export function uploadSummary(path: string) {
+    command("task.uploadsummary", null, path);
+}
+
+/**
+ * Upload and attach attachment to current timeline record.
+ * These files are not available for download with logs.
+ * These can only be referred to by extensions using the type or name values. 
+ * 
+ * @param type      Attachment type.
+ * @param name      Attachment name.
+ * @param path      Attachment path.
+ * @returns         void
+ */
+export function addAttachment(type: string, name: string, path: string) {
+    command("task.addattachment", { "type": type, "name": name }, path);
+}
+
+/**
+ * Set an endpoint field with given value.
+ * Value updated will be retained in the endpoint for 
+ * the subsequent tasks that execute within the same job.
+ * 
+ * @param id      Endpoint id.
+ * @param field   FieldType enum of AuthParameter, DataParameter or Url.
+ * @param key     Key.
+ * @param value   Value for key or url.
+ * @returns       void
+ */
+export function setEndpoint(id: string, field: FieldType, key: string, value: string) {
+    command("task.setendpoint", { "id": id, "field": FieldType[field].toLowerCase(), "key": key }, value);
+}
+
+/**
+ * Set progress and current operation for current task.
+ * 
+ * @param percent           Percentage of completion.
+ * @param currentOperation  Current pperation. 
+ * @returns                 void
+ */
+export function setProgress(percent: number, currentOperation: string) {
+    command("task.setprogress", { "value": `${percent}` }, currentOperation);
+}
+
+/**
+ * Indicates whether to write the logging command directly to the host or to the output pipeline.
+ *
+ * @param id            Timeline record Guid.
+ * @param parentId      Parent timeline record Guid.
+ * @param recordType    Record type.
+ * @param recordName    Record name.
+ * @param order         Order of timeline record.
+ * @param startTime     Start time.
+ * @param finishTime    End time.
+ * @param progress      Percentage of completion.
+ * @param state         TaskState enum of Unknown, Initialized, InProgress or Completed.
+ * @param result        TaskResult enum of Succeeded, SucceededWithIssues, Failed, Cancelled or Skipped.
+ * @param message       current operation
+ * @returns             void
+ */
+export function logDetail(id: string, message: string, parentId?: string, recordType?: string,
+    recordName?: string, order?: number, startTime?: string, finishTime?: string,
+    progress?: number, state?: TaskState, result?: TaskResult) {
+    const properties = {
+        "id": id,
+        "parentid": parentId,
+        "type": recordType,
+        "name": recordName,
+        "order": order ? order.toString() : undefined,
+        "starttime": startTime,
+        "finishtime": finishTime,
+        "progress": progress ? progress.toString() : undefined,
+        "state": state ? TaskState[state] : undefined,
+        "result": result ? TaskResult[result] : undefined
+    };
+
+    command("task.logdetail", properties, message);
+}
+
+/**
+ * Log error or warning issue to timeline record of current task.
+ *
+ * @param type          IssueType enum of Error or Warning.
+ * @param sourcePath    Source file location.
+ * @param lineNumber    Line number.
+ * @param columnNumber  Column number.
+ * @param code          Error or warning code.
+ * @param message       Error or warning message.
+ * @returns             void
+ */
+export function logIssue(type: IssueType, message: string, sourcePath?: string, lineNumber?: number,
+    columnNumber?: number, errorCode?: string) {
+    const properties = {
+        "type": IssueType[type].toLowerCase(),
+        "code": errorCode,
+        "sourcepath": sourcePath,
+        "linenumber": lineNumber ? lineNumber.toString() : undefined,
+        "columnnumber": columnNumber ? columnNumber.toString() : undefined,
+    };
+
+    command("task.logissue", properties, message);
+}
+
+//-----------------------------------------------------
+// Artifact Logging Commands
+//-----------------------------------------------------
+
+/**
+ * Upload user interested file as additional log information 
+ * to the current timeline record.
+ * 
+ * The file shall be available for download along with task logs.
+ * 
+ * @param containerFolder   Folder that the file will upload to, folder will be created if needed.
+ * @param path              Path to the file that should be uploaded.
+ * @param name              Artifact name.
+ * @returns                 void
+ */
+export function uploadArtifact(containerFolder: string, path: string, name?: string) {
+    command("artifact.upload", { "containerfolder": containerFolder, "artifactname": name }, path);
+}
+
+/**
+ * Create an artifact link, artifact location is required to be 
+ * a file container path, VC path or UNC share path. 
+ * 
+ * The file shall be available for download along with task logs.
+ * 
+ * @param name              Artifact name.
+ * @param path              Path to the file that should be associated.
+ * @param artifactType      ArtifactType enum of Container, FilePath, VersionControl, GitRef or TfvcLabel.
+ * @returns                 void
+ */
+export function associateArtifact(name: string, path: string, artifactType: ArtifactType) {
+    command("artifact.associate", { "type": ArtifactType[artifactType].toLowerCase(), "artifactname": name }, path);
+}
+
+//-----------------------------------------------------
+// Build Logging Commands
+//-----------------------------------------------------
+
+/**
+ * Upload user interested log to build’s container “logs\tool” folder.
+ * 
+ * @param path      Path to the file that should be uploaded.
+ * @returns         void
+ */
+export function uploadBuildLog(path: string) {
+    command("build.uploadlog", null, path);
+}
+
+/**
+ * Update build number for current build.
+ * 
+ * @param value     Value to be assigned as the build number.
+ * @returns         void
+ */
+export function updateBuildNumber(value: string) {
+    command("build.updatebuildnumber", null, value);
+}
+
+/**
+ * Add a tag for current build.
+ * 
+ * @param value     Tag value.
+ * @returns         void
+ */
+export function addBuildTag(value: string) {
+    command("build.addbuildtag", null, value);
+}
+
+//-----------------------------------------------------
+// Release Logging Commands
+//-----------------------------------------------------
+
+/**
+ * Update release name for current release.
+ * 
+ * @param value     Value to be assigned as the release name.
+ * @returns         void
+ */
+export function updateReleaseName(name: string) {
+    assertAgent("2.132");
+    command("release.updatereleasename", null, name);
+}
 
 //-----------------------------------------------------
 // Tools
@@ -1410,72 +2047,9 @@ if (semver.lt(process.versions.node, '4.2.0')) {
 // Populate the vault with sensitive data.  Inputs and Endpoints
 //-------------------------------------------------------------------
 
-// only exposed as a function so unit tests can reload vault for each test
-// in prod, it's called globally below so user does not need to call
-
-export function _loadData(): void {
-    // in agent, workFolder is set.
-    // In interactive dev mode, it won't be
-    let keyPath: string = getVariable("agent.workFolder") || process.cwd();
-    vault = new vm.Vault(keyPath);
-    knownVariableMap = { };
-    debug('loading inputs and endpoints');
-    let loaded: number = 0;
-    for (let envvar in process.env) {
-        if (envvar.startsWith('INPUT_') ||
-            envvar.startsWith('ENDPOINT_AUTH_') ||
-            envvar.startsWith('SECRET_')) {
-
-            // Record the secret variable metadata. This is required by getVariable to know whether
-            // to retrieve the value from the vault. In a 2.104.1 agent or higher, this metadata will
-            // be overwritten when the VSTS_SECRET_VARIABLES env var is processed below.
-            if (envvar.startsWith('SECRET_')) {
-                let variableName: string = envvar.substring('SECRET_'.length);
-                if (variableName) {
-                    // This is technically not the variable name (has underscores instead of dots),
-                    // but it's good enough to make getVariable work in a pre-2.104.1 agent where
-                    // the VSTS_SECRET_VARIABLES env var is not defined.
-                    knownVariableMap[getVariableKey(variableName)] = new KnownVariableInfo(variableName, true);
-                }
-            }
-
-            // store the secret
-            if (process.env[envvar]) {
-                ++loaded;
-                debug('loading ' + envvar);
-                vault.storeSecret(envvar, process.env[envvar]);
-                delete process.env[envvar];
-            }
-        }
-    }
-    debug('loaded ' + loaded);
-
-    // store public variable metadata
-    let names: string[];
-    try {
-        names = JSON.parse(process.env['VSTS_PUBLIC_VARIABLES'] || '[]');
-    }
-    catch (err) {
-        throw new Error('Failed to parse VSTS_PUBLIC_VARIABLES as JSON. ' + err); // may occur during interactive testing
-    }
-
-    names.forEach((name: string) => {
-        knownVariableMap[getVariableKey(name)] = new KnownVariableInfo(name, false);
-    });
-    delete process.env['VSTS_PUBLIC_VARIABLES'];
-
-    // store secret variable metadata
-    try {
-        names = JSON.parse(process.env['VSTS_SECRET_VARIABLES'] || '[]');
-    }
-    catch (err) {
-        throw new Error('Failed to parse VSTS_SECRET_VARIABLES as JSON. ' + err); // may occur during interactive testing
-    }
-
-    names.forEach((name: string) => {
-        knownVariableMap[getVariableKey(name)] = new KnownVariableInfo(name, true);
-    });
-    delete process.env['VSTS_SECRET_VARIABLES'];
+// avoid loading twice (overwrites .taskkey)
+if (!global['_vsts_task_lib_loaded']) {
+    im._loadData();
+    im._exposeProxySettings();
+    im._exposeCertSettings();
 }
-
-_loadData();

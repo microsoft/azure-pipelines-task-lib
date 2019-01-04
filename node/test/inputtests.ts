@@ -8,9 +8,10 @@ import assert = require('assert');
 import path = require('path');
 import os = require('os');
 import * as tl from '../_build/task';
+import * as im from '../_build/internal';
 import testutil = require('./testutil');
 
-describe('Test Inputs', function () {
+describe('Input Tests', function () {
 
     before(function (done) {
         try {
@@ -30,7 +31,7 @@ describe('Test Inputs', function () {
         this.timeout(1000);
 
         process.env['INPUT_UNITTESTINPUT'] = 'test value';
-        tl._loadData();
+        im._loadData();
 
         var inval = tl.getInput('UnitTestInput', true);
         assert.equal(inval, 'test value');
@@ -41,7 +42,7 @@ describe('Test Inputs', function () {
         this.timeout(1000);
 
         process.env['INPUT_UNITTESTINPUT'] = 'test value';
-        tl._loadData();
+        im._loadData();
         var inval = tl.getInput('UnitTestInput', true);
         assert.equal(inval, 'test value');
         assert(!process.env['INPUT_UNITTESTINPUT'], 'input envvar should be cleared');
@@ -66,7 +67,7 @@ describe('Test Inputs', function () {
         this.timeout(1000);
 
         process.env['INPUT_UNITTESTINPUT'] = '   test value   ';
-        tl._loadData();
+        im._loadData();
 
         var inval = tl.getInput('UnitTestInput', true);
         assert.equal(inval, 'test value');
@@ -79,7 +80,7 @@ describe('Test Inputs', function () {
         this.timeout(1000);
 
         process.env['BUILD_REPOSITORY_NAME'] = 'Test Repository';
-        tl._loadData();
+        im._loadData();
 
         var varVal = tl.getVariable('Build.Repository.Name');
         assert.equal(varVal, 'Test Repository');
@@ -90,7 +91,7 @@ describe('Test Inputs', function () {
         this.timeout(1000);
 
         process.env['SECRET_BUILD_REPOSITORY_NAME'] = 'Test Repository';
-        tl._loadData();
+        im._loadData();
 
         var varVal = tl.getVariable('Build.Repository.Name');
         assert.equal(varVal, 'Test Repository');
@@ -102,10 +103,22 @@ describe('Test Inputs', function () {
 
         process.env['BUILD_REPOSITORY_NAME'] = 'Test Repository';
         process.env['SECRET_BUILD_REPOSITORY_NAME'] = 'Secret Test Repository';
-        tl._loadData();
+        im._loadData();
 
         var varVal = tl.getVariable('Build.Repository.Name');
         assert.equal(varVal, 'Secret Test Repository');
+
+        done();
+    })
+    it('gets a variable with special characters', (done: MochaDone) => {
+        this.timeout(1000);
+
+        let expected = 'Value of var with special chars';
+        process.env['HELLO_DOT_DOT2_SPACE_SPACE2'] = expected;
+        im._loadData();
+
+        let varVal = tl.getVariable('Hello.dot.dot2 space space2');
+        assert.equal(varVal, expected);
 
         done();
     })
@@ -117,6 +130,16 @@ describe('Test Inputs', function () {
         tl.setVariable('Build.Repository.Uri', 'test value');
         let varVal: string = process.env['BUILD_REPOSITORY_URI'];
         assert.equal(varVal, 'test value');
+
+        done();
+    })
+    it('sets a variable with special chars as an env var', (done: MochaDone) => {
+        this.timeout(1000);
+
+        let expected = 'Set value of var with special chars';
+        tl.setVariable('Hello.dot.dot2 space space2', expected);
+        let varVal: string = process.env['HELLO_DOT_DOT2_SPACE_SPACE2'];
+        assert.equal(varVal, expected);
 
         done();
     })
@@ -161,7 +184,7 @@ describe('Test Inputs', function () {
     it('does not allow a secret variable to become a public variable', function (done) {
         this.timeout(1000);
 
-        tl._loadData();
+        im._loadData();
         tl.setVariable('My.Secret.Var', 'test secret value', true);
         tl.setVariable('My.Secret.Var', 'test modified value', false);
         let vars: tl.VariableInfo[] = tl.getVariables();
@@ -175,7 +198,7 @@ describe('Test Inputs', function () {
     it('allows a public variable to become a secret variable', function (done) {
         this.timeout(1000);
 
-        tl._loadData();
+        im._loadData();
         tl.setVariable('My.Var', 'test value', false);
         tl.setVariable('My.Var', 'test modified value', true);
         let vars: tl.VariableInfo[] = tl.getVariables();
@@ -189,13 +212,99 @@ describe('Test Inputs', function () {
     it('tracks known variables using env formatted name', function (done) {
         this.timeout(1000);
 
-        tl._loadData();
+        im._loadData();
         tl.setVariable('My.Public.Var', 'test value');
         tl.setVariable('my_public.VAR', 'test modified value');
         let vars: tl.VariableInfo[] = tl.getVariables();
         assert.equal(vars.length, 1);
         assert.equal(vars[0].name, 'my_public.VAR');
         assert.equal(vars[0].value, 'test modified value');
+
+        done();
+    })
+    it('does not allow setting a multi-line secret variable', function (done) {
+        this.timeout(1000);
+
+        im._loadData();
+
+        // test carriage return
+        let failed = false;
+        try {
+            tl.setVariable('my.secret', 'line1\rline2', true);
+        }
+        catch (err) {
+            failed = true;
+        }
+        assert(failed, 'Should have failed setting a secret variable with a carriage return');
+
+        // test line feed
+        failed = false;
+        try {
+            tl.setVariable('my.secret', 'line1\nline2', true);
+        }
+        catch (err) {
+            failed = true;
+        }
+        assert(failed, 'Should have failed setting a secret variable with a line feed');
+
+        done();
+    })
+    it('allows unsafe setting a multi-line secret variable', function (done) {
+        this.timeout(1000);
+
+        im._loadData();
+        try {
+            process.env['SYSTEM_UNSAFEALLOWMULTILINESECRET'] = 'true';
+            tl.setVariable('my.secret', 'line1\r\nline2', true);
+        }
+        finally {
+            delete process.env['SYSTEM_UNSAFEALLOWMULTILINESECRET'];
+        }
+
+        assert.equal(tl.getVariable('my.secret'), 'line1\r\nline2');
+
+        done();
+    })
+
+    // setSecret tests
+    it('does not allow setting a multi-line secret', function (done) {
+        this.timeout(1000);
+
+        im._loadData();
+
+        // test carriage return
+        let failed = false;
+        try {
+            tl.setSecret('line1\rline2');
+        }
+        catch (err) {
+            failed = true;
+        }
+        assert(failed, 'Should have failed setting a secret with a carriage return');
+
+        // test line feed
+        failed = false;
+        try {
+            tl.setSecret('line1\nline2');
+        }
+        catch (err) {
+            failed = true;
+        }
+        assert(failed, 'Should have failed setting a secret with a line feed');
+
+        done();
+    })
+    it('allows unsafe setting a multi-line secret', function (done) {
+        this.timeout(1000);
+
+        im._loadData();
+        try {
+            process.env['SYSTEM_UNSAFEALLOWMULTILINESECRET'] = 'true';
+            tl.setSecret('line1\r\nline2');
+        }
+        finally {
+            delete process.env['SYSTEM_UNSAFEALLOWMULTILINESECRET'];
+        }
 
         done();
     })
@@ -207,7 +316,7 @@ describe('Test Inputs', function () {
         process.env['PUBLIC_VAR_ONE'] = 'public value 1';
         process.env['PUBLIC_VAR_TWO'] = 'public value 2';
         process.env['VSTS_PUBLIC_VARIABLES'] = '[ "Public.Var.One", "Public.Var.Two" ]';
-        tl._loadData();
+        im._loadData();
         let vars: tl.VariableInfo[] = tl.getVariables();
         assert(vars, 'variables should not be undefined or null');
         assert.equal(vars.length, 2, 'exactly 2 variables should be returned');
@@ -227,7 +336,7 @@ describe('Test Inputs', function () {
         process.env['SECRET_SECRET_VAR_ONE'] = 'secret value 1';
         process.env['SECRET_SECRET_VAR_TWO'] = 'secret value 2';
         process.env['VSTS_SECRET_VARIABLES'] = '[ "Secret.Var.One", "Secret.Var.Two" ]';
-        tl._loadData();
+        im._loadData();
         let vars: tl.VariableInfo[] = tl.getVariables();
         assert(vars, 'variables should not be undefined or null');
         assert.equal(vars.length, 2, 'exactly 2 variables should be returned');
@@ -246,7 +355,7 @@ describe('Test Inputs', function () {
 
         process.env['SECRET_SECRET_VAR_ONE'] = 'secret value 1';
         process.env['SECRET_SECRET_VAR_TWO'] = 'secret value 2';
-        tl._loadData();
+        im._loadData();
         let vars: tl.VariableInfo[] = tl.getVariables();
         assert(vars, 'variables should not be undefined or null');
         assert.equal(vars.length, 2, 'exactly 2 variables should be returned');
@@ -265,7 +374,7 @@ describe('Test Inputs', function () {
 
         process.env['INITIAL_PUBLIC_VAR'] = 'initial public value';
         process.env['VSTS_PUBLIC_VARIABLES'] = '[ "Initial.Public.Var" ]';
-        tl._loadData();
+        im._loadData();
         tl.setVariable('Set.Public.Var', 'set public value');
         let vars: tl.VariableInfo[] = tl.getVariables();
         assert(vars, 'variables should not be undefined or null');
@@ -285,7 +394,7 @@ describe('Test Inputs', function () {
 
         process.env['SECRET_INITIAL_SECRET_VAR'] = 'initial secret value';
         process.env['VSTS_SECRET_VARIABLES'] = '[ "Initial.Secret.Var" ]';
-        tl._loadData();
+        im._loadData();
         tl.setVariable('Set.Secret.Var', 'set secret value', true);
         let vars: tl.VariableInfo[] = tl.getVariables();
         assert(vars, 'variables should not be undefined or null');
@@ -306,7 +415,7 @@ describe('Test Inputs', function () {
         this.timeout(1000);
 
         process.env['ENDPOINT_URL_id1'] = 'http://url';
-        tl._loadData();
+        im._loadData();
 
         var url = tl.getEndpointUrl('id1', true);
         assert.equal(url, 'http://url', 'url should match');
@@ -317,7 +426,7 @@ describe('Test Inputs', function () {
         this.timeout(1000);
 
         process.env['ENDPOINT_AUTH_id1'] = '{ "parameters": {"param1": "val1", "param2": "val2"}, "scheme": "UsernamePassword"}';
-        tl._loadData();
+        im._loadData();
 
         var auth = tl.getEndpointAuthorization('id1', true);
         assert(auth, 'should return an auth obj');
@@ -329,7 +438,7 @@ describe('Test Inputs', function () {
         this.timeout(1000);
 
         // don't set
-        tl._loadData();
+        im._loadData();
 
         var auth = tl.getEndpointAuthorization('id1', true);
         assert.equal(auth, null, 'should not return an auth obj');
@@ -340,7 +449,7 @@ describe('Test Inputs', function () {
         this.timeout(1000);
 
         process.env['ENDPOINT_AUTH_id1'] = '{ "parameters": {"param1": "val1", "param2": "val2"}, "scheme": "UsernamePassword"}';
-        tl._loadData();
+        im._loadData();
         var auth = tl.getEndpointAuthorization('id1', true);
         assert(auth, 'should return an auth obj');
         assert(auth['parameters']['param1'] === 'val1', 'should be correct object');
@@ -351,7 +460,7 @@ describe('Test Inputs', function () {
     it('gets endpoint auth scheme', function (done) {
         this.timeout(1000);
         process.env['ENDPOINT_AUTH_SCHEME_id1'] = 'scheme1';
-        tl._loadData();
+        im._loadData();
 
         var data = tl.getEndpointAuthorizationScheme('id1', true);
         assert(data, 'should return a string value');
@@ -362,7 +471,7 @@ describe('Test Inputs', function () {
     })
     it('gets undefined if endpoint auth scheme is not set', function (done) {
         this.timeout(1000);
-        tl._loadData();
+        im._loadData();
 
         var data = tl.getEndpointAuthorizationScheme('id1', true);
         assert(!data, 'should be undefined when auth scheme is not set');
@@ -372,7 +481,7 @@ describe('Test Inputs', function () {
     it('gets endpoint auth parameters', function (done) {
         this.timeout(1000);
         process.env['ENDPOINT_AUTH_PARAMETER_id1_PARAM1'] = 'value1';
-        tl._loadData();
+        im._loadData();
 
         var data = tl.getEndpointAuthorizationParameter('id1', 'param1', true);
         assert(data, 'should return a string value');
@@ -383,7 +492,7 @@ describe('Test Inputs', function () {
     })
     it('gets undefined if endpoint auth parameter is not set', function (done) {
         this.timeout(1000);
-        tl._loadData();
+        im._loadData();
 
         var data = tl.getEndpointAuthorizationParameter('id1', 'noparam', true);
         assert(!data, 'should be undefined when auth param is not set');
@@ -393,7 +502,7 @@ describe('Test Inputs', function () {
     it('gets an endpoint data', function (done) {
         this.timeout(1000);
         process.env['ENDPOINT_DATA_id1_PARAM1'] = 'val1';
-        tl._loadData();
+        im._loadData();
 
         var data = tl.getEndpointDataParameter('id1', 'param1', true);
         assert(data, 'should return a string value');
@@ -403,21 +512,45 @@ describe('Test Inputs', function () {
     })
     it('gets undefined if endpoint data is not set', function (done) {
         this.timeout(1000);
-        tl._loadData();
+        im._loadData();
 
         var data = tl.getEndpointDataParameter('id1', 'noparam', true);
         assert.equal(data, undefined, 'Error should occur if endpoint data is not set');
 
         done();
     })
+    // getSecureFileName/getSecureFileTicket/getSecureFiles tests
+    it('gets a secure file name', function (done) {
+        this.timeout(1000);
 
+        process.env['SECUREFILE_NAME_10'] = 'securefile10.p12';
+        im._loadData();
+
+        var name = tl.getSecureFileName('10');
+        assert.equal(name, 'securefile10.p12', 'name should match');
+
+        done();
+    })
+    it('gets a secure file ticket', function (done) {
+        this.timeout(1000);
+
+        process.env['SECUREFILE_TICKET_10'] = 'rsaticket10';
+        im._loadData();
+
+        var ticket = tl.getSecureFileTicket('10');
+        assert(ticket, 'should return a string value');
+        assert.equal(ticket, 'rsaticket10', 'should be correct ticket');
+        assert(!process.env['SECUREFILE_TICKET_10'], 'should clear ticket envvar');
+
+        done();
+    })
     // getBoolInput tests
     it('gets case insensitive true bool input value', function (done) {
         this.timeout(1000);
 
         var inputValue = 'tRuE';
         process.env['INPUT_ABOOL'] = inputValue;
-        tl._loadData();
+        im._loadData();
 
         var outVal = tl.getBoolInput('abool', /*required=*/true);
         assert(outVal, 'should return true');
@@ -429,17 +562,17 @@ describe('Test Inputs', function () {
 
         var inputValue = 'false';
         process.env['INPUT_ABOOL'] = inputValue;
-        tl._loadData();
+        im._loadData();
 
         var outVal = tl.getBoolInput('abool', /*required=*/true);
         assert(!outVal, 'should return false');
 
         done();
     })
-    it('defaults to false bool input value', function(done) {
+    it('defaults to false bool input value', function (done) {
         this.timeout(1000);
 
-        tl._loadData();
+        im._loadData();
 
         var outVal = tl.getBoolInput('no_such_env_var', /*required=*/ false);
         assert(!outVal, 'should default to false');
@@ -453,7 +586,7 @@ describe('Test Inputs', function () {
 
         var inputValue = 'test  value'; // contains two spaces
         process.env['INPUT_DELIM'] = inputValue;
-        tl._loadData();
+        im._loadData();
 
         var outVal = tl.getDelimitedInput('delim', ' ', /*required*/true);
         assert.equal(outVal.length, 2, 'should return array with two elements');
@@ -467,7 +600,7 @@ describe('Test Inputs', function () {
 
         var inputValue = 'testvalue';
         process.env['INPUT_DELIM'] = inputValue;
-        tl._loadData();
+        im._loadData();
 
         var outVal = tl.getDelimitedInput('delim', ' ', /*required*/true);
         assert.equal(outVal.length, 1, 'should return array with one element');
@@ -480,7 +613,7 @@ describe('Test Inputs', function () {
 
         var inputValue = '';
         process.env['INPUT_DELIM'] = inputValue;
-        tl._loadData();
+        im._loadData();
 
         var outVal = tl.getDelimitedInput('delim', ' ', /*required*/false);
         assert.equal(outVal.length, 0, 'should return array with zero elements');
@@ -494,7 +627,7 @@ describe('Test Inputs', function () {
 
         var inputValue = 'test.txt'
         process.env['INPUT_PATH1'] = inputValue;
-        tl._loadData();
+        im._loadData();
 
         var path = tl.getPathInput('path1', /*required=*/true, /*check=*/false);
         assert(path, 'should return a path');
@@ -556,7 +689,7 @@ describe('Test Inputs', function () {
         var inputValue = 'file name.txt';
         var expectedValue = 'file name.txt';
         process.env['INPUT_PATH1'] = inputValue;
-        tl._loadData();
+        im._loadData();
 
         var path = tl.getPathInput('path1', /*required=*/true, /*check=*/false);
         assert(path, 'should return a path');
@@ -572,7 +705,7 @@ describe('Test Inputs', function () {
 
         var inputValue = __filename;
         process.env['INPUT_PATH1'] = inputValue;
-        tl._loadData();
+        im._loadData();
 
         var path = tl.getPathInput('path1', /*required=*/true, /*check=*/true);
         assert(path, 'should return a path');
@@ -591,7 +724,7 @@ describe('Test Inputs', function () {
 
         var inputValue = "someRandomFile.txt";
         process.env['INPUT_PATH1'] = inputValue;
-        tl._loadData();
+        im._loadData();
 
         var worked: boolean = false;
         try {
@@ -612,7 +745,7 @@ describe('Test Inputs', function () {
 
         var repoRoot = '/repo/root/dir';
         process.env['INPUT_PATH1'] = repoRoot;
-        tl._loadData();
+        im._loadData();
 
         process.env['BUILD_SOURCESDIRECTORY'] = repoRoot;
         var supplied = tl.filePathSupplied('path1');
@@ -624,7 +757,7 @@ describe('Test Inputs', function () {
 
         var repoRoot = '/repo/root/dir';
         process.env['INPUT_PATH1'] = repoRoot + '/some/path';
-        tl._loadData();
+        im._loadData();
 
         process.env['BUILD_SOURCESDIRECTORY'] = repoRoot;
         var supplied = tl.filePathSupplied('path1');
@@ -632,16 +765,133 @@ describe('Test Inputs', function () {
         done();
     })
 
-    //resolve tests
-    it('resolve', function(done) {
+    // resolve tests
+    it('resolve', function (done) {
         var absolutePath = tl.resolve('/repo/root', '/repo/root/some/path');
-        if(os.platform() !== 'win32') {
+        if (os.platform() !== 'win32') {
             assert(absolutePath === '/repo/root/some/path', 'absolute path not expected, got:' + absolutePath + ' expected: /repo/root/some/path');
         } else {
             var winDrive = path.parse(path.resolve('')).root;
             var expectedPath = winDrive.concat('repo\\root\\some\\path');
             assert.equal(absolutePath, expectedPath, 'absolute path not as expected, got: ' + absolutePath + ' expected: ' + expectedPath);
         }
+        done();
+    })
+
+    // getTaskVariable tests
+    it('gets a task variable', function (done) {
+        this.timeout(1000);
+
+        let originalAgentVersion = process.env['AGENT_VERSION'];
+        try {
+            process.env['AGENT_VERSION'] = '2.115.0';
+            process.env['VSTS_TASKVARIABLE_TEST1'] = 'Task variable value 1';
+            im._loadData();
+            var varVal = tl.getTaskVariable('test1');
+            assert.equal(varVal, 'Task variable value 1');
+        }
+        finally {
+            process.env['AGENT_VERSION'] = originalAgentVersion;
+        }
+
+        done();
+    })
+    it('sets a task variable', function (done) {
+        this.timeout(1000);
+
+        let originalAgentVersion = process.env['AGENT_VERSION'];
+        try {
+            process.env['AGENT_VERSION'] = '2.115.0';
+            tl.setTaskVariable('test2', 'Task variable value 2');
+            let varVal: string = tl.getTaskVariable('test2');
+            assert.equal(varVal, 'Task variable value 2');
+        }
+        finally {
+            process.env['AGENT_VERSION'] = originalAgentVersion;
+        }
+
+        done();
+    })
+
+    // assertAgent tests
+    it('assert agent does not fail when empty', function (done) {
+        this.timeout(1000);
+
+        let originalAgentVersion = process.env['AGENT_VERSION'];
+        try {
+            process.env['AGENT_VERSION'] = '';
+            let failed = false;
+            try {
+                tl.assertAgent('2.115.0');
+            }
+            catch (err) {
+                failed = true;
+            }
+
+            assert(!failed, 'assert should not have thrown');
+        }
+        finally {
+            process.env['AGENT_VERSION'] = originalAgentVersion;
+        }
+
+        done();
+    })
+    it('assert agent fails when less than', function (done) {
+        this.timeout(1000);
+
+        let originalAgentVersion = process.env['AGENT_VERSION'];
+        try {
+            process.env['AGENT_VERSION'] = '2.114.0';
+            let failed = false;
+            try {
+                tl.assertAgent('2.115.0');
+            }
+            catch (err) {
+                failed = true;
+            }
+
+            assert(failed, 'assert should have thrown');
+        }
+        finally {
+            process.env['AGENT_VERSION'] = originalAgentVersion;
+        }
+
+        done();
+    })
+    it('assert succeeds when greater or equal', function (done) {
+        this.timeout(1000);
+
+        let originalAgentVersion = process.env['AGENT_VERSION'];
+        try {
+            process.env['AGENT_VERSION'] = '2.115.0';
+            tl.assertAgent('2.115.0');
+            process.env['AGENT_VERSION'] = '2.116.0';
+            tl.assertAgent('2.115.0');
+        }
+        finally {
+            process.env['AGENT_VERSION'] = originalAgentVersion;
+        }
+
+        done();
+    })
+
+    // _loadData tests
+    it('_loadData does not run twice', function (done) {
+        this.timeout(5000);
+
+        // intialize an input (stored in vault)
+        process.env['INPUT_SOMEINPUT'] = 'some input value';
+        im._loadData();
+        assert.equal(tl.getInput('SomeInput'), 'some input value');
+
+        // copy azure-pipelines-task-lib to a different dir and load it from
+        // there so it will be forced to load again
+        let testDir = path.join(testutil.getTestTemp(), '_loadData-not-called-twice');
+        tl.mkdirP(testDir);
+        tl.cp(path.join(__dirname, '..', '_build'), testDir, '-R');
+        require(path.join(testDir, '_build', 'task'));
+
+        assert.equal(tl.getInput('SomeInput'), 'some input value');
         done();
     })
 });

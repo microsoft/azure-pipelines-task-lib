@@ -1,21 +1,30 @@
-# Commands (v0.7.0)
+# Commands (v0.11.0)
 ## <a name="toc" />Table of Contents
- * [Find](#find)
-  * [Find-VstsFiles](#find-vstsfiles)
- * [Input](#input)
+* [Find](#find)
+  * [Find-VstsMatch](#find-vstsmatch)
+  * [New-VstsFindOptions](#new-vstsfindoptions)
+  * [New-VstsMatchOptions](#new-vstsmatchoptions)
+  * [Select-VstsMatch](#select-vstsmatch)
+* [Input](#input)
   * [Get-VstsEndpoint](#get-vstsendpoint)
   * [Get-VstsInput](#get-vstsinput)
+  * [Get-VstsSecureFileName](#get-vstssecurefilename)
+  * [Get-VstsSecureFileTicket](#get-vstssecurefileticket)
   * [Get-VstsTaskVariable](#get-vststaskvariable)
   * [Get-VstsTaskVariableInfo](#get-vststaskvariableinfo)
   * [Set-VstsTaskVariable](#set-vststaskvariable)
- * [Localization](#localization)
+* [Legacy Find](#legacyfind)
+  * [Find-VstsFiles](#find-vstsfiles)
+* [Localization](#localization)
   * [Get-VstsLocString](#get-vstslocstring)
   * [Import-VstsLocStrings](#import-vstslocstrings)
- * [Logging Command](#loggingcommand)
+* [Logging Command](#loggingcommand)
   * [Write-VstsAddAttachment](#write-vstsaddattachment)
   * [Write-VstsAddBuildTag](#write-vstsaddbuildtag)
   * [Write-VstsAssociateArtifact](#write-vstsassociateartifact)
   * [Write-VstsLogDetail](#write-vstslogdetail)
+  * [Write-VstsPrependPath](#write-vstsprependpath)
+  * [Write-VstsSetEndpoint](#write-vstssetendpoint)
   * [Write-VstsSetProgress](#write-vstssetprogress)
   * [Write-VstsSetResult](#write-vstssetresult)
   * [Write-VstsSetSecret](#write-vstssetsecret)
@@ -25,38 +34,95 @@
   * [Write-VstsTaskVerbose](#write-vststaskverbose)
   * [Write-VstsTaskWarning](#write-vststaskwarning)
   * [Write-VstsUpdateBuildNumber](#write-vstsupdatebuildnumber)
+  * [Write-VstsUpdateReleaseName](#write-vstsupdatereleasename)
   * [Write-VstsUploadArtifact](#write-vstsuploadartifact)
   * [Write-VstsUploadBuildLog](#write-vstsuploadbuildlog)
- * [Server OM](#serverom)
+  * [Write-VstsUploadFile](#write-vstsuploadfile)
+  * [Write-VstsUploadSummary](#write-vstsuploadsummary)
+* [Server OM](#serverom)
   * [Get-VstsAssemblyReference](#get-vstsassemblyreference)
+  * [Get-VstsClientCertificate](#get-vstsclientcertificate)
   * [Get-VstsTfsClientCredentials](#get-vststfsclientcredentials)
   * [Get-VstsTfsService](#get-vststfsservice)
   * [Get-VstsVssCredentials](#get-vstsvsscredentials)
   * [Get-VstsVssHttpClient](#get-vstsvsshttpclient)
- * [Tool](#tool)
+  * [Get-VstsWebProxy](#get-vstswebproxy)
+* [Tool](#tool)
+  * [Assert-VstsAgent](#assert-vstsagent)
   * [Assert-VstsPath](#assert-vstspath)
   * [Invoke-VstsTool](#invoke-vststool)
- * [Trace](#trace)
+* [Trace](#trace)
   * [Trace-VstsEnteringInvocation](#trace-vstsenteringinvocation)
   * [Trace-VstsLeavingInvocation](#trace-vstsleavinginvocation)
   * [Trace-VstsPath](#trace-vstspath)
 
 ## <a name="find" />Find
-### <a name="find-vstsfiles" />Find-VstsFiles
-[table of contents](#toc) | [full](FullHelp/Find-VstsFiles.md)
+### <a name="find-vstsmatch" />Find-VstsMatch
+[table of contents](#toc) | [full](FullHelp/Find-VstsMatch.md)
 ```
 NAME
-    Find-VstsFiles
+    Find-VstsMatch
 
 SYNOPSIS
-    Finds files or directories.
+    Finds files using match patterns.
 
 SYNTAX
-    Find-VstsFiles [[-LiteralDirectory] <String>] [-LegacyPattern] <String> [-IncludeFiles]
-    [-IncludeDirectories] [-Force] [<CommonParameters>]
+    Find-VstsMatch [[-DefaultRoot] <String>] [[-Pattern] <String[]>] [[-FindOptions] <Object>]
+    [[-MatchOptions] <Object>] [<CommonParameters>]
 
 DESCRIPTION
-    Finds files or directories using advanced pattern matching.
+    Determines the find root from a list of patterns. Performs the find and then applies the glob patterns.
+    Supports interleaved exclude patterns. Unrooted patterns are rooted using defaultRoot, unless
+    matchOptions.matchBase is specified and the pattern is a basename only. For matchBase cases, the
+    defaultRoot is used as the find root.
+```
+### <a name="new-vstsfindoptions" />New-VstsFindOptions
+[table of contents](#toc) | [full](FullHelp/New-VstsFindOptions.md)
+```
+NAME
+    New-VstsFindOptions
+
+SYNOPSIS
+    Creates FindOptions for use with Find-VstsMatch.
+
+SYNTAX
+    New-VstsFindOptions [-FollowSpecifiedSymbolicLink] [-FollowSymbolicLinks] [<CommonParameters>]
+
+DESCRIPTION
+    Creates FindOptions for use with Find-VstsMatch. Contains switches to control whether to follow symlinks.
+```
+### <a name="new-vstsmatchoptions" />New-VstsMatchOptions
+[table of contents](#toc) | [full](FullHelp/New-VstsMatchOptions.md)
+```
+NAME
+    New-VstsMatchOptions
+
+SYNOPSIS
+    Creates MatchOptions for use with Find-VstsMatch and Select-VstsMatch.
+
+SYNTAX
+    New-VstsMatchOptions [-Dot] [-FlipNegate] [-MatchBase] [-NoBrace] [-NoCase] [-NoComment] [-NoExt]
+    [-NoGlobStar] [-NoNegate] [-NoNull] [<CommonParameters>]
+
+DESCRIPTION
+    Creates MatchOptions for use with Find-VstsMatch and Select-VstsMatch. Contains switches to control which
+    pattern matching options are applied.
+```
+### <a name="select-vstsmatch" />Select-VstsMatch
+[table of contents](#toc) | [full](FullHelp/Select-VstsMatch.md)
+```
+NAME
+    Select-VstsMatch
+
+SYNOPSIS
+    Applies match patterns against a list of files.
+
+SYNTAX
+    Select-VstsMatch [[-ItemPath] <String[]>] [[-Pattern] <String[]>] [[-PatternRoot] <String>] [[-Options]
+    <Object>] [<CommonParameters>]
+
+DESCRIPTION
+    Applies match patterns to a list of paths. Supports interleaved exclude patterns.
 ```
 ## <a name="input" />Input
 ### <a name="get-vstsendpoint" />Get-VstsEndpoint
@@ -93,6 +159,36 @@ SYNTAX
 
 DESCRIPTION
     Gets the value for the specified input name.
+```
+### <a name="get-vstssecurefilename" />Get-VstsSecureFileName
+[table of contents](#toc) | [full](FullHelp/Get-VstsSecureFileName.md)
+```
+NAME
+    Get-VstsSecureFileName
+
+SYNOPSIS
+    Gets a secure file name.
+
+SYNTAX
+    Get-VstsSecureFileName [-Id] <String> [-Require] [<CommonParameters>]
+
+DESCRIPTION
+    Gets the name for a secure file.
+```
+### <a name="get-vstssecurefileticket" />Get-VstsSecureFileTicket
+[table of contents](#toc) | [full](FullHelp/Get-VstsSecureFileTicket.md)
+```
+NAME
+    Get-VstsSecureFileTicket
+
+SYNOPSIS
+    Gets a secure file ticket.
+
+SYNTAX
+    Get-VstsSecureFileTicket [-Id] <String> [-Require] [<CommonParameters>]
+
+DESCRIPTION
+    Gets the secure file ticket that can be used to download the secure file contents.
 ```
 ### <a name="get-vststaskvariable" />Get-VstsTaskVariable
 [table of contents](#toc) | [full](FullHelp/Get-VstsTaskVariable.md)
@@ -154,6 +250,23 @@ SYNTAX
 DESCRIPTION
     Sets a task variable in the current task context as well as in the current job context. This allows the
     task variable to retrieved by subsequent tasks within the same job.
+```
+## <a name="legacyfind" />Legacy Find
+### <a name="find-vstsfiles" />Find-VstsFiles
+[table of contents](#toc) | [full](FullHelp/Find-VstsFiles.md)
+```
+NAME
+    Find-VstsFiles
+
+SYNOPSIS
+    Finds files or directories.
+
+SYNTAX
+    Find-VstsFiles [[-LiteralDirectory] <String>] [-LegacyPattern] <String> [-IncludeFiles]
+    [-IncludeDirectories] [-Force] [<CommonParameters>]
+
+DESCRIPTION
+    Finds files or directories using advanced pattern matching.
 ```
 ## <a name="localization" />Localization
 ### <a name="get-vstslocstring" />Get-VstsLocString
@@ -250,6 +363,31 @@ SYNTAX
     Write-VstsLogDetail [-Id] <Guid> [[-ParentId] <Object>] [[-Type] <String>] [[-Name] <String>] [[-Order]
     <Object>] [[-StartTime] <Object>] [[-FinishTime] <Object>] [[-Progress] <Object>] [[-State] <Object>]
     [[-Result] <Object>] [[-Message] <String>] [-AsOutput] [<CommonParameters>]
+```
+### <a name="write-vstsprependpath" />Write-VstsPrependPath
+[table of contents](#toc) | [full](FullHelp/Write-VstsPrependPath.md)
+```
+NAME
+    Write-VstsPrependPath
+
+SYNOPSIS
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
+
+SYNTAX
+    Write-VstsPrependPath [-Path] <String> [-AsOutput] [<CommonParameters>]
+```
+### <a name="write-vstssetendpoint" />Write-VstsSetEndpoint
+[table of contents](#toc) | [full](FullHelp/Write-VstsSetEndpoint.md)
+```
+NAME
+    Write-VstsSetEndpoint
+
+SYNOPSIS
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
+
+SYNTAX
+    Write-VstsSetEndpoint [-Id] <String> [-Field] <String> [-Key] <String> [-Value] <String> [-AsOutput]
+    [<CommonParameters>]
 ```
 ### <a name="write-vstssetprogress" />Write-VstsSetProgress
 [table of contents](#toc) | [full](FullHelp/Write-VstsSetProgress.md)
@@ -363,6 +501,18 @@ SYNOPSIS
 SYNTAX
     Write-VstsUpdateBuildNumber [-Value] <String> [-AsOutput] [<CommonParameters>]
 ```
+### <a name="write-vstsupdatereleasename" />Write-VstsUpdateReleaseName
+[table of contents](#toc) | [full](FullHelp/Write-VstsUpdateReleaseName.md)
+```
+NAME
+    Write-VstsUpdateReleaseName
+
+SYNOPSIS
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
+
+SYNTAX
+    Write-VstsUpdateReleaseName [-Name] <String> [-AsOutput] [<CommonParameters>]
+```
 ### <a name="write-vstsuploadartifact" />Write-VstsUploadArtifact
 [table of contents](#toc) | [full](FullHelp/Write-VstsUploadArtifact.md)
 ```
@@ -388,6 +538,30 @@ SYNOPSIS
 SYNTAX
     Write-VstsUploadBuildLog [-Path] <String> [-AsOutput] [<CommonParameters>]
 ```
+### <a name="write-vstsuploadfile" />Write-VstsUploadFile
+[table of contents](#toc) | [full](FullHelp/Write-VstsUploadFile.md)
+```
+NAME
+    Write-VstsUploadFile
+
+SYNOPSIS
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
+
+SYNTAX
+    Write-VstsUploadFile [-Path] <String> [-AsOutput] [<CommonParameters>]
+```
+### <a name="write-vstsuploadsummary" />Write-VstsUploadSummary
+[table of contents](#toc) | [full](FullHelp/Write-VstsUploadSummary.md)
+```
+NAME
+    Write-VstsUploadSummary
+
+SYNOPSIS
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
+
+SYNTAX
+    Write-VstsUploadSummary [-Path] <String> [-AsOutput] [<CommonParameters>]
+```
 ## <a name="serverom" />Server OM
 ### <a name="get-vstsassemblyreference" />Get-VstsAssemblyReference
 [table of contents](#toc) | [full](FullHelp/Get-VstsAssemblyReference.md)
@@ -402,9 +576,9 @@ SYNTAX
     Get-VstsAssemblyReference [-LiteralPath] <String> [<CommonParameters>]
 
 DESCRIPTION
-    Not supported for use during task exection. This function is only intended to help developers resolve the
-    minimal set of DLLs that need to be bundled when consuming the VSTS REST SDK or TFS Extended Client SDK.
-    The interface and output may change between patch releases of the VSTS Task SDK.
+    Not supported for use during task execution. This function is only intended to help developers resolve
+    the minimal set of DLLs that need to be bundled when consuming the VSTS REST SDK or TFS Extended Client
+    SDK. The interface and output may change between patch releases of the VSTS Task SDK.
 
     Only a subset of the referenced assemblies may actually be required, depending on the functionality used
     by your task. It is best to bundle only the DLLs required for your scenario.
@@ -413,8 +587,23 @@ DESCRIPTION
     dependencies, and so on until all nested dependencies have been traversed. Dependencies are searched for
     in the directory of the specified assembly. NET Framework assemblies are omitted.
 
-    See https://github.com/Microsoft/vsts-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage
+    See https://github.com/Microsoft/azure-pipelines-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage
     when working with the TFS extended client SDK from a task.
+```
+### <a name="get-vstsclientcertificate" />Get-VstsClientCertificate
+[table of contents](#toc) | [full](FullHelp/Get-VstsClientCertificate.md)
+```
+NAME
+    Get-VstsClientCertificate
+
+SYNOPSIS
+    Gets a client certificate for current connected TFS instance
+
+SYNTAX
+    Get-VstsClientCertificate [<CommonParameters>]
+
+DESCRIPTION
+    Gets an instance of a X509Certificate2 that is the client certificate Build/Release agent used.
 ```
 ### <a name="get-vststfsclientcredentials" />Get-VstsTfsClientCredentials
 [table of contents](#toc) | [full](FullHelp/Get-VstsTfsClientCredentials.md)
@@ -436,7 +625,7 @@ DESCRIPTION
     Refer to Get-VstsTfsService for a more simple to get a TFS service object.
 
     *** DO NOT USE Agent.ServerOMDirectory *** See
-    https://github.com/Microsoft/vsts-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
+    https://github.com/Microsoft/azure-pipelines-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
     working with the TFS extended client SDK from a task.
 ```
 ### <a name="get-vststfsservice" />Get-VstsTfsService
@@ -456,7 +645,7 @@ DESCRIPTION
     Gets an instance of an ITfsTeamProjectCollectionObject.
 
     *** DO NOT USE Agent.ServerOMDirectory *** See
-    https://github.com/Microsoft/vsts-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
+    https://github.com/Microsoft/azure-pipelines-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
     working with the TFS extended client SDK from a task.
 ```
 ### <a name="get-vstsvsscredentials" />Get-VstsVssCredentials
@@ -479,7 +668,7 @@ DESCRIPTION
     Refer to Get-VstsVssHttpClient for a more simple to get a VSS HTTP client.
 
     *** DO NOT USE Agent.ServerOMDirectory *** See
-    https://github.com/Microsoft/vsts-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
+    https://github.com/Microsoft/azure-pipelines-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
     working with the VSTS REST SDK from a task.
 ```
 ### <a name="get-vstsvsshttpclient" />Get-VstsVssHttpClient
@@ -493,16 +682,45 @@ SYNOPSIS
 
 SYNTAX
     Get-VstsVssHttpClient [-TypeName] <String> [[-OMDirectory] <String>] [[-Uri] <String>] [[-VssCredentials]
-    <Object>] [<CommonParameters>]
+    <Object>] [[-WebProxy] <Object>] [[-ClientCert] <Object>] [-IgnoreSslError] [<CommonParameters>]
 
 DESCRIPTION
     Gets an instance of an VSS HTTP client.
 
     *** DO NOT USE Agent.ServerOMDirectory *** See
-    https://github.com/Microsoft/vsts-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
+    https://github.com/Microsoft/azure-pipelines-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
     working with the VSTS REST SDK from a task.
 ```
+### <a name="get-vstswebproxy" />Get-VstsWebProxy
+[table of contents](#toc) | [full](FullHelp/Get-VstsWebProxy.md)
+```
+NAME
+    Get-VstsWebProxy
+
+SYNOPSIS
+    Gets a VstsTaskSdk.VstsWebProxy
+
+SYNTAX
+    Get-VstsWebProxy [<CommonParameters>]
+
+DESCRIPTION
+    Gets an instance of a VstsTaskSdk.VstsWebProxy that has same proxy configuration as Build/Release agent.
+
+    VstsTaskSdk.VstsWebProxy implement System.Net.IWebProxy interface.
+```
 ## <a name="tool" />Tool
+### <a name="assert-vstsagent" />Assert-VstsAgent
+[table of contents](#toc) | [full](FullHelp/Assert-VstsAgent.md)
+```
+NAME
+    Assert-VstsAgent
+
+SYNOPSIS
+    Asserts the agent version is at least the specified minimum.
+
+SYNTAX
+    Assert-VstsAgent [-Minimum] <Version> [<CommonParameters>]
+```
 ### <a name="assert-vstspath" />Assert-VstsPath
 [table of contents](#toc) | [full](FullHelp/Assert-VstsPath.md)
 ```

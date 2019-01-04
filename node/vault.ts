@@ -4,12 +4,12 @@ import fs = require('fs');
 import path = require('path');
 import crypto = require('crypto');
 
-var uuid = require('node-uuid');
+var uuidV4 = require('uuid/v4');
 var algorithm = "aes-256-ctr";
 
 //
 // Store sensitive data in proc.
-// Main goal: Protects tasks which would dump envvars from leaking secrets innadvertantly
+// Main goal: Protects tasks which would dump envvars from leaking secrets inadvertently
 //            the task lib clears after storing.
 // Also protects against a dump of a process getting the secrets
 // The secret is generated and stored externally for the lifetime of the task.
@@ -72,6 +72,6 @@ export class Vault {
     }
 
     private genKey(): void {
-        fs.writeFileSync(this._keyFile, uuid.v1(), 'utf8');
+        fs.writeFileSync(this._keyFile, uuidV4(), 'utf8');
     } 
 }

@@ -12,6 +12,12 @@ var rp = function (relPath) {
 var buildPath = path.join(__dirname, '_build');
 var testPath = path.join(__dirname, '_test');
 
+if (process.env['TF_BUILD']) {
+    // the CI controls the version of node, so it runs using "node make.js test" instead of "npm test"
+    // update the PATH when running during CI
+    buildutils.addPath(path.join(__dirname, 'node_modules', '.bin'));
+}
+
 target.clean = function () {
     rm('-Rf', buildPath);
     rm('-Rf', testPath);
@@ -19,18 +25,19 @@ target.clean = function () {
 
 target.build = function() {
     target.clean();
-    
+    target.loc();
+
     run('tsc --outDir ' + buildPath);
     cp(rp('dependencies/typings.json'), buildPath);
     cp(rp('package.json'), buildPath);
+    cp(rp('package-lock.json'), buildPath);
     cp(rp('README.md'), buildPath);
     cp(rp('../LICENSE'), buildPath);
     cp(rp('lib.json'), buildPath);
+    cp(rp('ThirdPartyNotice.txt'), buildPath);
     cp('-Rf', rp('Strings'), buildPath);
     // just a bootstrap file to avoid /// in final js and .d.ts file
     rm(path.join(buildPath, 'index.*'));
-
-    target.loc();
 }
 
 target.test = function() {
@@ -39,7 +46,8 @@ target.test = function() {
     buildutils.getExternals();
     run('tsc -p ./test');
     cp('-Rf', rp('test/scripts'), testPath);
-    run('mocha ' + testPath + ' --recursive');
+    process.env['TASKLIB_INPROC_UNITS'] = '1'; // export task-lib internals for internal unit testing
+    run('mocha ' + testPath);
 }
 
 target.loc = function() {

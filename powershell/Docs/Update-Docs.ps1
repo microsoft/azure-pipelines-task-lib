@@ -25,6 +25,7 @@ function Get-HelpString {
     foreach ($line in $str.Trim().Replace("`r", "").Split("`n")) {
         $line = $line.TrimEnd()
         $line = $line.Replace("http://go.microsoft.com", "https://go.microsoft.com")
+        $line = $line.Replace("https:/go.microsoft.com", "https://go.microsoft.com")
         # Add the blank line.
         if (!$line) {
             # Prevent multiple blank lines.
@@ -68,8 +69,8 @@ $removeModule = @(Get-Module -Name VstsTaskSdk).Count -eq 0
 Write-Host "Building the module."
 Push-Location -LiteralPath $PSScriptRoot\.. -ErrorAction Stop
 try {
-    & gulp
-    Write-Host "Gulp exited with code '$LASTEXITCODE'"
+    & node make.js build
+    Write-Host "node exited with code '$LASTEXITCODE'"
     if ($LASTEXITCODE) {
         throw "Build failed."
     }
@@ -117,7 +118,6 @@ foreach ($functionName in $module.ExportedFunctions.Keys) {
     $functionToHelpMap[$functionName] = Get-HelpString -Name $functionName
     $functionToFullHelpMap[$functionName] = Get-HelpString -Name $functionName -Full
 }
-
 
 # Build a mapping of help sections to functions.
 Write-Host "Resolving section information."
@@ -167,7 +167,7 @@ $null = $tocContent.AppendLine("## <a name=""toc"" />Table of Contents")
 foreach ($sectionName in ($sectionToFunctionsMap.Keys | Sort-Object)) {
     $functionNames = $sectionToFunctionsMap[$sectionName] | Sort-Object
     $sectionId = $sectionName.Replace(" ", "").ToLowerInvariant()
-    $null = $tocContent.AppendLine(" * [$sectionName](#$sectionId)")
+    $null = $tocContent.AppendLine("* [$sectionName](#$sectionId)")
     $null = $commandsContent.AppendLine("## <a name=""$sectionId"" />$sectionName")
     foreach ($functionName in $functionNames) {
         $functionId = $functionName.Replace(" ", "").ToLowerInvariant()

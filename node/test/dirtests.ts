@@ -10,7 +10,7 @@ import * as tl from '../_build/task';
 
 import * as testutil from './testutil';
 
-describe('Test Dir Operations', function () {
+describe('Dir Operation Tests', function () {
     before(function (done) {
         try {
             testutil.initialize();
@@ -30,41 +30,517 @@ describe('Test Dir Operations', function () {
     it('is expected version', (done: MochaDone) => {
         this.timeout(1000);
 
-        assert.equal(process.version, 'v5.10.1');
+        console.log('node version: ' + process.version);
+        const supportedNodeVersions = ['v5.10.1', 'v6.10.3', 'v8.9.1'];
+        if (supportedNodeVersions.indexOf(process.version) === -1) {
+            assert.fail(`expected node node version to be one of ${supportedNodeVersions.map(o => o).join(', ')}. actual: ` + process.version);
+        }
 
         done();
     });
 
     // which tests
-    it('which() on windows return file with Extension', function (done) {
+    it('which() finds file name', function (done) {
         this.timeout(1000);
 
-        if (os.type().match(/^Win/)) {
-            var testPath = path.join(testutil.getTestTemp(), 'whichTest');
-            tl.mkdirP(testPath);
-
-            fs.writeFileSync(path.join(testPath, 'whichTest'), 'contents');
-            fs.writeFileSync(path.join(testPath, 'whichTest.exe'), 'contents');
-
-            if (process.env.path) {
-                process.env.path = process.env.path + ';' + testPath;
-            }
-            else if (process.env.Path) {
-                process.env.Path = process.env.Path + ';' + testPath;
-            }
-            else if (process.env.PATH) {
-                process.env.PATH = process.env.PATH + ';' + testPath;
-            }
-
-            var whichResult = tl.which('whichTest');
-            assert(whichResult.indexOf('.exe') > 0, 'Which() should return file with extension on windows.');
+        // create a executable file
+        let testPath = path.join(testutil.getTestTemp(), 'which-finds-file-name');
+        tl.mkdirP(testPath);
+        let fileName = 'Which-Test-File';
+        if (process.platform == 'win32') {
+            fileName += '.exe';
         }
+
+        let filePath = path.join(testPath, fileName);
+        fs.writeFileSync(filePath, '');
+        if (process.platform != 'win32') {
+            testutil.chmod(filePath, '+x');
+        }
+
+        let originalPath = process.env['PATH'];
+        try {
+            // update the PATH
+            process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath;
+
+            // exact file name
+            assert.equal(tl.which(fileName), filePath);
+            assert.equal(tl.which(fileName, false), filePath);
+            assert.equal(tl.which(fileName, true), filePath);
+
+            if (process.platform == 'win32') {
+                // not case sensitive on windows
+                assert.equal(tl.which('which-test-file.exe'), path.join(testPath, 'which-test-file.exe'));
+                assert.equal(tl.which('WHICH-TEST-FILE.EXE'), path.join(testPath, 'WHICH-TEST-FILE.EXE'));
+                assert.equal(tl.which('WHICH-TEST-FILE.EXE', false), path.join(testPath, 'WHICH-TEST-FILE.EXE'));
+                assert.equal(tl.which('WHICH-TEST-FILE.EXE', true), path.join(testPath, 'WHICH-TEST-FILE.EXE'));
+
+                // without extension
+                assert.equal(tl.which('which-test-file'), filePath);
+                assert.equal(tl.which('which-test-file', false), filePath);
+                assert.equal(tl.which('which-test-file', true), filePath);
+            }
+            else if (process.platform == 'darwin') {
+                // not case sensitive on Mac
+                assert.equal(tl.which(fileName.toUpperCase()), path.join(testPath, fileName.toUpperCase()));
+                assert.equal(tl.which(fileName.toUpperCase(), false), path.join(testPath, fileName.toUpperCase()));
+                assert.equal(tl.which(fileName.toUpperCase(), true), path.join(testPath, fileName.toUpperCase()));
+            }
+            else {
+                // case sensitive on Linux
+                assert.equal(tl.which(fileName.toUpperCase()) || '', '');
+            }
+        }
+        finally {
+            process.env['PATH'] = originalPath;
+        }
+
         done();
     });
+    it('which() not found', function (done) {
+        this.timeout(1000);
+
+        assert.equal(tl.which('which-test-no-such-file'), '');
+        assert.equal(tl.which('which-test-no-such-file', false), '');
+        let failed = false;
+        try {
+            tl.which('which-test-no-such-file', true);
+        }
+        catch (err) {
+            failed = true;
+        }
+
+        assert(failed, 'should have thrown');
+
+        done();
+    });
+    it('which() searches path in order', function (done) {
+        this.timeout(1000);
+
+        // create a chcp.com/bash override file
+        let testPath = path.join(testutil.getTestTemp(), 'which-searches-path-in-order');
+        tl.mkdirP(testPath);
+        let fileName;
+        if (process.platform == 'win32') {
+            fileName = 'chcp.com';
+        }
+        else {
+            fileName = 'bash';
+        }
+
+        let filePath = path.join(testPath, fileName);
+        fs.writeFileSync(filePath, '');
+        if (process.platform != 'win32') {
+            testutil.chmod(filePath, '+x');
+        }
+
+        let originalPath = process.env['PATH'];
+        try {
+            // sanity - regular chcp.com/bash should be found
+            let originalWhich = tl.which(fileName);
+            assert((originalWhich || '') != '', fileName + 'should be found');
+
+            // modify PATH
+            process.env['PATH'] = testPath + path.delimiter + process.env['PATH'];
+
+            // override chcp.com/bash should be found
+            assert(tl.which(fileName), filePath);
+        }
+        finally {
+            process.env['PATH'] = originalPath;
+        }
+
+        done();
+    });
+    it('which() requires executable', function (done) {
+        this.timeout(1000);
+
+        // create a non-executable file
+        // on Windows, should not end in valid PATHEXT
+        // on Mac/Linux should not have executable bit
+        let testPath = path.join(testutil.getTestTemp(), 'which-requires-executable');
+        tl.mkdirP(testPath);
+        let fileName = 'Which-Test-File';
+        if (process.platform == 'win32') {
+            fileName += '.abc'; // not a valid PATHEXT
+        }
+
+        let filePath = path.join(testPath, fileName);
+        fs.writeFileSync(filePath, '');
+        if (process.platform != 'win32') {
+            testutil.chmod(filePath, '-x');
+        }
+
+        let originalPath = process.env['PATH'];
+        try {
+            // modify PATH
+            process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath;
+
+            // should not be found
+            assert.equal(tl.which(fileName) || '', '');
+        }
+        finally {
+            process.env['PATH'] = originalPath;
+        }
+
+        done();
+    });
+    it('which() ignores directory match', function (done) {
+        this.timeout(1000);
+
+        // create a directory
+        let testPath = path.join(testutil.getTestTemp(), 'which-ignores-directory-match');
+        let dirPath = path.join(testPath, 'Which-Test-Dir');
+        if (process.platform == 'win32') {
+            dirPath += '.exe';
+        }
+
+        tl.mkdirP(dirPath);
+        if (process.platform != 'win32') {
+            testutil.chmod(dirPath, '+x');
+        }
+
+        let originalPath = process.env['PATH'];
+        try {
+            // modify PATH
+            process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath;
+
+            // should not be found
+            assert.equal(tl.which(path.basename(dirPath)) || '', '');
+        }
+        finally {
+            process.env['PATH'] = originalPath;
+        }
+
+        done();
+    });
+    it('which() allows rooted path', function (done) {
+        this.timeout(1000);
+
+        // create an executable file
+        let testPath = path.join(testutil.getTestTemp(), 'which-allows-rooted-path');
+        tl.mkdirP(testPath);
+        let filePath = path.join(testPath, 'Which-Test-File');
+        if (process.platform == 'win32') {
+            filePath += '.exe';
+        }
+
+        fs.writeFileSync(filePath, '');
+        if (process.platform != 'win32') {
+            testutil.chmod(filePath, '+x');
+        }
+
+        // which the full path
+        assert.equal(tl.which(filePath), filePath);
+        assert.equal(tl.which(filePath, false), filePath);
+        assert.equal(tl.which(filePath, true), filePath);
+
+        done();
+    });
+    it('which() requires rooted path to be executable', function (done) {
+        this.timeout(1000);
+
+        // create a non-executable file
+        // on Windows, should not end in valid PATHEXT
+        // on Mac/Linux, should not have executable bit
+        let testPath = path.join(testutil.getTestTemp(), 'which-requires-rooted-path-to-be-executable');
+        tl.mkdirP(testPath);
+        let filePath = path.join(testPath, 'Which-Test-File');
+        if (process.platform == 'win32') {
+            filePath += '.abc'; // not a valid PATHEXT
+        }
+
+        fs.writeFileSync(filePath, '');
+        if (process.platform != 'win32') {
+            testutil.chmod(filePath, '-x');
+        }
+
+        // should not be found
+        assert.equal(tl.which(filePath) || '', '');
+        assert.equal(tl.which(filePath, false) || '', '');
+        let failed = false;
+        try {
+            tl.which(filePath, true);
+        }
+        catch (err) {
+            failed = true;
+        }
+
+        assert(failed, 'should have thrown');
+
+        done();
+    });
+    
+    it('which() requires rooted path to be a file', function (done) {
+        this.timeout(1000);
+
+        // create a dir
+        let testPath = path.join(testutil.getTestTemp(), 'which-requires-rooted-path-to-be-executable');
+        let dirPath = path.join(testPath, 'Which-Test-Dir');
+        if (process.platform == 'win32') {
+            dirPath += '.exe';
+        }
+
+        tl.mkdirP(dirPath);
+        if (process.platform != 'win32') {
+            testutil.chmod(dirPath, '+x');
+        }
+
+        // should not be found
+        assert.equal(tl.which(dirPath) || '', '');
+        assert.equal(tl.which(dirPath) || '', '');
+        let failed = false;
+        try {
+            tl.which(dirPath, true);
+        }
+        catch (err) {
+            failed = true;
+        }
+
+        assert(failed, 'should have thrown');
+
+        done();
+    });
+    it('which() requires rooted path to exist', function (done) {
+        this.timeout(1000);
+
+        let filePath = path.join(__dirname, 'no-such-file');
+        if (process.platform == 'win32') {
+            filePath += '.exe';
+        }
+
+        assert.equal(tl.which(filePath) || '', '');
+        assert.equal(tl.which(filePath, false) || '', '');
+        let failed = false;
+        try {
+            tl.which(filePath, true);
+        }
+        catch (err) {
+            failed = true;
+        }
+
+        done();
+    });
+    it('which() does not allow separators', function (done) {
+        this.timeout(1000);
+
+        // create an executable file
+        let testDirName = 'which-does-not-allow-separators';
+        let testPath = path.join(testutil.getTestTemp(), testDirName);
+        tl.mkdirP(testPath);
+        let fileName = 'Which-Test-File';
+        if (process.platform == 'win32') {
+            fileName += '.exe';
+        }
+
+        let filePath = path.join(testPath, fileName);
+        fs.writeFileSync(filePath, '');
+        if (process.platform != 'win32') {
+            testutil.chmod(filePath, '+x');
+        }
+
+        let originalPath = process.env['PATH'];
+        try {
+            // modify PATH
+            process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath;
+
+            // which "dir/file", should not be found
+            assert.equal(tl.which(testDirName + '/' + fileName) || '', '');
+
+            // on Windows, also try "dir\file"
+            if (process.platform == 'win32') {
+                assert.equal(tl.which(testDirName + '\\' + fileName) || '', '');
+            }
+        }
+        finally {
+            process.env['PATH'] = originalPath;
+        }
+
+        done();
+    });
+    if (process.platform == 'win32') {
+        it('which() resolves actual case file name when extension is applied', function (done) {
+            this.timeout(1000);
+
+            assert((process.env['ComSpec'] || '') != '', 'Expected %ComSpec% to have a value');
+            assert.equal(tl.which('CmD.eXe'), path.join(path.dirname(process.env['ComSpec']), 'CmD.eXe'));
+            assert.equal(tl.which('CmD'), process.env['ComSpec']);
+
+            done();
+        });
+        it('which() appends ext on windows', function (done) {
+            this.timeout(2000);
+
+            // create executable files
+            let testPath = path.join(testutil.getTestTemp(), 'which-appends-ext-on-windows');
+            tl.mkdirP(testPath);
+            // PATHEXT=.COM;.EXE;.BAT;.CMD...
+            let files = {
+                "which-test-file-1": path.join(testPath, "which-test-file-1.com"),
+                "which-test-file-2": path.join(testPath, "which-test-file-2.exe"),
+                "which-test-file-3": path.join(testPath, "which-test-file-3.bat"),
+                "which-test-file-4": path.join(testPath, "which-test-file-4.cmd"),
+                "which-test-file-5.txt": path.join(testPath, "which-test-file-5.txt.com")
+            };
+            for (let fileName of Object.keys(files)) {
+                fs.writeFileSync(files[fileName], '');
+            }
+
+            let originalPath = process.env['PATH'];
+            try {
+                // modify PATH
+                process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath;
+
+                // find each file
+                for (let fileName of Object.keys(files)) {
+                    assert.equal(tl.which(fileName), files[fileName]);
+                }
+            }
+            finally {
+                process.env['PATH'] = originalPath;
+            }
+
+            done();
+        });
+        it('which() appends ext on windows when rooted', function (done) {
+            this.timeout(2000);
+
+            // create executable files
+            let testPath = path.join(testutil.getTestTemp(), 'which-appends-ext-on-windows-when-rooted');
+            tl.mkdirP(testPath);
+            // PATHEXT=.COM;.EXE;.BAT;.CMD...
+            let files = { };
+            files[path.join(testPath, "which-test-file-1")] = path.join(testPath, "which-test-file-1.com");
+            files[path.join(testPath, "which-test-file-2")] = path.join(testPath, "which-test-file-2.exe");
+            files[path.join(testPath, "which-test-file-3")] = path.join(testPath, "which-test-file-3.bat");
+            files[path.join(testPath, "which-test-file-4")] = path.join(testPath, "which-test-file-4.cmd");
+            files[path.join(testPath, "which-test-file-5.txt")] = path.join(testPath, "which-test-file-5.txt.com");
+            for (let fileName of Object.keys(files)) {
+                fs.writeFileSync(files[fileName], '');
+            }
+
+            // find each file
+            for (let fileName of Object.keys(files)) {
+                assert.equal(tl.which(fileName), files[fileName]);
+            }
+
+            done();
+        });
+        it('which() prefer exact match on windows', function (done) {
+            this.timeout(1000);
+
+            // create two executable files:
+            //   which-test-file.bat
+            //   which-test-file.bat.exe
+            //
+            // verify "which-test-file.bat" returns that file, and not "which-test-file.bat.exe"
+            //
+            // preference, within the same dir, should be given to the exact match (even though
+            // .EXE is defined with higher preference than .BAT in PATHEXT (PATHEXT=.COM;.EXE;.BAT;.CMD...)
+            let testPath = path.join(testutil.getTestTemp(), 'which-prefer-exact-match-on-windows');
+            tl.mkdirP(testPath);
+            let fileName = 'which-test-file.bat';
+            let expectedFilePath = path.join(testPath, fileName);
+            let notExpectedFilePath = path.join(testPath, fileName + '.exe');
+            fs.writeFileSync(expectedFilePath, '');
+            fs.writeFileSync(notExpectedFilePath, '');
+            let originalPath = process.env['PATH'];
+            try {
+                process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath;
+                assert.equal(tl.which(fileName), expectedFilePath);
+            }
+            finally {
+                process.env['PATH'] = originalPath;
+            }
+
+            done();
+        });
+        it('which() prefer exact match on windows when rooted', function (done) {
+            this.timeout(1000);
+
+            // create two executable files:
+            //   which-test-file.bat
+            //   which-test-file.bat.exe
+            //
+            // verify "which-test-file.bat" returns that file, and not "which-test-file.bat.exe"
+            //
+            // preference, within the same dir, should be given to the exact match (even though
+            // .EXE is defined with higher preference than .BAT in PATHEXT (PATHEXT=.COM;.EXE;.BAT;.CMD...)
+            let testPath = path.join(testutil.getTestTemp(), 'which-prefer-exact-match-on-windows-when-rooted');
+            tl.mkdirP(testPath);
+            let fileName = 'which-test-file.bat';
+            let expectedFilePath = path.join(testPath, fileName);
+            let notExpectedFilePath = path.join(testPath, fileName + '.exe');
+            fs.writeFileSync(expectedFilePath, '');
+            fs.writeFileSync(notExpectedFilePath, '');
+            assert.equal(tl.which(path.join(testPath, fileName)), expectedFilePath);
+
+            done();
+        });
+        it('which() searches ext in order', function (done) {
+            this.timeout(1000);
+
+            let testPath = path.join(testutil.getTestTemp(), 'which-searches-ext-in-order');
+
+            // create a directory for testing .COM order preference
+            // PATHEXT=.COM;.EXE;.BAT;.CMD...
+            let fileNameWithoutExtension = 'which-test-file';
+            let comTestPath = path.join(testPath, 'com-test');
+            tl.mkdirP(comTestPath);
+            fs.writeFileSync(path.join(comTestPath, fileNameWithoutExtension + '.com'), '');
+            fs.writeFileSync(path.join(comTestPath, fileNameWithoutExtension + '.exe'), '');
+            fs.writeFileSync(path.join(comTestPath, fileNameWithoutExtension + '.bat'), '');
+            fs.writeFileSync(path.join(comTestPath, fileNameWithoutExtension + '.cmd'), '');
+
+            // create a directory for testing .EXE order preference
+            // PATHEXT=.COM;.EXE;.BAT;.CMD...
+            let exeTestPath = path.join(testPath, 'exe-test');
+            tl.mkdirP(exeTestPath);
+            fs.writeFileSync(path.join(exeTestPath, fileNameWithoutExtension + '.exe'), '');
+            fs.writeFileSync(path.join(exeTestPath, fileNameWithoutExtension + '.bat'), '');
+            fs.writeFileSync(path.join(exeTestPath, fileNameWithoutExtension + '.cmd'), '');
+
+            // create a directory for testing .BAT order preference
+            // PATHEXT=.COM;.EXE;.BAT;.CMD...
+            let batTestPath = path.join(testPath, 'bat-test');
+            tl.mkdirP(batTestPath);
+            fs.writeFileSync(path.join(batTestPath, fileNameWithoutExtension + '.bat'), '');
+            fs.writeFileSync(path.join(batTestPath, fileNameWithoutExtension + '.cmd'), '');
+
+            // create a directory for testing .CMD
+            let cmdTestPath = path.join(testPath, 'cmd-test');
+            tl.mkdirP(cmdTestPath);
+            let cmdTest_cmdFilePath = path.join(cmdTestPath, fileNameWithoutExtension + '.cmd');
+            fs.writeFileSync(cmdTest_cmdFilePath, '');
+
+            let originalPath = process.env['PATH'];
+            try {
+                // test .COM
+                process.env['PATH'] = comTestPath + path.delimiter + originalPath;
+                assert.equal(tl.which(fileNameWithoutExtension), path.join(comTestPath, fileNameWithoutExtension + '.com'));
+
+                // test .EXE
+                process.env['PATH'] = exeTestPath + path.delimiter + originalPath;
+                assert.equal(tl.which(fileNameWithoutExtension), path.join(exeTestPath, fileNameWithoutExtension + '.exe'));
+
+                // test .BAT
+                process.env['PATH'] = batTestPath + path.delimiter + originalPath;
+                assert.equal(tl.which(fileNameWithoutExtension), path.join(batTestPath, fileNameWithoutExtension + '.bat'));
+
+                // test .CMD
+                process.env['PATH'] = cmdTestPath + path.delimiter + originalPath;
+                assert.equal(tl.which(fileNameWithoutExtension), path.join(cmdTestPath, fileNameWithoutExtension + '.cmd'));
+            }
+            finally {
+                process.env['PATH'] = originalPath;
+            }
+
+            done();
+        });
+    }
 
     // find tests
     it('returns hidden files with find', (done: MochaDone) => {
-        this.timeout(1000);
+        this.timeout(3000);
 
         // create the following layout:
         //   find_hidden_files
@@ -143,7 +619,7 @@ describe('Test Dir Operations', function () {
         fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
         testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
 
-        let itemPaths: string[] = tl.find(path.join(root, 'symDir'));
+        let itemPaths: string[] = tl.find(path.join(root, 'symDir'), <tl.FindOptions>{ });
         assert.equal(itemPaths.length, 1);
         assert.equal(itemPaths[0], path.join(root, 'symDir'));
 
@@ -207,7 +683,7 @@ describe('Test Dir Operations', function () {
         fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
         testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
 
-        let itemPaths: string[] = tl.find(root);
+        let itemPaths: string[] = tl.find(root, <tl.FindOptions>{ });
         assert.equal(itemPaths.length, 4);
         assert.equal(itemPaths[0], root);
         assert.equal(itemPaths[1], path.join(root, 'realDir'));
@@ -264,6 +740,227 @@ describe('Test Dir Operations', function () {
         assert.equal(itemPaths[2], path.join(root, 'realDir', 'file'));
         assert.equal(itemPaths[3], path.join(root, 'symDir'));
         assert.equal(itemPaths[4], path.join(root, 'symDir', 'file'));
+
+        done();
+    });
+
+    it('allows broken symlink', (done: MochaDone) => {
+        this.timeout(1000);
+
+        // create the following layout:
+        //   <root>
+        //   <root>/brokenSym -> <root>/noSuch
+        //   <root>/realDir
+        //   <root>/realDir/file
+        //   <root>/symDir -> <root>/realDir
+        let root: string = path.join(testutil.getTestTemp(), 'find_no_follow_symlink_allows_broken_symlink');
+        tl.mkdirP(root);
+        testutil.createSymlinkDir(path.join(root, 'noSuch'), path.join(root, 'brokenSym'));
+        tl.mkdirP(path.join(root, 'realDir'));
+        fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
+        testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
+
+        let itemPaths: string[] = tl.find(root, <tl.FindOptions>{ });
+        assert.equal(itemPaths.length, 5);
+        assert.equal(itemPaths[0], root);
+        assert.equal(itemPaths[1], path.join(root, 'brokenSym'));
+        assert.equal(itemPaths[2], path.join(root, 'realDir'));
+        assert.equal(itemPaths[3], path.join(root, 'realDir', 'file'));
+        assert.equal(itemPaths[4], path.join(root, 'symDir'));
+
+        done();
+    });
+
+    it('allows specified broken symlink', (done: MochaDone) => {
+        this.timeout(1000);
+
+        // create the following layout:
+        //   <root>
+        //   <root>/brokenSym -> <root>/noSuch
+        let root: string = path.join(testutil.getTestTemp(), 'find_no_follow_symlink_allows_specified_broken_symlink');
+        tl.mkdirP(root);
+        let brokenSymPath = path.join(root, 'brokenSym');
+        testutil.createSymlinkDir(path.join(root, 'noSuch'), brokenSymPath);
+
+        let itemPaths: string[] = tl.find(brokenSymPath, <tl.FindOptions>{ });
+        assert.equal(itemPaths.length, 1);
+        assert.equal(itemPaths[0], brokenSymPath);
+
+        done();
+    });
+
+    it('allows nested broken symlink when -H', (done: MochaDone) => {
+        this.timeout(1000);
+
+        // create the following layout:
+        //   <root>
+        //   <root>/brokenSym -> <root>/noSuch
+        //   <root>/realDir
+        //   <root>/realDir/file
+        //   <root>/symDir -> <root>/realDir
+        let root: string = path.join(testutil.getTestTemp(), 'find_allows_nested_broken_symlink_when_-H');
+        tl.mkdirP(root);
+        testutil.createSymlinkDir(path.join(root, 'noSuch'), path.join(root, 'brokenSym'));
+        tl.mkdirP(path.join(root, 'realDir'));
+        fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
+        testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
+
+        let options: tl.FindOptions = {} as tl.FindOptions;
+        options.followSpecifiedSymbolicLink = true;
+        let itemPaths: string[] = tl.find(root, options);
+        assert.equal(itemPaths.length, 5);
+        assert.equal(itemPaths[0], root);
+        assert.equal(itemPaths[1], path.join(root, 'brokenSym'));
+        assert.equal(itemPaths[2], path.join(root, 'realDir'));
+        assert.equal(itemPaths[3], path.join(root, 'realDir', 'file'));
+        assert.equal(itemPaths[4], path.join(root, 'symDir'));
+
+        done();
+    });
+
+    it('allows specified broken symlink with -H', (done: MochaDone) => {
+        this.timeout(1000);
+
+        // create the following layout:
+        //   <root>
+        //   <root>/brokenSym -> <root>/noSuch
+        let root: string = path.join(testutil.getTestTemp(), 'find_allows_specified_broken_symlink_with_-H');
+        tl.mkdirP(root);
+        let brokenSymPath = path.join(root, 'brokenSym');
+        testutil.createSymlinkDir(path.join(root, 'noSuch'), brokenSymPath);
+
+        let options: tl.FindOptions = {} as tl.FindOptions;
+        options.allowBrokenSymbolicLinks = true;
+        options.followSpecifiedSymbolicLink = true;
+        let itemPaths: string[] = tl.find(brokenSymPath, options);
+        assert.equal(itemPaths.length, 1);
+        assert.equal(itemPaths[0], brokenSymPath);
+
+        done();
+    });
+
+    it('does not allow specified broken symlink when only -H', (done: MochaDone) => {
+        this.timeout(1000);
+
+        // create the following layout:
+        //   <root>
+        //   <root>/brokenSym -> <root>/noSuch
+        let root: string = path.join(testutil.getTestTemp(), 'find_not_allow_specified_broken_sym_when_only_-H');
+        tl.mkdirP(root);
+        let brokenSymPath = path.join(root, 'brokenSym');
+        testutil.createSymlinkDir(path.join(root, 'noSuch'), brokenSymPath);
+        fs.lstatSync(brokenSymPath);
+
+        let options: tl.FindOptions = {} as tl.FindOptions;
+        options.followSpecifiedSymbolicLink = true;
+        try {
+            tl.find(brokenSymPath, options);
+            throw new Error('Expected tl.find to throw');
+        }
+        catch (err) {
+            assert(err.message.match(/ENOENT.*brokenSym/), `Expected broken symlink error message, actual: '${err.message}'`);
+        }
+
+        done();
+    });
+
+    it('does not allow broken symlink when only -L', (done: MochaDone) => {
+        this.timeout(1000);
+
+        // create the following layout:
+        //   <root>
+        //   <root>/brokenSym -> <root>/noSuch
+        let root: string = path.join(testutil.getTestTemp(), 'find_not_allow_broken_sym_when_only_-L');
+        tl.mkdirP(root);
+        testutil.createSymlinkDir(path.join(root, 'noSuch'), path.join(root, 'brokenSym'));
+
+        let options: tl.FindOptions = {} as tl.FindOptions;
+        options.followSymbolicLinks = true;
+        try {
+            tl.find(root, options);
+            throw new Error('Expected tl.find to throw');
+        }
+        catch (err) {
+            assert(err.message.match(/ENOENT.*brokenSym/), `Expected broken symlink error message, actual: '${err.message}'`);
+        }
+
+        done();
+    });
+
+    it('does not allow specied broken symlink when only -L', (done: MochaDone) => {
+        this.timeout(1000);
+
+        // create the following layout:
+        //   <root>
+        //   <root>/brokenSym -> <root>/noSuch
+        let root: string = path.join(testutil.getTestTemp(), 'find_not_allow_specified_broken_sym_when_only_-L');
+        tl.mkdirP(root);
+        let brokenSymPath = path.join(root, 'brokenSym');
+        testutil.createSymlinkDir(path.join(root, 'noSuch'), brokenSymPath);
+        fs.lstatSync(brokenSymPath);
+
+        let options: tl.FindOptions = {} as tl.FindOptions;
+        options.followSymbolicLinks = true;
+        try {
+            tl.find(brokenSymPath, options);
+            throw new Error('Expected tl.find to throw');
+        }
+        catch (err) {
+            assert(err.message.match(/ENOENT.*brokenSym/), `Expected broken symlink error message, actual: '${err.message}'`);
+        }
+
+        done();
+    });
+
+    it('allow broken symlink with -L', (done: MochaDone) => {
+        this.timeout(1000);
+
+        // create the following layout:
+        //   <root>
+        //   <root>/brokenSym -> <root>/noSuch
+        //   <root>/realDir
+        //   <root>/realDir/file
+        //   <root>/symDir -> <root>/realDir
+        let root: string = path.join(testutil.getTestTemp(), 'find_allow_broken_sym_with_-L');
+        tl.mkdirP(root);
+        testutil.createSymlinkDir(path.join(root, 'noSuch'), path.join(root, 'brokenSym'));
+        tl.mkdirP(path.join(root, 'realDir'));
+        fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
+        testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
+
+        let options: tl.FindOptions = {} as tl.FindOptions;
+        options.allowBrokenSymbolicLinks = true;
+        options.followSymbolicLinks = true;
+        let itemPaths: string[] = tl.find(root, options);
+        assert.equal(itemPaths.length, 6);
+        assert.equal(itemPaths[0], root);
+        assert.equal(itemPaths[1], path.join(root, 'brokenSym'));
+        assert.equal(itemPaths[2], path.join(root, 'realDir'));
+        assert.equal(itemPaths[3], path.join(root, 'realDir', 'file'));
+        assert.equal(itemPaths[4], path.join(root, 'symDir'));
+        assert.equal(itemPaths[5], path.join(root, 'symDir', 'file'));
+
+        done();
+    });
+
+    it('allow specified broken symlink with -L', (done: MochaDone) => {
+        this.timeout(1000);
+
+        // create the following layout:
+        //   <root>
+        //   <root>/brokenSym -> <root>/noSuch
+        let root: string = path.join(testutil.getTestTemp(), 'find_allow_specified_broken_sym_with_-L');
+        tl.mkdirP(root);
+        let brokenSymPath = path.join(root, 'brokenSym');
+        testutil.createSymlinkDir(path.join(root, 'noSuch'), brokenSymPath);
+        fs.lstatSync(brokenSymPath);
+
+        let options: tl.FindOptions = {} as tl.FindOptions;
+        options.allowBrokenSymbolicLinks = true;
+        options.followSymbolicLinks = true;
+        let itemPaths: string[] = tl.find(brokenSymPath, options);
+        assert.equal(itemPaths.length, 1);
+        assert.equal(itemPaths[0], brokenSymPath);
 
         done();
     });
@@ -345,6 +1042,87 @@ describe('Test Dir Operations', function () {
         assert.equal(itemPaths[6], path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'folder_a'));
         assert.equal(itemPaths[7], path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'folder_a', 'file_under_a'));
         assert.equal(itemPaths[8], path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'folder_a', 'folder_b'));
+
+        done();
+    });
+
+    it('default options', (done: MochaDone) => {
+        this.timeout(1000);
+
+        // create the following layout:
+        //   <root>
+        //   <root>/real_folder
+        //   <root>/real_folder/file_under_real_folder
+        //   <root>/sym_folder -> real_folder
+        let root: string = path.join(testutil.getTestTemp(), 'find_default_options');
+        tl.mkdirP(path.join(root, 'real_folder'));
+        fs.writeFileSync(path.join(root, 'real_folder', 'file_under_real_folder'), 'test file under real folder');
+        testutil.createSymlinkDir(path.join(root, 'real_folder'), path.join(root, 'sym_folder'));
+        assert.doesNotThrow(
+            () => fs.statSync(path.join(root, 'sym_folder', 'file_under_real_folder')),
+            'sym_folder should be created properly');
+
+        // assert the expected files are returned
+        let actual: string[] = tl.find(root);
+        let expected: string[] = [
+            root,
+            path.join(root, 'real_folder'),
+            path.join(root, 'real_folder', 'file_under_real_folder'),
+            path.join(root, 'sym_folder'),
+            path.join(root, 'sym_folder', 'file_under_real_folder'),
+        ];
+        assert.deepEqual(actual, expected);
+
+        done();
+    });
+
+    it('default options do not allow broken symlinks', (done: MochaDone) => {
+        this.timeout(1000);
+
+        // create the following layout:
+        //   <root>
+        //   <root>/broken_symlink -> no_such_file
+        let root: string = path.join(testutil.getTestTemp(), 'find_default_options_broken_symlink');
+        tl.mkdirP(root);
+        testutil.createSymlinkDir(path.join(root, 'no_such_file'), path.join(root, 'broken_symlink'));
+
+        // assert the broken symlink is a problem
+        try {
+            tl.find(root);
+            throw new Error('Expected tl.find to throw');
+        }
+        catch (err) {
+            assert(err.message.match(/ENOENT.*broken_symlink/), `Expected broken symlink error message, actual: '${err.message}'`);
+        }
+
+        done();
+    });
+
+    it('empty find path returns empty array', (done: MochaDone) => {
+        this.timeout(1000);
+
+        let actual: string[] = tl.find('');
+        assert.equal(typeof actual, 'object');
+        assert.equal(actual.length, 0);
+
+        done();
+    });
+
+    it('normalizes find path', (done: MochaDone) => {
+        this.timeout(1000);
+
+        // create the following layout:
+        //   <root>/hello/world.txt
+        let root: string = path.join(testutil.getTestTemp(), 'find_normalizes_separators');
+        tl.mkdirP(path.join(root, 'hello'));
+        fs.writeFileSync(path.join(root, 'hello', 'world.txt'), '');
+
+        let actual: string[] = tl.find(root + path.sep + path.sep + path.sep + 'nosuch' + path.sep + '..' + path.sep + 'hello');
+        let expected: string[] = [
+            path.join(root, 'hello'),
+            path.join(root, 'hello', 'world.txt'),
+        ];
+        assert.deepEqual(actual, expected);
 
         done();
     });
@@ -522,14 +1300,15 @@ describe('Test Dir Operations', function () {
     it('breaks if mkdirP loop out of control', (done: MochaDone) => {
         this.timeout(1000);
 
-        process.env['TASKLIB_TEST_MKDIRP_FAILSAFE'] = '10';
         let testPath = path.join(testutil.getTestTemp(), 'mkdirP_failsafe', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10');
-
+        process.env['TASKLIB_TEST_MKDIRP_FAILSAFE'] = '10';
         try {
             tl.mkdirP(testPath);
             throw new Error("directory should not have been created");
         }
         catch (err) {
+            delete process.env['TASKLIB_TEST_MKDIRP_FAILSAFE'];
+
             // ENOENT is expected, all other errors are not
             if (err.code != 'ENOENT') {
                 throw err;
@@ -573,7 +1352,7 @@ describe('Test Dir Operations', function () {
     });
 
     it('removes folder with locked file with rmRF', function (done) {
-        this.timeout(1000);
+        this.timeout(2000);
 
         var testPath = path.join(testutil.getTestTemp(), 'testFolder');
         tl.mkdirP(testPath);
@@ -690,7 +1469,7 @@ describe('Test Dir Operations', function () {
         done();
     });
 
-    // creating a symlink on Windows requires elevated
+    // creating a symlink to a file on Windows requires elevated
     if (os.platform() != 'win32') {
         it('removes symlink file with rmRF', (done: MochaDone) => {
             this.timeout(1000);
@@ -770,6 +1549,64 @@ describe('Test Dir Operations', function () {
 
             done();
         });
+
+        it('removes nested symlink file with rmRF', (done: MochaDone) => {
+            this.timeout(1000);
+
+            // create the following layout:
+            //   real_directory
+            //   real_directory/real_file
+            //   outer_directory
+            //   outer_directory/symlink_file -> real_file
+            let root: string = path.join(testutil.getTestTemp(), 'rmRF_sym_nest_file_test');
+            let realDirectory: string = path.join(root, 'real_directory');
+            let realFile: string = path.join(root, 'real_directory', 'real_file');
+            let outerDirectory: string = path.join(root, 'outer_directory');
+            let symlinkFile: string = path.join(root, 'outer_directory', 'symlink_file');
+            tl.mkdirP(realDirectory);
+            fs.writeFileSync(realFile, 'test file content');
+            tl.mkdirP(outerDirectory);
+            fs.symlinkSync(realFile, symlinkFile);
+            assert.equal(fs.readFileSync(symlinkFile), 'test file content');
+
+            tl.rmRF(outerDirectory);
+            assert(shell.test('-d', realDirectory), 'real directory should still exist');
+            assert(shell.test('-f', realFile), 'file should still exist');
+            assert(!shell.test('-e', symlinkFile), 'symlink file should have been deleted');
+            assert(!shell.test('-e', outerDirectory), 'outer directory should have been deleted');
+
+            done();
+        });
+
+        it('removes deeply nested symlink file with rmRF', (done: MochaDone) => {
+            this.timeout(1000);
+
+            // create the following layout:
+            //   real_directory
+            //   real_directory/real_file
+            //   outer_directory
+            //   outer_directory/nested_directory
+            //   outer_directory/nested_directory/symlink_file -> real_file
+            let root: string = path.join(testutil.getTestTemp(), 'rmRF_sym_deep_nest_file_test');
+            let realDirectory: string = path.join(root, 'real_directory');
+            let realFile: string = path.join(root, 'real_directory', 'real_file');
+            let outerDirectory: string = path.join(root, 'outer_directory');
+            let nestedDirectory: string = path.join(root, 'outer_directory', 'nested_directory');
+            let symlinkFile: string = path.join(root, 'outer_directory', 'nested_directory', 'symlink_file');
+            tl.mkdirP(realDirectory);
+            fs.writeFileSync(realFile, 'test file content');
+            tl.mkdirP(nestedDirectory);
+            fs.symlinkSync(realFile, symlinkFile);
+            assert.equal(fs.readFileSync(symlinkFile), 'test file content');
+
+            tl.rmRF(outerDirectory);
+            assert(shell.test('-d', realDirectory), 'real directory should still exist');
+            assert(shell.test('-f', realFile), 'file should still exist');
+            assert(!shell.test('-e', symlinkFile), 'symlink file should have been deleted');
+            assert(!shell.test('-e', outerDirectory), 'outer directory should have been deleted');
+
+            done();
+        });
     }
 
     it('removes symlink folder with missing source using rmRF', (done: MochaDone) => {
@@ -779,7 +1616,7 @@ describe('Test Dir Operations', function () {
         //   real_directory
         //   real_directory/real_file
         //   symlink_directory -> real_directory
-        let root: string = path.join(testutil.getTestTemp(), 'rmRF_sym_dir_test');
+        let root: string = path.join(testutil.getTestTemp(), 'rmRF_sym_dir_miss_src_test');
         let realDirectory: string = path.join(root, 'real_directory');
         let realFile: string = path.join(root, 'real_directory', 'real_file');
         let symlinkDirectory: string = path.join(root, 'symlink_directory');
@@ -836,6 +1673,64 @@ describe('Test Dir Operations', function () {
         tl.rmRF(symlinkLevel2Directory);
         assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'real file should still exist');
         assert(!shell.test('-e', symlinkLevel2Directory), 'symlink level 2 file should have been deleted');
+
+        done();
+    });
+
+    it('removes nested symlink folder with rmRF', (done: MochaDone) => {
+        this.timeout(1000);
+
+        // create the following layout:
+        //   real_directory
+        //   real_directory/real_file
+        //   outer_directory
+        //   outer_directory/symlink_directory -> real_directory
+        let root: string = path.join(testutil.getTestTemp(), 'rmRF_sym_nest_dir_test');
+        let realDirectory: string = path.join(root, 'real_directory');
+        let realFile: string = path.join(root, 'real_directory', 'real_file');
+        let outerDirectory: string = path.join(root, 'outer_directory');
+        let symlinkDirectory: string = path.join(root, 'outer_directory', 'symlink_directory');
+        tl.mkdirP(realDirectory);
+        fs.writeFileSync(realFile, 'test file content');
+        tl.mkdirP(outerDirectory);
+        testutil.createSymlinkDir(realDirectory, symlinkDirectory);
+        assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'symlink directory should be created correctly');
+
+        tl.rmRF(outerDirectory);
+        assert(shell.test('-d', realDirectory), 'real directory should still exist');
+        assert(shell.test('-f', realFile), 'file should still exist');
+        assert(!shell.test('-e', symlinkDirectory), 'symlink directory should have been deleted');
+        assert(!shell.test('-e', outerDirectory), 'outer directory should have been deleted');
+
+        done();
+    });
+
+    it('removes deeply nested symlink folder with rmRF', (done: MochaDone) => {
+        this.timeout(1000);
+
+        // create the following layout:
+        //   real_directory
+        //   real_directory/real_file
+        //   outer_directory
+        //   outer_directory/nested_directory
+        //   outer_directory/nested_directory/symlink_directory -> real_directory
+        let root: string = path.join(testutil.getTestTemp(), 'rmRF_sym_deep_nest_dir_test');
+        let realDirectory: string = path.join(root, 'real_directory');
+        let realFile: string = path.join(root, 'real_directory', 'real_file');
+        let outerDirectory: string = path.join(root, 'outer_directory');
+        let nestedDirectory: string = path.join(root, 'outer_directory', 'nested_directory');
+        let symlinkDirectory: string = path.join(root, 'outer_directory', 'nested_directory', 'symlink_directory');
+        tl.mkdirP(realDirectory);
+        fs.writeFileSync(realFile, 'test file content');
+        tl.mkdirP(nestedDirectory);
+        testutil.createSymlinkDir(realDirectory, symlinkDirectory);
+        assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'symlink directory should be created correctly');
+
+        tl.rmRF(outerDirectory);
+        assert(shell.test('-d', realDirectory), 'real directory should still exist');
+        assert(shell.test('-f', realFile), 'file should still exist');
+        assert(!shell.test('-e', symlinkDirectory), 'symlink directory should have been deleted');
+        assert(!shell.test('-e', outerDirectory), 'outer directory should have been deleted');
 
         done();
     });

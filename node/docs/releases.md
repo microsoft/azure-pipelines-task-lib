@@ -1,4 +1,46 @@
-# VSTS-TASK-LIB RELEASES
+# AZURE-PIPELINES-TASK-LIB RELEASES
+
+## 2.7.0
+ * Updated `setResult` to expose optional done parameter
+ * Updated `ToolRunner` to distinguish between events for process exit and STDIO streams closed
+
+## 2.5.0
+ * Updated `FindOptions` to expose `allowBrokenSymbolicLinks`.
+
+## 2.3.0
+ * Updated `setVariable` to fail when a secret contains multiple lines.
+ * Added `setSecret` to register a secret with the log scrubber, without registering a variable. Multi-line secrets are not supported.
+
+## 2.0.4-preview
+ * Updated `ToolRunner` to validate the specified tool can be found and is executable.
+ * Updated `which` to validate the file is executable and also on Windows to apply PATHEXT.
+
+## 2.0.2-preview
+ * Updated `ToolRunner` to cleanup `execSync` interface, for `execSync` to follow `options.silent`, and removed all fields from the public interface.
+ * Updated `TaskResult` to include `SucceededWithIssues`.
+ * Updated `rmRF` to remove `continueOnError`.
+ * Removed `startsWith`, `endsWith`, and `isEqual` prototype functions for `String`.
+ * Added `getSecureFiles`, `getSecureFileName` and `getSecureFileTicket` to help tasks working with secure files.
+
+## 2.0.1-preview
+ * Updated `match` to expose optional pattern-root parameter.
+ * Updated `find` to normalize the specified path so the results are consistent.
+ * Updated `mock-task.filter` and `mock-task.match` to passthru to `task.filter` and `task.match`.
+ * Removed `vso-node-api` from package.json. If needed, add to your package.json.
+ * Removed `setEnvVar`.
+ * Removed `_writeLine`. Use console.log().
+
+## 2.0.0-preview
+ * Added `findMatch` that interprets the find root from a glob pattern. Supports interleaved exclude.
+ * Updated `find`, `match`, and `filter` to change the default value for the options parameter, when undefined or null.
+ * Updated `match` to change the behavior for exclude patterns. Interleaved exclude patterns are now supported, and exclude patterns filter results out now.
+ * Removed `glob`, use `findMatch`.
+
+## 1.1.0
+ * Added `legacyFindFiles` for tasks porting from the PowerShell or PowerShell3 execution handler.
+
+## 1.0.0
+ * Updated `ToolRunner` to provide better arg quoting for .cmd/.bat files on Windows and also enable specifying exact command lines on Windows.
 
 ## 0.9.16
  * Fixed bug in `find` in introduced in 0.9.8. On Windows all subdirectories were not always traversed. Loss of precision in inode was interfering with cyclical-symlink detection logic.

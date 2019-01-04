@@ -1,5 +1,5 @@
 {
-	"name": "vsts-task-lib",
+	"name": "azure-pipelines-task-lib",
 	"main": "task.d.ts",
 	"globalDependencies": {
 		"node": "registry:dt/node#6.0.0+20160709114037",

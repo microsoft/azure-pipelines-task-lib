@@ -66,6 +66,74 @@ function Get-Endpoint {
 
 <#
 .SYNOPSIS
+Gets a secure file ticket.
+
+.DESCRIPTION
+Gets the secure file ticket that can be used to download the secure file contents.
+
+.PARAMETER Id
+Secure file id.
+
+.PARAMETER Require
+Writes an error to the error pipeline if the ticket is not found.
+#>
+function Get-SecureFileTicket {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Id,
+        [switch]$Require)
+
+    $originalErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Stop'
+
+        $description = Get-LocString -Key PSLIB_Input0 -ArgumentList $Id
+        $key = "SECUREFILE_TICKET_$Id"
+        
+        Get-VaultValue -Description $description -Key $key -Require:$Require
+    } catch {
+        $ErrorActionPreference = $originalErrorActionPreference
+        Write-Error $_
+    }
+}
+
+<#
+.SYNOPSIS
+Gets a secure file name.
+
+.DESCRIPTION
+Gets the name for a secure file.
+
+.PARAMETER Id
+Secure file id.
+
+.PARAMETER Require
+Writes an error to the error pipeline if the ticket is not found.
+#>
+function Get-SecureFileName {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Id,
+        [switch]$Require)
+
+    $originalErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Stop'
+
+        $description = Get-LocString -Key PSLIB_Input0 -ArgumentList $Id
+        $key = "SECUREFILE_NAME_$Id"
+        
+        Get-VaultValue -Description $description -Key $key -Require:$Require
+    } catch {
+        $ErrorActionPreference = $originalErrorActionPreference
+        Write-Error $_
+    }
+}
+
+<#
+.SYNOPSIS
 Gets an input.
 
 .DESCRIPTION
@@ -357,7 +425,7 @@ function Get-Value {
 
 function Initialize-Inputs {
     # Store endpoints, inputs, and secret variables in the vault.
-    foreach ($variable in (Get-ChildItem -Path Env:ENDPOINT_?*, Env:INPUT_?*, Env:SECRET_?*)) {
+    foreach ($variable in (Get-ChildItem -Path Env:ENDPOINT_?*, Env:INPUT_?*, Env:SECRET_?*, Env:SECUREFILE_?*)) {
         # Record the secret variable metadata. This is required by Get-TaskVariable to
         # retrieve the value. In a 2.104.1 agent or higher, this metadata will be overwritten
         # when $env:VSTS_SECRET_VARIABLES is processed.

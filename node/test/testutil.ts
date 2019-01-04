@@ -8,11 +8,17 @@ import fs = require('fs');
 
 import * as tl from '../_build/task';
 
-export function initialize() {
-    tl.setStdStream(this.getNullStream());
-    tl.setErrStream(this.getNullStream());
-    tl.setEnvVar('TASKLIB_INPROC_UNITS', '1');
+export function initialize(useRealStreams?: boolean) {
+    if (useRealStreams) {
+        tl.setStdStream(process.stdout);
+        tl.setErrStream(process.stderr);
+    }
+    else {
+        tl.setStdStream(this.getNullStream());
+        tl.setErrStream(this.getNullStream());
+    }
 
+    process.env['TASKLIB_INPROC_UNITS'] = '1';
     tl.mkdirP(this.getTestTemp());
 }
 
@@ -32,20 +38,23 @@ export function getNullStream() {
     return new NullStream();    
 }
 
-var StringStream = function () {
-    var contents = '';
+export class StringStream extends stream.Writable {
+    constructor() {
+        super();
+        stream.Writable.call(this);
+    }
 
-    stream.Writable.call(this);
-    this._write = function (data, encoding, next) {
-        contents += data;
+    private contents = '';
+
+    public _write(data, encoding, next) {
+        this.contents += data;
         next();
     }
 
-    this.getContents = function () {
-        return contents.toString();
+    public getContents() {
+        return this.contents;
     }
 }
-util.inherits(StringStream, stream.Writable);
 
 export function createStringStream() {
     return new StringStream();    
@@ -58,6 +67,14 @@ export function buildOutput(lines: string[]): string {
     });
 
     return output;
+}
+
+export function chmod(file: string, mode: string): void {
+    let result = child.spawnSync('chmod', [ mode, file ]);
+    if (result.status != 0) {
+        let message: string = (result.output || []).join(' ').trim();
+        throw new Error(`Command failed: "chmod ${mode} ${file}".  ${message}`);
+    }
 }
 
 export function createHiddenDirectory(dir: string): void {

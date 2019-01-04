@@ -16,56 +16,30 @@ export function setAnswers(answers: ma.TaskLibAnswers) {
     trm.setAnswers(answers);
 }
 
-export enum TaskResult {
-    Succeeded = 0,
-    Failed = 1
-}
-
-//-----------------------------------------------------
-// String convenience
-//-----------------------------------------------------
-
-function startsWith(str: string, start: string): boolean {
-    return str.slice(0, start.length) == start;
-}
-
-function endsWith(str: string, start: string): boolean {
-    return str.slice(-str.length) == str;
-}
+module.exports.TaskResult = task.TaskResult;
 
 //-----------------------------------------------------
 // General Helpers
 //-----------------------------------------------------
-export var _outStream = process.stdout;
-export var _errStream = process.stderr;
+let _outStream = process.stdout;
+let _errStream = process.stderr;
 
-export function _writeError(str: string): void {
+function _writeError(str: string): void {
     _errStream.write(str + os.EOL);
 }
 
-export function _writeLine(str: string): void {
+function _writeLine(str: string): void {
     _outStream.write(str + os.EOL);
 }
 
-export function setStdStream(stdStream): void {
-    _outStream = stdStream;
-}
-
-export function setErrStream(errStream): void {
-    _errStream = errStream;
-}
+module.exports.setStdStream = task.setStdStream;
+module.exports.setErrStream = task.setErrStream;
 
 //-----------------------------------------------------
 // Results and Exiting
 //-----------------------------------------------------
-module.exports.setResult = task.setResult;
 
-//
-// Catching all exceptions
-//
-process.on('uncaughtException', (err) => {
-    module.exports.setResult(TaskResult.Failed, 'Unhandled:' + err.message);
-});
+module.exports.setResult = task.setResult;
 
 //-----------------------------------------------------
 // Loc Helpers
@@ -74,8 +48,13 @@ export function setResourcePath(path: string): void {
     // nothing in mock
 }
 
-export function loc(key: string): string {
-    return 'loc_mock_' + key;
+export function loc(key: string, ...args: any[]): string {
+    let str: string = 'loc_mock_' + key;
+    if (args.length) {
+        str += ' ' + args.join(' ');
+    }
+
+    return str;
 }
 
 //-----------------------------------------------------
@@ -83,9 +62,10 @@ export function loc(key: string): string {
 //-----------------------------------------------------
 module.exports.getVariable = task.getVariable;
 module.exports.setVariable = task.setVariable;
+module.exports.getTaskVariable = task.getTaskVariable;
+module.exports.setTaskVariable = task.setTaskVariable;
 module.exports.getInput = task.getInput;
 module.exports.getBoolInput = task.getBoolInput;
-module.exports.setEnvVar = task.setEnvVar;
 module.exports.getDelimitedInput = task.getDelimitedInput;
 module.exports.filePathSupplied = task.filePathSupplied;
 
@@ -103,19 +83,25 @@ module.exports.getPathInput = getPathInput;
 //-----------------------------------------------------
 // Endpoint Helpers
 //-----------------------------------------------------
-module.exports.getEndPointUrl = task.getEndpointUrl;
+module.exports.getEndpointUrl = task.getEndpointUrl;
 module.exports.getEndpointDataParameter = task.getEndpointDataParameter;
 module.exports.getEndpointAuthorizationScheme = task.getEndpointAuthorizationScheme;
 module.exports.getEndpointAuthorizationParameter = task.getEndpointAuthorizationParameter;
 module.exports.getEndpointAuthorization = task.getEndpointAuthorization;
 
-// TODO: should go away when task lib 
+// TODO: should go away when task lib
 export interface EndpointAuthorization {
     parameters: {
         [key: string]: string;
     };
     scheme: string;
 }
+
+//-----------------------------------------------------
+// SecureFile Helpers
+//-----------------------------------------------------
+module.exports.getSecureFileName = task.getSecureFileName;
+module.exports.getSecureFileTicket = task.getSecureFileTicket;
 
 //-----------------------------------------------------
 // Fs Helpers
@@ -201,12 +187,12 @@ export class FsStats implements fs.Stats {
 
 export function stats(path: string): FsStats {
     var fsStats = new FsStats();
-    fsStats.setAnswers(mock.getResponse('stats', path) || {});
+    fsStats.setAnswers(mock.getResponse('stats', path, module.exports.debug) || {});
     return fsStats;
 }
 
 export function exist(path: string): boolean {
-    return mock.getResponse('exist', path) || false;
+    return mock.getResponse('exist', path, module.exports.debug) || false;
 }
 
 export interface FsOptions {
@@ -220,11 +206,11 @@ export function writeFile(file: string, data: string|Buffer, options?: string|Fs
 }
 
 export function osType(): string {
-    return mock.getResponse('osType', 'osType');
+    return mock.getResponse('osType', 'osType', module.exports.debug);
 }
 
 export function cwd(): string {
-    return mock.getResponse('cwd', 'cwd');
+    return mock.getResponse('cwd', 'cwd', module.exports.debug);
 }
 
 //-----------------------------------------------------
@@ -253,7 +239,7 @@ export function popd(): void {
 
 export function checkPath(p: string, name: string): void {
     module.exports.debug('check path : ' + p);
-    if (!p || !mock.getResponse('checkPath', p)) {
+    if (!p || !mock.getResponse('checkPath', p, module.exports.debug)) {
         throw new Error('Not found ' + p);
     }
 }
@@ -278,7 +264,7 @@ export function resolve(): string {
 }
 
 export function which(tool: string, check?: boolean): string {
-    var response = mock.getResponse('which', tool);
+    var response = mock.getResponse('which', tool, module.exports.debug);
     if (check) {
         checkPath(response, tool);
     }
@@ -286,24 +272,25 @@ export function which(tool: string, check?: boolean): string {
 }
 
 export function ls(options: string, paths: string[]): string[] {
-    var response = mock.getResponse('ls', paths[0]);
+    var response = mock.getResponse('ls', paths[0], module.exports.debug);
     if(!response){
         return [];
     }
     return response;
 }
 
-export function cp(options, source: string, dest: string): void {
-    console.log('###copying###');
+export function cp(source: string, dest: string): void {
+    module.exports.debug('###copying###');
     module.exports.debug('copying ' + source + ' to ' + dest);
 }
 
 export function find(findPath: string): string[] {
-    return mock.getResponse('find', findPath);
+    return mock.getResponse('find', findPath, module.exports.debug);
 }
 
 export function rmRF(path: string): void {
-    var response = mock.getResponse('rmRF', path);
+    module.exports.debug('rmRF ' + path);
+    var response = mock.getResponse('rmRF', path, module.exports.debug);
     if (!response['success']) {
         module.exports.setResult(1, response['message']);
     }
@@ -312,40 +299,6 @@ export function rmRF(path: string): void {
 export function mv(source: string, dest: string, force: boolean, continueOnError?: boolean): boolean {
     module.exports.debug('moving ' + source + ' to ' + dest);
     return true;
-}
-
-export function glob(pattern: string): string[] {
-    module.exports.debug('glob ' + pattern);
-
-    var matches: string[] = mock.getResponse('glob', pattern);
-    module.exports.debug('found ' + matches.length + ' matches');
-
-    if (matches.length > 0) {
-        var m = Math.min(matches.length, 10);
-        module.exports.debug('matches:');
-        if (m == 10) {
-            module.exports.debug('listing first 10 matches as samples');
-        }
-
-        for (var i = 0; i < m; i++) {
-            module.exports.debug(matches[i]);
-        }
-    }
-
-    return matches;
-}
-
-export function globFirst(pattern: string): string {
-    module.exports.debug('globFirst ' + pattern);
-    var matches = glob(pattern);
-
-    if (matches.length > 1) {
-        module.exports.warning('multiple workspace matches.  using first.');
-    }
-
-    module.exports.debug('found ' + matches.length + ' matches');
-
-    return matches[0];
 }
 
 //-----------------------------------------------------
@@ -360,7 +313,7 @@ export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Pro
     return tr.exec(options);
 }
 
-export function execSync(tool: string, args: any, options?: trm.IExecOptions): trm.IExecResult {
+export function execSync(tool: string, args: any, options?: trm.IExecSyncOptions): trm.IExecSyncResult {
     var toolPath = which(tool, true);
     var tr: trm.ToolRunner = this.tool(toolPath);
     if (args) {
@@ -382,6 +335,9 @@ export function tool(tool: string): trm.ToolRunner {
 //-----------------------------------------------------
 // Matching helpers
 //-----------------------------------------------------
+module.exports.filter = task.filter;
+module.exports.match = task.match;
+
 // redefine to avoid folks having to typings install minimatch
 export interface MatchOptions {
     debug?: boolean;
@@ -396,19 +352,11 @@ export interface MatchOptions {
     nonegate?: boolean;
     flipNegate?: boolean;
 }
-export function match(list: string[], pattern: string, options?: MatchOptions): string[];
-export function match(list: string[], patterns: string[], options?: MatchOptions): string[];
-export function match(list: string[], pattern: any, options?: MatchOptions): string[] {
-    return mock.getResponse('match', pattern) || [];
-}
 
-export function matchFile(list, pattern, options): string[] {
-    return mock.getResponse('match', pattern) || [];
+export function findMatch(defaultRoot: string, patterns: string[] | string) : string[] {
+    let responseKey: string = typeof patterns == 'object' ? (patterns as string[]).join('\n') : patterns as string;
+    return mock.getResponse('findMatch', responseKey, module.exports.debug);
 }
-
-export function filter(pattern, options): string[] {
-    return mock.getResponse('filter', pattern) || [];
-}    
 
 //-----------------------------------------------------
 // Test Publisher
@@ -479,7 +427,7 @@ export class CodeCoveragePublisher {
             properties['additionalcodecoveragefiles'] = additionalCodeCoverageFiles;
         }
 
-        module.exports.command('codecoverage.publish', properties, "");        
+        module.exports.command('codecoverage.publish', properties, "");
     }
 }
 
@@ -508,3 +456,17 @@ export class CodeCoverageEnabler {
 exports.TaskCommand = tcm.TaskCommand;
 exports.commandFromString = tcm.commandFromString;
 exports.ToolRunner = trm.ToolRunner;
+
+//-----------------------------------------------------
+// Http Proxy Helper
+//-----------------------------------------------------
+export function getHttpProxyConfiguration(requestUrl?: string): task.ProxyConfiguration {
+    return null;
+}
+
+//-----------------------------------------------------
+// Http Certificate Helper
+//-----------------------------------------------------
+export function getHttpCertConfiguration(): task.CertConfiguration {
+    return null
+}
