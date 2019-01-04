@@ -60,8 +60,10 @@ export function loc(key: string, ...args: any[]): string {
 //-----------------------------------------------------
 // Input Helpers
 //-----------------------------------------------------
+module.exports.assertAgent = task.assertAgent;
 module.exports.getVariable = task.getVariable;
 module.exports.setVariable = task.setVariable;
+module.exports.setSecret = task.setSecret;
 module.exports.getTaskVariable = task.getTaskVariable;
 module.exports.setTaskVariable = task.setTaskVariable;
 module.exports.getInput = task.getInput;
@@ -470,3 +472,33 @@ export function getHttpProxyConfiguration(requestUrl?: string): task.ProxyConfig
 export function getHttpCertConfiguration(): task.CertConfiguration {
     return null
 }
+
+//-----------------------------------------------------
+// Task Logging Commands
+//-----------------------------------------------------
+module.exports.uploadFile = task.uploadFile;
+module.exports.prependPath = task.prependPath;
+module.exports.uploadSummary = task.uploadSummary;
+module.exports.addAttachment = task.addAttachment;
+module.exports.setEndpoint = task.setEndpoint;
+module.exports.setProgress = task.setProgress;
+module.exports.logDetail = task.logDetail;
+module.exports.logIssue = task.logIssue;
+
+//-----------------------------------------------------
+// Artifact Logging Commands
+//-----------------------------------------------------
+module.exports.uploadArtifact = task.uploadArtifact;
+module.exports.associateArtifact = task.associateArtifact;
+
+//-----------------------------------------------------
+// Build Logging Commands
+//-----------------------------------------------------
+module.exports.uploadBuildLog = task.uploadBuildLog;
+module.exports.updateBuildNumber = task.updateBuildNumber;
+module.exports.addBuildTag = task.addBuildTag;
+
+//-----------------------------------------------------
+// Release Logging Commands
+//-----------------------------------------------------
+module.exports.updateReleaseName = task.updateReleaseName;
