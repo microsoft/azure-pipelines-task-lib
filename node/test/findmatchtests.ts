@@ -459,6 +459,24 @@ describe('Find and Match Tests', function () {
         done();
     });
 
+    it('supports trailing slash', (done: MochaDone) => {
+        this.timeout(1000);
+
+        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-trailing-slash');
+        tl.mkdirP(path.join(root));
+        fs.writeFileSync(path.join(root, 'other.txt'), '');
+        let patterns: string[] = [
+            'other.txt',
+        ];
+        let actual: string[] = tl.findMatch(path.join(root) + '/', patterns, <tl.FindOptions>{ followSymbolicLinks: false, followSpecifiedSymbolicLink: false }, <tl.MatchOptions>{ matchBase: true });
+        let expected: string[] = [
+            path.join(root, 'other.txt')
+        ];
+        assert.deepEqual(actual, expected.sort());
+
+        done();
+    });
+
     it('supports matchBase include patterns with glob', (done: MochaDone) => {
         this.timeout(1000);
 
