@@ -445,7 +445,7 @@ function _tryGetExecutablePath(filePath: string, extensions: string[]): string {
                 // on Mac/Linux, test the execute bits
                 //     R   W  X  R  W X R W X
                 //   256 128 64 32 16 8 4 2 1
-                if ((stats.mode & 73) > 0) { // 73 = 64 + 8 + 1
+                if ((stats.mode & 1) > 0 || ((stats.mode & 8) > 0 && stats.gid === process.getgid()) || ((stats.mode & 64) > 0 && stats.uid === process.getuid())) {
                     return filePath;
                 }
             }
@@ -487,7 +487,7 @@ function _tryGetExecutablePath(filePath: string, extensions: string[]): string {
                     // on Mac/Linux, test the execute bit
                     //     R   W  X  R  W X R W X
                     //   256 128 64 32 16 8 4 2 1
-                    if ((stats.mode & 73) == 1) { // 73 = 64 + 8 + 1
+                    if ((stats.mode & 1) > 0 || ((stats.mode & 8) > 0 && stats.gid === process.getgid()) || ((stats.mode & 64) > 0 && stats.uid === process.getuid())) {
                         return filePath;
                     }
                 }
