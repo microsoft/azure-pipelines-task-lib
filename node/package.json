@@ -1,5 +1,5 @@
 {
-  "name": "vsts-task-lib",
+  "name": "azure-pipelines-task-lib",
   "version": "2.7.9",
   "description": "VSTS Task SDK",
   "main": "./task.js",
