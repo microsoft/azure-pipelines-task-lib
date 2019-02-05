@@ -1,16 +1,22 @@
 
-# VSTS DevOps Task SDK
+# Azure Pipelines Task SDK
 
-Libraries for writing [Visual Studio Team Services](https://www.visualstudio.com/en-us/products/visual-studio-team-services-vs.aspx) build and deployment tasks
+Libraries for writing [Azure Pipelines](https://azure.microsoft.com/en-us/services/devops/pipelines/) tasks
 
 Reference examples of our in the box tasks [are here](https://github.com/Microsoft/vsts-tasks)
 
 ## Status
+
 |   | Build & Test |
 |---|:-----:|
-|![Win](res/win_med.png) **Windows**|![Build & Test](https://mseng.visualstudio.com/DefaultCollection/_apis/public/build/definitions/b924d696-3eae-4116-8443-9a18392d8544/2553/badge?branch=master)| 
-|![Apple](res/apple_med.png) **OSX**|![Build & Test](https://mseng.visualstudio.com/_apis/public/build/definitions/b924d696-3eae-4116-8443-9a18392d8544/5471/badge?branch=master)|
-|![Ubuntu14](res/ubuntu_med.png) **Ubuntu 14.04**|![Build & Test](https://mseng.visualstudio.com/_apis/public/build/definitions/b924d696-3eae-4116-8443-9a18392d8544/4123/badge?branch=master)|
+|![Win-x64](res/win_med.png) **Windows**|[![Build & Test][win-build-badge]][build]| 
+|![macOS](res/apple_med.png) **macOS**|[![Build & Test][macOS-build-badge]][build]| 
+|![Linux-x64](res/ubuntu_med.png) **Linux**|[![Build & Test][linux-build-badge]][build]|
+
+[win-build-badge]: https://dev.azure.com/mseng/PipelineTools/_apis/build/status/azure-pipelines-task-lib-ci?branchName=master&jobname=windows
+[macOS-build-badge]: https://dev.azure.com/mseng/PipelineTools/_apis/build/status/azure-pipelines-task-lib-ci?branchName=master&jobname=macOS
+[linux-build-badge]: https://dev.azure.com/mseng/PipelineTools/_apis/build/status/azure-pipelines-task-lib-ci?branchName=master&jobname=linux
+[build]: https://dev.azure.com/mseng/PipelineTools/_build/latest?definitionId=7623
 
 ## Highlights
 
@@ -35,7 +41,7 @@ A task which automates Powershell technologies can be written with our Powershel
 Documentation: [PowerShell API](powershell/Docs/README.md)
 
 
-[npm-lib-image]: https://img.shields.io/npm/v/vsts-task-lib.svg?style=flat
-[npm-lib-url]: https://www.npmjs.com/package/vsts-task-lib
+[npm-lib-image]: https://img.shields.io/npm/v/azure-pipelines-task-lib.svg?style=flat
+[npm-lib-url]: https://www.npmjs.com/package/azure-pipelines-task-lib
 [npm-sdk-image]: https://img.shields.io/npm/v/vsts-task-sdk.svg?style=flat
 [npm-sdk-url]: https://www.npmjs.com/package/vsts-task-sdk

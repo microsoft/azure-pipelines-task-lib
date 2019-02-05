@@ -159,7 +159,7 @@ function main(args) {
         const licenseInfo = Array.from(collectLicenseInfo(nodeModuleDir));
 
         const writeStream = fs.createWriteStream(path.join(__dirname, 'ThirdPartyNotice.txt'));
-        writeLines(writeStream, thirdPartyNotice('vsts-task-lib', licenseInfo));
+        writeLines(writeStream, thirdPartyNotice('azure-pipelines-task-lib', licenseInfo));
         writeStream.end();
     } catch (e) {
         log.error(e.message);

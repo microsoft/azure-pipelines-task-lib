@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Microsoft/vsts-task-lib"
+    "url": "https://github.com/Microsoft/azure-pipelines-task-lib"
   },
   "keywords": [
     "vsts",
@@ -19,9 +19,9 @@
   "author": "Microsoft",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Microsoft/vsts-task-lib/issues"
+    "url": "https://github.com/Microsoft/azure-pipelines-task-lib/issues"
   },
-  "homepage": "https://github.com/Microsoft/vsts-task-lib#readme",
+  "homepage": "https://github.com/Microsoft/azure-pipelines-task-lib#readme",
   "devDependencies": {
     "adm-zip": "0.4.7",
     "mocha": "2.3.3",
