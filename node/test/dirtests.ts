@@ -96,7 +96,6 @@ describe('Dir Operation Tests', function () {
 
         done();
     });
-
     it('which() not found', function (done) {
         this.timeout(1000);
 
@@ -185,28 +184,6 @@ describe('Dir Operation Tests', function () {
 
         done();
     });
-
-    // which permissions tests
-    it('which() finds executable with owner permissions', function (done) {
-        this.timeout(1000);
-        findsExecutableWithScopedPermissions('u=rwx,g=r,o=r');
-        done();
-    });
-
-    // which permissions tests
-    it('which() finds executable with group permissions', function (done) {
-        this.timeout(1000);
-        findsExecutableWithScopedPermissions('u=rw,g=rx,o=r');
-        done();
-    });
-
-    // which permissions tests
-    it('which() finds executable with everyone permissions', function (done) {
-        this.timeout(1000);
-        findsExecutableWithScopedPermissions('u=rw,g=r,o=rx');
-        done();
-    });
-
     it('which() ignores directory match', function (done) {
         this.timeout(1000);
 
@@ -1861,44 +1838,3 @@ describe('Dir Operation Tests', function () {
         done();
     });
 });
-
-function findsExecutableWithScopedPermissions(chmodOptions) {
-    // create a executable file
-    let testPath = path.join(testutil.getTestTemp(), 'which-finds-file-name');
-    tl.mkdirP(testPath);
-    let fileName = 'Which-Test-File';
-    if (process.platform == 'win32') {
-        return;
-    }
-
-    let filePath = path.join(testPath, fileName);
-    fs.writeFileSync(filePath, '');
-    testutil.chmod(filePath, chmodOptions);
-
-    let originalPath = process.env['PATH'];
-    try {
-        // update the PATH
-        process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath;
-
-        // exact file name
-        assert.equal(tl.which(fileName), filePath);
-        assert.equal(tl.which(fileName, false), filePath);
-        assert.equal(tl.which(fileName, true), filePath);
-
-        if (process.platform == 'darwin') {
-            // not case sensitive on Mac
-            assert.equal(tl.which(fileName.toUpperCase()), path.join(testPath, fileName.toUpperCase()));
-            assert.equal(tl.which(fileName.toUpperCase(), false), path.join(testPath, fileName.toUpperCase()));
-            assert.equal(tl.which(fileName.toUpperCase(), true), path.join(testPath, fileName.toUpperCase()));
-        }
-        else {
-            // case sensitive on Linux
-            assert.equal(tl.which(fileName.toUpperCase()) || '', '');
-        }
-    }
-    finally {
-        process.env['PATH'] = originalPath;
-    }
-
-    return;
-}

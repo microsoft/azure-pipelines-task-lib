@@ -442,7 +442,10 @@ function _tryGetExecutablePath(filePath: string, extensions: string[]): string {
                 }
             }
             else {
-                if (isUnixExecutable(stats)) {
+                // on Mac/Linux, test the execute bit
+                //     R   W  X  R  W X R W X
+                //   256 128 64 32 16 8 4 2 1
+                if ((stats.mode & 1) == 1) {
                     return filePath;
                 }
             }
@@ -481,7 +484,10 @@ function _tryGetExecutablePath(filePath: string, extensions: string[]): string {
                     return filePath;
                 }
                 else {
-                    if (isUnixExecutable(stats)) {
+                    // on Mac/Linux, test the execute bit
+                    //     R   W  X  R  W X R W X
+                    //   256 128 64 32 16 8 4 2 1
+                    if ((stats.mode & 1) == 1) {
                         return filePath;
                     }
                 }
@@ -495,13 +501,6 @@ function _tryGetExecutablePath(filePath: string, extensions: string[]): string {
     }
 
     return '';
-}
-
-// on Mac/Linux, test the execute bit
-//     R   W  X  R  W X R W X
-//   256 128 64 32 16 8 4 2 1
-function isUnixExecutable(stats: fs.Stats) {
-    return (stats.mode & 1) > 0 || ((stats.mode & 8) > 0 && stats.gid === process.getgid()) || ((stats.mode & 64) > 0 && stats.uid === process.getuid());
 }
 
 export function _legacyFindFiles_convertPatternToRegExp(pattern: string): RegExp {
