@@ -554,7 +554,7 @@ export interface FsOptions {
 }
 
 export function writeFile(file: string, data: string | Buffer, options?: string | FsOptions) {
-    if(typeof(options) == 'string'){
+    if(typeof(options) === 'string'){
         fs.writeFileSync(file, data, {encoding: options});
     }
     else {
