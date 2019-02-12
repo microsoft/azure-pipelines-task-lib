@@ -16,7 +16,7 @@ export class TaskMockRunner {
     }
 
     public setVariableName(name: string, val: string, isSecret?: boolean) {
-        if(isSecret) {
+        if (isSecret) {
             process.env['SECRET_' + name.replace(' ', '_').toUpperCase()] = val;
         }
         else {
