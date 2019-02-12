@@ -1,7 +1,7 @@
 {
   "name": "azure-pipelines-task-lib",
-  "version": "2.7.9",
-  "description": "VSTS Task SDK",
+  "version": "2.8.0",
+  "description": "Azure Pipelines Task SDK",
   "main": "./task.js",
   "typings": "./task.d.ts",
   "scripts": {
@@ -35,6 +35,6 @@
   "devDependencies": {
     "mocha": "5.0.2",
     "sync-request": "3.0.1",
-    "typescript": "1.8.7"
+    "typescript": "^3.0.0"
   }
 }
