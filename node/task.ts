@@ -744,12 +744,11 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
  * @param     continueOnError optional. whether to continue on error
  */
 export function mv(source: string, dest: string, options?: string, continueOnError?: boolean): void {
-    if (options) {
-        shell.mv(options, source, dest);
+    if (options != '-f') {
+        options = '-n'
     }
-    else {
-        shell.mv(source, dest);
-    }
+    
+    shell.mv(options, source, dest);
 
     _checkShell('mv', continueOnError);
 }
@@ -1147,21 +1146,15 @@ export function rmRF(path: string): void {
 
     if (lstats.isDirectory()) {
         debug('removing directory');
-        shell.rm('-rf', path);
-        let errMsg: string = shell.error();
-        if (errMsg) {
-            throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
-        }
-
-        return;
+    }
+    else {
+        debug('removing file');
     }
 
-    debug('removing file');
-    try {
-        fs.unlinkSync(path);
-    }
-    catch (err) {
-        throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
+    shell.rm('-rf', path);
+    let errMsg: string = shell.error();
+    if (errMsg) {
+        throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
     }
 }
 

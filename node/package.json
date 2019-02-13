@@ -30,7 +30,7 @@
     "uuid": "^3.0.1",
     "q": "^1.1.2",
     "semver": "^5.1.0",
-    "shelljs": "^0.3.0"
+    "shelljs": "^0.8.0"
   },
   "devDependencies": {
     "mocha": "5.2.0",
