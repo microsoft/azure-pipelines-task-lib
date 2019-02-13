@@ -744,10 +744,11 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
  * @param     continueOnError optional. whether to continue on error
  */
 export function mv(source: string, dest: string, options?: string, continueOnError?: boolean): void {
+    // Keep -n as the default for back compat
     if (options != '-f') {
         options = '-n'
     }
-    
+
     shell.mv(options, source, dest);
 
     _checkShell('mv', continueOnError);
@@ -1128,8 +1129,6 @@ function _legacyFindFiles_getMatchingItems(
 export function rmRF(path: string): void {
     debug('rm -rf ' + path);
 
-    // get the lstats in order to workaround a bug in shelljs@0.3.0 where symlinks
-    // with missing targets are not handled correctly by "rm('-rf', path)"
     let lstats: fs.Stats;
     try {
         lstats = fs.lstatSync(path);
