@@ -29,7 +29,7 @@ export interface IExecSyncOptions {
     /** optional envvar dictionary.  defaults to current process's env */
     env: { [key: string]: string };
 
-    /** optional.  defaults to fales */
+    /** optional.  defaults to false */
     silent: boolean;
 
     outStream: stream.Writable;
