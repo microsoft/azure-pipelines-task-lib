@@ -41,9 +41,9 @@
                 "task.execSync",
                 "task.setResult"
             ]
-        }, 
-        "Service Endpoints": {
-            "Summary": "Retrieve service endpoints and authorization details",
+        },
+        "Service Connections": {
+            "Summary": "Retrieve service connections (previously called \"service endpoints\") and authorization details",
             "Document": [
                 "task.getEndpointUrl",
                 "task.getEndpointDataParameter",
@@ -52,7 +52,13 @@
                 "task.EndpointAuthorization",
                 "task.getEndpointAuthorization"
             ]
-        }, 
+        },
+        "Secrets": {
+            "Summary": "Functions for managing pipeline secrets",
+            "Document": [
+                "task.setSecret"
+            ]
+        },
         "Secure Files": {
             "Summary": "Retrieve secure files details required to download the file",
             "Document": [
@@ -103,6 +109,6 @@
             "Document": [
                 "task.getHttpProxyConfiguration"
             ]
-        }     
+        }
     }
 }

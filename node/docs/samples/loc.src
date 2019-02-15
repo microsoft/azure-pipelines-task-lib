@@ -1,4 +1,4 @@
-/// <reference path="../definitions/vsts-task-lib.d.ts" />
+/// <reference path="../definitions/azure-pipelines-task-lib.d.ts" />
 
 tl.setResourcePath(path.join( __dirname, 'task.json'));
 

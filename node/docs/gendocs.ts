@@ -20,8 +20,8 @@ let options: ts.CompilerOptions = {
     target: srcOptions['target']
 }
 
-const jsonDocName: string = "vsts-task-lib.json";
-const mdDocName: string = "vsts-task-lib.md";
+const jsonDocName: string = "azure-pipelines-task-lib.json";
+const mdDocName: string = "azure-pipelines-task-lib.md";
 
 header('Generating ' + jsonDocName);
 let doc: ts2json.DocEntry = ts2json.generate(docs.files, options);
@@ -155,20 +155,20 @@ var writeInterface = function(name: string, item: ts2json.DocEntry) {
     writeLine();
 }
 
-writeLine('# VSTS-TASK-LIB TYPESCRIPT API');
+writeLine('# AZURE-DEVOPS-TASK-LIB TYPESCRIPT API');
 writeLine();
 writeLine('## Dependencies');
 writeLine('A [cross platform agent](https://github.com/Microsoft/vso-agent) OR a TFS 2015 Update 2 Windows agent (or higher) is required to run a Node task end-to-end. However, an agent is not required for interactively testing the task.');
 writeLine();
 writeLine('## Importing');
-writeLine('For now, the built vsts-task-lib (in _build) should be packaged with your task in a node_modules folder');
+writeLine('For now, the built azure-pipelines-task-lib (in _build) should be packaged with your task in a node_modules folder');
 writeLine();
-writeLine('The build generates a vsts-task-lib.d.ts file for use when compiling tasks');
+writeLine('The build generates a azure-pipelines-task-lib.d.ts file for use when compiling tasks');
 writeLine('In the example below, it is in a folder named definitions above the tasks lib');
 writeLine();
 writeLine('```');
-writeLine('/// <reference path="../definitions/vsts-task-lib.d.ts" />');
-writeLine("import tl = require('vsts-task-lib/task')");
+writeLine('/// <reference path="../definitions/azure-pipelines-task-lib.d.ts" />');
+writeLine("import tl = require('azure-pipelines-task-lib/task')");
 writeLine('```');
 writeLine();
 writeLine('## [Release notes](releases.md)');

@@ -26,5 +26,5 @@ PARAMETERS
 
     PS C:\>$webProxy = Get-VstsWebProxy
 
-    $webProxy.GetProxy(New-Object System.Uri("https://github.com/Microsoft/vsts-task-lib"))
+    $webProxy.GetProxy(New-Object System.Uri("https://github.com/Microsoft/azure-pipelines-task-lib"))
 ```

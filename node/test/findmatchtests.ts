@@ -75,6 +75,22 @@ describe('Find and Match Tests', function () {
         done();
     });
 
+    it('supports path not found', (done: MochaDone) => {
+        this.timeout(1000);
+
+        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-path-not-found');
+        tl.mkdirP(root);
+        let patterns: string[] = [
+            path.join(root, 'NotFound', '*.proj'),
+        ];
+
+        let actual: string[] = tl.findMatch('', patterns);
+        let expected: string[] = [];
+        assert.deepEqual(actual, expected);
+
+        done();
+    });
+
     it('does not duplicate matches', (done: MochaDone) => {
         this.timeout(1000);
 
