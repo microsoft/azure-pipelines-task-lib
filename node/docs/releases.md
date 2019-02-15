@@ -7,6 +7,7 @@
  * Update `MockToolRunner` to emit stdout
  * Added support for UNC args in `ToolRunner`
  * Added additional logging commands to the Node library to obtain parity with PowerShell.
+ * Added `getPlatform` convenience function
 
 ## 2.7.0
  * Updated `setResult` to expose optional done parameter
