@@ -4,11 +4,9 @@ import fs = require('fs');
 import path = require('path');
 import os = require('os');
 import minimatch = require('minimatch');
-import util = require('util');
 import im = require('./internal');
 import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
-import vm = require('./vault');
 import semver = require('semver');
 
 export enum TaskResult {
@@ -43,6 +41,13 @@ export enum FieldType {
     AuthParameter,
     DataParameter,
     Url
+}
+
+/** Platforms supported by our build agent */
+export enum Platform {
+    Windows,
+    MacOS,
+    Linux
 }
 
 //-----------------------------------------------------
@@ -563,6 +568,7 @@ export function writeFile(file: string, data: string | Buffer, options?: string 
 }
 
 /**
+ * @deprecated Use `getPlatform`
  * Useful for determining the host operating system.
  * see [os.type](https://nodejs.org/api/os.html#os_os_type)
  * 
@@ -570,6 +576,20 @@ export function writeFile(file: string, data: string | Buffer, options?: string 
  */
 export function osType(): string {
     return os.type();
+}
+
+/**
+ * Determine the operating system the build agent is running on.
+ * @returns {Platform}
+ * @throws {Error} Platform is not supported by our agent
+ */
+export function getPlatform(): Platform {
+    switch (process.platform) {
+        case 'win32': return Platform.Windows;
+        case 'darwin': return Platform.MacOS;
+        case 'linux': return Platform.Linux;
+        default: throw Error(loc('LIB_PlatformNotSupported', process.platform));
+    }
 }
 
 /**
