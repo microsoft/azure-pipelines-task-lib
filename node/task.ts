@@ -4,11 +4,9 @@ import fs = require('fs');
 import path = require('path');
 import os = require('os');
 import minimatch = require('minimatch');
-import util = require('util');
 import im = require('./internal');
 import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
-import vm = require('./vault');
 import semver = require('semver');
 
 export enum TaskResult {
@@ -43,6 +41,13 @@ export enum FieldType {
     AuthParameter,
     DataParameter,
     Url
+}
+
+/** Platforms supported by our build agent */
+export enum Platform {
+    Windows,
+    MacOS,
+    Linux
 }
 
 //-----------------------------------------------------
@@ -573,16 +578,10 @@ export function osType(): string {
     return os.type();
 }
 
-/** Platforms supported by our build agent */
-export enum Platform {
-    Windows,
-    MacOS,
-    Linux
-}
-
 /**
  * Determine the operating system the build agent is running on.
- * @returns Platform, or throws an `Error` if the platform is not supported by our agent
+ * @returns {Platform}
+ * @throws {Error} Platform is not supported by our agent
  */
 export function getPlatform(): Platform {
     switch (process.platform) {
