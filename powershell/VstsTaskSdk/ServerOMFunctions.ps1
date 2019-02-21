@@ -601,7 +601,7 @@ function Get-OMType {
             if ($namespace -like 'Microsoft.TeamFoundation.Build.WebApi.*' -or
                 $namespace -eq 'Microsoft.TeamFoundation.Build.WebApi') {
 
-                $build2Namespace = 'Microsoft.TeamFoundation.Build2' + $namespace.Substring(30)
+                $build2Namespace = 'Microsoft.TeamFoundation.Build2' + $namespace.Substring( 'Microsoft.TeamFoundation.Build'.Length)
                 $dllPaths += [System.IO.Path]::Combine($OMDirectory, "$build2Namespace.dll")
             }
         }
