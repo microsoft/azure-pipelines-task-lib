@@ -1,8 +1,8 @@
 import cp = require('child_process');
 import fs = require('fs');
 import ncp = require('child_process');
-import path = require('path');
 import os = require('os');
+import semver = require('semver');
 import cmdm = require('./taskcommand');
 import shelljs = require('shelljs');
 
