@@ -1,5 +1,6 @@
 import cp = require('child_process');
 import fs = require('fs');
+import ncp = require('child_process');
 import path = require('path');
 import os = require('os');
 import cmdm = require('./taskcommand');
@@ -9,11 +10,54 @@ const COMMAND_TAG = '[command]';
 const COMMAND_LENGTH = COMMAND_TAG.length;
 
 export class MockTestRunner {
-    constructor(testPath: string) {
+    constructor(testPath: string, taskJsonPath: string) {
         this._testPath = testPath;
+        if (taskJsonPath) {
+            try {
+                this._taskJson = require(taskJsonPath);
+            }
+            catch (err) {
+                console.error('Unable to load task.json from taskJsonPath. Failed with error', err);
+            }
+        }
+        else {
+            console.warn('No taskJsonPath provided. Defaulting to use node 6 handler.');
+        }
+
+        // Try using path variable to find node, fallback to env variables.
+        let nodePath = shelljs.which('node');
+        try {
+            var output = ncp.execSync(nodePath + ' -v').toString().trim();
+            if (semver.satisfies(output, '5.x')) {
+                this._node5Path = nodePath;
+            }
+            else if (semver.satisfies(output, '6.x')) {
+                this._node6Path = nodePath;
+            }
+            else if (semver.satisfies(output, '10.x')) {
+                this._node10Path = nodePath;
+            }
+        }
+        catch (err) {
+            console.warn('Unable to determine node from path version, failed with error', err);
+        }
+
+        if (process.env['node5Path']) {
+            this._node10Path = process.env['node5Path'];
+        }
+        if (process.env['node6Path']) {
+            this._node10Path = process.env['node6Path'];
+        }
+        if (process.env['node10Path']) {
+            this._node10Path = process.env['node10Path'];
+        }
     }
 
     private _testPath: string;
+    private _taskJson: object;
+    private _node10Path: string;
+    private _node6Path: string;
+    private _node5Path: string;
     public stdout: string;
     public stderr: string;
     public cmdlines: any;
@@ -46,7 +90,7 @@ export class MockTestRunner {
         return this.stderr && this.stderr.indexOf(message) > 0;
     }
 
-    public run(): void {
+    public run(nodeVersion: number): void {
         this.cmdlines = {};
         this.invokedToolCount = 0;
         this.succeeded = true;
@@ -54,12 +98,44 @@ export class MockTestRunner {
         this.errorIssues = [];
         this.warningIssues = [];
 
-        // we use node in the path.
-        // if you want to test with a specific node, ensure it's in the path
-        let nodePath = shelljs.which('node');
+        if (!nodeVersion) {
+            if (this._taskJson) {
+                const execution = this._taskJson['execution'];
+                Object.keys(execution).forEach((key) => {
+                    if (key.toLowerCase() == 'node') {
+                        nodeVersion = 6;
+                    }
+                    else if (key.toLowerCase() == 'node10') {
+                        nodeVersion = 10;
+                    }
+                });
+                if (!nodeVersion) {
+                    console.warn('Unable to infer correct node handler from task.json. Defaulting to node 6');
+                    nodeVersion = 6;
+                }
+            }
+            else {
+                // Default to node 6
+                nodeVersion = 6;
+            }
+        }
+
+        let nodePath: string;
+        if (nodeVersion == 5) {
+            nodePath = this._node5Path;
+        }
+        else if (nodeVersion == 6) {
+            nodePath = this._node6Path;
+        }
+        else if (nodeVersion == 10) {
+            nodePath = this._node10Path;
+        }
+        else {
+            console.error('Invalid node version v%i. Only node 5, 6, and 10 are valid', nodeVersion);
+        }
+
         if (!nodePath) {
-            console.error('Could not find node in path');
-            return;            
+            console.error('No node executable found for v%i. Please set env[\'node%iPath\'] to the path of the appropriate node.exe', nodeVersion, nodeVersion);
         }
 
         let spawn = cp.spawnSync(nodePath, [this._testPath]);
