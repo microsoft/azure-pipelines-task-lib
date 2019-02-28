@@ -2,62 +2,24 @@ import cp = require('child_process');
 import fs = require('fs');
 import ncp = require('child_process');
 import os = require('os');
-import semver = require('semver');
+import path = require('path');
 import cmdm = require('./taskcommand');
 import shelljs = require('shelljs');
+import syncRequest = require('sync-request');
+import { getPlatform } from './task';
 
 const COMMAND_TAG = '[command]';
 const COMMAND_LENGTH = COMMAND_TAG.length;
+const testDirectory = path.join(__dirname, '_test');
 
 export class MockTestRunner {
-    constructor(testPath: string, taskJsonPath: string) {
+    constructor(testPath: string) {
         this._testPath = testPath;
-        if (taskJsonPath) {
-            try {
-                this._taskJson = require(taskJsonPath);
-            }
-            catch (err) {
-                console.error('Unable to load task.json from taskJsonPath. Failed with error', err);
-            }
-        }
-        else {
-            console.warn('No taskJsonPath provided. Defaulting to use node 6 handler.');
-        }
-
-        // Try using path variable to find node, fallback to env variables.
-        let nodePath = shelljs.which('node');
-        try {
-            var output = ncp.execSync(nodePath + ' -v').toString().trim();
-            if (semver.satisfies(output, '5.x')) {
-                this._node5Path = nodePath;
-            }
-            else if (semver.satisfies(output, '6.x')) {
-                this._node6Path = nodePath;
-            }
-            else if (semver.satisfies(output, '10.x')) {
-                this._node10Path = nodePath;
-            }
-        }
-        catch (err) {
-            console.warn('Unable to determine node from path version, failed with error', err);
-        }
-
-        if (process.env['node5Path']) {
-            this._node10Path = process.env['node5Path'];
-        }
-        if (process.env['node6Path']) {
-            this._node10Path = process.env['node6Path'];
-        }
-        if (process.env['node10Path']) {
-            this._node10Path = process.env['node10Path'];
-        }
+        this.nodePath = this.getNodePath();
     }
 
     private _testPath: string;
-    private _taskJson: object;
-    private _node10Path: string;
-    private _node6Path: string;
-    private _node5Path: string;
+    public nodePath: string;
     public stdout: string;
     public stderr: string;
     public cmdlines: any;
@@ -90,7 +52,7 @@ export class MockTestRunner {
         return this.stderr && this.stderr.indexOf(message) > 0;
     }
 
-    public run(nodeVersion: number): void {
+    public run(): void {
         this.cmdlines = {};
         this.invokedToolCount = 0;
         this.succeeded = true;
@@ -98,47 +60,7 @@ export class MockTestRunner {
         this.errorIssues = [];
         this.warningIssues = [];
 
-        if (!nodeVersion) {
-            if (this._taskJson) {
-                const execution = this._taskJson['execution'];
-                Object.keys(execution).forEach((key) => {
-                    if (key.toLowerCase() == 'node') {
-                        nodeVersion = 6;
-                    }
-                    else if (key.toLowerCase() == 'node10') {
-                        nodeVersion = 10;
-                    }
-                });
-                if (!nodeVersion) {
-                    console.warn('Unable to infer correct node handler from task.json. Defaulting to node 6');
-                    nodeVersion = 6;
-                }
-            }
-            else {
-                // Default to node 6
-                nodeVersion = 6;
-            }
-        }
-
-        let nodePath: string;
-        if (nodeVersion == 5) {
-            nodePath = this._node5Path;
-        }
-        else if (nodeVersion == 6) {
-            nodePath = this._node6Path;
-        }
-        else if (nodeVersion == 10) {
-            nodePath = this._node10Path;
-        }
-        else {
-            console.error('Invalid node version v%i. Only node 5, 6, and 10 are valid', nodeVersion);
-        }
-
-        if (!nodePath) {
-            console.error('No node executable found for v%i. Please set env[\'node%iPath\'] to the path of the appropriate node.exe', nodeVersion, nodeVersion);
-        }
-
-        let spawn = cp.spawnSync(nodePath, [this._testPath]);
+        let spawn = cp.spawnSync(this.nodePath, [this._testPath]);
         if (spawn.error) {
             console.error('Running test failed');
             console.error(spawn.error.message);
@@ -199,6 +121,194 @@ export class MockTestRunner {
 
         if (process.env['TASK_TEST_TRACE']) {
             console.log('TRACE FILE: ' + traceFile);
+        }
+    }
+
+    // Returns a path to node.exe with the correct version for this task (based on if its node10 or node)
+    private getNodePath() {
+        const version = this.getNodeVersion();
+
+        // Check if version needed can be found on the path.
+        let nodePath = shelljs.which('node');
+        if (nodePath) {
+            try {
+                const output = ncp.execSync(nodePath + ' -v').toString().trim();
+                const versionType = version + '.x';
+                if (semver.satisfies(output, versionType)) {
+                    return nodePath;
+                }
+            }
+            catch {
+                console.warn('Unable to get version of node in path, downloading node version instead.');
+            }
+        }
+
+        let downloadVersion: string;
+        switch (version) {
+            case 5:
+                downloadVersion = 'v5.10.1';
+                break;
+            case 6:
+                downloadVersion = 'v6.10.3';
+                break;
+            case 10:
+                downloadVersion = 'v10.15.1';
+                break;
+            default:
+                throw new Error('Invalid node version, must be 5, 6, or 10 (received ' + version + ')');
+        }
+
+        // Install node in _test folder if it isn't already there.
+        const downloadDestination = path.join(testDirectory, 'node' + version);
+        const pathToExe = this.getPathToNodeExe(downloadVersion, downloadDestination);
+        if (pathToExe) {
+            return pathToExe;
+        }
+        else {
+            return this.downloadNode(downloadVersion, downloadDestination);
+        }
+    }
+
+    // Determines the correct version of node to use based on the contents of the task's task.json. Defaults to Node 10.
+    private getNodeVersion(): number {
+        if (process.env['useNodeVersion']) {
+            return parseInt(process.env['useNodeVersion']);
+        }
+
+        const taskJsonPath: string = this.getTaskJsonPath();
+        if (!taskJsonPath) {
+            console.warn('Unable to find task.json, defaulting to use Node 10');
+            return 10;
+        }
+        const taskJson: object = require(taskJsonPath);
+
+        const execution = taskJson['execution'];
+        let nodeVersion: number = 0;
+        Object.keys(execution).forEach((key) => {
+            if (key.toLowerCase() == 'node') {
+                nodeVersion = 6;
+            }
+            else if (key.toLowerCase() == 'node10') {
+                nodeVersion = 10;
+            }
+        });
+        if (nodeVersion == 0) {
+            console.warn('Unable to determine execution type from task.json, defaulting to use Node 10');
+            return 10;
+        }
+
+        return nodeVersion;
+    }
+
+    // Returns the path to the task.json for the task being tested. Returns null if unable to find it.
+    // Searches by moving up the directory structure from the initial starting point and checking at each level.
+    private getTaskJsonPath(): string {
+        let curPath = this._testPath;
+        let newPath = path.join(this._testPath, '..');
+        while (curPath != newPath) {
+            curPath = newPath;
+            let taskJsonPath = path.join(curPath, 'task.json');
+            if (fs.existsSync(taskJsonPath)) {
+                return taskJsonPath;
+            }
+            newPath = path.join(curPath, '..');
+        }
+        return null;
+    }
+
+    // Downloads the specified node version to the download destination. Returns a path to node.exe
+    private downloadNode(nodeVersion: string, downloadDestination: string): string {
+        const nodeUrl: string = 'https://nodejs.org/dist';
+        switch (this.getPlatform()) {
+            case 'darwin':
+                this.downloadTarGz(nodeUrl + '/' + nodeVersion + '/node-' + nodeVersion + '-darwin-x64.tar.gz', downloadDestination);
+                return path.join(downloadDestination, 'node-' + nodeVersion + '-darwin-x64', 'bin', 'node');
+            case 'linux':
+                this.downloadTarGz(nodeUrl + '/' + nodeVersion + '/node-' + nodeVersion + '-linux-x64.tar.gz', downloadDestination);
+                return path.join(downloadDestination, 'node-' + nodeVersion + '-linux-x64', 'bin', 'node');
+            case 'win32':
+                this.downloadFile(nodeUrl + '/' + nodeVersion + '/win-x64/node.exe', downloadDestination, 'node.exe');
+                this.downloadFile(nodeUrl + '/' + nodeVersion + '/win-x64/node.lib', downloadDestination, 'node.lib');
+                return path.join(downloadDestination, 'node.exe')
+        }
+    }
+
+    //Downloads file to the downloadDestination, making any necessary folders along the way.
+    private downloadFile(url: string, downloadDestination: string, fileName: string): void {
+        if (!url) {
+            throw new Error('Parameter "url" must be set.');
+        }
+        if (!downloadDestination) {
+            throw new Error('Parameter "downloadDestination" must be set.');
+        }
+        console.log('Downloading file:', url);
+        shelljs.mkdir('-p', downloadDestination);
+        const result = syncRequest('GET', url);
+        fs.writeFileSync(path.join(downloadDestination, fileName), result.getBody());
+    }
+
+    // Downloads tarGz to the download destination, making any necessary folders along the way.
+    private downloadTarGz(url: string, downloadDestination: string): void {
+        if (!url) {
+            throw new Error('Parameter "url" must be set.');
+        }
+        if (!downloadDestination) {
+            throw new Error('Parameter "downloadDestination" must be set.');
+        }
+        const tarGzName: string = 'node.tar.gz';
+        this.downloadFile(url, downloadDestination, tarGzName);
+        
+        // Extract file
+        const originalCwd: string = process.cwd();
+        this.cd(downloadDestination);
+        try {
+            ncp.execSync(`tar -xzf "${path.join(downloadDestination, tarGzName)}"`);
+        }
+        catch {
+            throw new Error('Failed to unzip node tar.gz from ' + url);
+        }
+        finally {
+            this.cd(originalCwd);
+        }
+    }
+
+    // Checks if node is installed at downloadDestination. If it is, returns a path to node.exe, otherwise returns null.
+    private getPathToNodeExe(nodeVersion: string, downloadDestination: string): string {
+        let exePath: string;
+        switch (this.getPlatform()) {
+            case 'darwin':
+                exePath = path.join(downloadDestination, 'node-' + nodeVersion + '-darwin-x64', 'bin', 'node');
+                break;
+            case 'linux':
+                exePath = path.join(downloadDestination, 'node-' + nodeVersion + '-linux-x64', 'bin', 'node');
+                break;
+            case 'win32':
+                exePath = path.join(downloadDestination, 'node.exe');
+        }
+        if (fs.existsSync(exePath)) {
+            return exePath;
+        }
+        else {
+            return null;
+        }
+    }
+
+    private getPlatform(): string {
+        let platform: string = os.platform();
+        if (platform != 'darwin' && platform != 'linux' && platform != 'win32') {
+            throw new Error('Unexpected platform: ' + platform);
+        }
+        return platform;
+    }
+
+    private cd(dir) {
+        var cwd = process.cwd();
+        if (cwd != dir) {
+            shelljs.cd(dir);
+            var errMsg = shelljs.error();
+            if (errMsg) {
+                throw new Error(errMsg);
+            }
         }
     }
 }
