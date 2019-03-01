@@ -140,7 +140,6 @@ export class MockTestRunner {
                 }
             }
             catch (err) {
-                console.log(err);
                 console.warn('Unable to get version of node in path, downloading node version instead.');
             }
         }
