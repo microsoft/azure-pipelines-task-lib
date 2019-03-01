@@ -16,7 +16,6 @@ import os = require('os');
 import path = require('path');
 import semver = require('semver');
 import testutil = require('./testutil');
-import { async } from 'q';
 
 describe('Mock Tests', function () {
 
