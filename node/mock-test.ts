@@ -7,7 +7,6 @@ import cmdm = require('./taskcommand');
 import semver = require('semver');
 import shelljs = require('shelljs');
 import syncRequest = require('sync-request');
-import { getPlatform } from './task';
 
 const COMMAND_TAG = '[command]';
 const COMMAND_LENGTH = COMMAND_TAG.length;
@@ -126,15 +125,15 @@ export class MockTestRunner {
     }
 
     // Returns a path to node.exe with the correct version for this task (based on if its node10 or node)
-    private getNodePath() {
-        const version = this.getNodeVersion();
+    private getNodePath(): string {
+        const version: number = this.getNodeVersion();
 
         // Check if version needed can be found on the path.
-        let nodePath = shelljs.which('node');
+        let nodePath: string = shelljs.which('node');
         if (nodePath) {
             try {
-                const output = ncp.execSync(nodePath + ' -v').toString().trim();
-                const versionType = version + '.x';
+                const output: string = ncp.execSync(nodePath + ' -v').toString().trim();
+                const versionType: string = version + '.x';
                 if (semver.satisfies(output, versionType)) {
                     return nodePath;
                 }
@@ -160,8 +159,8 @@ export class MockTestRunner {
         }
 
         // Install node in _test folder if it isn't already there.
-        const downloadDestination = path.join(testDirectory, 'node' + version);
-        const pathToExe = this.getPathToNodeExe(downloadVersion, downloadDestination);
+        const downloadDestination: string = path.join(testDirectory, 'node' + version);
+        const pathToExe: string = this.getPathToNodeExe(downloadVersion, downloadDestination);
         if (pathToExe) {
             return pathToExe;
         }
@@ -183,9 +182,9 @@ export class MockTestRunner {
         }
         const taskJson: object = require(taskJsonPath);
 
-        const execution = taskJson['execution'];
+        const execution: object = taskJson['execution'];
         let nodeVersion: number = 0;
-        Object.keys(execution).forEach((key) => {
+        Object.keys(execution).forEach((key: string) => {
             if (key.toLowerCase() == 'node') {
                 nodeVersion = 6;
             }
@@ -207,11 +206,11 @@ export class MockTestRunner {
         if (process.env['taskJsonPath']) {
             return process.env['taskJsonPath'];
         }
-        let curPath = this._testPath;
-        let newPath = path.join(this._testPath, '..');
+        let curPath: string = this._testPath;
+        let newPath: string = path.join(this._testPath, '..');
         while (curPath != newPath) {
             curPath = newPath;
-            let taskJsonPath = path.join(curPath, 'task.json');
+            let taskJsonPath: string = path.join(curPath, 'task.json');
             if (fs.existsSync(taskJsonPath)) {
                 return taskJsonPath;
             }
@@ -247,7 +246,7 @@ export class MockTestRunner {
         }
         console.log('Downloading file:', url);
         shelljs.mkdir('-p', downloadDestination);
-        const result = syncRequest('GET', url);
+        const result: any = syncRequest('GET', url);
         fs.writeFileSync(path.join(downloadDestination, fileName), result.getBody());
     }
 
@@ -305,11 +304,11 @@ export class MockTestRunner {
         return platform;
     }
 
-    private cd(dir) {
-        var cwd = process.cwd();
+    private cd(dir: string): void {
+        var cwd: string = process.cwd();
         if (cwd != dir) {
             shelljs.cd(dir);
-            var errMsg = shelljs.error();
+            var errMsg: string = shelljs.error();
             if (errMsg) {
                 throw new Error(errMsg);
             }
