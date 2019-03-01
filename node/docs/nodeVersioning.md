@@ -1,0 +1,20 @@
+# Node versioning
+
+## Agent Node Handler
+
+The agent currently has 2 different node handlers that it can use to execute node tasks: Node 6 and Node 10.
+The handler used depends on the `execution` property specified in the tasks `task.json`.
+If the `execution` property is specified to be `Node`, the task will run on the Node 6 handler, if it is specified to be `Node10` it will run on the Node 10 handler.
+Some legacy agents will use a Node 5 handler if the `execution` is specified to be `Node`, but this is a very small percentage of existing agents.
+
+## Mock-test Node Handler
+
+To ensure tests are run in the same environment as the agent, this library looks for a `task.json` file in the same directory as the supplied task entry point.
+If no `task.json` is found it searches all ancestor directories as well.
+If the `task.json` is still not found, the library defaults to node 10, otherwise it uses the appropriate handler based on the `execution` property.
+If this version of node is not found on the path, the library downloads the appropriate version.
+
+### Behavior overrides
+
+To specify a specific version of node to use, set the `useNodeVersion` environment variable to the integer major version (e.g. `process.env['useNodeVersion'] = 5`).
+To specify the location of a `task.json` file, set the `taskJsonPath` environment variable to the path of the file (e.g. `process.env['taskJsonPath'] = path.join(__dirname, 'taskJsonFolder', 'task.json')`).

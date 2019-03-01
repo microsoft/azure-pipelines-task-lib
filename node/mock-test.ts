@@ -204,6 +204,9 @@ export class MockTestRunner {
     // Returns the path to the task.json for the task being tested. Returns null if unable to find it.
     // Searches by moving up the directory structure from the initial starting point and checking at each level.
     private getTaskJsonPath(): string {
+        if (process.env['taskJsonPath']) {
+            return process.env['taskJsonPath'];
+        }
         let curPath = this._testPath;
         let newPath = path.join(this._testPath, '..');
         while (curPath != newPath) {
