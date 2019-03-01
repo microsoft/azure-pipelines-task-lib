@@ -14,6 +14,7 @@ import * as tl from '../_build/task';
 import ncp = require('child_process');
 import os = require('os');
 import path = require('path');
+import semver = require('semver');
 import testutil = require('./testutil');
 import { async } from 'q';
 
@@ -284,7 +285,8 @@ describe('Mock Tests', function () {
         assert.equal(numStdErrCalls, 1);
     })
 
-    it('MockTest handles node 6 tasks correctly', async (done) => {
+    it('MockTest handles node 6 tasks correctly', function (done) {
+        this.timeout(10000);
         const runner = new mtm.MockTestRunner(path.join(__dirname, 'fakeTasks', 'node6task', 'entry.js'));
         const nodePath = runner.nodePath;
         assert(nodePath, 'node path should have been correctly set');
@@ -293,8 +295,9 @@ describe('Mock Tests', function () {
         done();
     })
 
-    it('MockTest handles node 10 tasks correctly', async (done) => {
-        const runner = new mtm.MockTestRunner(path.join(__dirname, 'fakeTasks', 'node6task', 'entry.js'));
+    it('MockTest handles node 10 tasks correctly', function (done) {
+        this.timeout(10000);
+        const runner = new mtm.MockTestRunner(path.join(__dirname, 'fakeTasks', 'node10task', 'entry.js'));
         const nodePath = runner.nodePath;
         assert(nodePath, 'node path should have been correctly set');
         const version = ncp.execSync(nodePath + ' -v').toString().trim();

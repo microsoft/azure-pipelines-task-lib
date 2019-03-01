@@ -4,6 +4,7 @@ import ncp = require('child_process');
 import os = require('os');
 import path = require('path');
 import cmdm = require('./taskcommand');
+import semver = require('semver');
 import shelljs = require('shelljs');
 import syncRequest = require('sync-request');
 import { getPlatform } from './task';
@@ -138,7 +139,8 @@ export class MockTestRunner {
                     return nodePath;
                 }
             }
-            catch {
+            catch (err) {
+                console.log(err);
                 console.warn('Unable to get version of node in path, downloading node version instead.');
             }
         }
