@@ -10,7 +10,7 @@ import syncRequest = require('sync-request');
 
 const COMMAND_TAG = '[command]';
 const COMMAND_LENGTH = COMMAND_TAG.length;
-const testDirectory = path.join(__dirname, '_test');
+const downloadDirectory = path.join(process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE, 'azure-pipelines-task-lib', '_download');
 
 export class MockTestRunner {
     constructor(testPath: string) {
@@ -128,13 +128,27 @@ export class MockTestRunner {
     private getNodePath(): string {
         const version: number = this.getNodeVersion();
 
+        let downloadVersion: string;
+        switch (version) {
+            case 5:
+                downloadVersion = '5.10.1';
+                break;
+            case 6:
+                downloadVersion = '6.10.3';
+                break;
+            case 10:
+                downloadVersion = '10.15.1';
+                break;
+            default:
+                throw new Error('Invalid node version, must be 5, 6, or 10 (received ' + version + ')');
+        }
+
         // Check if version needed can be found on the path.
         let nodePath: string = shelljs.which('node');
         if (nodePath) {
             try {
                 const output: string = ncp.execSync(nodePath + ' -v').toString().trim();
-                const versionType: string = version + '.x';
-                if (semver.satisfies(output, versionType)) {
+                if (semver.eq(output, downloadVersion)) {
                     return nodePath;
                 }
             }
@@ -143,23 +157,10 @@ export class MockTestRunner {
             }
         }
 
-        let downloadVersion: string;
-        switch (version) {
-            case 5:
-                downloadVersion = 'v5.10.1';
-                break;
-            case 6:
-                downloadVersion = 'v6.10.3';
-                break;
-            case 10:
-                downloadVersion = 'v10.15.1';
-                break;
-            default:
-                throw new Error('Invalid node version, must be 5, 6, or 10 (received ' + version + ')');
-        }
+        downloadVersion = 'v' + downloadVersion;
 
-        // Install node in _test folder if it isn't already there.
-        const downloadDestination: string = path.join(testDirectory, 'node' + version);
+        // Install node in home directory if it isn't already there.
+        const downloadDestination: string = path.join(downloadDirectory, 'node' + version);
         const pathToExe: string = this.getPathToNodeExe(downloadVersion, downloadDestination);
         if (pathToExe) {
             return pathToExe;
