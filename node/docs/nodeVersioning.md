@@ -16,5 +16,5 @@ If this version of node is not found on the path, the library downloads the appr
 
 ### Behavior overrides
 
-To specify a specific version of node to use, set the `useNodeVersion` environment variable to the integer major version (e.g. `process.env['useNodeVersion'] = 5`).
-To specify the location of a `task.json` file, set the `taskJsonPath` environment variable to the path of the file (e.g. `process.env['taskJsonPath'] = path.join(__dirname, 'taskJsonFolder', 'task.json')`).
+To specify a specific version of node to use, set the `nodeVersion` optional parameter in the `run` function of the `MockTestRunner` to the integer major version (e.g. `mtr.run(5)`).
+To specify the location of a `task.json` file, set the `taskJsonPath` optional parameter in the `MockTestRunner` constructor to the path of the file (e.g. `let mtr = new mt.MockTaskRunner('<pathToTest>', '<pathToTask.json>'`).

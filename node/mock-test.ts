@@ -13,12 +13,14 @@ const COMMAND_LENGTH = COMMAND_TAG.length;
 const downloadDirectory = path.join(process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE, 'azure-pipelines-task-lib', '_download');
 
 export class MockTestRunner {
-    constructor(testPath: string) {
+    constructor(testPath: string, taskJsonPath?: string) {
+        this._taskJsonPath = taskJsonPath;
         this._testPath = testPath;
         this.nodePath = this.getNodePath();
     }
 
     private _testPath: string;
+    private _taskJsonPath: string;
     public nodePath: string;
     public stdout: string;
     public stderr: string;
@@ -52,7 +54,7 @@ export class MockTestRunner {
         return this.stderr && this.stderr.indexOf(message) > 0;
     }
 
-    public run(): void {
+    public run(nodeVersion: number): void {
         this.cmdlines = {};
         this.invokedToolCount = 0;
         this.succeeded = true;
@@ -60,7 +62,11 @@ export class MockTestRunner {
         this.errorIssues = [];
         this.warningIssues = [];
 
-        let spawn = cp.spawnSync(this.nodePath, [this._testPath]);
+        let nodePath = this.nodePath;
+        if (nodeVersion) {
+            nodePath = this.getNodePath(nodeVersion);
+        }
+        let spawn = cp.spawnSync(nodePath, [this._testPath]);
         if (spawn.error) {
             console.error('Running test failed');
             console.error(spawn.error.message);
@@ -125,8 +131,8 @@ export class MockTestRunner {
     }
 
     // Returns a path to node.exe with the correct version for this task (based on if its node10 or node)
-    private getNodePath(): string {
-        const version: number = this.getNodeVersion();
+    private getNodePath(nodeVersion?: number): string {
+        const version: number = nodeVersion || this.getNodeVersion();
 
         let downloadVersion: string;
         switch (version) {
@@ -156,10 +162,6 @@ export class MockTestRunner {
 
     // Determines the correct version of node to use based on the contents of the task's task.json. Defaults to Node 10.
     private getNodeVersion(): number {
-        if (process.env['useNodeVersion']) {
-            return parseInt(process.env['useNodeVersion']);
-        }
-
         const taskJsonPath: string = this.getTaskJsonPath();
         if (!taskJsonPath) {
             console.warn('Unable to find task.json, defaulting to use Node 10');
@@ -188,8 +190,8 @@ export class MockTestRunner {
     // Returns the path to the task.json for the task being tested. Returns null if unable to find it.
     // Searches by moving up the directory structure from the initial starting point and checking at each level.
     private getTaskJsonPath(): string {
-        if (process.env['taskJsonPath']) {
-            return process.env['taskJsonPath'];
+        if (this._taskJsonPath) {
+            return this._taskJsonPath;
         }
         let curPath: string = this._testPath;
         let newPath: string = path.join(this._testPath, '..');
