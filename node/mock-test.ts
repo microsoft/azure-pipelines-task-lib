@@ -131,33 +131,17 @@ export class MockTestRunner {
         let downloadVersion: string;
         switch (version) {
             case 5:
-                downloadVersion = '5.10.1';
+                downloadVersion = 'v5.10.1';
                 break;
             case 6:
-                downloadVersion = '6.10.3';
+                downloadVersion = 'v6.10.3';
                 break;
             case 10:
-                downloadVersion = '10.15.1';
+                downloadVersion = 'v10.15.1';
                 break;
             default:
                 throw new Error('Invalid node version, must be 5, 6, or 10 (received ' + version + ')');
         }
-
-        // Check if version needed can be found on the path.
-        let nodePath: string = shelljs.which('node');
-        if (nodePath) {
-            try {
-                const output: string = ncp.execSync(nodePath + ' -v').toString().trim();
-                if (semver.eq(output, downloadVersion)) {
-                    return nodePath;
-                }
-            }
-            catch (err) {
-                console.warn('Unable to get version of node in path, downloading node version instead.');
-            }
-        }
-
-        downloadVersion = 'v' + downloadVersion;
 
         // Install node in home directory if it isn't already there.
         const downloadDestination: string = path.join(downloadDirectory, 'node' + version);
