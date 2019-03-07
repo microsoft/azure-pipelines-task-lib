@@ -54,7 +54,7 @@ export class MockTestRunner {
         return this.stderr && this.stderr.indexOf(message) > 0;
     }
 
-    public run(nodeVersion: number): void {
+    public run(nodeVersion?: number): void {
         this.cmdlines = {};
         this.invokedToolCount = 0;
         this.succeeded = true;
