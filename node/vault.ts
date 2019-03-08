@@ -78,8 +78,7 @@ export class Vault {
 
     private getKey()
     {
-        var key = fs.readFileSync(this._keyFile).toString('utf8');
-        return crypto.createHash('sha256').update(key).digest();
+        return fs.readFileSync(this._keyFile).toString('utf8');
     }
 
     private genKey(): void {
