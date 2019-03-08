@@ -78,7 +78,9 @@ export class Vault {
 
     private getKey()
     {
-        return fs.readFileSync(this._keyFile).toString('utf8');
+        var key = fs.readFileSync(this._keyFile).toString('utf8');
+        // Key needs to be hashed to correct length to match algorithm (aes-256-ctr)
+        return crypto.createHash('sha256').update(key).digest();
     }
 
     private genKey(): void {
