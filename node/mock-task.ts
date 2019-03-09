@@ -107,79 +107,52 @@ module.exports.getSecureFileTicket = task.getSecureFileTicket;
 //-----------------------------------------------------
 
 export class FsStats implements fs.Stats {
-    private m_isFile: boolean;
-    private m_isDirectory: boolean;
-    private m_isBlockDevice: boolean;
-    private m_isCharacterDevice: boolean;
-    private m_isSymbolicLink: boolean;
-    private m_isFIFO: boolean;
-    private m_isSocket: boolean;
+    private m_isFile: boolean = false;
+    private m_isDirectory: boolean = false;
+    private m_isBlockDevice: boolean = false;
+    private m_isCharacterDevice: boolean = false;
+    private m_isSymbolicLink: boolean = false;
+    private m_isFIFO: boolean = false;
+    private m_isSocket: boolean = false;
 
-    dev: number;
-    ino: number;
-    mode: number;
-    nlink: number;
-    uid: number;
-    gid: number;
-    rdev: number;
-    size: number;
-    blksize: number;
-    blocks: number;
-    atime: Date;
-    mtime: Date;
-    ctime: Date;
-    birthtime: Date;
-
-    constructor() {
-        this.m_isFile = false;
-        this.m_isDirectory = false;
-        this.m_isBlockDevice = false;
-        this.m_isCharacterDevice = false;
-        this.m_isSymbolicLink = false;
-        this.m_isFIFO = false;
-        this.m_isSocket = false;
-
-        this.dev = 0;
-        this.ino = 0;
-        this.mode = 0;
-        this.nlink = 0;
-        this.uid = 0;
-        this.gid = 0;
-        this.rdev = 0;
-        this.size = 0;
-        this.blksize = 0;
-        this.blocks = 0;
-        this.atime = new Date();
-        this.mtime = new Date();
-        this.ctime = new Date();
-        this.m_isSocket = false;
-
-        this.birthtime = new Date();
-    }
+    dev: number = 0;
+    ino: number = 0;
+    mode: number = 0;
+    nlink: number = 0;
+    uid: number = 0;
+    gid: number = 0;
+    rdev: number = 0;
+    size: number = 0;
+    blksize: number = 0;
+    blocks: number = 0;
+    atime: Date = new Date();
+    mtime: Date = new Date();
+    ctime: Date = new Date();
+    birthtime: Date = new Date();
 
     setAnswers(mockResponses: any): void {
-        this.m_isFile = mockResponses['isFile'] || false;
-        this.m_isDirectory = mockResponses['isDirectory'] || false;
-        this.m_isBlockDevice = mockResponses['isBlockDevice'] || false;
-        this.m_isCharacterDevice = mockResponses['isCharacterDevice'] || false;
-        this.m_isSymbolicLink = mockResponses['isSymbolicLink'] || false;
-        this.m_isFIFO = mockResponses['isFIFO'] || false;
-        this.m_isSocket = mockResponses['isSocket'] || false;
+        this.m_isFile = mockResponses['isFile'] || this.m_isFile;
+        this.m_isDirectory = mockResponses['isDirectory'] || this.m_isDirectory;
+        this.m_isBlockDevice = mockResponses['isBlockDevice'] || this.m_isBlockDevice;
+        this.m_isCharacterDevice = mockResponses['isCharacterDevice'] || this.m_isCharacterDevice;
+        this.m_isSymbolicLink = mockResponses['isSymbolicLink'] || this.m_isSymbolicLink;
+        this.m_isFIFO = mockResponses['isFIFO'] || this.m_isFIFO;
+        this.m_isSocket = mockResponses['isSocket'] || this.m_isSocket;
 
-        this.dev = mockResponses['dev'];
-        this.ino = mockResponses['ino'];
-        this.mode = mockResponses['mode'];
-        this.nlink = mockResponses['nlink'];
-        this.uid = mockResponses['uid'];
-        this.gid = mockResponses['gid'];
-        this.rdev = mockResponses['rdev'];
-        this.size = mockResponses['size'];
-        this.blksize = mockResponses['blksize'];
-        this.blocks = mockResponses['blocks'];
-        this.atime = mockResponses['atime'];
-        this.mtime = mockResponses['mtime'];
-        this.ctime = mockResponses['ctime'];
-        this.m_isSocket = mockResponses['isSocket'];
+        this.dev = mockResponses['dev'] || this.dev;
+        this.ino = mockResponses['ino'] || this.ino;
+        this.mode = mockResponses['mode'] || this.mode;
+        this.nlink = mockResponses['nlink'] || this.nlink;
+        this.uid = mockResponses['uid'] || this.uid;
+        this.gid = mockResponses['gid'] || this.gid;
+        this.rdev = mockResponses['rdev'] || this.rdev;
+        this.size = mockResponses['size'] || this.size;
+        this.blksize = mockResponses['blksize'] || this.blksize;
+        this.blocks = mockResponses['blocks'] || this.blocks;
+        this.atime = mockResponses['atime'] || this.atime;
+        this.mtime = mockResponses['mtime'] || this.mtime;
+        this.ctime = mockResponses['ctime'] || this.ctime;
+        this.m_isSocket = mockResponses['isSocket'] || this.m_isSocket;
     }
 
     isFile(): boolean {
