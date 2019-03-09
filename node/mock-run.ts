@@ -15,8 +15,17 @@ export class TaskMockRunner {
         process.env['INPUT_' + name.replace(' ', '_').toUpperCase()] = val;
     }
 
+    public setVariableName(name: string, val: string, isSecret?: boolean) {
+        if (isSecret) {
+            process.env['SECRET_' + name.replace(' ', '_').toUpperCase()] = val;
+        }
+        else {
+            process.env['VSTS_TASKVARIABLE_' + name.replace(' ', '_').toUpperCase()] = val;
+        }
+    }
+
     /**
-     * Register answers for the mock "vsts-task-lib/task" instance.
+     * Register answers for the mock "azure-pipelines-task-lib/task" instance.
      *
      * @param answers   Answers to be returned when the task lib functions are called.
      */
@@ -38,7 +47,7 @@ export class TaskMockRunner {
     }
 
     /**
-    * Registers an override for a specific function on the mock "vsts-task-lib/task" instance.
+    * Registers an override for a specific function on the mock "azure-pipelines-task-lib/task" instance.
     * This can be used in conjunction with setAnswers(), for cases where additional runtime
     * control is needed for a specific function.
     *
@@ -53,7 +62,7 @@ export class TaskMockRunner {
     /**
     * Runs a task script.
     *
-    * @param noMockTask     Indicates whether to mock "vsts-task-lib/task". Default is to mock.
+    * @param noMockTask     Indicates whether to mock "azure-pipelines-task-lib/task". Default is to mock.
     * @returns              void
     */
     public run(noMockTask?: boolean): void {
@@ -70,7 +79,7 @@ export class TaskMockRunner {
         }
         // register mock task lib
         else {
-            var tlm = require('vsts-task-lib/mock-task');
+            var tlm = require('azure-pipelines-task-lib/mock-task');
             if (this._answers) {
                 tlm.setAnswers(this._answers);
             }
@@ -80,7 +89,7 @@ export class TaskMockRunner {
                     tlm[key] = this._exports[key];
                 });
 
-            mockery.registerMock('vsts-task-lib/task', tlm);
+            mockery.registerMock('azure-pipelines-task-lib/task', tlm);
         }
 
         // run it

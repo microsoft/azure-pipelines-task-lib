@@ -22,7 +22,7 @@ DESCRIPTION
     dependencies, and so on until all nested dependencies have been traversed. Dependencies are searched for
     in the directory of the specified assembly. NET Framework assemblies are omitted.
 
-    See https://github.com/Microsoft/vsts-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage
+    See https://github.com/Microsoft/azure-pipelines-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage
     when working with the TFS extended client SDK from a task.
 
 PARAMETERS

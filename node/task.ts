@@ -4,17 +4,50 @@ import fs = require('fs');
 import path = require('path');
 import os = require('os');
 import minimatch = require('minimatch');
-import util = require('util');
 import im = require('./internal');
 import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
-import vm = require('./vault');
 import semver = require('semver');
 
 export enum TaskResult {
     Succeeded = 0,
     SucceededWithIssues = 1,
-    Failed = 2
+    Failed = 2,
+    Cancelled = 3,
+    Skipped = 4
+}
+
+export enum TaskState {
+    Unknown = 0,
+    Initialized = 1,
+    InProgress = 2,
+    Completed = 3
+}
+
+export enum IssueType {
+    Error,
+    Warning
+}
+
+export enum ArtifactType {
+    Container,
+    FilePath,
+    VersionControl,
+    GitRef,
+    TfvcLabel
+}
+
+export enum FieldType {
+    AuthParameter,
+    DataParameter,
+    Url
+}
+
+/** Platforms supported by our build agent */
+export enum Platform {
+    Windows,
+    MacOS,
+    Linux
 }
 
 //-----------------------------------------------------
@@ -33,11 +66,14 @@ export const setErrStream = im._setErrStream;
  * If not set, task will be Succeeded.
  * If multiple calls are made to setResult the most pessimistic call wins (Failed) regardless of the order of calls.
  * 
- * @param result    TaskResult enum of Succeeded, SucceededWithIssues or Failed.  
+ * @param result    TaskResult enum of Succeeded, SucceededWithIssues, Failed, Cancelled or Skipped.
  * @param message   A message which will be logged as an error issue if the result is Failed.
+ * @param done      Optional. Instructs the agent the task is done. This is helpful when child processes
+ *                  may still be running and prevent node from fully exiting. This argument is supported
+ *                  from agent version 2.142.0 or higher (otherwise will no-op).
  * @returns         void
  */
-export function setResult(result: TaskResult, message: string): void {
+export function setResult(result: TaskResult, message: string, done?: boolean): void {
     debug('task result: ' + TaskResult[result]);
 
     // add an error issue
@@ -48,8 +84,13 @@ export function setResult(result: TaskResult, message: string): void {
         warning(message);
     }
 
-    // set the task result
-    command('task.complete', { 'result': TaskResult[result] }, message);
+    // task.complete
+    var properties = { 'result': TaskResult[result] };
+    if (done) {
+        properties['done'] = 'true';
+    }
+
+    command('task.complete', properties, message);
 }
 
 //
@@ -519,13 +560,17 @@ export interface FsOptions {
     flag?: string;
 }
 
-export function writeFile(file: string, data: string | Buffer, options: string): void;
-export function writeFile(file: string, data: string | Buffer, options?: FsOptions): void;
-export function writeFile(file: string, data: string | Buffer, options: any): void {
-    fs.writeFileSync(file, data, options);
+export function writeFile(file: string, data: string | Buffer, options?: string | FsOptions) {
+    if(typeof(options) === 'string'){
+        fs.writeFileSync(file, data, {encoding: options});
+    }
+    else {
+        fs.writeFileSync(file, data, options);
+    }
 }
 
 /**
+ * @deprecated Use `getPlatform`
  * Useful for determining the host operating system.
  * see [os.type](https://nodejs.org/api/os.html#os_os_type)
  * 
@@ -533,6 +578,20 @@ export function writeFile(file: string, data: string | Buffer, options: any): vo
  */
 export function osType(): string {
     return os.type();
+}
+
+/**
+ * Determine the operating system the build agent is running on.
+ * @returns {Platform}
+ * @throws {Error} Platform is not supported by our agent
+ */
+export function getPlatform(): Platform {
+    switch (process.platform) {
+        case 'win32': return Platform.Windows;
+        case 'darwin': return Platform.MacOS;
+        case 'linux': return Platform.Linux;
+        default: throw Error(loc('LIB_PlatformNotSupported', process.platform));
+    }
 }
 
 /**
@@ -1682,8 +1741,10 @@ export class TestPublisher {
     constructor(public testRunner: string) {
     }
 
-
-    public publish(resultFiles?: string, mergeResults?: string, platform?: string, config?: string, runTitle?: string, publishRunAttachments?: string) {
+    public publish(resultFiles?: string, mergeResults?: string, platform?: string, config?: string, runTitle?: string, publishRunAttachments?: string, testRunSystem?: string) {
+        // Could have used an initializer, but wanted to avoid reordering parameters when converting to strict null checks
+        // (A parameter cannot both be optional and have an initializer)
+        testRunSystem = testRunSystem || "VSTSTask";
 
         var properties = <{ [key: string]: string }>{};
         properties['type'] = this.testRunner;
@@ -1711,6 +1772,8 @@ export class TestPublisher {
         if (resultFiles) {
             properties['resultFiles'] = resultFiles;
         }
+
+        properties['testRunSystem'] = testRunSystem;
 
         command('results.publish', properties, '');
     }
@@ -1763,6 +1826,230 @@ export class CodeCoverageEnabler {
         buildProps['codecoveragetool'] = this.ccTool;
         command('codecoverage.enable', buildProps, "");
     }
+}
+
+//-----------------------------------------------------
+// Task Logging Commands
+//-----------------------------------------------------
+
+/**
+ * Upload user interested file as additional log information 
+ * to the current timeline record.
+ * 
+ * The file shall be available for download along with task logs.
+ * 
+ * @param path      Path to the file that should be uploaded.
+ * @returns         void
+ */
+export function uploadFile(path: string) {
+    command("task.uploadfile", null, path);
+}
+
+/**
+ * Instruction for the agent to update the PATH environment variable.
+ * The specified directory is prepended to the PATH.
+ * The updated environment variable will be reflected in subsequent tasks.
+ * 
+ * @param path      Local directory path.
+ * @returns         void
+ */
+export function prependPath(path: string) {
+    assertAgent("2.115.0");
+    command("task.prependpath", null, path);
+}
+
+/**
+ * Upload and attach summary markdown to current timeline record.
+ * This summary shall be added to the build/release summary and 
+ * not available for download with logs.
+ * 
+ * @param path      Local directory path.
+ * @returns         void
+ */
+export function uploadSummary(path: string) {
+    command("task.uploadsummary", null, path);
+}
+
+/**
+ * Upload and attach attachment to current timeline record.
+ * These files are not available for download with logs.
+ * These can only be referred to by extensions using the type or name values. 
+ * 
+ * @param type      Attachment type.
+ * @param name      Attachment name.
+ * @param path      Attachment path.
+ * @returns         void
+ */
+export function addAttachment(type: string, name: string, path: string) {
+    command("task.addattachment", { "type": type, "name": name }, path);
+}
+
+/**
+ * Set an endpoint field with given value.
+ * Value updated will be retained in the endpoint for 
+ * the subsequent tasks that execute within the same job.
+ * 
+ * @param id      Endpoint id.
+ * @param field   FieldType enum of AuthParameter, DataParameter or Url.
+ * @param key     Key.
+ * @param value   Value for key or url.
+ * @returns       void
+ */
+export function setEndpoint(id: string, field: FieldType, key: string, value: string) {
+    command("task.setendpoint", { "id": id, "field": FieldType[field].toLowerCase(), "key": key }, value);
+}
+
+/**
+ * Set progress and current operation for current task.
+ * 
+ * @param percent           Percentage of completion.
+ * @param currentOperation  Current pperation. 
+ * @returns                 void
+ */
+export function setProgress(percent: number, currentOperation: string) {
+    command("task.setprogress", { "value": `${percent}` }, currentOperation);
+}
+
+/**
+ * Indicates whether to write the logging command directly to the host or to the output pipeline.
+ *
+ * @param id            Timeline record Guid.
+ * @param parentId      Parent timeline record Guid.
+ * @param recordType    Record type.
+ * @param recordName    Record name.
+ * @param order         Order of timeline record.
+ * @param startTime     Start time.
+ * @param finishTime    End time.
+ * @param progress      Percentage of completion.
+ * @param state         TaskState enum of Unknown, Initialized, InProgress or Completed.
+ * @param result        TaskResult enum of Succeeded, SucceededWithIssues, Failed, Cancelled or Skipped.
+ * @param message       current operation
+ * @returns             void
+ */
+export function logDetail(id: string, message: string, parentId?: string, recordType?: string,
+    recordName?: string, order?: number, startTime?: string, finishTime?: string,
+    progress?: number, state?: TaskState, result?: TaskResult) {
+    const properties = {
+        "id": id,
+        "parentid": parentId,
+        "type": recordType,
+        "name": recordName,
+        "order": order ? order.toString() : undefined,
+        "starttime": startTime,
+        "finishtime": finishTime,
+        "progress": progress ? progress.toString() : undefined,
+        "state": state ? TaskState[state] : undefined,
+        "result": result ? TaskResult[result] : undefined
+    };
+
+    command("task.logdetail", properties, message);
+}
+
+/**
+ * Log error or warning issue to timeline record of current task.
+ *
+ * @param type          IssueType enum of Error or Warning.
+ * @param sourcePath    Source file location.
+ * @param lineNumber    Line number.
+ * @param columnNumber  Column number.
+ * @param code          Error or warning code.
+ * @param message       Error or warning message.
+ * @returns             void
+ */
+export function logIssue(type: IssueType, message: string, sourcePath?: string, lineNumber?: number,
+    columnNumber?: number, errorCode?: string) {
+    const properties = {
+        "type": IssueType[type].toLowerCase(),
+        "code": errorCode,
+        "sourcepath": sourcePath,
+        "linenumber": lineNumber ? lineNumber.toString() : undefined,
+        "columnnumber": columnNumber ? columnNumber.toString() : undefined,
+    };
+
+    command("task.logissue", properties, message);
+}
+
+//-----------------------------------------------------
+// Artifact Logging Commands
+//-----------------------------------------------------
+
+/**
+ * Upload user interested file as additional log information 
+ * to the current timeline record.
+ * 
+ * The file shall be available for download along with task logs.
+ * 
+ * @param containerFolder   Folder that the file will upload to, folder will be created if needed.
+ * @param path              Path to the file that should be uploaded.
+ * @param name              Artifact name.
+ * @returns                 void
+ */
+export function uploadArtifact(containerFolder: string, path: string, name?: string) {
+    command("artifact.upload", { "containerfolder": containerFolder, "artifactname": name }, path);
+}
+
+/**
+ * Create an artifact link, artifact location is required to be 
+ * a file container path, VC path or UNC share path. 
+ * 
+ * The file shall be available for download along with task logs.
+ * 
+ * @param name              Artifact name.
+ * @param path              Path to the file that should be associated.
+ * @param artifactType      ArtifactType enum of Container, FilePath, VersionControl, GitRef or TfvcLabel.
+ * @returns                 void
+ */
+export function associateArtifact(name: string, path: string, artifactType: ArtifactType) {
+    command("artifact.associate", { "type": ArtifactType[artifactType].toLowerCase(), "artifactname": name }, path);
+}
+
+//-----------------------------------------------------
+// Build Logging Commands
+//-----------------------------------------------------
+
+/**
+ * Upload user interested log to build’s container “logs\tool” folder.
+ * 
+ * @param path      Path to the file that should be uploaded.
+ * @returns         void
+ */
+export function uploadBuildLog(path: string) {
+    command("build.uploadlog", null, path);
+}
+
+/**
+ * Update build number for current build.
+ * 
+ * @param value     Value to be assigned as the build number.
+ * @returns         void
+ */
+export function updateBuildNumber(value: string) {
+    command("build.updatebuildnumber", null, value);
+}
+
+/**
+ * Add a tag for current build.
+ * 
+ * @param value     Tag value.
+ * @returns         void
+ */
+export function addBuildTag(value: string) {
+    command("build.addbuildtag", null, value);
+}
+
+//-----------------------------------------------------
+// Release Logging Commands
+//-----------------------------------------------------
+
+/**
+ * Update release name for current release.
+ * 
+ * @param value     Value to be assigned as the release name.
+ * @returns         void
+ */
+export function updateReleaseName(name: string) {
+    assertAgent("2.132");
+    command("release.updatereleasename", null, name);
 }
 
 //-----------------------------------------------------

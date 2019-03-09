@@ -1,17 +1,17 @@
-# VSTS-TASK-LIB TYPESCRIPT API
+# AZURE-PIPELINES-TASK-LIB TYPESCRIPT API
  
 ## Dependencies
 A [cross platform agent](https://github.com/Microsoft/vso-agent) OR a TFS 2015 Update 2 Windows agent (or higher) is required to run a Node task end-to-end. However, an agent is not required for interactively testing the task.
  
 ## Importing
-For now, the built vsts-task-lib (in _build) should be packaged with your task in a node_modules folder
+For now, the built azure-pipelines-task-lib (in _build) should be packaged with your task in a node_modules folder
  
-The build generates a vsts-task-lib.d.ts file for use when compiling tasks
+The build generates a azure-pipelines-task-lib.d.ts file for use when compiling tasks
 In the example below, it is in a folder named definitions above the tasks lib
  
 ```
-/// <reference path="../definitions/vsts-task-lib.d.ts" />
-import tl = require('vsts-task-lib/task')
+/// <reference path="../definitions/azure-pipelines-task-lib.d.ts" />
+import tl = require('azure-pipelines-task-lib/task')
 ```
  
 ## [Release notes](releases.md)
@@ -49,7 +49,7 @@ import tl = require('vsts-task-lib/task')
 <a href="#taskexecSync">execSync</a> <br/>
 <a href="#tasksetResult">setResult</a> <br/>
  
-### Service Endpoints <a href="#ServiceEndpoints">(v)</a>
+### Service Connections <a href="#ServiceConnections">(v)</a>
  
 <a href="#taskgetEndpointUrl">getEndpointUrl</a> <br/>
 <a href="#taskgetEndpointDataParameter">getEndpointDataParameter</a> <br/>
@@ -57,6 +57,10 @@ import tl = require('vsts-task-lib/task')
 <a href="#taskgetEndpointAuthorizationParameter">getEndpointAuthorizationParameter</a> <br/>
 <a href="#taskEndpointAuthorization">EndpointAuthorization</a> <br/>
 <a href="#taskgetEndpointAuthorization">getEndpointAuthorization</a> <br/>
+ 
+### Secrets <a href="#Secrets">(v)</a>
+ 
+<a href="#tasksetSecret">setSecret</a> <br/>
  
 ### Secure Files <a href="#SecureFiles">(v)</a>
  
@@ -260,7 +264,7 @@ Param | Type | Description
 --- | --- | ---
 name | string | name of the variable to set
 val | string | value to set
-secret | boolean | whether variable is secret.  optional, defaults to false
+secret | boolean | whether variable is secret.  Multi\-line secrets are not allowed.  Optional, defaults to false
  
 <br/>
 <div id="taskgetTaskVariable">
@@ -307,14 +311,14 @@ secret | boolean | whether variable is secret.  optional, defaults to false
 Tasks typically execute a series of tools (cli) and set the result of the task based on the outcome of those
  
 ```javascript
-/// <reference path="../definitions/vsts-task-lib.d.ts" />
-import tl = require('vsts-task-lib/task');
-import tr = require('vsts-task-lib/toolrunner');
+/// <reference path="../definitions/azure-pipelines-task-lib.d.ts" />
+import tl = require('azure-pipelines-task-lib/task');
+import tr = require('azure-pipelines-task-lib/toolrunner');
 
 try {
     var toolPath = tl.which('atool');
     var atool:tr.ToolRunner = tl.tool(toolPath).arg('--afile').line('arguments');
-    var code: number = await tr.exec();
+    var code: number = await atool.exec();
     console.log('rc=' + code);
 }
 catch (err) {
@@ -441,12 +445,13 @@ options | IExecSyncOptions | optional exec options.  See IExecSyncOptions
 Pipe output of exec() to another tool
 @returns {ToolRunner}
 ```javascript
-pipeExecOutputToTool(tool:ToolRunner):ToolRunner
+pipeExecOutputToTool(tool:ToolRunner, file?:string):ToolRunner
 ```
  
 Param | Type | Description
 --- | --- | ---
 tool | ToolRunner | 
+file | string | optional filename to additionally stream the output to.
  
 <br/>
 <div id="toolrunnerIExecSyncResult">
@@ -521,13 +526,13 @@ message | string | A message which will be logged as an error issue if the resul
  
  
 <br/>
-<div id="ServiceEndpoints">
+<div id="ServiceConnections">
  
-## Service Endpoints
+## Service Connections
  
 ---
  
-Retrieve service endpoints and authorization details
+Retrieve service connections (previously called "service endpoints") and authorization details
 <br/>
 <div id="taskgetEndpointUrl">
  
@@ -622,6 +627,28 @@ Param | Type | Description
 --- | --- | ---
 id | string | name of the service endpoint
 optional | boolean | whether the url is optional
+ 
+ 
+<br/>
+<div id="Secrets">
+ 
+## Secrets
+ 
+---
+ 
+Functions for managing pipeline secrets
+<br/>
+<div id="tasksetSecret">
+ 
+### task.setSecret <a href="#index">(^)</a>
+Registers a value with the logger, so the value will be masked from the logs.  Multi-line secrets are not allowed.
+```javascript
+setSecret(val:string):void
+```
+ 
+Param | Type | Description
+--- | --- | ---
+val | string | value to register
  
  
 <br/>
@@ -792,6 +819,7 @@ Contains properties to control whether to follow symlinks
  
 Property | Type | Description
 --- | --- | ---
+allowBrokenSymbolicLinks | boolean | When true, broken symbolic link will not cause an error.
 followSpecifiedSymbolicLink | boolean | Equivalent to the \-H command line option. Indicates whether to traverse descendants if the specified path is a symbolic link directory. Does not cause nested symbolic link directories to be traversed.
 followSymbolicLinks | boolean | Equivalent to the \-L command line option. Indicates whether to traverse descendants of symbolic link directories.
  
@@ -1007,7 +1035,7 @@ includeDirectories | boolean | whether to include directories in the result
 Localization is optional but is supported using these functions at runtime
  
 ```javascript
-/// <reference path="../definitions/vsts-task-lib.d.ts" />
+/// <reference path="../definitions/azure-pipelines-task-lib.d.ts" />
 
 tl.setResourcePath(path.join( __dirname, 'task.json'));
 
@@ -1072,6 +1100,10 @@ Gets http proxy configuration used by Build/Release agent
 
 @return  ProxyConfiguration
 ```javascript
-getHttpProxyConfiguration():ProxyConfiguration
+getHttpProxyConfiguration(requestUrl?:string):ProxyConfiguration
 ```
+ 
+Param | Type | Description
+--- | --- | ---
+requestUrl | string | 
  

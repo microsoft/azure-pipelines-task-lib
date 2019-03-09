@@ -15,7 +15,7 @@ DESCRIPTION
     Gets an instance of an ITfsTeamProjectCollectionObject.
 
     *** DO NOT USE Agent.ServerOMDirectory *** See
-    https://github.com/Microsoft/vsts-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
+    https://github.com/Microsoft/azure-pipelines-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
     working with the TFS extended client SDK from a task.
 
 PARAMETERS
@@ -36,7 +36,7 @@ PARAMETERS
         If not specified, defaults to the directory of the entry script for the task.
 
         *** DO NOT USE Agent.ServerOMDirectory *** See
-        https://github.com/Microsoft/vsts-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage
+        https://github.com/Microsoft/azure-pipelines-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage
         when working with the TFS extended client SDK from a task.
 
         Required?                    false

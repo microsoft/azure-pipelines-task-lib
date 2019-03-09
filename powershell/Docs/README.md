@@ -5,7 +5,7 @@ The VSTS Task SDK for PowerShell is designed to work with the agent's new PowerS
 
 ## Reference Examples
 
-The [MSBuild Task](https://github.com/Microsoft/vsts-tasks/blob/master/Tasks/MSBuild/MSBuild.ps1) and [VSBuild Task](https://github.com/Microsoft/vsts-tasks/blob/master/Tasks/VSBuild/VSBuild.ps1) are good examples.
+The [MSBuild Task](https://github.com/Microsoft/vsts-tasks/blob/master/Tasks/MSBuildV1/MSBuild.ps1) and [VSBuild Task](https://github.com/Microsoft/vsts-tasks/blob/master/Tasks/VSBuildV1/VSBuild.ps1) are good examples.
 
 ## Documentation
 

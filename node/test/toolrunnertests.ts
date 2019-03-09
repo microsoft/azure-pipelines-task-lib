@@ -45,7 +45,7 @@ describe('Toolrunner Tests', function () {
         };
 
         if (os.platform() === 'win32') {
-            var ret = tl.execSync('cmd', '/c echo \'vsts-task-lib\'', _testExecOptions);
+            var ret = tl.execSync('cmd', '/c echo \'azure-pipelines-task-lib\'', _testExecOptions);
             assert.equal(ret.code, 0, 'return code of cmd should be 0');
         }
         else {
@@ -71,7 +71,7 @@ describe('Toolrunner Tests', function () {
 
         if (os.platform() === 'win32') {
             var cmd = tl.tool(tl.which('cmd', true));
-            cmd.arg('/c echo \'vsts-task-lib\'');
+            cmd.arg('/c echo \'azure-pipelines-task-lib\'');
 
             var ret = cmd.execSync(_testExecOptions);
             assert.equal(ret.code, 0, 'return code of cmd should be 0');
@@ -133,7 +133,7 @@ describe('Toolrunner Tests', function () {
         };
 
         if (os.platform() === 'win32') {
-            tl.exec('cmd', '/c echo \'vsts-task-lib\'', _testExecOptions)
+            tl.exec('cmd', '/c echo \'azure-pipelines-task-lib\'', _testExecOptions)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code of cmd should be 0');
                     done();
@@ -172,7 +172,7 @@ describe('Toolrunner Tests', function () {
         if (os.platform() === 'win32') {
             var cmdPath = tl.which('cmd', true);
             var cmd = tl.tool(cmdPath);
-            cmd.arg('/c echo \'vsts-task-lib\'');
+            cmd.arg('/c echo \'azure-pipelines-task-lib\'');
 
             cmd.exec(_testExecOptions)
                 .then(function (code) {
@@ -217,8 +217,9 @@ describe('Toolrunner Tests', function () {
 
         var output = '';
         if (os.platform() === 'win32') {
-            var cmd = tl.tool(tl.which('cmd', true));
-            cmd.arg('/c echo \'vsts-task-lib\'');
+            var cmd = tl.tool(tl.which('cmd', true))
+                .arg('/c')
+                .arg('echo \'azure-pipelines-task-lib\'');
 
             cmd.on('stdout', (data) => {
                 output = data.toString();
@@ -287,7 +288,7 @@ describe('Toolrunner Tests', function () {
                         done(err);
                     }
                     else {
-                        assert(err.message.indexOf('return code: 1') >= 0, `expected error message to indicate "return code: 1". actual error message: "${err}"`);
+                        assert(err.message.indexOf('failed with exit code 1') >= 0, `expected error message to indicate "failed with exit code 1". actual error message: "${err}"`);
                         assert(output && output.length > 0, 'should have emitted stderr');
                         done();
                     }
@@ -318,7 +319,7 @@ describe('Toolrunner Tests', function () {
                         done(err);
                     }
                     else {
-                        assert(err.message.indexOf('return code: 123') >= 0, `expected error message to indicate "return code: 123". actual error message: "${err}"`);
+                        assert(err.message.indexOf('failed with exit code 123') >= 0, `expected error message to indicate "failed with exit code 123". actual error message: "${err}"`);
                         assert(output && output.length > 0, 'should have emitted stderr');
                         done();
                     }
@@ -386,7 +387,7 @@ describe('Toolrunner Tests', function () {
                     done(err);
                 }
                 else {
-                    assert(err.message.indexOf('return code: 0') >= 0, `expected error message to indicate "return code: 0". actual error message: "${err}"`);
+                    assert(err.message.indexOf('one or more lines were written to the STDERR stream') >= 0, `expected error message to indicate "one or more lines were written to the STDERR stream". actual error message: "${err}"`);
                     assert(output && output.length > 0, 'should have emitted stderr');
                     done();
                 }
@@ -395,8 +396,221 @@ describe('Toolrunner Tests', function () {
                 done(err);
             });
     })
+    it('Fails when process fails to launch', function (done) {
+        this.timeout(10000);
+
+        var tool = tl.tool(tl.which('node', true));
+        var _testExecOptions = <trm.IExecOptions>{
+            cwd: path.join(testutil.getTestTemp(), 'nosuchdir'),
+            env: {},
+            silent: false,
+            failOnStdErr: true,
+            ignoreReturnCode: false,
+            outStream: testutil.getNullStream(),
+            errStream: testutil.getNullStream()
+        }
+
+        var output = '';
+        tool.on('stderr', (data) => {
+            output = data.toString();
+        });
+
+        var succeeded = false;
+        tool.exec(_testExecOptions)
+            .then(function () {
+                succeeded = true;
+                assert.fail('should not have succeeded');
+            })
+            .fail(function (err) {
+                if (succeeded) {
+                    done(err);
+                }
+                else {
+                    assert(err.message.indexOf('This may indicate the process failed to start') >= 0, `expected error message to indicate "This may indicate the process failed to start". actual error message: "${err}"`);
+                    done();
+                }
+            })
+            .fail(function (err) {
+                done(err);
+            });
+    })
+    it('Handles child process holding streams open', function (done) {
+        this.timeout(10000);
+
+        let semaphorePath = path.join(testutil.getTestTemp(), 'child-process-semaphore.txt');
+        fs.writeFileSync(semaphorePath, '');
+
+        let nodePath = tl.which('node', true);
+        let scriptPath = path.join(__dirname, 'scripts', 'wait-for-file.js');
+        let shell: trm.ToolRunner;
+        if (os.platform() == 'win32') {
+            shell = tl.tool(tl.which('cmd.exe', true))
+                .arg('/D') // Disable execution of AutoRun commands from registry.
+                .arg('/E:ON') // Enable command extensions. Note, command extensions are enabled by default, unless disabled via registry.
+                .arg('/V:OFF') // Disable delayed environment expansion. Note, delayed environment expansion is disabled by default, unless enabled via registry.
+                .arg('/S') // Will cause first and last quote after /C to be stripped.
+                .arg('/C')
+                .arg(`"start "" /B "${nodePath}" "${scriptPath}" "file=${semaphorePath}""`);
+        }
+        else {
+            shell = tl.tool(tl.which('bash', true))
+                .arg('-c')
+                .arg(`node '${scriptPath}' 'file=${semaphorePath}' &`);
+        }
+
+        let toolRunnerDebug = [];
+        shell.on('debug', function (data) {
+            toolRunnerDebug.push(data);
+        });
+
+        process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'] = 500; // 0.5 seconds
+
+        let options = <trm.IExecOptions>{
+            cwd: __dirname,
+            env: process.env,
+            silent: false,
+            failOnStdErr: true,
+            ignoreReturnCode: false,
+            outStream: process.stdout,
+            errStream: process.stdout,
+            windowsVerbatimArguments: true
+        };
+
+        shell.exec(options)
+            .then(function () {
+                assert(toolRunnerDebug.filter((x) => x.indexOf('STDIO streams did not close') >= 0).length == 1, 'Did not find expected debug message');
+                done();
+            })
+            .fail(function (err) {
+                done(err);
+            })
+            .finally(function () {
+                fs.unlinkSync(semaphorePath);
+                delete process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'];
+            });
+    })
+    it('Handles child process holding streams open and non-zero exit code', function (done) {
+        this.timeout(10000);
+
+        let semaphorePath = path.join(testutil.getTestTemp(), 'child-process-semaphore.txt');
+        fs.writeFileSync(semaphorePath, '');
+
+        let nodePath = tl.which('node', true);
+        let scriptPath = path.join(__dirname, 'scripts', 'wait-for-file.js');
+        let shell: trm.ToolRunner;
+        if (os.platform() == 'win32') {
+            shell = tl.tool(tl.which('cmd.exe', true))
+                .arg('/D') // Disable execution of AutoRun commands from registry.
+                .arg('/E:ON') // Enable command extensions. Note, command extensions are enabled by default, unless disabled via registry.
+                .arg('/V:OFF') // Disable delayed environment expansion. Note, delayed environment expansion is disabled by default, unless enabled via registry.
+                .arg('/S') // Will cause first and last quote after /C to be stripped.
+                .arg('/C')
+                .arg(`"start "" /B "${nodePath}" "${scriptPath}" "file=${semaphorePath}"" & exit /b 123`);
+        }
+        else {
+            shell = tl.tool(tl.which('bash', true))
+                .arg('-c')
+                .arg(`node '${scriptPath}' 'file=${semaphorePath}' & exit 123`);
+        }
+
+        let toolRunnerDebug = [];
+        shell.on('debug', function (data) {
+            toolRunnerDebug.push(data);
+        });
+
+        process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'] = 500; // 0.5 seconds
+
+        let options = <trm.IExecOptions>{
+            cwd: __dirname,
+            env: process.env,
+            silent: false,
+            failOnStdErr: true,
+            ignoreReturnCode: false,
+            outStream: process.stdout,
+            errStream: process.stdout,
+            windowsVerbatimArguments: true
+        };
+
+        shell.exec(options)
+            .then(function () {
+                done(new Error('should not have been successful'));
+                done();
+            })
+            .fail(function (err) {
+                assert(toolRunnerDebug.filter((x) => x.indexOf('STDIO streams did not close') >= 0).length == 1, 'Did not find expected debug message');
+                assert(err.message.indexOf('failed with exit code 123') >= 0);
+                done();
+            })
+            .fail(function (err) {
+                done(err);
+            })
+            .finally(function () {
+                fs.unlinkSync(semaphorePath);
+                delete process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'];
+            });
+    })
+    it('Handles child process holding streams open and stderr', function (done) {
+        this.timeout(10000);
+
+        let semaphorePath = path.join(testutil.getTestTemp(), 'child-process-semaphore.txt');
+        fs.writeFileSync(semaphorePath, '');
+
+        let nodePath = tl.which('node', true);
+        let scriptPath = path.join(__dirname, 'scripts', 'wait-for-file.js');
+        let shell: trm.ToolRunner;
+        if (os.platform() == 'win32') {
+            shell = tl.tool(tl.which('cmd.exe', true))
+                .arg('/D') // Disable execution of AutoRun commands from registry.
+                .arg('/E:ON') // Enable command extensions. Note, command extensions are enabled by default, unless disabled via registry.
+                .arg('/V:OFF') // Disable delayed environment expansion. Note, delayed environment expansion is disabled by default, unless enabled via registry.
+                .arg('/S') // Will cause first and last quote after /C to be stripped.
+                .arg('/C')
+                .arg(`"start "" /B "${nodePath}" "${scriptPath}" "file=${semaphorePath}"" & echo hi 1>&2`);
+        }
+        else {
+            shell = tl.tool(tl.which('bash', true))
+                .arg('-c')
+                .arg(`node '${scriptPath}' 'file=${semaphorePath}' & echo hi 1>&2`);
+        }
+
+        let toolRunnerDebug = [];
+        shell.on('debug', function (data) {
+            toolRunnerDebug.push(data);
+        });
+
+        process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'] = 500; // 0.5 seconds
+
+        let options = <trm.IExecOptions>{
+            cwd: __dirname,
+            env: process.env,
+            silent: false,
+            failOnStdErr: true,
+            ignoreReturnCode: false,
+            outStream: process.stdout,
+            errStream: process.stdout,
+            windowsVerbatimArguments: true
+        };
+
+        shell.exec(options)
+            .then(function () {
+                done(new Error('should not have been successful'));
+                done();
+            })
+            .fail(function (err) {
+                assert(toolRunnerDebug.filter((x) => x.indexOf('STDIO streams did not close') >= 0).length == 1, 'Did not find expected debug message');
+                assert(err.message.indexOf('failed because one or more lines were written to the STDERR stream') >= 0);
+                done();
+            })
+            .fail(function (err) {
+                done(err);
+            })
+            .finally(function () {
+                fs.unlinkSync(semaphorePath);
+                delete process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'];
+            });
+    })
     it('Exec pipe output to another tool, succeeds if both tools succeed', function (done) {
-        this.timeout(20000);
+        this.timeout(30000);
 
         var _testExecOptions = <trm.IExecOptions>{
             cwd: __dirname,
@@ -599,25 +813,26 @@ describe('Toolrunner Tests', function () {
             var grep = tl.tool(tl.which('grep', true));
             grep.arg('--?');
 
-            var ps = tl.tool(tl.which('ps', true));
-            ps.arg('ax');
-            ps.pipeExecOutputToTool(grep);
+            var node = tl.tool(tl.which('node', true))
+                .arg('-e')
+                .arg('console.log("line1"); setTimeout(function () { console.log("line2"); }, 200);'); // allow long enough to hook up stdout to stdin
+            node.pipeExecOutputToTool(grep);
 
             var output = '';
-            ps.on('stdout', (data) => {
+            node.on('stdout', (data) => {
                 output += data.toString();
             });
 
             var errOut = '';
-            ps.on('stderr', (data) => {
+            node.on('stderr', (data) => {
                 errOut += data.toString();
             })
 
             var succeeded = false;
-            ps.exec(_testExecOptions)
+            node.exec(_testExecOptions)
                 .then(function (code) {
                     succeeded = true;
-                    assert.fail('ps ax | grep --? was a bad command and it did not fail');
+                    assert.fail('node [...] | grep --? was a bad command and it did not fail');
                 })
                 .fail(function (err) {
                     if (succeeded) {
@@ -959,6 +1174,15 @@ describe('Toolrunner Tests', function () {
         assert.equal((node as any).args.toString(), 'one,two\\arg,three', 'should be one,two,three');
         done();
     })
+    it('handles multiple escaped backslashes', function (done) {
+        this.timeout(10000);
+
+        var node = tl.tool(tl.which('node', true));
+        node.line('one "\\\\two\\arg"');
+        assert.equal((node as any).args.length, 2, 'should have 2 args');
+        assert.equal((node as any).args.toString(), 'one,\\\\two\\arg', 'should be one,\\\\two\\arg');
+        done();
+    })    
     it('handles equals and switches', function (done) {
         this.timeout(10000);
 
