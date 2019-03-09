@@ -3,7 +3,6 @@ import Q = require('q');
 import path = require('path');
 import fs = require('fs');
 import os = require('os');
-import util = require('util');
 import task = require('./task');
 import tcm = require('./taskcommand');
 import trm = require('./mock-toolrunner');
@@ -484,13 +483,13 @@ exports.ToolRunner = trm.ToolRunner;
 //-----------------------------------------------------
 // Http Proxy Helper
 //-----------------------------------------------------
-export function getHttpProxyConfiguration(requestUrl?: string): task.ProxyConfiguration {
+export function getHttpProxyConfiguration(requestUrl?: string): task.ProxyConfiguration | null {
     return null;
 }
 
 //-----------------------------------------------------
 // Http Certificate Helper
 //-----------------------------------------------------
-export function getHttpCertConfiguration(): task.CertConfiguration {
+export function getHttpCertConfiguration(): task.ProxyConfiguration | null {
     return null
 }
