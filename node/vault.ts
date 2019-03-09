@@ -85,5 +85,5 @@ export class Vault {
 
     private genKey(): void {
         fs.writeFileSync(this._keyFile, uuidV4(), {encoding: 'utf8'});
-    } 
+    }
 }

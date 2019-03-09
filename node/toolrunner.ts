@@ -17,7 +17,7 @@ export interface IExecOptions extends IExecSyncOptions {
 
     /** optional.  defaults to failing on non zero.  ignore will not fail leaving it up to the caller */
     ignoreReturnCode: boolean;
-};
+}
 
 /**
  * Interface for execSync options
@@ -38,7 +38,7 @@ export interface IExecSyncOptions {
 
     /** optional.  foo.whether to skip quoting/escaping arguments if needed.  defaults to false. */
     windowsVerbatimArguments: boolean;
-};
+}
 
 /**
  * Interface for exec results returned from synchronous exec functions
@@ -479,7 +479,8 @@ export class ToolRunner extends events.EventEmitter {
         return result;
     }
 
-    private _getSpawnOptions(options: IExecOptions): child.SpawnOptions {
+    private _getSpawnOptions(options?: IExecOptions): child.SpawnOptions {
+        options = options || <IExecOptions>{};
         let result = <child.SpawnOptions>{};
         result.cwd = options.cwd;
         result.env = options.env;
@@ -504,24 +505,29 @@ export class ToolRunner extends events.EventEmitter {
             this._debug('   ' + arg);
         });
 
-        let success = true;
-        options = this._cloneExecOptions(options);
+        // This is a private method, and must be called only when `this.pipeOutputToTool` is set
+        if (!this.pipeOutputToTool) {
+            throw new Error('You must call pipeExecOutputToTool before calling execWithPiping');
+        }
+        const pipeOutputToTool = this.pipeOutputToTool;
 
-        if (!options.silent) {
-            options.outStream.write(this._getCommandString(options) + os.EOL);
+        let success = true;
+        const optionsNonNull = this._cloneExecOptions(options);
+
+        if (!optionsNonNull.silent) {
+            optionsNonNull.outStream.write(this._getCommandString(optionsNonNull) + os.EOL);
         }
 
-        let cp;
-        let toolPath: string = this.toolPath;
+        let cp: child.ChildProcess;
+        let toolPath: string = pipeOutputToTool.toolPath;
         let toolPathFirst: string;
         let successFirst = true;
         let returnCodeFirst: number;
-        let fileStream: fs.WriteStream;
+        let fileStream: fs.WriteStream | null;
         let waitingEvents: number = 0; // number of process or stream events we are waiting on to complete
         let returnCode: number = 0;
-        let error;
+        let error: any;
 
-        toolPath = this.pipeOutputToTool.toolPath;
         toolPathFirst = this.toolPath;
 
         // Following node documentation example from this link on how to pipe output of one process to another
@@ -531,18 +537,18 @@ export class ToolRunner extends events.EventEmitter {
         waitingEvents++;
         var cpFirst = child.spawn(
             this._getSpawnFileName(),
-            this._getSpawnArgs(options),
-            this._getSpawnOptions(options));
-        
+            this._getSpawnArgs(optionsNonNull),
+            this._getSpawnOptions(optionsNonNull));
+
         waitingEvents ++;
         cp = child.spawn(
-            this.pipeOutputToTool._getSpawnFileName(),
-            this.pipeOutputToTool._getSpawnArgs(options),
-            this.pipeOutputToTool._getSpawnOptions(options));
+            pipeOutputToTool._getSpawnFileName(),
+            pipeOutputToTool._getSpawnArgs(optionsNonNull),
+            pipeOutputToTool._getSpawnOptions(optionsNonNull));
 
         fileStream = this.pipeOutputToFile ? fs.createWriteStream(this.pipeOutputToFile) : null;
         if (fileStream) {
-            waitingEvents ++;
+            waitingEvents++;
             fileStream.on('finish', () => {
                 waitingEvents--; //file write is complete
                 fileStream = null;
@@ -554,7 +560,7 @@ export class ToolRunner extends events.EventEmitter {
                     }
                 }
             });
-            fileStream.on('error', (err) => {
+            fileStream.on('error', (err: Error) => {
                 waitingEvents--; //there were errors writing to the file, write is done
                 this._debug(`Failed to pipe output of ${toolPathFirst} to file ${this.pipeOutputToFile}. Error = ${err}`);
                 fileStream = null;
@@ -565,7 +571,7 @@ export class ToolRunner extends events.EventEmitter {
                         defer.resolve(returnCode);
                     }
                 }
-            })
+            });
         }
 
         //pipe stdout of first tool to stdin of second tool
@@ -584,13 +590,13 @@ export class ToolRunner extends events.EventEmitter {
             if (fileStream) {
                 fileStream.write(data);
             }
-            successFirst = !options.failOnStdErr;
-            if (!options.silent) {
-                var s = options.failOnStdErr ? options.errStream : options.outStream;
+            successFirst = !optionsNonNull.failOnStdErr;
+            if (!optionsNonNull.silent) {
+                var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream : optionsNonNull.outStream;
                 s.write(data);
             }
         });
-        cpFirst.on('error', (err) => {
+        cpFirst.on('error', (err: Error) => {
             waitingEvents--; //first process is complete with errors
             if (fileStream) {
                 fileStream.end();
@@ -601,9 +607,9 @@ export class ToolRunner extends events.EventEmitter {
                 defer.reject(error);
             }
         });
-        cpFirst.on('close', (code, signal) => {
+        cpFirst.on('close', (code: number, signal: any) => {
             waitingEvents--; //first process is complete
-            if (code != 0 && !options.ignoreReturnCode) {
+            if (code != 0 && !optionsNonNull.ignoreReturnCode) {
                 successFirst = false;
                 returnCodeFirst = code;
                 returnCode = returnCodeFirst;
@@ -626,8 +632,8 @@ export class ToolRunner extends events.EventEmitter {
         cp.stdout.on('data', (data: Buffer) => {
             this.emit('stdout', data);
 
-            if (!options.silent) {
-                options.outStream.write(data);
+            if (!optionsNonNull.silent) {
+                optionsNonNull.outStream.write(data);
             }
 
             this._processLineBuffer(data, stdbuffer, (line: string) => {
@@ -639,9 +645,9 @@ export class ToolRunner extends events.EventEmitter {
         cp.stderr.on('data', (data: Buffer) => {
             this.emit('stderr', data);
 
-            success = !options.failOnStdErr;
-            if (!options.silent) {
-                var s = options.failOnStdErr ? options.errStream : options.outStream;
+            success = !optionsNonNull.failOnStdErr;
+            if (!optionsNonNull.silent) {
+                var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream : optionsNonNull.outStream;
                 s.write(data);
             }
 
@@ -650,7 +656,7 @@ export class ToolRunner extends events.EventEmitter {
             });
         });
 
-        cp.on('error', (err) => {
+        cp.on('error', (err: Error) => {
             waitingEvents--; //process is done with errors
             error = new Error(toolPath + ' failed. ' + err.message);
             if(waitingEvents == 0) {
@@ -658,7 +664,7 @@ export class ToolRunner extends events.EventEmitter {
             }
         });
 
-        cp.on('close', (code, signal) => {
+        cp.on('close', (code: number, signal: any) => {
             waitingEvents--; //process is complete
             this._debug('rc:' + code);
             returnCode = code;
@@ -671,12 +677,12 @@ export class ToolRunner extends events.EventEmitter {
                 this.emit('errline', errbuffer);
             }
 
-            if (code != 0 && !options.ignoreReturnCode) {
+            if (code != 0 && !optionsNonNull.ignoreReturnCode) {
                 success = false;
             }
 
             this._debug('success:' + success);
-                
+
             if (!successFirst) { //in the case output is piped to another tool, check exit code of both tools
                 error = new Error(toolPathFirst + ' failed with return code: ' + returnCodeFirst);
             } else if (!success) {
@@ -788,25 +794,21 @@ export class ToolRunner extends events.EventEmitter {
             this._debug('   ' + arg);
         });
 
-        options = this._cloneExecOptions(options);
-        if (!options.silent) {
-            options.outStream.write(this._getCommandString(options) + os.EOL);
+        const optionsNonNull = this._cloneExecOptions(options);
+        if (!optionsNonNull.silent) {
+            optionsNonNull.outStream.write(this._getCommandString(optionsNonNull) + os.EOL);
         }
 
-        let state = new ExecState(options, this.toolPath);
-        state.on('debug', (message) => {
+        let state = new ExecState(optionsNonNull, this.toolPath);
+        state.on('debug', (message: string) => {
             this._debug(message);
         });
 
-        let cp = child.spawn(this._getSpawnFileName(), this._getSpawnArgs(options), this._getSpawnOptions(options));
+        let cp = child.spawn(this._getSpawnFileName(), this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(options));
 
         var stdbuffer: string = '';
         cp.stdout.on('data', (data: Buffer) => {
             this.emit('stdout', data);
-
-            if (!clonedOptions.silent) {
-                clonedOptions.outStream.write(data);
-            }
 
             this._processLineBuffer(data, stdbuffer, (line: string) => {
                 this.emit('stdline', line);
@@ -818,8 +820,8 @@ export class ToolRunner extends events.EventEmitter {
             state.processStderr = true;
             this.emit('stderr', data);
 
-            if (!options.silent) {
-                var s = options.failOnStdErr ? options.errStream : options.outStream;
+            if (!optionsNonNull.silent) {
+                var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream : optionsNonNull.outStream;
                 s.write(data);
             }
 
@@ -828,21 +830,21 @@ export class ToolRunner extends events.EventEmitter {
             });
         });
 
-        cp.on('error', (err) => {
+        cp.on('error', (err: Error) => {
             state.processError = err.message;
             state.processExited = true;
             state.processClosed = true;
             state.CheckComplete();
         });
 
-        cp.on('exit', (code, signal) => {
+        cp.on('exit', (code: number, signal: any) => {
             state.processExitCode = code;
             state.processExited = true;
             this._debug(`Exit code ${code} received from tool '${this.toolPath}'`);
             state.CheckComplete()
         });
 
-        cp.on('close', (code, signal) => {
+        cp.on('close', (code: number, signal: any) => {
             state.processExitCode = code;
             state.processExited = true;
             state.processClosed = true;
@@ -850,7 +852,7 @@ export class ToolRunner extends events.EventEmitter {
             state.CheckComplete();
         });
 
-        state.on('done', (error, exitCode) => {
+        state.on('done', (error: Error, exitCode: number) => {
             if (stdbuffer.length > 0) {
                 this.emit('stdline', stdbuffer);
             }
@@ -869,7 +871,7 @@ export class ToolRunner extends events.EventEmitter {
             }
         });
 
-        return <Q.Promise<number>>defer.promise;
+        return defer.promise;
     }
 
     /**
@@ -883,8 +885,6 @@ export class ToolRunner extends events.EventEmitter {
      * @returns   IExecSyncResult
      */
     public execSync(options?: IExecSyncOptions): IExecSyncResult {
-        var defer = Q.defer();
-
         this._debug('exec tool: ' + this.toolPath);
         this._debug('arguments:');
         this.args.forEach((arg) => {
@@ -942,7 +942,7 @@ class ExecState extends events.EventEmitter {
     private delay = 10000; // 10 seconds
     private done: boolean;
     private options: IExecOptions;
-    private timeout;
+    private timeout: NodeJS.Timer | null = null;
     private toolPath: string;
 
     public CheckComplete(): void {
@@ -958,13 +958,13 @@ class ExecState extends events.EventEmitter {
         }
     }
 
-    private _debug(message): void {
+    private _debug(message: any): void {
         this.emit('debug', message);
     }
 
     private _setResult(): void {
         // determine whether there is an error
-        let error: Error;
+        let error: Error | undefined;
         if (this.processExited) {
             if (this.processError) {
                 error = new Error(im._loc('LIB_ProcessError', this.toolPath, this.processError));
