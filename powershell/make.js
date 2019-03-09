@@ -62,7 +62,7 @@ target.build = function() {
 
 target.test = function() {
     util.ensureTool('tsc', '--version', 'Version 1.8.7');
-    util.ensureTool('mocha', '--version', '2.3.3');
+    util.ensureTool('mocha', '--version', '5.2.0');
     target.build();
 
     util.mkdir('-p', testPath);

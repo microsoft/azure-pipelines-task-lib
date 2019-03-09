@@ -1,11 +1,9 @@
 
-# VSTS DevOps Task SDK
+# Azure Pipelines Task SDK
 
-Libraries for writing [Visual Studio Team Services](https://www.visualstudio.com/en-us/products/visual-studio-team-services-vs.aspx) build and deployment tasks
+Libraries for writing [Azure Pipelines](https://azure.microsoft.com/en-us/services/devops/pipelines) tasks
 
-![VSTS](https://mseng.visualstudio.com/DefaultCollection/_apis/public/build/definitions/b924d696-3eae-4116-8443-9a18392d8544/2553/badge)
-
-Reference examples of our in the box tasks [are here](https://github.com/Microsoft/vsts-tasks)
+Reference examples of our in the box tasks [are here](https://github.com/Microsoft/azure-pipelines-tasks)
 
 ## TypeScript Tasks
 
@@ -13,19 +11,25 @@ Cross platform tasks are written in TypeScript.  It is the preferred way to writ
 
 [![NPM version][npm-lib-image]][npm-lib-url]
 
-Step by Step: [Create Task](docs/stepbystep.md)  
+Step by Step: [Create Task](https://docs.microsoft.com/en-us/azure/devops/extend/develop/add-build-task?view=vsts)  
 
-Documentation: [TypeScript API](docs/vsts-task-lib.md), [task JSON schema](https://aka.ms/vsts-tasks.schema.json)
+Documentation: [TypeScript API](docs/azure-pipelines-task-lib.md), [task JSON schema](https://aka.ms/vsts-tasks.schema.json)
 
 Guidance: [Finding Files](docs/findingfiles.md), [Minimum agent version](docs/minagent.md), [Proxy](docs/proxy.md), [Certificate](docs/cert.md)
 
 ## Reference Examples
 
-The [ShellScript Task](https://github.com/Microsoft/vsts-tasks/tree/master/Tasks/ShellScript) and the [XCode Task](https://github.com/Microsoft/vsts-tasks/tree/master/Tasks/Xcode) are good examples.
+The [ShellScript Task](https://github.com/Microsoft/azure-pipelines-tasks/tree/master/Tasks/ShellScriptV2) and the [XCode Task](https://github.com/Microsoft/azure-pipelines-tasks/tree/master/Tasks/XcodeV5) are good examples.
 
 ## Contributing
 
-### Node
+We are accepting contributions and we try to stay on top of issues. 
+
+[Contribution Guide](../CONTRIBUTING.md).
+
+[Logging Issues](https://github.com/Microsoft/azure-pipelines-task-lib/issues)
+
+## Building the library
 
 Once:
 ```bash
@@ -40,8 +44,16 @@ $ npm test
 
 Set environment variable TASK_TEST_TRACE=1 to display test output.
 
-[npm-lib-image]: https://img.shields.io/npm/v/vsts-task-lib.svg?style=flat
-[npm-lib-url]: https://www.npmjs.com/package/vsts-task-lib
+[npm-lib-image]: https://img.shields.io/npm/v/azure-pipelines-task-lib.svg?style=flat
+[npm-lib-url]: https://www.npmjs.com/package/azure-pipelines-task-lib
+
+## Powershell
+
+We also maintain a PowerShell library for Windows task development.
+
+Library: [Powershell Library](../powershell)
+
+Usage: [Consuming the SDK](../powershell/Docs/Consuming.md)
 
 ## Third Party Notices
 To generate/update third party notice file run:

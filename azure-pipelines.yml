@@ -2,21 +2,22 @@ trigger:
 - master
 - features/*
 
-phases:
+jobs:
 #################################################
-- phase: windows
+- job: windows
 #################################################
-  condition: and(succeeded(), eq(variables.os, 'Windows_NT'))
-  queue: Hosted VS2017
+  displayName: windows
+  pool:
+    vmImage: vs2017-win2016
 
   steps:
   ################################################################################
-  # vsts-task-lib
+  # azure-pipelines-task-lib
   ################################################################################
   
   # npm install
   - task: Npm@1
-    displayName: (vsts-task-lib) npm install
+    displayName: (azure-pipelines-task-lib) npm install
     inputs:
       command: install
       workingDir: node
@@ -24,22 +25,26 @@ phases:
   # use node 5
   - powershell: |
       & "$(build.sourcesDirectory)/res/UseNode5.ps1"
-    displayName: (vsts-task-lib) use node 5.10.1
+    displayName: (azure-pipelines-task-lib) use node 5.10.1
 
   # build/test
-  - script: node make.js test
+  - script: |
+      chcp 437
+      node make.js test
     workingDirectory: node
-    displayName: (vsts-task-lib) node make.js test  
+    displayName: (azure-pipelines-task-lib) node make.js test  
 
   # use node 6
   - task: NodeTool@0
-    displayName: (vsts-task-lib) use node 6.10.3
+    displayName: (azure-pipelines-task-lib) use node 6.10.3
     inputs:
       versionSpec: "6.10.3"
 
   # build/test
-  - script: node make.js test
-    displayName: (vsts-task-lib) node make.js test
+  - script: |
+      chcp 437
+      node make.js test
+    displayName: (azure-pipelines-task-lib) node make.js test
     workingDirectory: node
 
   ################################################################################
@@ -59,81 +64,83 @@ phases:
     workingDirectory: powershell
 
 #################################################
-- phase: linux
+- job: linux
 #################################################
-  condition: and(succeeded(), eq(variables.os, 'Linux'))
-  queue: Hosted Linux Preview
+  displayName: Linux
+  pool:
+    vmImage: ubuntu-16.04
 
   steps:
   ################################################################################
-  # vsts-task-lib
+  # azure-pipelines-task-lib
   ################################################################################
   
   # npm install
   - task: Npm@1
-    displayName: (vsts-task-lib) npm install
+    displayName: (azure-pipelines-task-lib) npm install
     inputs:
       command: install
       workingDir: node
 
   # use node 5
   - task: NodeTool@0
-    displayName: (vsts-task-lib) use node 5.10.1
+    displayName: (azure-pipelines-task-lib) use node 5.10.1
     inputs:
       versionSpec: "5.10.1"
       
   # build/test
   - script: node make.js test
     workingDirectory: node
-    displayName: (vsts-task-lib) node make.js test  
+    displayName: (azure-pipelines-task-lib) node make.js test  
 
   # use node 6
   - task: NodeTool@0
-    displayName: (vsts-task-lib) use node 6.10.3
+    displayName: (azure-pipelines-task-lib) use node 6.10.3
     inputs:
       versionSpec: "6.10.3"
 
   # build/test
   - script: node make.js test
-    displayName: (vsts-task-lib) node make.js test
+    displayName: (azure-pipelines-task-lib) node make.js test
     workingDirectory: node
 
 #################################################
-- phase: macOS
+- job: macOS
 #################################################
-  condition: and(succeeded(), eq(variables.os, 'Darwin'))
-  queue: Hosted macOS Preview
+  displayName: macOS
+  pool:
+    vmImage: macOS-10.13
 
   steps:
   ################################################################################
-  # vsts-task-lib
+  # azure-pipelines-task-lib
   ################################################################################
   
   # npm install
   - task: Npm@1
-    displayName: (vsts-task-lib) npm install
+    displayName: (azure-pipelines-task-lib) npm install
     inputs:
       command: install
       workingDir: node
 
   # use node 5
   - task: NodeTool@0
-    displayName: (vsts-task-lib) use node 5.10.1
+    displayName: (azure-pipelines-task-lib) use node 5.10.1
     inputs:
       versionSpec: "5.10.1"
       
   # build/test
   - script: node make.js test
     workingDirectory: node
-    displayName: (vsts-task-lib) node make.js test  
+    displayName: (azure-pipelines-task-lib) node make.js test  
 
   # use node 6
   - task: NodeTool@0
-    displayName: (vsts-task-lib) use node 6.10.3
+    displayName: (azure-pipelines-task-lib) use node 6.10.3
     inputs:
       versionSpec: "6.10.3"
 
   # build/test
   - script: node make.js test
-    displayName: (vsts-task-lib) node make.js test
+    displayName: (azure-pipelines-task-lib) node make.js test
     workingDirectory: node
