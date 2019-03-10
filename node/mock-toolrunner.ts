@@ -11,7 +11,7 @@ export function setAnswers(answers: ma.TaskLibAnswers) {
     mock.initialize(answers);
 }
 
-var run = function(cmd, callback) {
+var run = function(cmd, callback) {F
     console.log('running: ' + cmd);
     var output = '';
     try {
@@ -24,17 +24,17 @@ var run = function(cmd, callback) {
 }
 
 export interface IExecOptions extends IExecSyncOptions {
-    failOnStdErr: boolean;
-    ignoreReturnCode: boolean;
+    failOnStdErr?: boolean;
+    ignoreReturnCode?: boolean;
 };
 
 export interface IExecSyncOptions {
-    cwd: string;
-    env: { [key: string]: string };
-    silent: boolean;
+    cwd?: string;
+    env?: { [key: string]: string };
+    silent?: boolean;
     outStream: NodeJS.WritableStream;
     errStream: NodeJS.WritableStream;
-    windowsVerbatimArguments: boolean;
+    windowsVerbatimArguments?: boolean;
 };
 
 export interface IExecSyncResult {
