@@ -13,10 +13,10 @@ import fs = require('fs');
  */
 export interface IExecOptions extends IExecSyncOptions {
     /** optional.  whether to fail if output to stderr.  defaults to false */
-    failOnStdErr: boolean;
+    failOnStdErr?: boolean;
 
     /** optional.  defaults to failing on non zero.  ignore will not fail leaving it up to the caller */
-    ignoreReturnCode: boolean;
+    ignoreReturnCode?: boolean;
 }
 
 /**
@@ -24,20 +24,20 @@ export interface IExecOptions extends IExecSyncOptions {
  */
 export interface IExecSyncOptions {
     /** optional working directory.  defaults to current */
-    cwd: string;
+    cwd?: string;
 
     /** optional envvar dictionary.  defaults to current process's env */
-    env: { [key: string]: string };
+    env?: { [key: string]: string };
 
     /** optional.  defaults to false */
-    silent: boolean;
+    silent?: boolean;
 
     outStream: stream.Writable;
 
     errStream: stream.Writable;
 
     /** optional.  foo.whether to skip quoting/escaping arguments if needed.  defaults to false. */
-    windowsVerbatimArguments: boolean;
+    windowsVerbatimArguments?: boolean;
 }
 
 /**
