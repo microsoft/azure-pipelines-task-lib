@@ -1199,7 +1199,7 @@ export function rmRF(path: string): void {
  */
 export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Promise<number> {
     let tr: trm.ToolRunner = this.tool(tool);
-    tr.on('debug', (data) => {
+    tr.on('debug', (data: string) => {
         debug(data);
     });
 

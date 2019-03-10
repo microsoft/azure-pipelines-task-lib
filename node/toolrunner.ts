@@ -496,7 +496,7 @@ export class ToolRunner extends events.EventEmitter {
         return result;
     }
 
-    private execWithPiping(options?: IExecOptions): Q.Promise<number> {
+    private execWithPiping(pipeOutputToTool: ToolRunner, options?: IExecOptions): Q.Promise<number> {
         var defer = Q.defer<number>();
 
         this._debug('exec tool: ' + this.toolPath);
@@ -504,12 +504,6 @@ export class ToolRunner extends events.EventEmitter {
         this.args.forEach((arg) => {
             this._debug('   ' + arg);
         });
-
-        // This is a private method, and must be called only when `this.pipeOutputToTool` is set
-        if (!this.pipeOutputToTool) {
-            throw new Error('You must call pipeExecOutputToTool before calling execWithPiping');
-        }
-        const pipeOutputToTool = this.pipeOutputToTool;
 
         let success = true;
         const optionsNonNull = this._cloneExecOptions(options);
@@ -783,7 +777,7 @@ export class ToolRunner extends events.EventEmitter {
      */
     public exec(options?: IExecOptions): Q.Promise<number> {
         if (this.pipeOutputToTool) {
-            return this.execWithPiping(options);
+            return this.execWithPiping(this.pipeOutputToTool, options);
         }
 
         var defer = Q.defer<number>();
