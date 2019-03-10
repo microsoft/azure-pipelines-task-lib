@@ -1,7 +1,6 @@
 
 import Q = require('q');
 import os = require('os');
-import path = require('path');
 import events = require('events');
 import ma = require('./mock-answer');
 
@@ -9,18 +8,6 @@ let mock: ma.MockAnswers = new ma.MockAnswers();
 
 export function setAnswers(answers: ma.TaskLibAnswers) {
     mock.initialize(answers);
-}
-
-var run = function(cmd, callback) {F
-    console.log('running: ' + cmd);
-    var output = '';
-    try {
-
-    }
-    catch (err) {
-        console.log(err.message);
-    }
-
 }
 
 export interface IExecOptions extends IExecSyncOptions {
