@@ -5,6 +5,7 @@ import os = require('os');
 import path = require('path');
 import cmdm = require('./taskcommand');
 import semver = require('semver');
+import shelljs = require('shelljs');
 import syncRequest = require('sync-request');
 
 const COMMAND_TAG = '[command]';
@@ -235,7 +236,7 @@ export class MockTestRunner {
             throw new Error('Parameter "downloadDestination" must be set.');
         }
         console.log('Downloading file:', url);
-        fs.mkdirSync(downloadDestination);
+        shelljs.mkdir('-p', downloadDestination);
         const result: any = syncRequest('GET', url);
         fs.writeFileSync(path.join(downloadDestination, fileName), result.getBody());
     }
