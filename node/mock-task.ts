@@ -463,6 +463,6 @@ export function getHttpProxyConfiguration(requestUrl?: string): task.ProxyConfig
 //-----------------------------------------------------
 // Http Certificate Helper
 //-----------------------------------------------------
-export function getHttpCertConfiguration(): task.ProxyConfiguration | null {
+export function getHttpCertConfiguration(): task.CertConfiguration | null {
     return null
 }
