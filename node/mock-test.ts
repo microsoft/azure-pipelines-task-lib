@@ -37,11 +37,11 @@ export class MockTestRunner {
     }
 
     public stdOutContained(message: string): boolean {
-        return this.stdout.indexOf(message.trim()) > 0;
+        return this.stdout.indexOf(message) > 0;
     }
 
     public stdErrContained(message: string): boolean {
-        return this.stderr.indexOf(message.trim()) > 0;
+        return this.stderr.indexOf(message) > 0;
     }
 
     public run(): void {

@@ -804,6 +804,10 @@ export class ToolRunner extends events.EventEmitter {
         cp.stdout.on('data', (data: Buffer) => {
             this.emit('stdout', data);
 
+            if (!optionsNonNull.silent) {
+                optionsNonNull.outStream.write(data);
+            }
+
             this._processLineBuffer(data, stdbuffer, (line: string) => {
                 this.emit('stdline', line);
             });
