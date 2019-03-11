@@ -3,7 +3,8 @@
         "target": "ES5",
         "module": "commonjs",
         "declaration": true,
-        "moduleResolution": "node"
+        "moduleResolution": "node",
+        "strictNullChecks": true
     },
     "files": [
         "index.ts",
