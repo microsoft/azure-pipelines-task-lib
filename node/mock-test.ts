@@ -4,7 +4,6 @@ import ncp = require('child_process');
 import os = require('os');
 import path = require('path');
 import cmdm = require('./taskcommand');
-import semver = require('semver');
 import shelljs = require('shelljs');
 import syncRequest = require('sync-request');
 
@@ -238,6 +237,10 @@ export class MockTestRunner {
 
     // Downloads file to the downloadDestination, making any necessary folders along the way.
     private downloadFile(url: string, downloadDestination: string, fileName: string): void {
+        const filePath: string = path.join(downloadDestination, fileName);
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+        }
         if (!url) {
             throw new Error('Parameter "url" must be set.');
         }
@@ -247,7 +250,7 @@ export class MockTestRunner {
         console.log('Downloading file:', url);
         shelljs.mkdir('-p', downloadDestination);
         const result: any = syncRequest('GET', url);
-        fs.writeFileSync(path.join(downloadDestination, fileName), result.getBody());
+        fs.writeFileSync(filePath, result.getBody());
     }
 
     // Downloads tarGz to the download destination, making any necessary folders along the way.
