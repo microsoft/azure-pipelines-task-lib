@@ -254,7 +254,7 @@ export class MockTestRunner {
         
         // Extract file
         const originalCwd: string = process.cwd();
-        this.cd(downloadDestination);
+        process.chdir(downloadDestination);
         try {
             ncp.execSync(`tar -xzf "${path.join(downloadDestination, tarGzName)}"`);
         }
@@ -262,7 +262,7 @@ export class MockTestRunner {
             throw new Error('Failed to unzip node tar.gz from ' + url);
         }
         finally {
-            this.cd(originalCwd);
+            process.chdir(originalCwd);
         }
     }
 
@@ -293,16 +293,5 @@ export class MockTestRunner {
             throw new Error('Unexpected platform: ' + platform);
         }
         return platform;
-    }
-
-    private cd(dir: string): void {
-        var cwd: string = process.cwd();
-        if (cwd != dir) {
-            shelljs.cd(dir);
-            var errMsg: string = shelljs.error();
-            if (errMsg) {
-                throw new Error(errMsg);
-            }
-        }
     }
 }
