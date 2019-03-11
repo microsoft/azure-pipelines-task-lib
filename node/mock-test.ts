@@ -167,24 +167,28 @@ export class MockTestRunner {
             console.warn('Unable to find task.json, defaulting to use Node 10');
             return 10;
         }
-        const taskJson: object = require(taskJsonPath);
+        const taskJsonContents = fs.readFileSync(taskJsonPath, { encoding: 'utf-8' });
+        const taskJson: object = JSON.parse(taskJsonContents);
 
+        let nodeVersionFound = false;
         const execution: object = taskJson['execution'];
-        let nodeVersion: number = 0;
-        Object.keys(execution).forEach((key: string) => {
-            if (key.toLowerCase() == 'node') {
-                nodeVersion = 6;
+        const keys = Object.keys(execution);
+        for (let i = 0; i < keys.length; i++) {
+            if (keys[i].toLowerCase() == 'node10') {
+                // Prefer node 10 and return immediately.
+                return 10;
             }
-            else if (key.toLowerCase() == 'node10') {
-                nodeVersion = 10;
+            else if (keys[i].toLowerCase() == 'node') {
+                nodeVersionFound = true;
             }
-        });
-        if (nodeVersion == 0) {
+        }
+
+        if (!nodeVersionFound) {
             console.warn('Unable to determine execution type from task.json, defaulting to use Node 10');
             return 10;
         }
 
-        return nodeVersion;
+        return 6;
     }
 
     // Returns the path to the task.json for the task being tested. Returns null if unable to find it.
@@ -223,7 +227,7 @@ export class MockTestRunner {
         }
     }
 
-    //Downloads file to the downloadDestination, making any necessary folders along the way.
+    // Downloads file to the downloadDestination, making any necessary folders along the way.
     private downloadFile(url: string, downloadDestination: string, fileName: string): void {
         if (!url) {
             throw new Error('Parameter "url" must be set.');
