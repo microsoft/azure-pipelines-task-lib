@@ -213,18 +213,27 @@ export class MockTestRunner {
     // Downloads the specified node version to the download destination. Returns a path to node.exe
     private downloadNode(nodeVersion: string, downloadDestination: string): string {
         const nodeUrl: string = 'https://nodejs.org/dist';
+        let downloadPath = '';
         switch (this.getPlatform()) {
             case 'darwin':
                 this.downloadTarGz(nodeUrl + '/' + nodeVersion + '/node-' + nodeVersion + '-darwin-x64.tar.gz', downloadDestination);
-                return path.join(downloadDestination, 'node-' + nodeVersion + '-darwin-x64', 'bin', 'node');
+                downloadPath = path.join(downloadDestination, 'node-' + nodeVersion + '-darwin-x64', 'bin', 'node');
+                break;
             case 'linux':
                 this.downloadTarGz(nodeUrl + '/' + nodeVersion + '/node-' + nodeVersion + '-linux-x64.tar.gz', downloadDestination);
-                return path.join(downloadDestination, 'node-' + nodeVersion + '-linux-x64', 'bin', 'node');
+                downloadPath = path.join(downloadDestination, 'node-' + nodeVersion + '-linux-x64', 'bin', 'node');
+                break;
             case 'win32':
                 this.downloadFile(nodeUrl + '/' + nodeVersion + '/win-x64/node.exe', downloadDestination, 'node.exe');
                 this.downloadFile(nodeUrl + '/' + nodeVersion + '/win-x64/node.lib', downloadDestination, 'node.lib');
-                return path.join(downloadDestination, 'node.exe')
+                downloadPath = path.join(downloadDestination, 'node.exe')
         }
+
+        // Write marker to indicate download completed.
+        const marker = downloadDestination + '.completed';
+        fs.writeFileSync(marker, '');
+
+        return downloadPath;
     }
 
     // Downloads file to the downloadDestination, making any necessary folders along the way.
@@ -279,7 +288,11 @@ export class MockTestRunner {
             case 'win32':
                 exePath = path.join(downloadDestination, 'node.exe');
         }
-        if (fs.existsSync(exePath)) {
+
+        // Only use path if marker is found indicating download completed successfully (and not partially)
+        const marker = downloadDestination + '.completed';
+
+        if (fs.existsSync(exePath) && fs.existsSync(marker)) {
             return exePath;
         }
         else {
