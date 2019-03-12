@@ -2,8 +2,6 @@
 import Q = require('q');
 import path = require('path');
 import fs = require('fs');
-import os = require('os');
-import util = require('util');
 import task = require('./task');
 import tcm = require('./taskcommand');
 import trm = require('./mock-toolrunner');
@@ -16,29 +14,23 @@ export function setAnswers(answers: ma.TaskLibAnswers) {
     trm.setAnswers(answers);
 }
 
+//-----------------------------------------------------
+// Enums
+//-----------------------------------------------------
+
 module.exports.TaskResult = task.TaskResult;
-
-//-----------------------------------------------------
-// General Helpers
-//-----------------------------------------------------
-let _outStream = process.stdout;
-let _errStream = process.stderr;
-
-function _writeError(str: string): void {
-    _errStream.write(str + os.EOL);
-}
-
-function _writeLine(str: string): void {
-    _outStream.write(str + os.EOL);
-}
-
-module.exports.setStdStream = task.setStdStream;
-module.exports.setErrStream = task.setErrStream;
+module.exports.TaskState = task.TaskState;
+module.exports.IssueType = task.IssueType;
+module.exports.ArtifactType = task.ArtifactType;
+module.exports.FieldType = task.FieldType;
+module.exports.Platform = task.Platform;
 
 //-----------------------------------------------------
 // Results and Exiting
 //-----------------------------------------------------
 
+module.exports.setStdStream = task.setStdStream;
+module.exports.setErrStream = task.setErrStream;
 module.exports.setResult = task.setResult;
 
 //-----------------------------------------------------
