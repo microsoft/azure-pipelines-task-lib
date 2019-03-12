@@ -55,8 +55,8 @@ export class Vault {
         return true;
     }
 
-    public retrieveSecret(name: string): string {
-        var secret = null;
+    public retrieveSecret(name: string): string | undefined {
+        var secret: string | undefined;
         name = (name || '').toLowerCase()
 
         if (this._store.hasOwnProperty(name)) {
@@ -85,5 +85,5 @@ export class Vault {
 
     private genKey(): void {
         fs.writeFileSync(this._keyFile, uuidV4(), {encoding: 'utf8'});
-    } 
+    }
 }
