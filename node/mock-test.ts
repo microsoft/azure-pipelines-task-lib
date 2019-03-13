@@ -211,6 +211,7 @@ export class MockTestRunner {
 
     // Downloads the specified node version to the download destination. Returns a path to node.exe
     private downloadNode(nodeVersion: string, downloadDestination: string): string {
+        shelljs.rm('-rf', downloadDestination);
         const nodeUrl: string = 'https://nodejs.org/dist';
         let downloadPath = '';
         switch (this.getPlatform()) {
@@ -238,9 +239,6 @@ export class MockTestRunner {
     // Downloads file to the downloadDestination, making any necessary folders along the way.
     private downloadFile(url: string, downloadDestination: string, fileName: string): void {
         const filePath: string = path.join(downloadDestination, fileName);
-        if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-        }
         if (!url) {
             throw new Error('Parameter "url" must be set.');
         }
