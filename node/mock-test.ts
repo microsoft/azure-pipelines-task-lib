@@ -13,7 +13,7 @@ const downloadDirectory = path.join(process.env.HOME || process.env.HOMEPATH || 
 
 export class MockTestRunner {
     constructor(testPath: string, taskJsonPath?: string) {
-        this._taskJsonPath = taskJsonPath;
+        this._taskJsonPath = taskJsonPath || '';
         this._testPath = testPath;
         this.nodePath = this.getNodePath();
     }
@@ -280,7 +280,7 @@ export class MockTestRunner {
 
     // Checks if node is installed at downloadDestination. If it is, returns a path to node.exe, otherwise returns null.
     private getPathToNodeExe(nodeVersion: string, downloadDestination: string): string {
-        let exePath: string;
+        let exePath = '';
         switch (this.getPlatform()) {
             case 'darwin':
                 exePath = path.join(downloadDestination, 'node-' + nodeVersion + '-darwin-x64', 'bin', 'node');
@@ -299,7 +299,7 @@ export class MockTestRunner {
             return exePath;
         }
         else {
-            return null;
+            return '';
         }
     }
 
