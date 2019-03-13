@@ -206,7 +206,7 @@ export class MockTestRunner {
             }
             newPath = path.join(curPath, '..');
         }
-        return null;
+        return '';
     }
 
     // Downloads the specified node version to the download destination. Returns a path to node.exe
