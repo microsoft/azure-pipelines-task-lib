@@ -18,21 +18,21 @@ export class MockTestRunner {
         this.nodePath = this.getNodePath();
     }
 
-    private _testPath: string;
-    private _taskJsonPath: string;
-    public nodePath: string;
-    public stdout: string;
-    public stderr: string;
-    public cmdlines: any;
-    public invokedToolCount: number;
-    public succeeded: boolean;
-    public errorIssues: string[];
-    public warningIssues: string[];
+    private _testPath = '';
+    private _taskJsonPath = '';
+    public nodePath = '';
+    public stdout = '';
+    public stderr = '';
+    public cmdlines = {};
+    public invokedToolCount = 0;
+    public succeeded = false;
+    public errorIssues: string[] = [];
+    public warningIssues: string[] = [];
 
     get failed(): boolean {
         return !this.succeeded;
     }
-    
+
     public ran(cmdline: string): boolean {
         return this.cmdlines.hasOwnProperty(cmdline.trim());
     }
@@ -43,14 +43,14 @@ export class MockTestRunner {
 
     public createdWarningIssue(message: string): boolean {
         return this.warningIssues.indexOf(message.trim()) >= 0;
-    }    
+    }
 
     public stdOutContained(message: string): boolean {
-        return this.stdout && this.stdout.indexOf(message) > 0;
+        return this.stdout.indexOf(message) > 0;
     }
 
     public stdErrContained(message: string): boolean {
-        return this.stderr && this.stderr.indexOf(message) > 0;
+        return this.stderr.indexOf(message) > 0;
     }
 
     public run(nodeVersion?: number): void {
@@ -83,7 +83,7 @@ export class MockTestRunner {
         let traceFile: string = this._testPath + '.log';
         lines.forEach((line: string) => {
             let ci = line.indexOf('##vso[');
-            let cmd: cmdm.TaskCommand;
+            let cmd: cmdm.TaskCommand | undefined;
             let cmi = line.indexOf(COMMAND_TAG);
             if (ci >= 0) {
                 cmd = cmdm.commandFromString(line.substring(ci));
