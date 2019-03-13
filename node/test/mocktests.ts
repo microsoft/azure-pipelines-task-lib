@@ -11,7 +11,10 @@ import * as mtr from '../_build/mock-toolrunner';
 import * as ma from '../_build/mock-answer';
 import * as tl from '../_build/task';
 
+import ncp = require('child_process');
 import os = require('os');
+import path = require('path');
+import semver = require('semver');
 import testutil = require('./testutil');
 
 describe('Mock Tests', function () {
@@ -279,5 +282,25 @@ describe('Mock Tests', function () {
         
         assert.equal(numStdLineCalls, 1);
         assert.equal(numStdErrCalls, 1);
+    })
+
+    it('MockTest handles node 6 tasks correctly', function (done) {
+        this.timeout(10000);
+        const runner = new mtm.MockTestRunner(path.join(__dirname, 'fakeTasks', 'node6task', 'entry.js'));
+        const nodePath = runner.nodePath;
+        assert(nodePath, 'node path should have been correctly set');
+        const version = ncp.execSync(nodePath + ' -v').toString().trim();
+        assert(semver.satisfies(version, '6.x'), 'Downloaded node version should be Node 6 instead of ' + version);
+        done();
+    })
+
+    it('MockTest handles node 10 tasks correctly', function (done) {
+        this.timeout(10000);
+        const runner = new mtm.MockTestRunner(path.join(__dirname, 'fakeTasks', 'node10task', 'entry.js'));
+        const nodePath = runner.nodePath;
+        assert(nodePath, 'node path should have been correctly set');
+        const version = ncp.execSync(nodePath + ' -v').toString().trim();
+        assert(semver.satisfies(version, '10.x'), 'Downloaded node version should be Node 10 instead of ' + version);
+        done();
     })
 });

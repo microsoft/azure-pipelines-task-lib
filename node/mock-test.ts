@@ -1,19 +1,28 @@
 import cp = require('child_process');
 import fs = require('fs');
-import path = require('path');
+import ncp = require('child_process');
 import os = require('os');
+import path = require('path');
 import cmdm = require('./taskcommand');
 import shelljs = require('shelljs');
+import syncRequest = require('sync-request');
 
 const COMMAND_TAG = '[command]';
 const COMMAND_LENGTH = COMMAND_TAG.length;
+const downloadDirectory = path.join(process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE, 'azure-pipelines-task-lib', '_download');
 
 export class MockTestRunner {
-    constructor(private _testPath: string) {
+    constructor(testPath: string, taskJsonPath?: string) {
+        this._taskJsonPath = taskJsonPath || '';
+        this._testPath = testPath;
+        this.nodePath = this.getNodePath();
     }
 
+    private _testPath = '';
+    private _taskJsonPath = '';
+    public nodePath = '';
     public stdout = '';
-    public stderr = ''
+    public stderr = '';
     public cmdlines = {};
     public invokedToolCount = 0;
     public succeeded = false;
@@ -44,7 +53,7 @@ export class MockTestRunner {
         return this.stderr.indexOf(message) > 0;
     }
 
-    public run(): void {
+    public run(nodeVersion?: number): void {
         this.cmdlines = {};
         this.invokedToolCount = 0;
         this.succeeded = true;
@@ -52,14 +61,10 @@ export class MockTestRunner {
         this.errorIssues = [];
         this.warningIssues = [];
 
-        // we use node in the path.
-        // if you want to test with a specific node, ensure it's in the path
-        let nodePath = shelljs.which('node');
-        if (!nodePath) {
-            console.error('Could not find node in path');
-            return;
+        let nodePath = this.nodePath;
+        if (nodeVersion) {
+            nodePath = this.getNodePath(nodeVersion);
         }
-
         let spawn = cp.spawnSync(nodePath, [this._testPath]);
         if (spawn.error) {
             console.error('Running test failed');
@@ -122,5 +127,185 @@ export class MockTestRunner {
         if (process.env['TASK_TEST_TRACE']) {
             console.log('TRACE FILE: ' + traceFile);
         }
+    }
+
+    // Returns a path to node.exe with the correct version for this task (based on if its node10 or node)
+    private getNodePath(nodeVersion?: number): string {
+        const version: number = nodeVersion || this.getNodeVersion();
+
+        let downloadVersion: string;
+        switch (version) {
+            case 5:
+                downloadVersion = 'v5.10.1';
+                break;
+            case 6:
+                downloadVersion = 'v6.10.3';
+                break;
+            case 10:
+                downloadVersion = 'v10.15.1';
+                break;
+            default:
+                throw new Error('Invalid node version, must be 5, 6, or 10 (received ' + version + ')');
+        }
+
+        // Install node in home directory if it isn't already there.
+        const downloadDestination: string = path.join(downloadDirectory, 'node' + version);
+        const pathToExe: string = this.getPathToNodeExe(downloadVersion, downloadDestination);
+        if (pathToExe) {
+            return pathToExe;
+        }
+        else {
+            return this.downloadNode(downloadVersion, downloadDestination);
+        }
+    }
+
+    // Determines the correct version of node to use based on the contents of the task's task.json. Defaults to Node 10.
+    private getNodeVersion(): number {
+        const taskJsonPath: string = this.getTaskJsonPath();
+        if (!taskJsonPath) {
+            console.warn('Unable to find task.json, defaulting to use Node 10');
+            return 10;
+        }
+        const taskJsonContents = fs.readFileSync(taskJsonPath, { encoding: 'utf-8' });
+        const taskJson: object = JSON.parse(taskJsonContents);
+
+        let nodeVersionFound = false;
+        const execution: object = taskJson['execution'];
+        const keys = Object.keys(execution);
+        for (let i = 0; i < keys.length; i++) {
+            if (keys[i].toLowerCase() == 'node10') {
+                // Prefer node 10 and return immediately.
+                return 10;
+            }
+            else if (keys[i].toLowerCase() == 'node') {
+                nodeVersionFound = true;
+            }
+        }
+
+        if (!nodeVersionFound) {
+            console.warn('Unable to determine execution type from task.json, defaulting to use Node 10');
+            return 10;
+        }
+
+        return 6;
+    }
+
+    // Returns the path to the task.json for the task being tested. Returns null if unable to find it.
+    // Searches by moving up the directory structure from the initial starting point and checking at each level.
+    private getTaskJsonPath(): string {
+        if (this._taskJsonPath) {
+            return this._taskJsonPath;
+        }
+        let curPath: string = this._testPath;
+        let newPath: string = path.join(this._testPath, '..');
+        while (curPath != newPath) {
+            curPath = newPath;
+            let taskJsonPath: string = path.join(curPath, 'task.json');
+            if (fs.existsSync(taskJsonPath)) {
+                return taskJsonPath;
+            }
+            newPath = path.join(curPath, '..');
+        }
+        return '';
+    }
+
+    // Downloads the specified node version to the download destination. Returns a path to node.exe
+    private downloadNode(nodeVersion: string, downloadDestination: string): string {
+        shelljs.rm('-rf', downloadDestination);
+        const nodeUrl: string = 'https://nodejs.org/dist';
+        let downloadPath = '';
+        switch (this.getPlatform()) {
+            case 'darwin':
+                this.downloadTarGz(nodeUrl + '/' + nodeVersion + '/node-' + nodeVersion + '-darwin-x64.tar.gz', downloadDestination);
+                downloadPath = path.join(downloadDestination, 'node-' + nodeVersion + '-darwin-x64', 'bin', 'node');
+                break;
+            case 'linux':
+                this.downloadTarGz(nodeUrl + '/' + nodeVersion + '/node-' + nodeVersion + '-linux-x64.tar.gz', downloadDestination);
+                downloadPath = path.join(downloadDestination, 'node-' + nodeVersion + '-linux-x64', 'bin', 'node');
+                break;
+            case 'win32':
+                this.downloadFile(nodeUrl + '/' + nodeVersion + '/win-x64/node.exe', downloadDestination, 'node.exe');
+                this.downloadFile(nodeUrl + '/' + nodeVersion + '/win-x64/node.lib', downloadDestination, 'node.lib');
+                downloadPath = path.join(downloadDestination, 'node.exe')
+        }
+
+        // Write marker to indicate download completed.
+        const marker = downloadDestination + '.completed';
+        fs.writeFileSync(marker, '');
+
+        return downloadPath;
+    }
+
+    // Downloads file to the downloadDestination, making any necessary folders along the way.
+    private downloadFile(url: string, downloadDestination: string, fileName: string): void {
+        const filePath: string = path.join(downloadDestination, fileName);
+        if (!url) {
+            throw new Error('Parameter "url" must be set.');
+        }
+        if (!downloadDestination) {
+            throw new Error('Parameter "downloadDestination" must be set.');
+        }
+        console.log('Downloading file:', url);
+        shelljs.mkdir('-p', downloadDestination);
+        const result: any = syncRequest('GET', url);
+        fs.writeFileSync(filePath, result.getBody());
+    }
+
+    // Downloads tarGz to the download destination, making any necessary folders along the way.
+    private downloadTarGz(url: string, downloadDestination: string): void {
+        if (!url) {
+            throw new Error('Parameter "url" must be set.');
+        }
+        if (!downloadDestination) {
+            throw new Error('Parameter "downloadDestination" must be set.');
+        }
+        const tarGzName: string = 'node.tar.gz';
+        this.downloadFile(url, downloadDestination, tarGzName);
+        
+        // Extract file
+        const originalCwd: string = process.cwd();
+        process.chdir(downloadDestination);
+        try {
+            ncp.execSync(`tar -xzf "${path.join(downloadDestination, tarGzName)}"`);
+        }
+        catch {
+            throw new Error('Failed to unzip node tar.gz from ' + url);
+        }
+        finally {
+            process.chdir(originalCwd);
+        }
+    }
+
+    // Checks if node is installed at downloadDestination. If it is, returns a path to node.exe, otherwise returns null.
+    private getPathToNodeExe(nodeVersion: string, downloadDestination: string): string {
+        let exePath = '';
+        switch (this.getPlatform()) {
+            case 'darwin':
+                exePath = path.join(downloadDestination, 'node-' + nodeVersion + '-darwin-x64', 'bin', 'node');
+                break;
+            case 'linux':
+                exePath = path.join(downloadDestination, 'node-' + nodeVersion + '-linux-x64', 'bin', 'node');
+                break;
+            case 'win32':
+                exePath = path.join(downloadDestination, 'node.exe');
+        }
+
+        // Only use path if marker is found indicating download completed successfully (and not partially)
+        const marker = downloadDestination + '.completed';
+
+        if (fs.existsSync(exePath) && fs.existsSync(marker)) {
+            return exePath;
+        }
+        else {
+            return '';
+        }
+    }
+
+    private getPlatform(): string {
+        let platform: string = os.platform();
+        if (platform != 'darwin' && platform != 'linux' && platform != 'win32') {
+            throw new Error('Unexpected platform: ' + platform);
+        }
+        return platform;
     }
 }
