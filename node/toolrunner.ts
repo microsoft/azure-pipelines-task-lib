@@ -170,6 +170,10 @@ export class ToolRunner extends events.EventEmitter {
             // on Unix, execvp() takes an arg array.
             cmd += toolPath;
             args.forEach((a: string): void => {
+                // Prefix all occurences of '"' character with '\' character explicitly,
+                // so that the arguments containing double quotes are printed correctly
+                // in the logs.
+                a = a.replace(/\"/g, "\\\"");
                 cmd += ` ${a}`;
             });
         }
