@@ -54,6 +54,7 @@ export function loc(key: string, ...args: any[]): string {
 //-----------------------------------------------------
 module.exports.getVariable = task.getVariable;
 module.exports.setVariable = task.setVariable;
+module.exports.setSecret = task.setSecret;
 module.exports.getTaskVariable = task.getTaskVariable;
 module.exports.setTaskVariable = task.setTaskVariable;
 module.exports.getInput = task.getInput;
