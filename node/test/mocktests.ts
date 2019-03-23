@@ -33,16 +33,10 @@ describe('Mock Tests', function () {
 
     });
 
-    // Verify mock-task exports all the non-deprecated functions exported by task. If a task-lib function isn't mocked,
+    // Verify mock-task exports all the exported functions exported by task. If a task-lib function isn't mocked,
     // it's difficult to use in a task with unit tests.
     it('mock-task exports every function in task', (done) => {
         for (let memberName of Object.keys(tl)) {
-            // Deprecated functions don't need to be implemented.
-            // Tasks should updated instead.
-            if (memberName.toLowerCase().startsWith('legacy')) {
-                continue;
-            }
-
             const member = tl[memberName];
 
             if (typeof member === 'function') {

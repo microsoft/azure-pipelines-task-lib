@@ -16,6 +16,7 @@ export interface TaskLibAnswers {
     find?: { [key: string]: string[] },
     findMatch?: { [key: string]: string[] },
     getPlatform?: { [key: string]: task.Platform },
+    legacyFindFiles?: { [key: string]: string[] },
     ls?: { [key: string]: string },
     osType?: { [key: string]: string },
     rmRF?: { [key: string]: { success: boolean } },

@@ -357,6 +357,10 @@ export function findMatch(defaultRoot: string, patterns: string[] | string) : st
     return mock.getResponse('findMatch', responseKey, module.exports.debug);
 }
 
+export function legacyFindFiles(rootDirectory: string, pattern: string, includeFiles?: boolean, includeDirectories?: boolean) : string[] {
+    return mock.getResponse('legacyFindFiles', pattern, module.exports.debug);
+}
+
 //-----------------------------------------------------
 // Test Publisher
 //-----------------------------------------------------
