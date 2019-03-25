@@ -52,7 +52,9 @@ export function loc(key: string, ...args: any[]): string {
 //-----------------------------------------------------
 // Input Helpers
 //-----------------------------------------------------
+module.exports.assertAgent = task.assertAgent;
 module.exports.getVariable = task.getVariable;
+module.exports.getVariables = task.getVariables;
 module.exports.setVariable = task.setVariable;
 module.exports.setSecret = task.setSecret;
 module.exports.getTaskVariable = task.getTaskVariable;
@@ -200,6 +202,10 @@ export function writeFile(file: string, data: string|Buffer, options?: string|Fs
 
 export function osType(): string {
     return mock.getResponse('osType', 'osType', module.exports.debug);
+}
+
+export function getPlatform(): task.Platform {
+    return mock.getResponse('getPlatform', 'getPlatform', module.exports.debug);
 }
 
 export function cwd(): string {
@@ -351,6 +357,10 @@ export function findMatch(defaultRoot: string, patterns: string[] | string) : st
     return mock.getResponse('findMatch', responseKey, module.exports.debug);
 }
 
+export function legacyFindFiles(rootDirectory: string, pattern: string, includeFiles?: boolean, includeDirectories?: boolean) : string[] {
+    return mock.getResponse('legacyFindFiles', pattern, module.exports.debug);
+}
+
 //-----------------------------------------------------
 // Test Publisher
 //-----------------------------------------------------
@@ -442,6 +452,36 @@ export class CodeCoverageEnabler {
         module.exports.command('codecoverage.enable', buildProps, "");
     }
 }
+
+//-----------------------------------------------------
+// Task Logging Commands
+//-----------------------------------------------------
+exports.uploadFile = task.uploadFile;
+exports.prependPath = task.prependPath;
+exports.uploadSummary = task.uploadSummary;
+exports.addAttachment = task.addAttachment;
+exports.setEndpoint = task.setEndpoint;
+exports.setProgress = task.setProgress;
+exports.logDetail = task.logDetail;
+exports.logIssue = task.logIssue;
+
+//-----------------------------------------------------
+// Artifact Logging Commands
+//-----------------------------------------------------
+exports.uploadArtifact = task.uploadArtifact;
+exports.associateArtifact = task.associateArtifact;
+
+//-----------------------------------------------------
+// Build Logging Commands
+//-----------------------------------------------------
+exports.uploadBuildLog = task.uploadBuildLog;
+exports.updateBuildNumber = task.updateBuildNumber;
+exports.addBuildTag = task.addBuildTag;
+
+//-----------------------------------------------------
+// Release Logging Commands
+//-----------------------------------------------------
+exports.updateReleaseName = task.updateReleaseName;
 
 //-----------------------------------------------------
 // Tools

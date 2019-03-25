@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
+import * as task from './task';
 
 export interface TaskLibAnswerExecResult {
     code: number,
@@ -14,6 +15,8 @@ export interface TaskLibAnswers {
     exist?: { [key: string]: boolean },
     find?: { [key: string]: string[] },
     findMatch?: { [key: string]: string[] },
+    getPlatform?: { [key: string]: task.Platform },
+    legacyFindFiles?: { [key: string]: string[] },
     ls?: { [key: string]: string },
     osType?: { [key: string]: string },
     rmRF?: { [key: string]: { success: boolean } },
@@ -28,6 +31,8 @@ export type MockedCommand = 'checkPath'
     | 'exist'
     | 'find'
     | 'findMatch'
+    | 'getPlatform'
+    | 'legacyFindFiles'
     | 'ls'
     | 'osType'
     | 'rmRF'
