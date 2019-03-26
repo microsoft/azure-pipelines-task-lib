@@ -33,6 +33,23 @@ describe('Mock Tests', function () {
 
     });
 
+    // Verify mock-task exports all the exported functions exported by task. If a task-lib function isn't mocked,
+    // it's difficult to use in a task with unit tests.
+    it('mock-task exports every function in task', (done) => {
+        for (let memberName of Object.keys(tl)) {
+            const member = tl[memberName];
+
+            if (typeof member === 'function') {
+                const mockMember = mt[memberName];
+                if (!mockMember || typeof mockMember !== typeof member) {
+                    assert.fail(`mock-task missing function exported by task: "${memberName}"`);
+                }
+            }
+        }
+
+        done();
+    });
+
     it('Mocks which and returns path on exists', (done) => {
         var a: ma.TaskLibAnswers = <ma.TaskLibAnswers>{
             "which": {
@@ -184,11 +201,11 @@ describe('Mock Tests', function () {
         tool.arg('--arg');
         tool.arg('foo');
         let rc: number = await tool.exec(<mtr.IExecOptions>{});
-        
+
         assert(tool, "tool should not be null");
         assert(rc == 0, "rc is 0");
     })
-    
+
     it('Mock toolRunner returns correct output', async () => {
         const expectedStdout = "atool output here" + os.EOL + "abc";
         const expectedStderr = "atool with this stderr output" + os.EOL + "def";
@@ -239,11 +256,11 @@ describe('Mock Tests', function () {
             }
         });
         await tool.exec(<mtr.IExecOptions>{});
-        
+
         assert.equal(numStdLineCalls, 2);
         assert.equal(numStdErrCalls, 2);
     })
-    
+
     it('Mock toolRunner returns correct output when ending on EOL', async () => {
         const expectedStdout = os.EOL;
         const expectedStderr = os.EOL;
@@ -279,7 +296,7 @@ describe('Mock Tests', function () {
             assert.equal("", out);
         });
         await tool.exec(<mtr.IExecOptions>{});
-        
+
         assert.equal(numStdLineCalls, 1);
         assert.equal(numStdErrCalls, 1);
     })

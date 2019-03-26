@@ -27,9 +27,9 @@
   "dependencies": {
     "minimatch": "3.0.4",
     "mockery": "^1.7.0",
-    "uuid": "^3.0.1",
     "q": "^1.1.2",
-    "semver": "^5.1.0"
+    "semver": "^5.1.0",
+    "uuid": "^3.0.1"
   },
   "devDependencies": {
     "mocha": "5.2.0",
