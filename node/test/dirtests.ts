@@ -1837,7 +1837,7 @@ describe('Dir Operation Tests', function () {
 
         assert(!worked, 'mv should have not have worked');
 
-        tl.mv(sourceFile, destFile, '-f');
+        tl.mv(sourceFile, destFile, true);
         assert(!shell.test('-e', sourceFile), 'source file should not exist');
         assert(shell.test('-e', destFile), 'dest file does not exist after mv -f');
 
@@ -1845,7 +1845,7 @@ describe('Dir Operation Tests', function () {
     });
 
     // cp tests
-    it('copies file using -f', (done: MochaDone) => {
+    it('copies file using force', (done: MochaDone) => {
         this.timeout(1000);
 
         let root: string = path.join(testutil.getTestTemp(), 'cp_with_-f');
@@ -1854,7 +1854,7 @@ describe('Dir Operation Tests', function () {
         tl.mkdirP(root);
         fs.writeFileSync(sourceFile, 'test file content');
 
-        tl.cp(sourceFile, targetFile, '-f');
+        tl.cp(sourceFile, targetFile, false, true);
 
         assert.equal('test file content', fs.readFileSync(targetFile));
 
