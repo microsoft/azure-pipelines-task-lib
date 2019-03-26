@@ -4,7 +4,7 @@ import ncp = require('child_process');
 import os = require('os');
 import path = require('path');
 import cmdm = require('./taskcommand');
-import shelljs = require('shelljs');
+import task = require('./task');
 import syncRequest = require('sync-request');
 
 const COMMAND_TAG = '[command]';
@@ -211,7 +211,7 @@ export class MockTestRunner {
 
     // Downloads the specified node version to the download destination. Returns a path to node.exe
     private downloadNode(nodeVersion: string, downloadDestination: string): string {
-        shelljs.rm('-rf', downloadDestination);
+        task.rmRF(downloadDestination);
         const nodeUrl: string = 'https://nodejs.org/dist';
         let downloadPath = '';
         switch (this.getPlatform()) {
@@ -246,7 +246,7 @@ export class MockTestRunner {
             throw new Error('Parameter "downloadDestination" must be set.');
         }
         console.log('Downloading file:', url);
-        shelljs.mkdir('-p', downloadDestination);
+        task.mkdirP(downloadDestination);
         const result: any = syncRequest('GET', url);
         fs.writeFileSync(filePath, result.getBody());
     }

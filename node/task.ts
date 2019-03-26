@@ -1,5 +1,5 @@
 import Q = require('q');
-import shell = require('shelljs');
+import child_process = require('child_process');
 import fs = require('fs');
 import path = require('path');
 import os = require('os');
@@ -519,23 +519,6 @@ export const warning = im._warning;
 export const error = im._error;
 export const debug = im._debug;
 
-//-----------------------------------------------------
-// Disk Functions
-//-----------------------------------------------------
-function _checkShell(cmd: string, continueOnError?: boolean) {
-    var se = shell.error();
-
-    if (se) {
-        debug(cmd + ' failed');
-        var errMsg = loc('LIB_OperationFailed', cmd, se);
-        debug(errMsg);
-
-        if (!continueOnError) {
-            throw new Error(errMsg);
-        }
-    }
-}
-
 export interface FsStats extends fs.Stats {
 
 }
@@ -614,10 +597,25 @@ export const checkPath = im._checkPath;
  */
 export function cd(path: string): void {
     if (path) {
-        shell.cd(path);
-        _checkShell('cd');
+        let errMsg: string = '';
+        if (!fs.existsSync(path)) {
+            errMsg = loc('LIB_OperationFailed', 'cd ' + path, 'No such file or directory');
+        }
+        else if (!fs.statSync(path).isDirectory()) {
+            errMsg = loc('LIB_OperationFailed', 'cd ' + path, 'Not a directory');
+        }
+
+        if (!errMsg) {
+            process.chdir(path);
+        }
+        else {
+            debug(errMsg);
+            throw new Error(errMsg);
+        }
     }
 }
+
+let dirStack: string[];
 
 /**
  * Change working directory and push it on the stack
@@ -626,8 +624,11 @@ export function cd(path: string): void {
  * @returns   void
  */
 export function pushd(path: string): void {
-    shell.pushd(path);
-    _checkShell('pushd');
+    if (!dirStack) {
+        dirStack = [];
+    }
+    dirStack.push(cwd());
+    cd(path);
 }
 
 /**
@@ -636,8 +637,10 @@ export function pushd(path: string): void {
  * @returns   void
  */
 export function popd(): void {
-    shell.popd();
-    _checkShell('popd');
+    const path: string = dirStack.pop() || "";
+    if (path != "") {
+        cd(path);
+    }
 }
 
 /**
@@ -725,17 +728,42 @@ export function resolve(...pathSegments: any[]): string {
 export const which = im._which;
 
 /**
- * Returns array of files in the given path, or in current directory if no path provided.  See shelljs.ls
- * @param  {string}   options  Available options: -R (recursive), -A (all files, include files beginning with ., except for . and ..)
+ * Returns array of files in the given path, or in current directory if no path provided.
  * @param  {string[]} paths    Paths to search.
+ * @param  {boolean} recursive Whether to recurse into subdirectories
+ * @param  {boolean} allFiles  Whether to copy all files, include files beginning with ., except for . and ..
  * @return {string[]}          An array of files in the given path(s).
  */
-export function ls(options: string, paths: string[]): string[] {
-    if (options) {
-        return shell.ls(options, paths);
-    } else {
-        return shell.ls(paths);
-    }
+export function ls(paths: string[], recursive: boolean = false, allFiles: boolean = false): string[] {
+    let filePaths: string[] = [];
+    paths.forEach(path => {
+        let commandString = '';
+        if (getPlatform() == Platform.Windows) {
+            commandString = 'dir ' + path + ' /b';
+            if (recursive) {
+                commandString += ' /s';
+            }
+            if (allFiles) {
+                commandString += ' /a';
+            }
+        }
+        else {
+            commandString = 'ls ' + path;
+            if (recursive) {
+                commandString += ' -R';
+            }
+            if (allFiles) {
+                commandString += ' -A';
+            }
+        }
+        child_process.execSync(commandString).toString().split(os.EOL).forEach((file: string) => {
+            if (filePaths.indexOf(file) < 0) {
+                filePaths.push(file);
+            }
+        });
+    });
+
+    return filePaths;
 }
 
 /**
@@ -743,18 +771,60 @@ export function ls(options: string, paths: string[]): string[] {
  * 
  * @param     source     source path
  * @param     dest       destination path
- * @param     options    string -r, -f or -rf for recursive and force 
+ * @param     recursive  Copy recursively
+ * @param     force      Force copy
  * @param     continueOnError optional. whether to continue on error
  */
-export function cp(source: string, dest: string, options?: string, continueOnError?: boolean): void {
-    if (options) {
-        shell.cp(options, source, dest);
-    }
-    else {
-        shell.cp(source, dest);
-    }
+export function cp(source: string, dest: string, recursive: boolean = false, force: boolean = false, continueOnError?: boolean): void {
+    try {
+        if (!fs.existsSync(source)) {
+            throw new Error(loc('LIB_OperationFailed', source + ' doesnt exist'));
+        }
+        if (getPlatform() == Platform.Windows) {
+            if (fs.statSync(source).isDirectory()) {
+                mkdirP(dest);
+                let commandString = 'robocopy ' + source + ' ' + dest;
+                
+                if (recursive) {
+                    commandString += ' /e';
+                }
+                if (force) {
+                    commandString += ' /is /it';
+                }
 
-    _checkShell('cp', continueOnError);
+                child_process.execSync(commandString);
+            }
+            else {
+                // Copy individual file over
+                if (fs.existsSync(dest)) {
+                    if (force) {
+                        fs.unlinkSync(dest);
+                    }
+                    else {
+                        // If file exists and we're not overwriting, just return. Throw in case of individual file.
+                        throw new Error(loc('LIB_OperationFailed', dest + ' already exists'));
+                    }
+                }
+                let commandString = 'echo F | xcopy ' + source + ' ' + dest;
+                child_process.execSync(commandString);
+            }
+        }
+        else {
+            let commandString = 'cp ' + source + ' ' + dest;
+            if (recursive) {
+                commandString += ' -r';
+            }
+            if (force) {
+                commandString += ' -f';
+            }
+            child_process.execSync(commandString);
+        }
+    }
+    catch (err) {
+        if (!continueOnError) {
+            throw err;
+        }
+    }
 }
 
 /**
@@ -765,15 +835,16 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
  * @param     options    string -f or -n for force and no clobber 
  * @param     continueOnError optional. whether to continue on error
  */
-export function mv(source: string, dest: string, options?: string, continueOnError?: boolean): void {
-    if (options) {
-        shell.mv(options, source, dest);
+export function mv(source: string, dest: string, force = false, continueOnError?: boolean): void {
+    try {
+        cp(source, dest, true, force, continueOnError);
+        rmRF(source);
     }
-    else {
-        shell.mv(source, dest);
+    catch (err) {
+        if (!continueOnError) {
+            throw err;
+        }
     }
-
-    _checkShell('mv', continueOnError);
 }
 
 /**
@@ -1145,45 +1216,44 @@ function _legacyFindFiles_getMatchingItems(
  * Remove a path recursively with force
  * Returns whether it succeeds
  * 
- * @param     path     path to remove
+ * @param     inputPath     path to remove
  * @returns   void
  */
-export function rmRF(path: string): void {
-    debug('rm -rf ' + path);
-
-    // get the lstats in order to workaround a bug in shelljs@0.3.0 where symlinks
-    // with missing targets are not handled correctly by "rm('-rf', path)"
-    let lstats: fs.Stats;
-    try {
-        lstats = fs.lstatSync(path);
-    }
-    catch (err) {
-        // if you try to delete a file that doesn't exist, desired result is achieved
-        // other errors are valid
-        if (err.code == 'ENOENT') {
-            return;
+export function rmRF(inputPath: string): void {
+    debug('rm -rf ' + inputPath);
+    if (fs.existsSync(inputPath)) {
+        const inputStats: fs.Stats = fs.lstatSync(inputPath);
+        if (inputStats.isDirectory()) {
+            fs.readdirSync(inputPath).forEach(function(file, index){
+                rmRF(path.join(inputPath, file));
+            });
+            try {
+                fs.rmdirSync(inputPath);
+            }
+            catch (err) {
+                throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
+            }
         }
-
-        throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
-    }
-
-    if (lstats.isDirectory()) {
-        debug('removing directory');
-        shell.rm('-rf', path);
-        let errMsg: string = shell.error();
-        if (errMsg) {
-            throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
+        else {
+            try {
+                debug('removing file');
+                fs.unlinkSync(inputPath);
+            }
+            catch (err) {
+                throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
+            }
         }
-
-        return;
     }
-
-    debug('removing file');
-    try {
-        fs.unlinkSync(path);
-    }
-    catch (err) {
-        throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
+    else {
+        try {
+            // Still try to unlink in case its a dead symlink.
+            fs.unlinkSync(inputPath);
+        }
+        catch (err) {
+            if (err.code != 'ENOENT') {
+                throw err;
+            }
+        }
     }
 }
 
