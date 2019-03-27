@@ -837,8 +837,43 @@ export function cp(source: string, dest: string, recursive: boolean = false, for
  */
 export function mv(source: string, dest: string, force = false, continueOnError?: boolean): void {
     try {
-        cp(source, dest, true, force, continueOnError);
-        rmRF(source);
+        if (!fs.existsSync(source)) {
+            throw new Error(loc('LIB_OperationFailed', source + ' doesnt exist'));
+        }
+        if (getPlatform() == Platform.Windows) {
+            if (fs.statSync(source).isDirectory()) {
+                mkdirP(dest);
+                let commandString = 'robocopy ' + source + ' ' + dest + ' /move';
+                
+                if (force) {
+                    commandString += ' /is /it';
+                }
+
+                child_process.execSync(commandString);
+            }
+            else {
+                // Copy individual file over
+                if (fs.existsSync(dest)) {
+                    if (force) {
+                        fs.unlinkSync(dest);
+                    }
+                    else {
+                        // If file exists and we're not overwriting, just return. Throw in case of individual file.
+                        throw new Error(loc('LIB_OperationFailed', dest + ' already exists'));
+                    }
+                }
+                let commandString = 'echo F | xcopy ' + source + ' ' + dest;
+                child_process.execSync(commandString);
+                fs.unlinkSync(source);
+            }
+        }
+        else {
+            let commandString = 'mv ' + source + ' ' + dest;
+            if (force) {
+                commandString += ' -f';
+            }
+            child_process.execSync(commandString);
+        }
     }
     catch (err) {
         if (!continueOnError) {
