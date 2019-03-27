@@ -801,8 +801,8 @@ export function cp(source: string, dest: string, recursive: boolean = false, for
                         fs.unlinkSync(dest);
                     }
                     else {
-                        // If file exists and we're not overwriting, just return. Throw in case of individual file.
-                        throw new Error(loc('LIB_OperationFailed', dest + ' already exists'));
+                        // If file exists and we're not overwriting, just return. 
+                        return;
                     }
                 }
                 let commandString = 'echo F | xcopy ' + source + ' ' + dest;
@@ -858,8 +858,8 @@ export function mv(source: string, dest: string, force = false, continueOnError?
                         fs.unlinkSync(dest);
                     }
                     else {
-                        // If file exists and we're not overwriting, just return. Throw in case of individual file.
-                        throw new Error(loc('LIB_OperationFailed', dest + ' already exists'));
+                        // If file exists and we're not overwriting, just return.
+                        return;
                     }
                 }
                 let commandString = 'echo F | xcopy ' + source + ' ' + dest;

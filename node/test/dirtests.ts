@@ -1824,18 +1824,9 @@ describe('Dir Operation Tests', function () {
         var errStream = testutil.createStringStream();
         tl.setErrStream(errStream);
 
-        var worked: boolean = false;
-        try {
-            tl.mv(sourceFile, destFile);
-            worked = true;
-        }
-        catch (err) {
-            // this should fail
-            assert(shell.test('-e', sourceFile), 'source file does not exist');
-            assert(shell.test('-e', destFile), 'dest file does not exist');
-        }
-
-        assert(!worked, 'mv should have not have worked');
+        tl.mv(sourceFile, destFile);
+        assert(shell.test('-e', sourceFile), 'source file does not exist');
+        assert(shell.test('-e', destFile), 'dest file does not exist');
 
         tl.mv(sourceFile, destFile, true);
         assert(!shell.test('-e', sourceFile), 'source file should not exist');
