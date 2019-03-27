@@ -22,18 +22,67 @@ export interface TaskLibAnswers {
     rmRF?: { [key: string]: { success: boolean } },
     stats?: { [key: string]: any }, // Can't use `fs.Stats` as most existing uses don't mock all required properties
     which?: { [key: string]: string },
+    variables?: {
+        nonSecrets?: { [key: string]: string },
+        secrets?: { [key: string]: string }
+    }
 }
 
 export type MockedCommand = keyof TaskLibAnswers;
 
 export class MockAnswers {
     private _answers: TaskLibAnswers | undefined;
+    private _variableMap: { [key: string]: task.VariableInfo } | undefined;
+    private _variables: task.VariableInfo[] | undefined;
 
     public initialize(answers: TaskLibAnswers) {
         if (!answers) {
             throw new Error('Answers not supplied');
         }
         this._answers = answers;
+
+        if (this._answers.variables) {
+            this._variableMap = {};
+            this._variables = [];
+
+            if (this._answers.variables.nonSecrets) {
+                for (let name in this._answers.variables.nonSecrets) {
+                    const value = this._answers.variables.nonSecrets[name];
+
+                    const info: task.VariableInfo = {
+                        name,
+                        value,
+                        secret: false
+                    };
+
+                    this._variableMap[name] = info;
+                    this._variables.push(info);
+                }
+            }
+
+            if (this._answers.variables.secrets) {
+                for (let name in this._answers.variables.secrets) {
+                    const value = this._answers.variables.secrets[name];
+
+                    const info: task.VariableInfo = {
+                        name,
+                        value,
+                        secret: true
+                    };
+
+                    this._variableMap[name] = info;
+                    this._variables.push(info);
+                }
+            }
+        }
+    }
+
+    public getVariableMap(): { [key: string]: task.VariableInfo } | undefined {
+        return this._variableMap;
+    }
+
+    public getVariables(): task.VariableInfo[] | undefined {
+        return this._variables;
     }
 
     public getResponse(cmd: MockedCommand, key: string, debug: (message: string) => void): any {

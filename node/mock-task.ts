@@ -53,8 +53,6 @@ export function loc(key: string, ...args: any[]): string {
 // Input Helpers
 //-----------------------------------------------------
 module.exports.assertAgent = task.assertAgent;
-module.exports.getVariable = task.getVariable;
-module.exports.getVariables = task.getVariables;
 module.exports.setVariable = task.setVariable;
 module.exports.setSecret = task.setSecret;
 module.exports.getTaskVariable = task.getTaskVariable;
@@ -63,6 +61,32 @@ module.exports.getInput = task.getInput;
 module.exports.getBoolInput = task.getBoolInput;
 module.exports.getDelimitedInput = task.getDelimitedInput;
 module.exports.filePathSupplied = task.filePathSupplied;
+
+export function getVariable(name: string): string | undefined  {
+    const variables = mock.getVariableMap();
+
+    if (variables !== undefined) {
+        if (variables[name]) {
+            return variables[name].value;
+        } else {
+            return undefined;
+        }
+    }
+
+    // variables answer not provided - fallthrough to task implementation.
+    return task.getVariable(name);
+}
+
+export function getVariables(): task.VariableInfo[] {
+    const variables = mock.getVariables();
+
+    if (variables !== undefined) {
+        return variables;
+    }
+
+    // variables answer not provided - fallthrough to task implementation.
+    return task.getVariables();
+}
 
 function getPathInput(name: string, required?: boolean, check?: boolean): string {
     var inval = module.exports.getInput(name, required);
