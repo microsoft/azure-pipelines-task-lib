@@ -810,13 +810,14 @@ export function cp(source: string, dest: string, recursive: boolean = false, for
             }
         }
         else {
-            let commandString = 'cp ' + source + ' ' + dest;
+            let commandString = 'cp ';
             if (recursive) {
-                commandString += ' -r';
+                commandString += '-R ';
             }
             if (force) {
-                commandString += ' -f';
+                commandString += '-f ';
             }
+            commandString += source + ' ' + dest;
             child_process.execSync(commandString);
         }
     }
@@ -868,10 +869,11 @@ export function mv(source: string, dest: string, force = false, continueOnError?
             }
         }
         else {
-            let commandString = 'mv ' + source + ' ' + dest;
+            let commandString = 'mv ';
             if (force) {
-                commandString += ' -f';
+                commandString += '-f ';
             }
+            commandString += source + ' ' + dest
             child_process.execSync(commandString);
         }
     }
