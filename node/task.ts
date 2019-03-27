@@ -873,6 +873,9 @@ export function mv(source: string, dest: string, force = false, continueOnError?
             if (force) {
                 commandString += '-f ';
             }
+            else {
+                commandString += '-n ';
+            }
             commandString += source + ' ' + dest
             child_process.execSync(commandString);
         }
