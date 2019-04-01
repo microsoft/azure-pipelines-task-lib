@@ -35,7 +35,6 @@ export type MockedCommand = keyof TaskLibAnswers;
 export class MockAnswers {
     private _answers: TaskLibAnswers | undefined;
     private _variableMap: { [key: string]: task.VariableInfo } | undefined;
-    private _variables: task.VariableInfo[] | undefined;
 
     public initialize(answers: TaskLibAnswers) {
         if (!answers) {
@@ -80,12 +79,12 @@ export class MockAnswers {
 
         // once a secret always a secret
         const key: string = im._getVariableKey(name);
-        if (im._knownVariableMap.hasOwnProperty(key)) {
-            secret = secret || im._knownVariableMap[key].secret;
+        if (this._variableMap.hasOwnProperty(key)) {
+            secret = secret || this._variableMap[key].secret;
         }
 
         const info: task.VariableInfo = {
-            // task.setVariable uses name instead of the normalized key for VariableInfo.
+            // task.setVariable uses name instead of the normalized key for the VariableInfo.
             name,
             value,
             secret
