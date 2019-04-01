@@ -64,47 +64,43 @@ module.exports.getDelimitedInput = task.getDelimitedInput;
 module.exports.filePathSupplied = task.filePathSupplied;
 
 export function getVariable(name: string): string | undefined {
-    const variableMap = mock.variableMap;
-
-    if (variableMap !== undefined) {
-        const key = im._getVariableKey(name);
-
-        if (variableMap.hasOwnProperty(key)) {
-            return variableMap[key].value;
-        } else {
-            return undefined;
-        }
+    if (!mock.variablesMocked) {
+        // variables answer not provided - fallthrough to task implementation.
+        return task.getVariable(name);
     }
 
-    // variables answer not provided - fallthrough to task implementation.
-    return task.getVariable(name);
+    const key = im._getVariableKey(name);
+    const variableMap = mock.variableMap!;
+
+    if (variableMap.hasOwnProperty(key)) {
+        return variableMap[key].value;
+    } else {
+        return undefined;
+    }
 }
 
 export function getVariables(): task.VariableInfo[] {
-    const variableMap = mock.variableMap;
-
-    if (variableMap !== undefined) {
-        const variables:task.VariableInfo[] = [];
-        for (const name in variableMap) {
-            variables.push(variableMap[name]);
-        }
-
-        return variables;
+    if (!mock.variablesMocked) {
+        // variables answer not provided - fallthrough to task implementation.
+        return task.getVariables();
     }
 
-    // variables answer not provided - fallthrough to task implementation.
-    return task.getVariables();
+    const variables:task.VariableInfo[] = [];
+    const variableMap = mock.variableMap!;
+
+    for (const name in variableMap) {
+        variables.push(variableMap[name]);
+    }
+    return variables;
 }
 
 export function setVariable(name: string, val: string, secret: boolean = false): void {
-    const variableMap = mock.variableMap;
-
-    if (variableMap !== undefined) {
-        mock.setVariable(name, val, secret);
+    if (!mock.variablesMocked) {
+        // variables answer not provided - fallthrough to task implementation.
+        return task.setVariable(name, val, secret);
     }
 
-    // variables answer not provided - fallthrough to task implementation.
-    return task.setVariable(name, val, secret);
+    mock.setVariable(name, val, secret);
 }
 
 function getPathInput(name: string, required?: boolean, check?: boolean): string {

@@ -64,6 +64,11 @@ export class MockAnswers {
         }
     }
 
+    // Variables are mocked only if a variables answer is provided. This is to avoid breaking existing unit tests.
+    public get variablesMocked(): boolean {
+        return this._variableMap !== undefined;
+    }
+
     public get variableMap(): { [key: string]: task.VariableInfo } | undefined {
         return this._variableMap;
     }
