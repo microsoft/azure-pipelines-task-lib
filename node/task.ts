@@ -1,5 +1,5 @@
 import Q = require('q');
-import child_process = require('child_process');
+import childProcess = require('child_process');
 import fs = require('fs');
 import path = require('path');
 import os = require('os');
@@ -638,7 +638,7 @@ export function pushd(path: string): void {
  */
 export function popd(): void {
     const path: string = dirStack.pop() || "";
-    if (path != "") {
+    if (path !== "") {
         cd(path);
     }
 }
@@ -737,26 +737,27 @@ export const which = im._which;
 export function ls(paths: string[], recursive: boolean = false, allFiles: boolean = false): string[] {
     let filePaths: string[] = [];
     paths.forEach(path => {
-        let commandString = '';
+        let command: string = '';
         if (getPlatform() == Platform.Windows) {
-            commandString = 'dir ' + path + ' /b';
+            command = 'dir ' + path + ' /b';
             if (recursive) {
-                commandString += ' /s';
+                command += ' /s';
             }
             if (allFiles) {
-                commandString += ' /a';
+                command += ' /a';
             }
         }
         else {
-            commandString = 'ls ' + path;
+            command = 'ls ' + path;
             if (recursive) {
-                commandString += ' -R';
+                command += ' -R';
             }
             if (allFiles) {
-                commandString += ' -A';
+                command += ' -A';
             }
         }
-        child_process.execSync(commandString).toString().split(os.EOL).forEach((file: string) => {
+        const childProcessResponse: string = childProcess.execSync(command).toString();
+        childProcessResponse.split(os.EOL).forEach((file: string) => {
             if (filePaths.indexOf(file) < 0) {
                 filePaths.push(file);
             }
@@ -783,16 +784,16 @@ export function cp(source: string, dest: string, recursive: boolean = false, for
         if (getPlatform() == Platform.Windows) {
             if (fs.statSync(source).isDirectory()) {
                 mkdirP(dest);
-                let commandString = 'robocopy ' + source + ' ' + dest;
+                let command: string = 'robocopy ' + source + ' ' + dest;
                 
                 if (recursive) {
-                    commandString += ' /e';
+                    command += ' /e';
                 }
                 if (force) {
-                    commandString += ' /is /it';
+                    command += ' /is /it';
                 }
 
-                child_process.execSync(commandString);
+                childProcess.execSync(command);
             }
             else {
                 // Copy individual file over
@@ -805,20 +806,20 @@ export function cp(source: string, dest: string, recursive: boolean = false, for
                         return;
                     }
                 }
-                let commandString = 'echo F | xcopy ' + source + ' ' + dest;
-                child_process.execSync(commandString);
+                const command: string = 'echo F | xcopy ' + source + ' ' + dest;
+                childProcess.execSync(command);
             }
         }
         else {
-            let commandString = 'cp ';
+            let command: string = 'cp';
             if (recursive) {
-                commandString += '-R ';
+                command += ' -R';
             }
             if (force) {
-                commandString += '-f ';
+                command += ' -f';
             }
-            commandString += source + ' ' + dest;
-            child_process.execSync(commandString);
+            command += ' ' + source + ' ' + dest;
+            childProcess.execSync(command);
         }
     }
     catch (err) {
@@ -836,7 +837,7 @@ export function cp(source: string, dest: string, recursive: boolean = false, for
  * @param     options    string -f or -n for force and no clobber 
  * @param     continueOnError optional. whether to continue on error
  */
-export function mv(source: string, dest: string, force = false, continueOnError?: boolean): void {
+export function mv(source: string, dest: string, force: boolean = false, continueOnError?: boolean): void {
     try {
         if (!fs.existsSync(source)) {
             throw new Error(loc('LIB_OperationFailed', source + ' doesnt exist'));
@@ -844,13 +845,13 @@ export function mv(source: string, dest: string, force = false, continueOnError?
         if (getPlatform() == Platform.Windows) {
             if (fs.statSync(source).isDirectory()) {
                 mkdirP(dest);
-                let commandString = 'robocopy ' + source + ' ' + dest + ' /move';
+                let command: string = 'robocopy ' + source + ' ' + dest + ' /move';
                 
                 if (force) {
-                    commandString += ' /is /it';
+                    command += ' /is /it';
                 }
 
-                child_process.execSync(commandString);
+                childProcess.execSync(command);
             }
             else {
                 // Copy individual file over
@@ -863,21 +864,21 @@ export function mv(source: string, dest: string, force = false, continueOnError?
                         return;
                     }
                 }
-                let commandString = 'echo F | xcopy ' + source + ' ' + dest;
-                child_process.execSync(commandString);
+                let command: string = 'echo F | xcopy ' + source + ' ' + dest;
+                childProcess.execSync(command);
                 fs.unlinkSync(source);
             }
         }
         else {
-            let commandString = 'mv ';
+            let command: string = 'mv';
             if (force) {
-                commandString += '-f ';
+                command += ' -f';
             }
             else {
-                commandString += '-n ';
+                command += ' -n';
             }
-            commandString += source + ' ' + dest
-            child_process.execSync(commandString);
+            command += ' ' + source + ' ' + dest
+            childProcess.execSync(command);
         }
     }
     catch (err) {
@@ -1264,7 +1265,7 @@ export function rmRF(inputPath: string): void {
     if (fs.existsSync(inputPath)) {
         const inputStats: fs.Stats = fs.lstatSync(inputPath);
         if (inputStats.isDirectory()) {
-            fs.readdirSync(inputPath).forEach(function(file, index){
+            fs.readdirSync(inputPath).forEach(function(file, index) {
                 rmRF(path.join(inputPath, file));
             });
             try {
