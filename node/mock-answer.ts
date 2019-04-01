@@ -1,6 +1,8 @@
 import * as path from 'path';
 import * as fs from 'fs';
+import * as im from'./internal';
 import * as task from './task';
+import { setVariable } from './mock-task';
 
 export interface TaskLibAnswerExecResult {
     code: number,
@@ -21,11 +23,11 @@ export interface TaskLibAnswers {
     osType?: { [key: string]: string },
     rmRF?: { [key: string]: { success: boolean } },
     stats?: { [key: string]: any }, // Can't use `fs.Stats` as most existing uses don't mock all required properties
-    which?: { [key: string]: string },
     variables?: {
-        nonSecrets?: { [key: string]: string },
+        plaintext?: { [key: string]: string },
         secrets?: { [key: string]: string }
-    }
+    },
+    which?: { [key: string]: string }
 }
 
 export type MockedCommand = keyof TaskLibAnswers;
@@ -43,46 +45,48 @@ export class MockAnswers {
 
         if (this._answers.variables) {
             this._variableMap = {};
-            this._variables = [];
 
-            if (this._answers.variables.nonSecrets) {
-                for (let name in this._answers.variables.nonSecrets) {
-                    const value = this._answers.variables.nonSecrets[name];
+            if (this._answers.variables.plaintext) {
+                for (const name in this._answers.variables.plaintext) {
+                    const value = this._answers.variables.plaintext[name];
 
-                    const info: task.VariableInfo = {
-                        name,
-                        value,
-                        secret: false
-                    };
-
-                    this._variableMap[name] = info;
-                    this._variables.push(info);
+                    setVariable(name, value, false);
                 }
             }
 
             if (this._answers.variables.secrets) {
-                for (let name in this._answers.variables.secrets) {
+                for (const name in this._answers.variables.secrets) {
                     const value = this._answers.variables.secrets[name];
 
-                    const info: task.VariableInfo = {
-                        name,
-                        value,
-                        secret: true
-                    };
-
-                    this._variableMap[name] = info;
-                    this._variables.push(info);
+                    setVariable(name, value, true);
                 }
             }
         }
     }
 
-    public getVariableMap(): { [key: string]: task.VariableInfo } | undefined {
+    public get variableMap(): { [key: string]: task.VariableInfo } | undefined {
         return this._variableMap;
     }
 
-    public getVariables(): task.VariableInfo[] | undefined {
-        return this._variables;
+    public setVariable(name: string, value: string, secret: boolean) {
+        if (this._variableMap === undefined) {
+            throw new Error("mock-answer.setVariable shouldn't be called if variables answer wasn't provided.");
+        }
+
+        // once a secret always a secret
+        const key: string = im._getVariableKey(name);
+        if (im._knownVariableMap.hasOwnProperty(key)) {
+            secret = secret || im._knownVariableMap[key].secret;
+        }
+
+        const info: task.VariableInfo = {
+            // task.setVariable uses name instead of the normalized key for VariableInfo.
+            name,
+            value,
+            secret
+        };
+
+        this._variableMap[key] = info;
     }
 
     public getResponse(cmd: MockedCommand, key: string, debug: (message: string) => void): any {
