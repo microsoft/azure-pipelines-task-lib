@@ -83,6 +83,12 @@ export class MockAnswers {
             secret = secret || this._variableMap[key].secret;
         }
 
+        if (secret && value && value.match(/\r|\n/)) {
+            if (!this._variableMap.hasOwnProperty('SYSTEM_UNSAFEALLOWMULTILINESECRET') || this._variableMap['SYSTEM_UNSAFEALLOWMULTILINESECRET'].value.toUpperCase() != 'TRUE') {
+                throw new Error('loc_mock_LIB_MultilineSecret');
+            }
+        }
+
         const info: task.VariableInfo = {
             // task.setVariable uses name instead of the normalized key for the VariableInfo.
             name,
