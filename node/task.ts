@@ -823,8 +823,12 @@ export function cp(source: string, dest: string, recursive: boolean = false, for
         }
     }
     catch (err) {
+        debug(loc('LIB_OperationFailed', 'cp'));
         if (!continueOnError) {
             throw err;
+        }
+        else {
+            debug(err.message);
         }
     }
 }
@@ -882,8 +886,12 @@ export function mv(source: string, dest: string, force: boolean = false, continu
         }
     }
     catch (err) {
+        debug(loc('LIB_OperationFailed', 'mv'));
         if (!continueOnError) {
             throw err;
+        }
+        else {
+            debug(err.message);
         }
     }
 }
