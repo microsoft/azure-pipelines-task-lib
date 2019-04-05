@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
+import * as task from './task';
 
 export interface TaskLibAnswerExecResult {
     code: number,
@@ -14,6 +15,8 @@ export interface TaskLibAnswers {
     exist?: { [key: string]: boolean },
     find?: { [key: string]: string[] },
     findMatch?: { [key: string]: string[] },
+    getPlatform?: { [key: string]: task.Platform },
+    legacyFindFiles?: { [key: string]: string[] },
     ls?: { [key: string]: string },
     osType?: { [key: string]: string },
     rmRF?: { [key: string]: { success: boolean } },
@@ -21,21 +24,10 @@ export interface TaskLibAnswers {
     which?: { [key: string]: string },
 }
 
-// TODO TypeScript 2.1: replace with `keyof TaskLibAnswers`
-export type MockedCommand = 'checkPath'
-    | 'cwd'
-    | 'exec'
-    | 'exist'
-    | 'find'
-    | 'findMatch'
-    | 'ls'
-    | 'osType'
-    | 'rmRF'
-    | 'stats'
-    | 'which';
+export type MockedCommand = keyof TaskLibAnswers;
 
 export class MockAnswers {
-    private _answers: TaskLibAnswers;
+    private _answers: TaskLibAnswers | undefined;
 
     public initialize(answers: TaskLibAnswers) {
         if (!answers) {
@@ -55,17 +47,19 @@ export class MockAnswers {
             return null;
         }
 
-        if (this._answers[cmd][key]) {
+        const cmd_answer = this._answers[cmd]!;
+
+        if (cmd_answer[key]) {
             debug('found mock response');
-            return this._answers[cmd][key];
+            return cmd_answer[key];
         }
 
         if (key && process.env['MOCK_NORMALIZE_SLASHES'] === 'true') {
             // try normalizing the slashes
             var key2 = key.replace(/\\/g, "/");
-            if (this._answers[cmd][key2]) {
+            if (cmd_answer[key2]) {
                 debug('found mock response for normalized key');
-                return this._answers[cmd][key2];
+                return cmd_answer[key2];
             }
         }
 

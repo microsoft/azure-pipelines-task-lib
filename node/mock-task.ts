@@ -2,8 +2,6 @@
 import Q = require('q');
 import path = require('path');
 import fs = require('fs');
-import os = require('os');
-import util = require('util');
 import task = require('./task');
 import tcm = require('./taskcommand');
 import trm = require('./mock-toolrunner');
@@ -16,29 +14,23 @@ export function setAnswers(answers: ma.TaskLibAnswers) {
     trm.setAnswers(answers);
 }
 
+//-----------------------------------------------------
+// Enums
+//-----------------------------------------------------
+
 module.exports.TaskResult = task.TaskResult;
-
-//-----------------------------------------------------
-// General Helpers
-//-----------------------------------------------------
-let _outStream = process.stdout;
-let _errStream = process.stderr;
-
-function _writeError(str: string): void {
-    _errStream.write(str + os.EOL);
-}
-
-function _writeLine(str: string): void {
-    _outStream.write(str + os.EOL);
-}
-
-module.exports.setStdStream = task.setStdStream;
-module.exports.setErrStream = task.setErrStream;
+module.exports.TaskState = task.TaskState;
+module.exports.IssueType = task.IssueType;
+module.exports.ArtifactType = task.ArtifactType;
+module.exports.FieldType = task.FieldType;
+module.exports.Platform = task.Platform;
 
 //-----------------------------------------------------
 // Results and Exiting
 //-----------------------------------------------------
 
+module.exports.setStdStream = task.setStdStream;
+module.exports.setErrStream = task.setErrStream;
 module.exports.setResult = task.setResult;
 
 //-----------------------------------------------------
@@ -60,8 +52,11 @@ export function loc(key: string, ...args: any[]): string {
 //-----------------------------------------------------
 // Input Helpers
 //-----------------------------------------------------
+module.exports.assertAgent = task.assertAgent;
 module.exports.getVariable = task.getVariable;
+module.exports.getVariables = task.getVariables;
 module.exports.setVariable = task.setVariable;
+module.exports.setSecret = task.setSecret;
 module.exports.getTaskVariable = task.getTaskVariable;
 module.exports.setTaskVariable = task.setTaskVariable;
 module.exports.getInput = task.getInput;
@@ -69,7 +64,7 @@ module.exports.getBoolInput = task.getBoolInput;
 module.exports.getDelimitedInput = task.getDelimitedInput;
 module.exports.filePathSupplied = task.filePathSupplied;
 
-function getPathInput(name, required, check) {
+function getPathInput(name: string, required?: boolean, check?: boolean): string {
     var inval = module.exports.getInput(name, required);
     if (inval) {
         if (check) {
@@ -108,52 +103,52 @@ module.exports.getSecureFileTicket = task.getSecureFileTicket;
 //-----------------------------------------------------
 
 export class FsStats implements fs.Stats {
-    private m_isFile: boolean;
-    private m_isDirectory: boolean;
-    private m_isBlockDevice: boolean;
-    private m_isCharacterDevice: boolean;
-    private m_isSymbolicLink: boolean;
-    private m_isFIFO: boolean;
-    private m_isSocket: boolean;
+    private m_isFile: boolean = false;
+    private m_isDirectory: boolean = false;
+    private m_isBlockDevice: boolean = false;
+    private m_isCharacterDevice: boolean = false;
+    private m_isSymbolicLink: boolean = false;
+    private m_isFIFO: boolean = false;
+    private m_isSocket: boolean = false;
 
-    dev: number;
-    ino: number;
-    mode: number;
-    nlink: number;
-    uid: number;
-    gid: number;
-    rdev: number;
-    size: number;
-    blksize: number;
-    blocks: number;
-    atime: Date;
-    mtime: Date;
-    ctime: Date;
-    birthtime: Date;
+    dev: number = 0;
+    ino: number = 0;
+    mode: number = 0;
+    nlink: number = 0;
+    uid: number = 0;
+    gid: number = 0;
+    rdev: number = 0;
+    size: number = 0;
+    blksize: number = 0;
+    blocks: number = 0;
+    atime: Date = new Date();
+    mtime: Date = new Date();
+    ctime: Date = new Date();
+    birthtime: Date = new Date();
 
-    setAnswers(mockResponses) {
-        this.m_isFile = mockResponses['isFile'] || false;
-        this.m_isDirectory = mockResponses['isDirectory'] || false;
-        this.m_isBlockDevice = mockResponses['isBlockDevice'] || false;
-        this.m_isCharacterDevice = mockResponses['isCharacterDevice'] || false;
-        this.m_isSymbolicLink = mockResponses['isSymbolicLink'] || false;
-        this.m_isFIFO = mockResponses['isFIFO'] || false;
-        this.m_isSocket = mockResponses['isSocket'] || false;
+    setAnswers(mockResponses: any): void {
+        this.m_isFile = mockResponses['isFile'] || this.m_isFile;
+        this.m_isDirectory = mockResponses['isDirectory'] || this.m_isDirectory;
+        this.m_isBlockDevice = mockResponses['isBlockDevice'] || this.m_isBlockDevice;
+        this.m_isCharacterDevice = mockResponses['isCharacterDevice'] || this.m_isCharacterDevice;
+        this.m_isSymbolicLink = mockResponses['isSymbolicLink'] || this.m_isSymbolicLink;
+        this.m_isFIFO = mockResponses['isFIFO'] || this.m_isFIFO;
+        this.m_isSocket = mockResponses['isSocket'] || this.m_isSocket;
 
-        this.dev = mockResponses['dev'];
-        this.ino = mockResponses['ino'];
-        this.mode = mockResponses['mode'];
-        this.nlink = mockResponses['nlink'];
-        this.uid = mockResponses['uid'];
-        this.gid = mockResponses['gid'];
-        this.rdev = mockResponses['rdev'];
-        this.size = mockResponses['size'];
-        this.blksize = mockResponses['blksize'];
-        this.blocks = mockResponses['blocks'];
-        this.atime = mockResponses['atime'];
-        this.mtime = mockResponses['mtime'];
-        this.ctime = mockResponses['ctime'];
-        this.m_isSocket = mockResponses['isSocket'];
+        this.dev = mockResponses['dev'] || this.dev;
+        this.ino = mockResponses['ino'] || this.ino;
+        this.mode = mockResponses['mode'] || this.mode;
+        this.nlink = mockResponses['nlink'] || this.nlink;
+        this.uid = mockResponses['uid'] || this.uid;
+        this.gid = mockResponses['gid'] || this.gid;
+        this.rdev = mockResponses['rdev'] || this.rdev;
+        this.size = mockResponses['size'] || this.size;
+        this.blksize = mockResponses['blksize'] || this.blksize;
+        this.blocks = mockResponses['blocks'] || this.blocks;
+        this.atime = mockResponses['atime'] || this.atime;
+        this.mtime = mockResponses['mtime'] || this.mtime;
+        this.ctime = mockResponses['ctime'] || this.ctime;
+        this.m_isSocket = mockResponses['isSocket'] || this.m_isSocket;
     }
 
     isFile(): boolean {
@@ -207,6 +202,10 @@ export function writeFile(file: string, data: string|Buffer, options?: string|Fs
 
 export function osType(): string {
     return mock.getResponse('osType', 'osType', module.exports.debug);
+}
+
+export function getPlatform(): task.Platform {
+    return mock.getResponse('getPlatform', 'getPlatform', module.exports.debug);
 }
 
 export function cwd(): string {
@@ -358,17 +357,18 @@ export function findMatch(defaultRoot: string, patterns: string[] | string) : st
     return mock.getResponse('findMatch', responseKey, module.exports.debug);
 }
 
+export function legacyFindFiles(rootDirectory: string, pattern: string, includeFiles?: boolean, includeDirectories?: boolean) : string[] {
+    return mock.getResponse('legacyFindFiles', pattern, module.exports.debug);
+}
+
 //-----------------------------------------------------
 // Test Publisher
 //-----------------------------------------------------
 export class TestPublisher {
-    constructor(testRunner) {
-        this.testRunner = testRunner;
+    constructor(public testRunner: string) {
     }
 
-    public testRunner: string;
-
-    public publish(resultFiles, mergeResults, platform, config, runTitle, publishRunAttachments) {
+    public publish(resultFiles?: string, mergeResults?: string, platform?: string, config?: string, runTitle?: string, publishRunAttachments?: string) {
 
         var properties = <{ [key: string]: string }>{};
         properties['type'] = this.testRunner;
@@ -407,7 +407,7 @@ export class TestPublisher {
 export class CodeCoveragePublisher {
     constructor() {
     }
-    public publish(codeCoverageTool, summaryFileLocation, reportDirectory, additionalCodeCoverageFiles) {
+    public publish(codeCoverageTool?: string, summaryFileLocation?: string, reportDirectory?: string, additionalCodeCoverageFiles?: string) {
 
         var properties = <{ [key: string]: string }>{};
 
@@ -451,6 +451,36 @@ export class CodeCoverageEnabler {
 }
 
 //-----------------------------------------------------
+// Task Logging Commands
+//-----------------------------------------------------
+exports.uploadFile = task.uploadFile;
+exports.prependPath = task.prependPath;
+exports.uploadSummary = task.uploadSummary;
+exports.addAttachment = task.addAttachment;
+exports.setEndpoint = task.setEndpoint;
+exports.setProgress = task.setProgress;
+exports.logDetail = task.logDetail;
+exports.logIssue = task.logIssue;
+
+//-----------------------------------------------------
+// Artifact Logging Commands
+//-----------------------------------------------------
+exports.uploadArtifact = task.uploadArtifact;
+exports.associateArtifact = task.associateArtifact;
+
+//-----------------------------------------------------
+// Build Logging Commands
+//-----------------------------------------------------
+exports.uploadBuildLog = task.uploadBuildLog;
+exports.updateBuildNumber = task.updateBuildNumber;
+exports.addBuildTag = task.addBuildTag;
+
+//-----------------------------------------------------
+// Release Logging Commands
+//-----------------------------------------------------
+exports.updateReleaseName = task.updateReleaseName;
+
+//-----------------------------------------------------
 // Tools
 //-----------------------------------------------------
 exports.TaskCommand = tcm.TaskCommand;
@@ -460,13 +490,13 @@ exports.ToolRunner = trm.ToolRunner;
 //-----------------------------------------------------
 // Http Proxy Helper
 //-----------------------------------------------------
-export function getHttpProxyConfiguration(requestUrl?: string): task.ProxyConfiguration {
+export function getHttpProxyConfiguration(requestUrl?: string): task.ProxyConfiguration | null {
     return null;
 }
 
 //-----------------------------------------------------
 // Http Certificate Helper
 //-----------------------------------------------------
-export function getHttpCertConfiguration(): task.CertConfiguration {
+export function getHttpCertConfiguration(): task.CertConfiguration | null {
     return null
 }

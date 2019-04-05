@@ -40,6 +40,10 @@ A task which automates Powershell technologies can be written with our Powershel
 
 Documentation: [PowerShell API](powershell/Docs/README.md)
 
+## Notes on authoring Tasks
+
+Starting from [version v2.141.0](https://github.com/Microsoft/azure-pipelines-agent/releases/tag/v2.141.0), the agent can now run on three OS architectures: x86, x64, and 32-bit ARM. When authoring a new task, you can check agent variable: `Agent.OSArchitecture` (possible values: X86, X64, ARM) to restrict running said task to a particular set of OS architectures.
+
 
 [npm-lib-image]: https://img.shields.io/npm/v/azure-pipelines-task-lib.svg?style=flat
 [npm-lib-url]: https://www.npmjs.com/package/azure-pipelines-task-lib

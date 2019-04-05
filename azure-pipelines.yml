@@ -1,6 +1,7 @@
 trigger:
 - master
 - features/*
+- releases/*
 
 jobs:
 #################################################
@@ -28,7 +29,9 @@ jobs:
     displayName: (azure-pipelines-task-lib) use node 5.10.1
 
   # build/test
-  - script: node make.js test
+  - script: |
+      chcp 437
+      node make.js test
     workingDirectory: node
     displayName: (azure-pipelines-task-lib) node make.js test  
 
@@ -39,7 +42,9 @@ jobs:
       versionSpec: "6.10.3"
 
   # build/test
-  - script: node make.js test
+  - script: |
+      chcp 437
+      node make.js test
     displayName: (azure-pipelines-task-lib) node make.js test
     workingDirectory: node
 

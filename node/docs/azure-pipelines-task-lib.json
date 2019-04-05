@@ -35,7 +35,7 @@
               "return": "{ [key: string]: string; }"
             },
             "silent": {
-              "documentation": "optional.  defaults to fales ",
+              "documentation": "optional.  defaults to false ",
               "name": "silent",
               "return": "boolean"
             },

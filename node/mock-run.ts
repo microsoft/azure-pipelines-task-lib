@@ -7,12 +7,21 @@ export class TaskMockRunner {
     }
 
     _taskPath: string;
-    _answers: ma.TaskLibAnswers;
+    _answers: ma.TaskLibAnswers | undefined;
     _exports: {[key: string]: any} = { };
     _moduleCount: number = 0;
 
     public setInput(name: string, val: string) {
         process.env['INPUT_' + name.replace(' ', '_').toUpperCase()] = val;
+    }
+
+    public setVariableName(name: string, val: string, isSecret?: boolean) {
+        if (isSecret) {
+            process.env['SECRET_' + name.replace(' ', '_').toUpperCase()] = val;
+        }
+        else {
+            process.env['VSTS_TASKVARIABLE_' + name.replace(' ', '_').toUpperCase()] = val;
+        }
     }
 
     /**

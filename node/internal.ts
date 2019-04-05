@@ -71,7 +71,7 @@ let _libResourceFileLoaded: boolean = false;
 let _resourceCulture: string = 'en-US';
 
 function _loadResJson(resjsonFile: string): any {
-    var resJson: {} = null;
+    var resJson: any;
     if (_exist(resjsonFile)) {
         var resjsonContent = fs.readFileSync(resjsonFile, 'utf8').toString();
         // remove BOM
@@ -84,7 +84,6 @@ function _loadResJson(resjsonFile: string): any {
         }
         catch (err) {
             _debug('unable to parse resjson with err: ' + err.message);
-            resJson = null;
         }
     }
     else {
@@ -102,12 +101,12 @@ function _loadLocStrings(resourceFile: string, culture: string): { [key: string]
     if (_exist(resourceFile)) {
         var resourceJson = require(resourceFile);
         if (resourceJson && resourceJson.hasOwnProperty('messages')) {
-            var locResourceJson = null;
+            var locResourceJson: any;
             // load up resource resjson for different culture
 
             var localizedResourceFile = path.join(path.dirname(resourceFile), 'Strings', 'resources.resjson');
             var upperCulture = culture.toUpperCase();
-            var cultures = [];
+            var cultures: string[] = [];
             try { cultures = fs.readdirSync(localizedResourceFile); }
             catch (ex) { }
             for (var i = 0; i < cultures.length; i++) {
@@ -224,11 +223,11 @@ export function _loc(key: string, ...param: any[]): string {
  * @param     name     name of the variable to get
  * @returns   string
  */
-export function _getVariable(name: string): string {
-    let varval: string;
+export function _getVariable(name: string): string | undefined  {
+    let varval: string | undefined;
 
     // get the metadata
-    let info: _KnownVariableInfo;
+    let info: _KnownVariableInfo | undefined;
     let key: string = _getVariableKey(name);
     if (_knownVariableMap.hasOwnProperty(key)) {
         info = _knownVariableMap[key];
@@ -274,7 +273,7 @@ export interface _KnownVariableInfo {
 // Cmd Helpers
 //-----------------------------------------------------
 
-export function _command(command: string, properties, message: string) {
+export function _command(command: string, properties: any, message: string) {
     var taskCmd = new tcm.TaskCommand(command, properties, message);
     _writeLine(taskCmd.toString());
 }
@@ -304,7 +303,7 @@ export function _debug(message: string): void {
 export function _exist(path: string): boolean {
     var exist = false;
     try {
-        exist = path && fs.statSync(path) != null;
+        exist = !!(path && fs.statSync(path) != null);
     } catch (err) {
         if (err && err.code === 'ENOENT') {
             exist = false;
@@ -442,10 +441,7 @@ function _tryGetExecutablePath(filePath: string, extensions: string[]): string {
                 }
             }
             else {
-                // on Mac/Linux, test the execute bit
-                //     R   W  X  R  W X R W X
-                //   256 128 64 32 16 8 4 2 1
-                if ((stats.mode & 1) == 1) {
+                if (isUnixExecutable(stats)) {
                     return filePath;
                 }
             }
@@ -484,10 +480,7 @@ function _tryGetExecutablePath(filePath: string, extensions: string[]): string {
                     return filePath;
                 }
                 else {
-                    // on Mac/Linux, test the execute bit
-                    //     R   W  X  R  W X R W X
-                    //   256 128 64 32 16 8 4 2 1
-                    if ((stats.mode & 1) == 1) {
+                    if (isUnixExecutable(stats)) {
                         return filePath;
                     }
                 }
@@ -501,6 +494,13 @@ function _tryGetExecutablePath(filePath: string, extensions: string[]): string {
     }
 
     return '';
+}
+
+// on Mac/Linux, test the execute bit
+//     R   W  X  R  W X R W X
+//   256 128 64 32 16 8 4 2 1
+function isUnixExecutable(stats: fs.Stats) {
+    return (stats.mode & 1) > 0 || ((stats.mode & 8) > 0 && stats.gid === process.getgid()) || ((stats.mode & 64) > 0 && stats.uid === process.getuid());
 }
 
 export function _legacyFindFiles_convertPatternToRegExp(pattern: string): RegExp {
@@ -920,16 +920,16 @@ export function _normalizeSeparators(p: string): string {
 // Expose proxy information to vsts-node-api
 //-----------------------------------------------------
 export function _exposeProxySettings(): void {
-    let proxyUrl: string = _getVariable('Agent.ProxyUrl');
+    let proxyUrl: string | undefined = _getVariable('Agent.ProxyUrl');
     if (proxyUrl && proxyUrl.length > 0) {
-        let proxyUsername: string = _getVariable('Agent.ProxyUsername');
-        let proxyPassword: string = _getVariable('Agent.ProxyPassword');
-        let proxyBypassHostsJson: string = _getVariable('Agent.ProxyBypassList');
+        let proxyUsername: string | undefined = _getVariable('Agent.ProxyUsername');
+        let proxyPassword: string | undefined = _getVariable('Agent.ProxyPassword');
+        let proxyBypassHostsJson: string | undefined = _getVariable('Agent.ProxyBypassList');
 
         global['_vsts_task_lib_proxy_url'] = proxyUrl;
         global['_vsts_task_lib_proxy_username'] = proxyUsername;
         global['_vsts_task_lib_proxy_bypass'] = proxyBypassHostsJson;
-        global['_vsts_task_lib_proxy_password'] = _exposeTaskLibSecret('proxy', proxyPassword);
+        global['_vsts_task_lib_proxy_password'] = _exposeTaskLibSecret('proxy', proxyPassword || '');
 
         _debug('expose agent proxy configuration.')
         global['_vsts_task_lib_proxy'] = true;
@@ -940,21 +940,21 @@ export function _exposeProxySettings(): void {
 // Expose certificate information to vsts-node-api
 //-----------------------------------------------------
 export function _exposeCertSettings(): void {
-    let ca: string = _getVariable('Agent.CAInfo');
+    let ca: string | undefined = _getVariable('Agent.CAInfo');
     if (ca) {
         global['_vsts_task_lib_cert_ca'] = ca;
     }
 
-    let clientCert: string = _getVariable('Agent.ClientCert');
+    let clientCert = _getVariable('Agent.ClientCert');
     if (clientCert) {
-        let clientCertKey: string = _getVariable('Agent.ClientCertKey');
-        let clientCertArchive: string = _getVariable('Agent.ClientCertArchive');
-        let clientCertPassword: string = _getVariable('Agent.ClientCertPassword');
+        let clientCertKey: string | undefined = _getVariable('Agent.ClientCertKey');
+        let clientCertArchive: string | undefined = _getVariable('Agent.ClientCertArchive');
+        let clientCertPassword: string | undefined = _getVariable('Agent.ClientCertPassword');
 
         global['_vsts_task_lib_cert_clientcert'] = clientCert;
         global['_vsts_task_lib_cert_key'] = clientCertKey;
         global['_vsts_task_lib_cert_archive'] = clientCertArchive;
-        global['_vsts_task_lib_cert_passphrase'] = _exposeTaskLibSecret('cert', clientCertPassword);
+        global['_vsts_task_lib_cert_passphrase'] = _exposeTaskLibSecret('cert', clientCertPassword || '');
     }
 
     if (ca || clientCert) {
@@ -971,7 +971,7 @@ export function _exposeCertSettings(): void {
 // We store the encryption key on disk and hold the encrypted content and key file in memory
 // return base64encoded<keyFilePath>:base64encoded<encryptedContent>
 // downstream vsts-node-api will retrieve the secret later
-function _exposeTaskLibSecret(keyFile: string, secret: string): string {
+function _exposeTaskLibSecret(keyFile: string, secret: string): string | undefined {
     if (secret) {
         let encryptKey = crypto.randomBytes(256);
         let cipher = crypto.createCipher("aes-256-ctr", encryptKey);

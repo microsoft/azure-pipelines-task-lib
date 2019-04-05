@@ -318,7 +318,7 @@ import tr = require('azure-pipelines-task-lib/toolrunner');
 try {
     var toolPath = tl.which('atool');
     var atool:tr.ToolRunner = tl.tool(toolPath).arg('--afile').line('arguments');
-    var code: number = await tr.exec();
+    var code: number = await atool.exec();
     console.log('rc=' + code);
 }
 catch (err) {

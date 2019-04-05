@@ -1,5 +1,15 @@
 # AZURE-PIPELINES-TASK-LIB RELEASES
 
+## 2.8.0
+ * Updated to TypeScript 3.0.
+ * Fixed `which` so that it finds executables that can be executed by the current process, not just those that are executable by everyone.
+ * Added `setVariable` method to `mock-run` for mocking variables during test.
+ * Update `MockToolRunner` to emit stdout.
+ * Added support for UNC args in `ToolRunner`.
+ * Added additional logging commands to the Node library to obtain parity with PowerShell.
+ * Added `getPlatform` convenience function.
+ * Updated `vault` to use safer cipheriv encoding (stops npm from warning about encryption).
+
 ## 2.7.0
  * Updated `setResult` to expose optional done parameter
  * Updated `ToolRunner` to distinguish between events for process exit and STDIO streams closed
