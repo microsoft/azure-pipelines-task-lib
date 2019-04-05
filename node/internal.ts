@@ -99,7 +99,7 @@ function _loadLocStrings(resourceFile: string, culture: string): { [key: string]
     } = {};
 
     if (_exist(resourceFile)) {
-        var resourceJson = require(resourceFile);
+        var resourceJson = JSON.parse(fs.readFileSync(resourceFile, { encoding: 'utf-8' }));
         if (resourceJson && resourceJson.hasOwnProperty('messages')) {
             var locResourceJson: any;
             // load up resource resjson for different culture
