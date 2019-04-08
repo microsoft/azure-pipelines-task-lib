@@ -66,6 +66,9 @@ export class MockTestRunner {
             nodePath = this.getNodePath(nodeVersion);
         }
         let spawn = cp.spawnSync(nodePath, [this._testPath]);
+        Object.keys(process.env)
+            .filter(key => key.startsWith('INPUT_') || key => key.startsWith('SECRET_') || key => key.startsWith('VSTS_TASKVARIABLE_'))
+            .forEach(key => delete process.env[key]);
         if (spawn.error) {
             console.error('Running test failed');
             console.error(spawn.error.message);
