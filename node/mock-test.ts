@@ -67,7 +67,10 @@ export class MockTestRunner {
         }
         let spawn = cp.spawnSync(nodePath, [this._testPath]);
         Object.keys(process.env)
-            .filter(key => (key.startsWith('INPUT_') || key.startsWith('SECRET_') || key.startsWith('VSTS_TASKVARIABLE_')))
+        this.substr(position, searchString.length) === searchString
+            .filter(key => (key.substr(0, 'INPUT_'.length) === 'INPUT_' ||
+                            key.substr(0, 'SECRET_'.length) === 'SECRET_' ||
+                            key.substr(0, 'VSTS_TASKVARIABLE_'.length) === 'VSTS_TASKVARIABLE_'))
             .forEach(key => delete process.env[key]);
         if (spawn.error) {
             console.error('Running test failed');
