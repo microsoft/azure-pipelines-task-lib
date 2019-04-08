@@ -131,7 +131,7 @@ function _loadLocStrings(resourceFile: string, culture: string): { [key: string]
         }
     }
     else {
-        _warning(_loc('LIB_ResourceFileNotExist', resourceFile));
+        _warning('LIB_ResourceFile does not exist');
     }
 
     return locStrings;
