@@ -67,7 +67,6 @@ export class MockTestRunner {
         }
         let spawn = cp.spawnSync(nodePath, [this._testPath]);
         Object.keys(process.env)
-        this.substr(position, searchString.length) === searchString
             .filter(key => (key.substr(0, 'INPUT_'.length) === 'INPUT_' ||
                             key.substr(0, 'SECRET_'.length) === 'SECRET_' ||
                             key.substr(0, 'VSTS_TASKVARIABLE_'.length) === 'VSTS_TASKVARIABLE_'))
