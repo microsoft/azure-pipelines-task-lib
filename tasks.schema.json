@@ -264,10 +264,16 @@
       "additionalProperties": false,
       "description": "Execution options for this task",
       "properties": {
+        "Node10": {
+          "$ref": "#/definitions/executionObject"
+        },
         "Node": {
           "$ref": "#/definitions/executionObject"
         },
         "PowerShell3": {
+          "$ref": "#/definitions/executionObject"
+        },
+        "PowerShell": {
           "$ref": "#/definitions/executionObject"
         }
       }
