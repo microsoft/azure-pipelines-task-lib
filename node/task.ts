@@ -1263,26 +1263,16 @@ function _legacyFindFiles_getMatchingItems(
 export function rmRF(inputPath: string): void {
     debug('rm -rf ' + inputPath);
     if (fs.existsSync(inputPath)) {
-        const inputStats: fs.Stats = fs.lstatSync(inputPath);
-        if (inputStats.isDirectory()) {
-            fs.readdirSync(inputPath).forEach(function(file, index) {
-                rmRF(path.join(inputPath, file));
-            });
-            try {
-                fs.rmdirSync(inputPath);
+        if (getPlatform() == Platform.Windows) {
+            if (fs.statSync(inputPath).isDirectory()) {
+                childProcess.execSync(`rd /s /q "${inputPath}"`);
             }
-            catch (err) {
-                throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
+            else {
+                childProcess.execSync(`del /f /a "${inputPath}"`);
             }
         }
         else {
-            try {
-                debug('removing file');
-                fs.unlinkSync(inputPath);
-            }
-            catch (err) {
-                throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
-            }
+            childProcess.execSync('rm -rf ' + inputPath);
         }
     }
     else {
