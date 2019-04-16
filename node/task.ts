@@ -729,30 +729,30 @@ export const which = im._which;
 
 /**
  * Returns array of files in the given path, or in current directory if no path provided.
+ * @param  {string}   options  Available options: -R (recursive), -A (all files, include files beginning with ., except for . and ..)
  * @param  {string[]} paths    Paths to search.
- * @param  {boolean} recursive Whether to recurse into subdirectories
- * @param  {boolean} allFiles  Whether to copy all files, include files beginning with ., except for . and ..
  * @return {string[]}          An array of files in the given path(s).
  */
-export function ls(paths: string[], recursive: boolean = false, allFiles: boolean = false): string[] {
+export function ls(options: string, paths: string[]): string[] {
+    options = options.toLowerCase();
     let filePaths: string[] = [];
     paths.forEach(path => {
         let command: string = '';
         if (getPlatform() == Platform.Windows) {
             command = 'dir ' + path + ' /b';
-            if (recursive) {
+            if (options.indexOf('r') >= 0) {
                 command += ' /s';
             }
-            if (allFiles) {
+            if (options.indexOf('a') >= 0) {
                 command += ' /a';
             }
         }
         else {
             command = 'ls ' + path;
-            if (recursive) {
+            if (options.indexOf('r') >= 0) {
                 command += ' -R';
             }
-            if (allFiles) {
+            if (options.indexOf('a') >= 0) {
                 command += ' -A';
             }
         }
@@ -772,33 +772,50 @@ export function ls(paths: string[], recursive: boolean = false, allFiles: boolea
  * 
  * @param     source     source path
  * @param     dest       destination path
- * @param     recursive  Copy recursively
- * @param     force      Force copy
+ * @param     options    string -r, -f or -rf for recursive and force
  * @param     continueOnError optional. whether to continue on error
  */
-export function cp(source: string, dest: string, recursive: boolean = false, force: boolean = false, continueOnError?: boolean): void {
+export function cp(source: string, dest: string, options?: string, continueOnError?: boolean): void {
+    if (!options) {
+        options = '';
+    }
+    else {
+        options = options.toLowerCase();
+    }
     try {
         if (!fs.existsSync(source)) {
             throw new Error(loc('LIB_OperationFailed', source + ' doesnt exist'));
         }
         if (getPlatform() == Platform.Windows) {
             if (fs.statSync(source).isDirectory()) {
+                // Robocopy only copies the contents of a folder, not the folder itself, so we need to create the folder to copy into.
+                dest = path.join(dest, path.basename(source));
                 mkdirP(dest);
+
                 let command: string = 'robocopy ' + source + ' ' + dest;
                 
-                if (recursive) {
+                if (options.indexOf('r') >= 0) {
                     command += ' /e';
                 }
-                if (force) {
+                if (options.indexOf('f') >= 0) {
                     command += ' /is /it';
                 }
 
-                childProcess.execSync(command);
+                try {
+                    childProcess.execSync(command);
+                }
+                catch (err) {
+                    // Robocopy writes non-zero exit codes even on successful copies, only 8 and 16 are error codes
+                    // https://ss64.com/nt/robocopy-exit.html
+                    if (err.status >= 8) {
+                        throw new Error(`Command "${command}" failed with error code ${err.status}, stdout ${err.stdout}, and stderr ${err.stderr}`);
+                    }
+                }
             }
             else {
                 // Copy individual file over
                 if (fs.existsSync(dest)) {
-                    if (force) {
+                    if (options.indexOf('f') >= 0) {
                         fs.unlinkSync(dest);
                     }
                     else {
@@ -812,10 +829,10 @@ export function cp(source: string, dest: string, recursive: boolean = false, for
         }
         else {
             let command: string = 'cp';
-            if (recursive) {
+            if (options.indexOf('r') >= 0) {
                 command += ' -R';
             }
-            if (force) {
+            if (options.indexOf('f') >= 0) {
                 command += ' -f';
             }
             command += ' ' + source + ' ' + dest;
@@ -841,7 +858,13 @@ export function cp(source: string, dest: string, recursive: boolean = false, for
  * @param     options    string -f or -n for force and no clobber 
  * @param     continueOnError optional. whether to continue on error
  */
-export function mv(source: string, dest: string, force: boolean = false, continueOnError?: boolean): void {
+export function mv(source: string, dest: string, options?: string, continueOnError?: boolean): void {
+    if (!options) {
+        options = '';
+    }
+    else {
+        options = options.toLowerCase();
+    }
     try {
         if (!fs.existsSync(source)) {
             throw new Error(loc('LIB_OperationFailed', source + ' doesnt exist'));
@@ -851,16 +874,25 @@ export function mv(source: string, dest: string, force: boolean = false, continu
                 mkdirP(dest);
                 let command: string = 'robocopy ' + source + ' ' + dest + ' /move';
                 
-                if (force) {
+                if (options.indexOf('f') >= 0) {
                     command += ' /is /it';
                 }
 
-                childProcess.execSync(command);
+                try {
+                    childProcess.execSync(command);
+                }
+                catch (err) {
+                    // Robocopy writes non-zero exit codes even on successful copies, only 8 and 16 are error codes
+                    // https://ss64.com/nt/robocopy-exit.html
+                    if (err.status >= 8) {
+                        throw new Error(`Command "${command}" failed with error code ${err.status}, stdout ${err.stdout}, and stderr ${err.stderr}`);
+                    }
+                }
             }
             else {
                 // Copy individual file over
                 if (fs.existsSync(dest)) {
-                    if (force) {
+                    if (options.indexOf('f') >= 0) {
                         fs.unlinkSync(dest);
                     }
                     else {
@@ -875,7 +907,7 @@ export function mv(source: string, dest: string, force: boolean = false, continu
         }
         else {
             let command: string = 'mv';
-            if (force) {
+            if (options.indexOf('f') >= 0) {
                 command += ' -f';
             }
             else {
