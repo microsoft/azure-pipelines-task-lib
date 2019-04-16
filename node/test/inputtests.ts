@@ -7,7 +7,6 @@
 import assert = require('assert');
 import path = require('path');
 import os = require('os');
-import shell = require('shelljs');
 import * as tl from '../_build/task';
 import * as im from '../_build/internal';
 import testutil = require('./testutil');
@@ -889,7 +888,12 @@ describe('Input Tests', function () {
         // there so it will be forced to load again
         let testDir = path.join(testutil.getTestTemp(), '_loadData-not-called-twice');
         tl.mkdirP(testDir);
-        shell.cp('-R', path.join(__dirname, '..', '_build'), testDir);
+        try {
+            tl.cp(path.join(__dirname, '..', '_build'), testDir, '-rf');
+        }
+        catch (err) {
+            console.log('Failed with error', err);
+        }
         require(path.join(testDir, '_build', 'task'));
 
         assert.equal(tl.getInput('SomeInput'), 'some input value');
