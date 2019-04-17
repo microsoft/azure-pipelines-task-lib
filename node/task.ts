@@ -799,8 +799,7 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
                 }
                 else {
                     // If we're not doing a recursive copy and its a folder we don't copy anything.
-                    debug(`-r not specified, omitting directory ${source}`);
-                    return;
+                    throw new Error(`-r not specified, omitting directory ${source}`);
                 }
                 if (options.indexOf('f') >= 0) {
                     command += ' /is /it';

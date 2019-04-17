@@ -1864,7 +1864,7 @@ describe('Dir Operation Tests', function () {
 
         tl.cp(sourceFile, targetFile, '-f');
 
-        assert.equal('test file content', fs.readFileSync(targetFile));
+        assert.equal('test file content', fs.readFileSync(targetFile).toString());
 
         done();
     });
@@ -1919,8 +1919,14 @@ describe('Dir Operation Tests', function () {
         tl.mkdirP(sourceFolder);
         fs.writeFileSync(sourceFile, 'test file content');
 
-        tl.cp(sourceFolder, targetFolder);
-
+        let thrown = false;
+        try {
+            tl.cp(sourceFolder, targetFolder);
+        }
+        catch (err) {
+            thrown = true;
+        }
+        assert.equal(true, thrown);
         assert.equal(false, fs.existsSync(targetFile));
 
         done();
