@@ -1843,7 +1843,7 @@ describe('Dir Operation Tests', function () {
         let sourceFile: string = path.join(root, 'cp_source');
         let targetFile: string = path.join(root, 'cp_target');
         tl.mkdirP(root);
-        fs.writeFileSync(sourceFile, 'test file content');
+        fs.writeFileSync(sourceFile, 'test file content', { encoding: 'utf8' });
 
         tl.cp(sourceFile, targetFile);
 
@@ -1859,8 +1859,8 @@ describe('Dir Operation Tests', function () {
         let sourceFile: string = path.join(root, 'cp_source');
         let targetFile: string = path.join(root, 'cp_target');
         tl.mkdirP(root);
-        fs.writeFileSync(sourceFile, 'test file content');
-        fs.writeFileSync(targetFile, 'bad content');
+        fs.writeFileSync(sourceFile, 'test file content', { encoding: 'utf8' });
+        fs.writeFileSync(targetFile, 'bad content', { encoding: 'utf8' });
 
         tl.cp(sourceFile, targetFile, '-f');
 
@@ -1876,8 +1876,8 @@ describe('Dir Operation Tests', function () {
         let sourceFile: string = path.join(root, 'cp_source');
         let targetFile: string = path.join(root, 'cp_target');
         tl.mkdirP(root);
-        fs.writeFileSync(sourceFile, 'test file content');
-        fs.writeFileSync(targetFile, 'correct content');
+        fs.writeFileSync(sourceFile, 'test file content', { encoding: 'utf8' });
+        fs.writeFileSync(targetFile, 'correct content', { encoding: 'utf8' });
 
         tl.cp(sourceFile, targetFile);
 
@@ -1886,7 +1886,6 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    // cp tests
     it('copies directory with -r', (done: MochaDone) => {
         this.timeout(1000);
 
@@ -1897,7 +1896,7 @@ describe('Dir Operation Tests', function () {
         let targetFolder: string = path.join(root, 'cp_target');
         let targetFile: string = path.join(targetFolder, 'cp_source', 'cp_source_file');
         tl.mkdirP(sourceFolder);
-        fs.writeFileSync(sourceFile, 'test file content');
+        fs.writeFileSync(sourceFile, 'test file content', { encoding: 'utf8' });
 
         tl.cp(sourceFolder, targetFolder, '-r');
 
@@ -1906,7 +1905,6 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    // cp tests
     it('tries to copy directory without -r', (done: MochaDone) => {
         this.timeout(1000);
 
@@ -1917,7 +1915,7 @@ describe('Dir Operation Tests', function () {
         let targetFolder: string = path.join(root, 'cp_target');
         let targetFile: string = path.join(targetFolder, 'cp_source', 'cp_source_file');
         tl.mkdirP(sourceFolder);
-        fs.writeFileSync(sourceFile, 'test file content');
+        fs.writeFileSync(sourceFile, 'test file content', { encoding: 'utf8' });
 
         let thrown = false;
         try {
