@@ -1864,7 +1864,7 @@ describe('Dir Operation Tests', function () {
 
         tl.cp(sourceFile, targetFile, '-f');
 
-        assert.equal('test file content', fs.readFileSync(targetFile).toString());
+        assert.equal('test file content', fs.readFileSync(targetFile, { encoding: 'utf8' }));
 
         done();
     });
