@@ -1847,7 +1847,7 @@ describe('Dir Operation Tests', function () {
 
         tl.cp(sourceFile, targetFile);
 
-        assert.equal('test file content', fs.readFileSync(targetFile));
+        assert.equal('test file content', fs.readFileSync(targetFile, { encoding: 'utf8' }));
 
         done();
     });
@@ -1881,7 +1881,7 @@ describe('Dir Operation Tests', function () {
 
         tl.cp(sourceFile, targetFile);
 
-        assert.equal('correct content', fs.readFileSync(targetFile));
+        assert.equal('correct content', fs.readFileSync(targetFile, { encoding: 'utf8' }));
 
         done();
     });
@@ -1901,7 +1901,7 @@ describe('Dir Operation Tests', function () {
 
         tl.cp(sourceFolder, targetFolder, '-r');
 
-        assert.equal('test file content', fs.readFileSync(targetFile));
+        assert.equal('test file content', fs.readFileSync(targetFile, { encoding: 'utf8' }));
 
         done();
     });
