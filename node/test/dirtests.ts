@@ -1886,15 +1886,35 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('copies directory with -r', (done: MochaDone) => {
+    it('copies directory into existing destination with -r', (done: MochaDone) => {
         this.timeout(1000);
 
-        let root: string = path.join(testutil.getTestTemp(), 'cp_with_-r');
+        let root: string = path.join(testutil.getTestTemp(), 'cp_with_-r_existing_dest');
         let sourceFolder: string = path.join(root, 'cp_source');
         let sourceFile: string = path.join(sourceFolder, 'cp_source_file');
 
         let targetFolder: string = path.join(root, 'cp_target');
         let targetFile: string = path.join(targetFolder, 'cp_source', 'cp_source_file');
+        tl.mkdirP(sourceFolder);
+        fs.writeFileSync(sourceFile, 'test file content', { encoding: 'utf8' });
+        tl.mkdirP(targetFolder);
+
+        tl.cp(sourceFolder, targetFolder, '-r');
+
+        assert.equal('test file content', fs.readFileSync(targetFile, { encoding: 'utf8' }));
+
+        done();
+    });
+
+    it('copies directory into non-existing destination with -r', (done: MochaDone) => {
+        this.timeout(1000);
+
+        let root: string = path.join(testutil.getTestTemp(), 'cp_with_-r_nonexisting_dest');
+        let sourceFolder: string = path.join(root, 'cp_source');
+        let sourceFile: string = path.join(sourceFolder, 'cp_source_file');
+
+        let targetFolder: string = path.join(root, 'cp_target');
+        let targetFile: string = path.join(targetFolder, 'cp_source_file');
         tl.mkdirP(sourceFolder);
         fs.writeFileSync(sourceFile, 'test file content', { encoding: 'utf8' });
 

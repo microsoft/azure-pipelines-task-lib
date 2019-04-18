@@ -768,11 +768,16 @@ export function ls(options: string, paths: string[]): string[] {
 }
 
 /**
- * Copies a file or folder.
+ * Copies a file or folder from source to dest.
+ * If source is a directory and dest is a directory, copies the entire folder structure as a subfolder into the directory
+ * If source is a directory and dest doesn't exist, copies creates dest and copies the contents of source into it.
+ * If source is a directory and dest is a file, fails
+ * If source is a file and dest is a directory, copies source into dest.
+ * If source is a file and dest is a file or doesn't exist, copies source in place of dest.
  * 
  * @param     source     source path
  * @param     dest       destination path
- * @param     options    string -r, -f or -rf for recursive and force
+ * @param     options    string -r, -n or -rn for recursive and no clobber. -r must be specified to copy a directory. -n must be specified to avoid overwriting files.
  * @param     continueOnError optional. whether to continue on error
  */
 export function cp(source: string, dest: string, options?: string, continueOnError?: boolean): void {
@@ -788,9 +793,12 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
         }
         if (getPlatform() == Platform.Windows) {
             if (fs.statSync(source).isDirectory()) {
-                // Robocopy only copies the contents of a folder, not the folder itself, so we need to create the folder to copy into.
-                dest = path.join(dest, path.basename(source));
-                mkdirP(dest);
+                // Robocopy only copies the contents of a folder, not the folder itself, so we need to create the folder to copy into (if dest exists).
+                if (fs.existsSync(dest)) {
+                    dest = path.join(dest, path.basename(source));
+                    mkdirP(dest);
+                }
+                
 
                 let command: string = 'robocopy ' + source + ' ' + dest;
                 
