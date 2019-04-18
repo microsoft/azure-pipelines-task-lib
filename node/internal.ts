@@ -345,7 +345,10 @@ export function _which(tool: string, check?: boolean): string {
     // recursive when check=true
     if (check) {
         let result: string = _which(tool, false);
-        if (!result) {
+        if (result) {
+            return result;
+        }
+        else {
             if (process.platform == 'win32') {
                 throw new Error(_loc('LIB_WhichNotFound_Win', tool));
             }
