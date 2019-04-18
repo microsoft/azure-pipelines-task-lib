@@ -905,12 +905,13 @@ export function mv(source: string, dest: string, options?: string, continueOnErr
             else {
                 // Copy individual file over
                 if (fs.existsSync(dest)) {
-                    if (options.indexOf('f') >= 0) {
-                        fs.unlinkSync(dest);
-                    }
-                    else {
+                    // Force by default
+                    if (options.indexOf('n') > 0) {
                         // If file exists and we're not overwriting, just return.
                         return;
+                    }
+                    else {
+                        fs.unlinkSync(dest);
                     }
                 }
                 let command: string = 'echo F | xcopy ' + source + ' ' + dest;
