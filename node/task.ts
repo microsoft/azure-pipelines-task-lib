@@ -923,7 +923,7 @@ export function mv(source: string, dest: string, options?: string, continueOnErr
             if (options.indexOf('f') >= 0) {
                 command += ' -f';
             }
-            if (options.indexOf('n') >= 0) {
+            else {
                 command += ' -n';
             }
             command += ' ' + source + ' ' + dest
