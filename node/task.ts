@@ -819,12 +819,12 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
             else {
                 // Copy individual file over
                 if (fs.existsSync(dest)) {
-                    if (options.indexOf('f') >= 0) {
-                        fs.unlinkSync(dest);
-                    }
-                    else {
+                    if (options.indexOf('n') >= 0) {
                         // If file exists and we're not overwriting, just return. 
                         return;
+                    }
+                    else {
+                        fs.unlinkSync(dest);
                     }
                 }
                 const command: string = 'echo F | xcopy ' + source + ' ' + dest;
@@ -836,8 +836,9 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
             if (options.indexOf('r') >= 0) {
                 command += ' -R';
             }
-            if (options.indexOf('f') >= 0) {
-                command += ' -f';
+            if (options.indexOf('-n') >= 0) {
+                // Force is default
+                command += ' -n';
             }
             command += ' ' + source + ' ' + dest;
             childProcess.execSync(command);
