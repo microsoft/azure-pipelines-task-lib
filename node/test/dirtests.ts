@@ -1869,7 +1869,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('try copying to existing file with no -f', (done: MochaDone) => {
+    it('try copying to existing file with no clobber', (done: MochaDone) => {
         this.timeout(1000);
 
         let root: string = path.join(testutil.getTestTemp(), 'cp_to_existing');
@@ -1879,7 +1879,7 @@ describe('Dir Operation Tests', function () {
         fs.writeFileSync(sourceFile, 'test file content', { encoding: 'utf8' });
         fs.writeFileSync(targetFile, 'correct content', { encoding: 'utf8' });
 
-        tl.cp(sourceFile, targetFile);
+        tl.cp(sourceFile, targetFile, '-n');
 
         assert.equal('correct content', fs.readFileSync(targetFile, { encoding: 'utf8' }));
 
