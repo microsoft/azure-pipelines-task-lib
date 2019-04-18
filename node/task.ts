@@ -905,7 +905,7 @@ export function mv(source: string, dest: string, options?: string, continueOnErr
             else {
                 // Copy individual file over
                 if (fs.existsSync(dest)) {
-                    if (options.indexOf('f') > 0) {
+                    if (options.indexOf('f') >= 0) {
                         fs.unlinkSync(dest);
                     }
                     else {
