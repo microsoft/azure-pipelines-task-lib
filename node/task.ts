@@ -597,21 +597,11 @@ export const checkPath = im._checkPath;
  */
 export function cd(path: string): void {
     if (path) {
-        let errMsg: string = '';
-        if (!fs.existsSync(path)) {
-            errMsg = loc('LIB_OperationFailed', 'cd ' + path, 'No such file or directory');
+        let pathStats = stats(path);
+        if (!pathStats.isDirectory()) {
+            throw new Error(loc('LIB_OperationFailed'))
         }
-        else if (!fs.statSync(path).isDirectory()) {
-            errMsg = loc('LIB_OperationFailed', 'cd ' + path, 'Not a directory');
-        }
-
-        if (!errMsg) {
-            process.chdir(path);
-        }
-        else {
-            debug(errMsg);
-            throw new Error(errMsg);
-        }
+        process.chdir(path);
     }
 }
 
@@ -789,7 +779,7 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
     }
     try {
         if (!fs.existsSync(source)) {
-            throw new Error(loc('LIB_OperationFailed', source + ' doesnt exist'));
+            throw new Error(loc('LIB_OperationFailed', 'ENOENT'));
         }
         if (getPlatform() == Platform.Windows) {
             if (fs.statSync(source).isDirectory()) {
@@ -880,19 +870,20 @@ export function mv(source: string, dest: string, options?: string, continueOnErr
     }
     try {
         if (!fs.existsSync(source)) {
-            throw new Error(loc('LIB_OperationFailed', source + ' doesnt exist'));
+            throw new Error(loc('LIB_OperationFailed', 'ENOENT'));
         }
         if (getPlatform() == Platform.Windows) {
             if (fs.statSync(source).isDirectory()) {
                 mkdirP(dest);
-                let command: string = 'robocopy ' + source + ' ' + dest + ' /move';
+                let runner = new trm.ToolRunner(which('robocopy'));
+                runner.arg(source).arg(dest).arg('/move');
                 
                 if (options.indexOf('f') >= 0) {
-                    command += ' /is /it';
+                    runner.arg('/is').arg('/it')
                 }
 
                 try {
-                    childProcess.execSync(command);
+                    runner.execSync();
                 }
                 catch (err) {
                     // Robocopy writes non-zero exit codes even on successful copies, only 8 and 16 are error codes
