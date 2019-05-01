@@ -9,6 +9,7 @@ import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
 import semver = require('semver');
 import { doesNotThrow } from 'assert';
+import { cat } from 'shelljs';
 
 export enum TaskResult {
     Succeeded = 0,
@@ -907,6 +908,17 @@ export function mv(source: string, dest: string, options?: string, continueOnErr
                     else {
                         // If file exists and we're not overwriting, just return.
                         return;
+                    }
+                }
+
+                try {
+                    fs.renameSync(source, dest);
+                    return;
+                }
+                catch {
+                    // If it fails, remove file if one has been partially copied
+                    if (fs.existsSync(dest)) {
+                        fs.unlinkSync(dest);
                     }
                 }
                 
