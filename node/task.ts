@@ -8,6 +8,7 @@ import im = require('./internal');
 import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
 import semver = require('semver');
+import { doesNotThrow } from 'assert';
 
 export enum TaskResult {
     Succeeded = 0,
@@ -789,22 +790,23 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
                     mkdirP(dest);
                 }
                 
+                let runner = new trm.ToolRunner(which('robocopy'));
+                runner.arg('/r:3').arg('/w:10').arg(source).arg(dest).arg('/unicode');
 
-                let command: string = 'robocopy ' + source + ' ' + dest;
                 
                 if (options.indexOf('r') >= 0) {
-                    command += ' /e';
+                    runner.arg('/e');
                 }
                 else {
                     // If we're not doing a recursive copy and its a folder we don't copy anything.
                     throw new Error(`-r not specified, omitting directory ${source}`);
                 }
                 if (options.indexOf('f') >= 0) {
-                    command += ' /is /it';
+                    runner.arg('/is').arg('/it');
                 }
 
                 try {
-                    childProcess.execSync(command);
+                    runner.execSync();
                 }
                 catch (err) {
                     // Robocopy writes non-zero exit codes even on successful copies, only 8 and 16 are error codes
@@ -825,8 +827,11 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
                         fs.unlinkSync(dest);
                     }
                 }
-                const command: string = 'echo F | xcopy ' + source + ' ' + dest;
-                childProcess.execSync(command);
+                // Write empty file to overwrite so we don't get interactive prompt.
+                fs.writeFileSync(dest, '');
+                let runner = new trm.ToolRunner(which('xcopy'));
+                runner.arg('/Y').arg(source).arg(dest);
+                runner.execSync();
             }
         }
         else {
@@ -876,7 +881,7 @@ export function mv(source: string, dest: string, options?: string, continueOnErr
             if (fs.statSync(source).isDirectory()) {
                 mkdirP(dest);
                 let runner = new trm.ToolRunner(which('robocopy'));
-                runner.arg(source).arg(dest).arg('/move');
+                runner.arg('/r:3').arg('/w:10').arg(source).arg(dest).arg('/move').arg('/unicode');
                 
                 if (options.indexOf('f') >= 0) {
                     runner.arg('/is').arg('/it')
@@ -904,8 +909,12 @@ export function mv(source: string, dest: string, options?: string, continueOnErr
                         return;
                     }
                 }
-                let command: string = 'echo F | xcopy ' + source + ' ' + dest;
-                childProcess.execSync(command);
+                
+                // Write empty file to overwrite so we don't get interactive prompt.
+                fs.writeFileSync(dest, '');
+                let runner = new trm.ToolRunner(which('xcopy'));
+                runner.arg('/Y').arg(source).arg(dest);
+                runner.execSync();
                 fs.unlinkSync(source);
             }
         }
