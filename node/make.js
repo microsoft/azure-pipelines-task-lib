@@ -35,6 +35,7 @@ target.build = function() {
     cp(rp('../LICENSE'), buildPath);
     cp(rp('lib.json'), buildPath);
     cp(rp('ThirdPartyNotice.txt'), buildPath);
+    cp(rp('Invoke-Robocopy.ps1'), buildPath);
     cp('-Rf', rp('Strings'), buildPath);
     // just a bootstrap file to avoid /// in final js and .d.ts file
     rm(path.join(buildPath, 'index.*'));
