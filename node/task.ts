@@ -918,7 +918,9 @@ export function find(findPath: string, options?: FindOptions): string[] {
                 let childItems: _FindItem[] =
                     fs.readdirSync(item.path)
                         .map((childName: string) => new _FindItem(path.join(item.path, childName), childLevel));
-                stack.push(...childItems.reverse());
+                for (var i = childItems.length - 1; i >= 0; i--) {
+                    stack.push(childItems[i]);
+                }
             }
             else {
                 debug(`  ${item.path} (file)`);
