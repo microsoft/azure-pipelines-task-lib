@@ -759,6 +759,57 @@ export function ls(options: string, paths: string[]): string[] {
     return filePaths;
 }
 
+function pathToRobocopyPSString(filePath: string) {
+    // the path needs to be fixed-up due to a robocopy quirk handling trailing backslashes.
+    //
+    // according to http://ss64.com/nt/robocopy.html:
+    //   If either the source or desination are a "quoted long foldername" do not include a
+    //   trailing backslash as this will be treated as an escape character, i.e. "C:\some path\"
+    //   will fail but "C:\some path\\" or "C:\some path\." or "C:\some path" will work.
+    //
+    // furthermore, PowerShell implicitly double-quotes arguments to external commands when the
+    // argument contains unquoted spaces.
+    //
+    // note, details on PowerShell quoting rules for external commands can be found in the
+    // source code here:
+    // https://github.com/PowerShell/PowerShell/blob/v0.6.0/src/System.Management.Automation/engine/NativeCommandParameterBinder.cs
+
+    // remove double quotes
+    let result: string = filePath.replace(/"/g, '');
+
+    // append a "." if the path ends with a backslash. e.g. "C:\some path\" -> "C:\some path\."
+    if (result.indexOf('\\') === result.length - 1) {
+        result += '.';
+    }
+
+    // double-up single quotes and enclose in single quotes. this is to create a single-quoted string in powershell.
+    result = result.replace(/'/g, "''");
+    return `'${result}'`;
+}
+
+function _invokeRobocopy(source: string, dest: string, flags:string) {
+    const scriptPath: string = path.join(__dirname, 'Invoke-Robocopy.ps1');
+    let script = scriptPath.replace(/"/g, '').replace(/'/g, "''");
+    const command: string = `& '${script}' -Source ${pathToRobocopyPSString(source)} -Target ${pathToRobocopyPSString(dest)} -Flags '${flags}'`;
+    let powershell = new trm.ToolRunner('powershell.exe');
+    powershell.arg('-NoLogo');
+    powershell.arg('-Sta');
+    powershell.arg('-NoProfile');
+    powershell.arg('-NonInteractive');
+    powershell.arg('-ExecutionPolicy');
+    powershell.arg('Unrestricted');
+    powershell.arg('-Command');
+    powershell.arg(command);
+    powershell.on('stdout', (buffer: Buffer) => {
+        process.stdout.write(buffer);
+    });
+    powershell.on('stderr', (buffer: Buffer) => {
+        process.stderr.write(buffer);
+    });
+    let execOptions = { silent: true } as trm.IExecOptions;
+    powershell.execSync(execOptions);
+}
+
 /**
  * Copies a file or folder from source to dest.
  * If source is a directory and dest is a directory, copies the entire folder structure as a subfolder into the directory
@@ -791,11 +842,13 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
                     mkdirP(dest);
                 }
                 
+                let robocopyArgs = '/r:3 /w:10'
                 let runner = new trm.ToolRunner(which('robocopy'));
-                runner.arg('/r:3').arg('/w:10').arg(source).arg(dest).arg('/unicode');
+                runner.arg('/r:3').arg('/w:10').arg(source).arg(dest);
 
                 
                 if (options.indexOf('r') >= 0) {
+                    robocopyArgs += ' /e';
                     runner.arg('/e');
                 }
                 else {
@@ -803,19 +856,22 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
                     throw new Error(`-r not specified, omitting directory ${source}`);
                 }
                 if (options.indexOf('f') >= 0) {
+                    robocopyArgs += ' /is /it';
                     runner.arg('/is').arg('/it');
                 }
 
-                try {
-                    runner.execSync();
-                }
-                catch (err) {
-                    // Robocopy writes non-zero exit codes even on successful copies, only 8 and 16 are error codes
-                    // https://ss64.com/nt/robocopy-exit.html
-                    if (err.status >= 8) {
-                        throw new Error(`Command "${command}" failed with error code ${err.status}, stdout ${err.stdout}, and stderr ${err.stderr}`);
-                    }
-                }
+                _invokeRobocopy(source, dest, robocopyArgs);
+
+                // try {
+                //     runner.execSync();
+                // }
+                // catch (err) {
+                //     // Robocopy writes non-zero exit codes even on successful copies, only 8 and 16 are error codes
+                //     // https://ss64.com/nt/robocopy-exit.html
+                //     if (err.status >= 8) {
+                //         throw new Error(`Command "${command}" failed with error code ${err.status}, stdout ${err.stdout}, and stderr ${err.stderr}`);
+                //     }
+                // }
             }
             else {
                 // Copy individual file over

@@ -1969,15 +1969,14 @@ describe('Dir Operation Tests', function () {
 
         tl.cp(sourceFolder, targetFolder, '-r');
 
-        assert.equal('test file content', fs.readFileSync(targetFile, { encoding: 'utf8' }));
-
         if (process.platform == 'win32') {
             childProcess.execSync('chcp 437');
         }
 
+        assert.equal('test file content', fs.readFileSync(targetFile, { encoding: 'utf8' }));
+
         done();
     });
-
 });
 
 function findsExecutableWithScopedPermissions(chmodOptions) {
