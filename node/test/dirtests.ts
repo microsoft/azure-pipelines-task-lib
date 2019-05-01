@@ -1954,7 +1954,9 @@ describe('Dir Operation Tests', function () {
     it('copies directory into non-existing destination with code page changed', (done: MochaDone) => {
         this.timeout(1000);
 
-        childProcess.execSync('chcp 65001');
+        if (process.platform != 'win32') {
+            childProcess.execSync('chcp 65001');
+        }
 
         let root: string = path.join(testutil.getTestTemp(), 'cp_with_-r_nonexisting_dest_chcp_65011');
         let sourceFolder: string = path.join(root, 'cp_source');
@@ -1969,7 +1971,9 @@ describe('Dir Operation Tests', function () {
 
         assert.equal('test file content', fs.readFileSync(targetFile, { encoding: 'utf8' }));
 
-        childProcess.execSync('chcp 437');
+        if (process.platform != 'win32') {
+            childProcess.execSync('chcp 437');
+        }
 
         done();
     });
