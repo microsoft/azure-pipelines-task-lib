@@ -2,6 +2,7 @@
 /// <reference path="../_build/task.d.ts" />
 
 import assert = require('assert');
+import childProcess = require('child_process');
 import path = require('path');
 import fs = require('fs');
 import shell = require('shelljs');
@@ -1949,6 +1950,30 @@ describe('Dir Operation Tests', function () {
 
         done();
     });
+
+    it('copies directory into non-existing destination with code page changed', (done: MochaDone) => {
+        this.timeout(1000);
+
+        childProcess.execSync('chcp 65001');
+
+        let root: string = path.join(testutil.getTestTemp(), 'cp_with_-r_nonexisting_dest_chcp_65011');
+        let sourceFolder: string = path.join(root, 'cp_source');
+        let sourceFile: string = path.join(sourceFolder, 'cp_source_file');
+
+        let targetFolder: string = path.join(root, 'cp_target');
+        let targetFile: string = path.join(targetFolder, 'cp_source_file');
+        tl.mkdirP(sourceFolder);
+        fs.writeFileSync(sourceFile, 'test file content', { encoding: 'utf8' });
+
+        tl.cp(sourceFolder, targetFolder, '-r');
+
+        assert.equal('test file content', fs.readFileSync(targetFile, { encoding: 'utf8' }));
+
+        childProcess.execSync('chcp 437');
+
+        done();
+    });
+
 });
 
 function findsExecutableWithScopedPermissions(chmodOptions) {
