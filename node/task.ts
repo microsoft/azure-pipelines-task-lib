@@ -843,13 +843,9 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
                 }
                 
                 let robocopyArgs = '/r:3 /w:10'
-                let runner = new trm.ToolRunner(which('robocopy'));
-                runner.arg('/r:3').arg('/w:10').arg(source).arg(dest);
-
                 
                 if (options.indexOf('r') >= 0) {
                     robocopyArgs += ' /e';
-                    runner.arg('/e');
                 }
                 else {
                     // If we're not doing a recursive copy and its a folder we don't copy anything.
@@ -857,21 +853,9 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
                 }
                 if (options.indexOf('f') >= 0) {
                     robocopyArgs += ' /is /it';
-                    runner.arg('/is').arg('/it');
                 }
 
                 _invokeRobocopy(source, dest, robocopyArgs);
-
-                // try {
-                //     runner.execSync();
-                // }
-                // catch (err) {
-                //     // Robocopy writes non-zero exit codes even on successful copies, only 8 and 16 are error codes
-                //     // https://ss64.com/nt/robocopy-exit.html
-                //     if (err.status >= 8) {
-                //         throw new Error(`Command "${command}" failed with error code ${err.status}, stdout ${err.stdout}, and stderr ${err.stderr}`);
-                //     }
-                // }
             }
             else {
                 // Copy individual file over
@@ -937,23 +921,14 @@ export function mv(source: string, dest: string, options?: string, continueOnErr
         if (getPlatform() == Platform.Windows) {
             if (fs.statSync(source).isDirectory()) {
                 mkdirP(dest);
-                let runner = new trm.ToolRunner(which('robocopy'));
-                runner.arg('/r:3').arg('/w:10').arg(source).arg(dest).arg('/move').arg('/unicode');
+
+                let robocopyArgs = '/r:3 /w:10 /move';
                 
                 if (options.indexOf('f') >= 0) {
-                    runner.arg('/is').arg('/it')
+                    robocopyArgs += ' /is /it';
                 }
 
-                try {
-                    runner.execSync();
-                }
-                catch (err) {
-                    // Robocopy writes non-zero exit codes even on successful copies, only 8 and 16 are error codes
-                    // https://ss64.com/nt/robocopy-exit.html
-                    if (err.status >= 8) {
-                        throw new Error(`Command "${command}" failed with error code ${err.status}, stdout ${err.stdout}, and stderr ${err.stderr}`);
-                    }
-                }
+                _invokeRobocopy(source, dest, robocopyArgs);
             }
             else {
                 // Copy individual file over
