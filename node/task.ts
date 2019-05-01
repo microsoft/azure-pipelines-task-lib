@@ -1,5 +1,6 @@
 import Q = require('q');
 import shell = require('shelljs');
+import childProcess = require('child_process');
 import fs = require('fs');
 import path = require('path');
 import os = require('os');
@@ -1150,42 +1151,31 @@ function _legacyFindFiles_getMatchingItems(
  * @param     path     path to remove
  * @returns   void
  */
-export function rmRF(path: string): void {
-    debug('rm -rf ' + path);
-
-    // get the lstats in order to workaround a bug in shelljs@0.3.0 where symlinks
-    // with missing targets are not handled correctly by "rm('-rf', path)"
-    let lstats: fs.Stats;
-    try {
-        lstats = fs.lstatSync(path);
-    }
-    catch (err) {
-        // if you try to delete a file that doesn't exist, desired result is achieved
-        // other errors are valid
-        if (err.code == 'ENOENT') {
-            return;
+export function rmRF(inputPath: string): void {
+    debug('rm -rf ' + inputPath);
+    if (fs.existsSync(inputPath)) {
+        if (getPlatform() == Platform.Windows) {
+            if (fs.statSync(inputPath).isDirectory()) {
+                childProcess.execSync(`rd /s /q "${inputPath}"`);
+            }
+            else {
+                childProcess.execSync(`del /f /a "${inputPath}"`);
+            }
         }
-
-        throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
-    }
-
-    if (lstats.isDirectory()) {
-        debug('removing directory');
-        shell.rm('-rf', path);
-        let errMsg: string = shell.error();
-        if (errMsg) {
-            throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
+        else {
+            childProcess.execSync('rm -rf ' + inputPath);
         }
-
-        return;
     }
-
-    debug('removing file');
-    try {
-        fs.unlinkSync(path);
-    }
-    catch (err) {
-        throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
+    else {
+        try {
+            // Still try to unlink in case its a dead symlink.
+            fs.unlinkSync(inputPath);
+        }
+        catch (err) {
+            if (err.code != 'ENOENT') {
+                throw err;
+            }
+        }
     }
 }
 
