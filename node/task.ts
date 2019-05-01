@@ -913,21 +913,20 @@ export function mv(source: string, dest: string, options?: string, continueOnErr
 
                 try {
                     fs.renameSync(source, dest);
-                    return;
                 }
                 catch {
-                    // If it fails, remove file if one has been partially copied
+                    // If it fails, remove file if one has been partially copied, then fall back to xcopy.
                     if (fs.existsSync(dest)) {
                         fs.unlinkSync(dest);
                     }
-                }
                 
-                // Write empty file to overwrite so we don't get interactive prompt.
-                fs.writeFileSync(dest, '');
-                let runner = new trm.ToolRunner(which('xcopy'));
-                runner.arg('/Y').arg(source).arg(dest);
-                runner.execSync();
-                fs.unlinkSync(source);
+                    // Write empty file to overwrite so we don't get interactive prompt.
+                    fs.writeFileSync(dest, '');
+                    let runner = new trm.ToolRunner(which('xcopy'));
+                    runner.arg('/Y').arg(source).arg(dest);
+                    runner.execSync();
+                    fs.unlinkSync(source);
+                }
             }
         }
         else {
