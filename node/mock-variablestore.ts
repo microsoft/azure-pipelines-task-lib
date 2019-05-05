@@ -1,15 +1,18 @@
 import { KeyValueStoreInterface } from './interfaces';
 
 export class MockVariableStore implements KeyValueStoreInterface {
-    // TODO: Use mock-taskrunner answers.
-    private _store: { [key: string] : string } = {};
+    private answers: { [key: string] : string };
+
+    constructor(answers: { [key: string] : string }) {
+        this.answers = answers;
+    }
 
     deleteValue(key: string) {
-        delete this._store[key];
+        delete this.answers[key];
     }
 
     getValue(key: string): string | undefined {
-        return this._store[key];
+        return this.answers[key];
     }
 
     setValue(key: string, value: string | undefined) {
@@ -17,6 +20,6 @@ export class MockVariableStore implements KeyValueStoreInterface {
             return this.deleteValue(key);
         }
 
-        this._store[key] = value;
+        this.answers[key] = value;
     }
 }

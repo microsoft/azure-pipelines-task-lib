@@ -1,5 +1,7 @@
 import ma = require('./mock-answer');
 import mockery = require('mockery');
+import { MockVariableStore } from './mock-variablestore';
+import { VariableStore } from './variablestore';
 
 export class TaskMockRunner {
     constructor(taskPath: string) {
@@ -90,6 +92,18 @@ export class TaskMockRunner {
                 });
 
             mockery.registerMock('azure-pipelines-task-lib/task', tlm);
+
+            var deps = require('azure-pipelines-task-lib/mock-dependencies');
+
+            // TODO: Add variable answers.
+            if (this._answers && this._answers.which) {
+                deps.variableStore = new MockVariableStore(this._answers.which);
+            }
+            else {
+                deps.variableStore = new VariableStore();
+            }
+
+            mockery.registerMock('azure-pipelines-task-lib/dependencies', deps);
         }
 
         // run it

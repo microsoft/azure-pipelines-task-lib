@@ -1,5 +1,6 @@
 import Q = require('q');
 import shell = require('shelljs');
+import dependencies = require('./dependencies');
 import fs = require('fs');
 import path = require('path');
 import os = require('os');
@@ -9,6 +10,7 @@ import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
 import semver = require('semver');
 import { VariableStore } from './variablestore';
+import { KeyValueStoreInterface } from './interfaces';
 
 export enum TaskResult {
     Succeeded = 0,
@@ -51,13 +53,7 @@ export enum Platform {
     Linux
 }
 
-var _variableStore = new VariableStore();
-
-//-----------------------------------------------------
-// Initialization
-//-----------------------------------------------------
-
-im.initialize(_variableStore);
+const _variableStore: KeyValueStoreInterface = dependencies.variableStore;
 
 //-----------------------------------------------------
 // General Helpers

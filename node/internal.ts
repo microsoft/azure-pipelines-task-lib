@@ -7,6 +7,7 @@ import tcm = require('./taskcommand');
 import vm = require('./vault');
 import semver = require('semver');
 import crypto = require('crypto');
+import dependencies = require('./dependencies');
 import { KeyValueStoreInterface } from './interfaces';
 
 /**
@@ -22,7 +23,7 @@ export var _knownVariableMap: { [key: string]: _KnownVariableInfo; } = {};
 
 export var _vault: vm.Vault;
 
-var _variableBackingStore: KeyValueStoreInterface;
+const _variableBackingStore: KeyValueStoreInterface = dependencies.variableStore;
 
 //-----------------------------------------------------
 // Validation Checks
@@ -31,15 +32,6 @@ var _variableBackingStore: KeyValueStoreInterface;
 // async await needs generators in node 4.x+
 if (semver.lt(process.versions.node, '4.2.0')) {
     this.warning('Tasks require a new agent.  Upgrade your agent or node to 4.2.0 or later');
-}
-
-//-----------------------------------------------------
-// Initialization
-//-----------------------------------------------------
-
-// TODO: Combine with _loadData?
-export function initialize(variableBackingStore: KeyValueStoreInterface) {
-    _variableBackingStore = variableBackingStore;
 }
 
 //-----------------------------------------------------
