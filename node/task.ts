@@ -1182,7 +1182,6 @@ export function rmRF(inputPath: string): void {
         }
     }
 }
-}
 
 /**
  * Exec a tool.  Convenience wrapper over ToolRunner to exec with args in one call.
