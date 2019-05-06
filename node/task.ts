@@ -1153,7 +1153,7 @@ function _legacyFindFiles_getMatchingItems(
  */
 export function rmRF(inputPath: string): void {
     debug('rm -rf ' + inputPath);
-    if (fs.existsSync(inputPath)) {
+    try {
         if (getPlatform() == Platform.Windows) {
             if (fs.statSync(inputPath).isDirectory()) {
                 childProcess.execSync(`rd /s /q "${inputPath}"`);
@@ -1166,17 +1166,22 @@ export function rmRF(inputPath: string): void {
             childProcess.execSync('rm -rf ' + inputPath);
         }
     }
-    else {
-        try {
-            // Still try to unlink in case its a dead symlink.
-            fs.unlinkSync(inputPath);
-        }
-        catch (err) {
-            if (err.code != 'ENOENT') {
-                throw err;
-            }
+    catch (err) {
+        // If not found, already removed, no work to do
+        if (err.code != 'ENOENT') {
+            throw err;
         }
     }
+    try {
+        // Still try to unlink in case its a dead symlink.
+        fs.unlinkSync(inputPath);
+    }
+    catch (err) {
+        if (err.code != 'ENOENT') {
+            throw err;
+        }
+    }
+}
 }
 
 /**
