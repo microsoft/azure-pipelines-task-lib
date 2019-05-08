@@ -1153,32 +1153,47 @@ function _legacyFindFiles_getMatchingItems(
  */
 export function rmRF(inputPath: string): void {
     debug('rm -rf ' + inputPath);
+    
+    let lstats: fs.Stats;
     try {
-        if (getPlatform() == Platform.Windows) {
-            if (fs.statSync(inputPath).isDirectory()) {
-                childProcess.execSync(`rd /s /q "${inputPath}"`);
-            }
-            else {
-                childProcess.execSync(`del /f /a "${inputPath}"`);
-            }
+        lstats = fs.lstatSync(inputPath);
+    }
+    catch (err) {
+        // if you try to delete a file that doesn't exist, desired result is achieved
+        // other errors are valid
+        if (err.code == 'ENOENT') {
+            return;
+        }
+
+        throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
+    }
+    
+    if (getPlatform() == Platform.Windows) {
+        if (lstats.isDirectory()) {
+            childProcess.execSync(`rd /s /q "${inputPath}"`);
         }
         else {
-            childProcess.execSync('rm -rf ' + inputPath);
+            childProcess.execSync(`del /f /a "${inputPath}"`);
         }
     }
-    catch (err) {
-        // If not found, already removed, no work to do
-        if (err.code != 'ENOENT') {
-            throw err;
+    else {
+        if (lstats.isDirectory()) {
+            debug('removing directory');
+            shell.rm('-rf', inputPath);
+            let errMsg: string = shell.error();
+            if (errMsg) {
+                throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
+            }
+
+            return;
         }
-    }
-    try {
-        // Still try to unlink in case its a dead symlink.
-        fs.unlinkSync(inputPath);
-    }
-    catch (err) {
-        if (err.code != 'ENOENT') {
-            throw err;
+
+        debug('removing file');
+        try {
+            fs.unlinkSync(inputPath);
+        }
+        catch (err) {
+            throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
         }
     }
 }
