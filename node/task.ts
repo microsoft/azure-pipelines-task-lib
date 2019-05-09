@@ -8,6 +8,7 @@ import im = require('./internal');
 import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
 import semver = require('semver');
+import childProcess = require('child_process');
 
 export enum TaskResult {
     Succeeded = 0,
