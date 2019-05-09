@@ -1170,6 +1170,7 @@ export function rmRF(inputPath: string): void {
     
     if (getPlatform() == Platform.Windows) {
         if (lstats.isDirectory()) {
+            debug('removing directory');
             childProcess.execSync(`rd /s /q "${inputPath}"`);
         }
         else {
