@@ -1153,31 +1153,55 @@ function _legacyFindFiles_getMatchingItems(
  */
 export function rmRF(inputPath: string): void {
     debug('rm -rf ' + inputPath);
-    
-    let lstats: fs.Stats;
-    try {
-        lstats = fs.lstatSync(inputPath);
-    }
-    catch (err) {
-        // if you try to delete a file that doesn't exist, desired result is achieved
-        // other errors are valid
-        if (err.code == 'ENOENT') {
-            return;
+
+    if (getPlatform() == Platform.Windows) {
+        try {
+            if (fs.statSync(inputPath).isDirectory()) {
+                debug('removing directory');
+                childProcess.execSync(`rd /s /q "${inputPath}"`);
+            }
+            else {
+                debug('removing file');
+                childProcess.execSync(`del /f /a "${inputPath}"`);
+            }
+        }
+        catch (err) {
+            // if you try to delete a file that doesn't exist, desired result is achieved
+            // other errors are valid
+            if (err.code != 'ENOENT') {
+                throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
+            }
         }
 
-        throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
-    }
-    
-    if (getPlatform() == Platform.Windows) {
-        if (lstats.isDirectory()) {
-            debug('removing directory');
-            childProcess.execSync(`rd /s /q "${inputPath}"`);
+        // Shelling out fails to remove a symlink folder with missing source, this unlink catches that
+        try {
+            fs.unlinkSync(inputPath);
         }
-        else {
-            childProcess.execSync(`del /f /a "${inputPath}"`);
+        catch (err) {
+            // if you try to delete a file that doesn't exist, desired result is achieved
+            // other errors are valid
+            if (err.code != 'ENOENT') {
+                throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
+            }
         }
     }
     else {
+        // get the lstats in order to workaround a bug in shelljs@0.3.0 where symlinks
+        // with missing targets are not handled correctly by "rm('-rf', path)"
+        let lstats: fs.Stats;
+        try {
+            lstats = fs.lstatSync(inputPath);
+        }
+        catch (err) {
+            // if you try to delete a file that doesn't exist, desired result is achieved
+            // other errors are valid
+            if (err.code == 'ENOENT') {
+                return;
+            }
+
+            throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
+        }
+
         if (lstats.isDirectory()) {
             debug('removing directory');
             shell.rm('-rf', inputPath);
