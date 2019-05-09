@@ -1150,43 +1150,78 @@ function _legacyFindFiles_getMatchingItems(
  * @param     path     path to remove
  * @returns   void
  */
-export function rmRF(path: string): void {
-    debug('rm -rf ' + path);
+export function rmRF(inputPath: string): void {
 
-    // get the lstats in order to workaround a bug in shelljs@0.3.0 where symlinks
-    // with missing targets are not handled correctly by "rm('-rf', path)"
-    let lstats: fs.Stats;
-    try {
-        lstats = fs.lstatSync(path);
+    if (process.platform === 'win32') {
+        // Node doesn't provide a delete operation, only an unlink function. This means that if the file is being used by another
+        // program (e.g. antivirus), it won't be deleted. To address this, we shell out the work to rd/del.
+        try {
+            if (fs.statSync(inputPath).isDirectory()) {
+                childProcess.execSync(`rd /s /q "${inputPath}"`);
+            }
+            else {
+                childProcess.execSync(`del /f /a "${inputPath}"`);
+            }
+        }
+        catch (err) {
+            // if you try to delete a file that doesn't exist, desired result is achieved
+            // other errors are valid
+            if (err.code != 'ENOENT') {
+                throw err;
+            }
+        }
+
+        // Shelling out fails to remove a symlink folder with missing source, this unlink catches that
+        try {
+            fs.unlinkSync(inputPath);
+        }
+        catch (err) {
+            // if you try to delete a file that doesn't exist, desired result is achieved
+            // other errors are valid
+            if (err.code != 'ENOENT') {
+                throw err;
+            }
+        }
     }
-    catch (err) {
-        // if you try to delete a file that doesn't exist, desired result is achieved
-        // other errors are valid
-        if (err.code == 'ENOENT') {
+    else {
+        // get the lstats in order to workaround a bug in shelljs@0.3.0 where symlinks
+        // with missing targets are not handled correctly by "rm('-rf', path)"
+        let isDirectory = false
+        try {
+            isDirectory = fs.lstatSync(inputPath).isDirectory();
+        }
+        catch (err) {
+            // if you try to delete a file that doesn't exist, desired result is achieved
+            // other errors are valid
+            if (err.code == 'ENOENT') {
+                return;
+            }
+
+            throw err;
+        }
+
+        if (isDirectory) {
+            removeDirectory(inputPath);
             return;
         }
 
-        throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
+        fs.unlinkSync(inputPath);
     }
+}
 
-    if (lstats.isDirectory()) {
-        debug('removing directory');
-        shell.rm('-rf', path);
-        let errMsg: string = shell.error();
-        if (errMsg) {
-            throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
-        }
-
-        return;
+function removeDirectory(directoryPath) {
+    if (fs.existsSync(directoryPath)) {
+        fs.readdirSync(directoryPath).forEach((fileName) => {
+            let file = path.join(directoryPath, fileName);
+            if (fs.lstatSync(file).isDirectory()) {
+                removeDirectory(file);
+            }
+            else {
+                fs.unlinkSync(file);
+            }
+        })
     }
-
-    debug('removing file');
-    try {
-        fs.unlinkSync(path);
-    }
-    catch (err) {
-        throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
-    }
+    fs.rmdirSync(directoryPath);
 }
 
 /**
