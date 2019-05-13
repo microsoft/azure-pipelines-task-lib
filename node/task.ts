@@ -561,12 +561,28 @@ export interface FsOptions {
 }
 
 export function writeFile(file: string, data: string | Buffer, options?: string | FsOptions) {
-    if(typeof(options) === 'string'){
-        fs.writeFileSync(file, data, {encoding: options});
+    try
+    {
+        const fd = fs.openSync(file, 'w');
+        
+        if(typeof(options) === 'string'){
+            fs.writeFileSync(file, data, {encoding: options});
+        }
+        else {
+            fs.writeFileSync(file, data, options);
+        }
+
+        fs.fsyncSync(fd);
+        debug(loc("LIB_FileContentSynced", data));
+        fs.closeSync(fd);
+
     }
-    else {
-        fs.writeFileSync(file, data, options);
+    catch(e)
+    {
+        Error(loc('LIB_CantWriteDataToFile', file, e));
+        throw e;
     }
+    
 }
 
 /**

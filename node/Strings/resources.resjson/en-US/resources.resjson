@@ -30,5 +30,7 @@
   "loc.messages.LIB_OperationFailed": "Failed %s: %s",
   "loc.messages.LIB_UseFirstGlobMatch": "Multiple workspace matches. using first.",
   "loc.messages.LIB_MergeTestResultNotSupported": "Merging test results from multiple files to one test run is not supported on this version of build agent for OSX/Linux, each test result file will be published as a separate test run in VSO/TFS.",
-  "loc.messages.LIB_PlatformNotSupported": "Platform not supported: %s"
+  "loc.messages.LIB_PlatformNotSupported": "Platform not supported: %s",
+  "loc.messages.LIB_FileContentSynced": "Synced the file content to the disk. The content is %s.",
+  "loc.messages.LIB_CantWriteDataToFile": "Can not write data to the file %s. Error: %s"
 }
