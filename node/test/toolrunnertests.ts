@@ -1254,6 +1254,43 @@ describe('Toolrunner Tests', function () {
                     done(err);
                 });
         });
+
+        // ----------------------------------------
+        // double quotes in arg (OSX/Linux)
+        // ----------------------------------------
+
+        it('exec with double quotes in args (OSX/Linux)', function (done) {
+            this.timeout(10000);
+            let bashPath = tl.which('bash');
+            let bash = tl.tool(bashPath)
+                .arg('-c')
+                .arg('echo $0')
+                .arg('hello"world"')
+            let outStream = testutil.createStringStream();
+            let options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream, windowsVerbatimArguments: true };
+            let output = '';
+            bash.on('stdout', (data) => {
+                output += data.toString();
+            });
+            bash.exec(options)
+                .then(function (code) {
+                    assert.equal(code, 0, 'return code should be 0');
+                    // validate the [command] header
+                    assert.equal(
+                        outStream.getContents().split(os.EOL)[0],
+                        '[command]' + bashPath + ' -c echo $0 hello\\"world\\"',
+                        '[command] header should match');
+                    // validate stdout
+                    assert.equal(
+                        output.trim(),
+                        'hello"world"',
+                        'stdout should match');
+                    done();
+                })
+                .fail(function (err) {
+                    done(err);
+                });
+        });
     }
     else { // process.platform == 'win32'
 

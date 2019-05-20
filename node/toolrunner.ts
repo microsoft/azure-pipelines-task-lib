@@ -170,9 +170,15 @@ export class ToolRunner extends events.EventEmitter {
             // on Unix, execvp() takes an arg array.
             cmd += toolPath;
             args.forEach((a: string): void => {
-                // Prefix all occurences of '"' character with '\' character explicitly,
+                // Prefix all occurences of " character with \ character explicitly,
                 // so that the arguments containing double quotes are printed correctly
                 // in the logs.
+                // Without this, secret masking does not work when the original input
+                // contains escaped double quotes character.
+                // Example: An argument entered as example\"string in the UI, will have
+                // value example"string. While passing the argument to the command, it
+                // is passed as example\"string, where as in the logs, it appears as
+                // example"string.
                 a = a.replace(/\"/g, "\\\"");
                 cmd += ` ${a}`;
             });
