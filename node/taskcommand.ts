@@ -91,9 +91,9 @@ export function commandFromString(commandLine) {
 }
 
 function escapedata(s) : string {
-    return s.replace(/\r/g, '%0D')
-            .replace(/\n/g, '%0A')
-            .replace(/%/g, '%25');
+    return s.replace(/%/g, '%25')
+            .replace(/\r/g, '%0D')
+            .replace(/\n/g, '%0A');
 }
 
 function unescapedata(s) : string {
@@ -103,11 +103,11 @@ function unescapedata(s) : string {
 }
 
 function escape(s) : string {
-    return s.replace(/\r/g, '%0D')
+    return s.replace(/%/g, '%25')
+            .replace(/\r/g, '%0D')
             .replace(/\n/g, '%0A')
             .replace(/]/g, '%5D')
-            .replace(/;/g, '%3B')
-            .replace(/%/g, '%25');
+            .replace(/;/g, '%3B');
 }
 
 function unescape(s) : string {
