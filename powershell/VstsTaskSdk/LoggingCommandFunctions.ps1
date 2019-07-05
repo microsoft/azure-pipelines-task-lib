@@ -201,14 +201,17 @@ function Write-SetResult {
         [Parameter(Mandatory = $true)]
         [string]$Result,
         [string]$Message,
+        [Parameter()]
+        [bool]$Done,
         [Parameter(ParameterSetName = 'AsOutput')]
         [switch]$AsOutput,
         [Parameter(ParameterSetName = 'DoNotThrow')]
         [switch]$DoNotThrow)
-
-    Write-LoggingCommand -Area 'task' -Event 'complete' -Data $Message -Properties @{
-            'result' = $Result
-        } -AsOutput:$AsOutput
+    $properties = @{'result' = $Result}
+    if ($Done) {
+        $properties["done"] = "true"
+    }
+    Write-LoggingCommand -Area 'task' -Event 'complete' -Data $Message -Properties $properties -AsOutput:$AsOutput
     if ($Result -eq 'Failed' -and !$AsOutput -and !$DoNotThrow) {
         # Special internal exception type to control the flow. Not currently intended
         # for public usage and subject to change.
