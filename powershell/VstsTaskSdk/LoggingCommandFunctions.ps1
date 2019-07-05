@@ -202,7 +202,7 @@ function Write-SetResult {
         [string]$Result,
         [string]$Message,
         [Parameter()]
-        [bool]$Done,
+        [switch]$Done,
         [Parameter(ParameterSetName = 'AsOutput')]
         [switch]$AsOutput,
         [Parameter(ParameterSetName = 'DoNotThrow')]

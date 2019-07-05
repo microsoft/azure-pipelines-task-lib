@@ -11,15 +11,6 @@ Invoke-VstsTaskScript -ScriptBlock {
             AlternateExpected = '##vso[task.complete done=true;result=Succeeded]Some data'
             Command = @{
                 Result = 'Succeeded'
-                Done = 1
-                Message = 'Some data'
-            }
-        }
-        @{
-            Expected = '##vso[task.complete result=Succeeded;done=true]Some data'
-            AlternateExpected = '##vso[task.complete done=true;result=Succeeded]Some data'
-            Command = @{
-                Result = 'Succeeded'
                 Done = $true
                 Message = 'Some data'
             }
@@ -28,22 +19,14 @@ Invoke-VstsTaskScript -ScriptBlock {
             Expected = '##vso[task.complete result=Succeeded]Some data'
             Command = @{
                 Result = 'Succeeded'
-                Done = 0
-                Message = 'Some data'
-            }
-        }
-        @{
-            Expected = '##vso[task.complete result=Succeeded]Some data'
-            Command = @{
-                Result = 'Succeeded'
-                Message = 'Some data'
-            }
-        }
-        @{
-            Expected = '##vso[task.complete result=Succeeded]Some data'
-            Command = @{
-                Result = 'Succeeded'
                 Done = $false
+                Message = 'Some data'
+            }
+        }
+        @{
+            Expected = '##vso[task.complete result=Succeeded]Some data'
+            Command = @{
+                Result = 'Succeeded'
                 Message = 'Some data'
             }
         }
