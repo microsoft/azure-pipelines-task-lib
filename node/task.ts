@@ -420,7 +420,6 @@ export function getEndpointAuthorization(id: string, optional: boolean): Endpoin
         setResult(TaskResult.Failed, loc('LIB_EndpointAuthNotExist', id));
     }
 
-    console.log(id + ' exists ' + (aval !== null));
     debug(id + ' exists ' + (aval !== null));
 
     var auth: EndpointAuthorization | undefined;
