@@ -281,6 +281,28 @@
     "messages": {
       "type": "object"
     },
+    "OutputVariables": {
+      "type": "array",
+      "description": "Describes output variables of task.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The variable name",
+            "pattern": "^[A-Za-z][A-Za-z0-9]*$"
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed description of the variable"
+          }
+        }
+      }
+    },
     "$schema": {
       "type": "string"
     }
