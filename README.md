@@ -11,7 +11,7 @@ Reference examples of our in the box tasks [are here](https://github.com/microso
 |---|:-----:|
 |![Win-x64](res/win_med.png) **Windows**|[![Build & Test][win-build-badge]][build]| 
 |![macOS](res/apple_med.png) **macOS**|[![Build & Test][macOS-build-badge]][build]| 
-|![Linux-x64](res/ubuntu_med.png) **Linux**|[![Build & Test][linux-build-badge]][build]|
+|![Linux-x64](res/tux_med.png) **Linux**|[![Build & Test][linux-build-badge]][build]|
 
 [win-build-badge]: https://dev.azure.com/mseng/PipelineTools/_apis/build/status/azure-pipelines-task-lib-ci?branchName=master&jobname=windows
 [macOS-build-badge]: https://dev.azure.com/mseng/PipelineTools/_apis/build/status/azure-pipelines-task-lib-ci?branchName=master&jobname=macOS
