@@ -232,10 +232,11 @@ export function getInput(name: string, required?: boolean): string | undefined {
 /**
  * Gets the value of an input and converts to a bool.  Convenience.
  * If required is true and the value is not set, it will throw.
+ * If required is false and the value is not set, returns false.
  * 
  * @param     name     name of the bool input to get
  * @param     required whether input is required.  optional, defaults to false
- * @returns   string
+ * @returns   boolean
  */
 export function getBoolInput(name: string, required?: boolean): boolean {
     return (getInput(name, required) || '').toUpperCase() == "TRUE";
