@@ -17,9 +17,6 @@ export interface IExecOptions extends IExecSyncOptions {
 
     /** optional.  defaults to failing on non zero.  ignore will not fail leaving it up to the caller */
     ignoreReturnCode?: boolean;
-
-    /** optional. force flush of stdout. defaults to false */
-    forceFlushStdOut?: boolean;
 }
 
 /**
@@ -806,13 +803,11 @@ export class ToolRunner extends events.EventEmitter {
         // it is possible for the child process to end its last line without a new line.
         // because stdout is buffered, this causes the last line to not get sent to the parent
         // stream. Adding this event forces a flush before the child streams are closed.
-        if (optionsNonNull.forceFlushStdOut) {
-            cp.stdout.on('finish', () => {
-                if (!optionsNonNull.silent) {
-                    optionsNonNull.outStream.write(os.EOL);
-                }
-            });
-        }
+        cp.stdout.on('finish', () => {
+            if (!optionsNonNull.silent) {
+                optionsNonNull.outStream.write(os.EOL);
+            }
+        });
 
         var stdbuffer: string = '';
         cp.stdout.on('data', (data: Buffer) => {
