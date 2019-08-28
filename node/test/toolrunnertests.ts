@@ -1011,7 +1011,7 @@ describe('Toolrunner Tests', function () {
                 })
         }
     })
-    it('Exec pipe output to another tool, fails if second tool fails', function (done) {
+    it('Exec pipe output to another tool, fails if second tool fails (with file syncs)', function (done) {
         this.timeout(20000);
 
         var _testExecOptions = <trm.IExecOptions>{
