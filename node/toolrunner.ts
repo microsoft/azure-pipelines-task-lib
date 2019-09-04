@@ -800,6 +800,15 @@ export class ToolRunner extends events.EventEmitter {
 
         let cp = child.spawn(this._getSpawnFileName(), this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(options));
 
+        // it is possible for the child process to end its last line without a new line.
+        // because stdout is buffered, this causes the last line to not get sent to the parent
+        // stream. Adding this event forces a flush before the child streams are closed.
+        cp.stdout.on('finish', () => {
+            if (!optionsNonNull.silent) {
+                optionsNonNull.outStream.write(os.EOL);
+            }
+        });
+
         var stdbuffer: string = '';
         cp.stdout.on('data', (data: Buffer) => {
             this.emit('stdout', data);
@@ -812,6 +821,7 @@ export class ToolRunner extends events.EventEmitter {
                 this.emit('stdline', line);
             });
         });
+
 
         var errbuffer: string = '';
         cp.stderr.on('data', (data: Buffer) => {
