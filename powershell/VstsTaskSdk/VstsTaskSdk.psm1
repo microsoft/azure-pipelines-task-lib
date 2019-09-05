@@ -54,6 +54,7 @@ Export-ModuleMember -Function @(
         'Write-AddBuildTag'
         'Write-AssociateArtifact'
         'Write-LogDetail'
+        'Write-LoggingCommand'
         'Write-PrependPath'
         'Write-SetEndpoint'
         'Write-SetProgress'

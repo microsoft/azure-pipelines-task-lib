@@ -436,6 +436,41 @@ function Write-UpdateReleaseName {
     Write-LoggingCommand -Area 'release' -Event 'updatereleasename' -Data $Name -AsOutput:$AsOutput
 }
 
+<#
+.SYNOPSIS
+See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
+
+.PARAMETER AsOutput
+Indicates whether to write the logging command directly to the host or to the output pipeline.
+#>
+function Write-LoggingCommand {
+    [CmdletBinding(DefaultParameterSetName = 'Parameters')]
+    param(
+        [Parameter(Mandatory = $true, ParameterSetName = 'Parameters')]
+        [string]$Area,
+        [Parameter(Mandatory = $true, ParameterSetName = 'Parameters')]
+        [string]$Event,
+        [Parameter(ParameterSetName = 'Parameters')]
+        [string]$Data,
+        [Parameter(ParameterSetName = 'Parameters')]
+        [hashtable]$Properties,
+        [Parameter(Mandatory = $true, ParameterSetName = 'Object')]
+        $Command,
+        [switch]$AsOutput)
+
+    if ($PSCmdlet.ParameterSetName -eq 'Object') {
+        Write-LoggingCommand -Area $Command.Area -Event $Command.Event -Data $Command.Data -Properties $Command.Properties -AsOutput:$AsOutput
+        return
+    }
+
+    $command = Format-LoggingCommand -Area $Area -Event $Event -Data $Data -Properties $Properties
+    if ($AsOutput) {
+        $command
+    } else {
+        Write-Host $command
+    }
+}
+
 ########################################
 # Private functions.
 ########################################
@@ -496,34 +531,6 @@ function Format-LoggingCommand {
     # Append the tail and output the value.
     $Data = Format-LoggingCommandData $Data
     $sb.Append(']').Append($Data).ToString()
-}
-
-function Write-LoggingCommand {
-    [CmdletBinding(DefaultParameterSetName = 'Parameters')]
-    param(
-        [Parameter(Mandatory = $true, ParameterSetName = 'Parameters')]
-        [string]$Area,
-        [Parameter(Mandatory = $true, ParameterSetName = 'Parameters')]
-        [string]$Event,
-        [Parameter(ParameterSetName = 'Parameters')]
-        [string]$Data,
-        [Parameter(ParameterSetName = 'Parameters')]
-        [hashtable]$Properties,
-        [Parameter(Mandatory = $true, ParameterSetName = 'Object')]
-        $Command,
-        [switch]$AsOutput)
-
-    if ($PSCmdlet.ParameterSetName -eq 'Object') {
-        Write-LoggingCommand -Area $Command.Area -Event $Command.Event -Data $Command.Data -Properties $Command.Properties -AsOutput:$AsOutput
-        return
-    }
-
-    $command = Format-LoggingCommand -Area $Area -Event $Event -Data $Data -Properties $Properties
-    if ($AsOutput) {
-        $command
-    } else {
-        Write-Host $command
-    }
 }
 
 function Write-LogIssue {
