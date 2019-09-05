@@ -3,7 +3,7 @@
 
 Libraries for writing [Azure Pipelines](https://azure.microsoft.com/en-us/services/devops/pipelines/) tasks
 
-Reference examples of our in the box tasks [are here](https://github.com/Microsoft/vsts-tasks)
+Reference examples of our in the box tasks [are here](https://github.com/microsoft/azure-pipelines-tasks)
 
 ## Status
 
