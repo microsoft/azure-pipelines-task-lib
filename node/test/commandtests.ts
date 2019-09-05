@@ -68,10 +68,10 @@ describe('Command Tests', function () {
     it ('toString escapes properties', function (done) {
         this.timeout(1000);
 
-        var tc = new tcm.TaskCommand('some.cmd', { foo: ';=\r=\n' }, 'dog');
+        var tc = new tcm.TaskCommand('some.cmd', { foo: ';=\r=\n%3B' }, 'dog');
         assert(tc, 'TaskCommand constructor works');
         var cmdStr = tc.toString();
-        assert.equal(cmdStr, '##vso[some.cmd foo=%3B=%0D=%0A;]dog');
+        assert.equal(cmdStr, '##vso[some.cmd foo=%3B=%0D=%0A%253B;]dog');
         done();
     })
 
@@ -142,11 +142,11 @@ describe('Command Tests', function () {
     })
 
     it ('parses and unescapes properties', function (done) {
-        var cmdStr = '##vso[basic.command foo=%3B=%0D=%0A;]dog';
+        var cmdStr = '##vso[basic.command foo=%3B=%0D=%0A%253B;]dog';
 
         var tc = tcm.commandFromString(cmdStr);
         assert.equal(tc.command, 'basic.command', 'cmd should be basic.command');
-        assert.equal(tc.properties['foo'], ';=\r=\n', 'property should be unescaped')
+        assert.equal(tc.properties['foo'], ';=\r=\n%3B', 'property should be unescaped')
         assert.equal(tc.message, 'dog');
         done();
     })
