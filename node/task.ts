@@ -1159,11 +1159,11 @@ export function rmRF(inputPath: string): void {
         // program (e.g. antivirus), it won't be deleted. To address this, we shell out the work to rd/del.
         try {
             if (fs.statSync(inputPath).isDirectory()) {
-                debug('removing directory');
+                debug('removing directory ' + inputPath);
                 childProcess.execSync(`rd /s /q "${inputPath}"`);
             }
             else {
-                debug('removing file');
+                debug('removing file ' + inputPath);
                 childProcess.execSync(`del /f /a "${inputPath}"`);
             }
         }
