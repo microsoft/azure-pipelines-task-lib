@@ -1213,6 +1213,16 @@ describe('Toolrunner Tests', function () {
         assert.equal((node as any).args.toString(), 'foo=bar " baz,-x,-y', 'should be foo=bar " baz,-x,-y');
         done();
     })
+    it('handles empty string', function (done) {
+        this.timeout(10000);
+
+        var node = tl.tool(tl.which('node', true));
+        node.line('"" -x');
+        node.arg('-y');
+        assert.equal((node as any).args.length, 3, 'should have 3 args');
+        assert.equal((node as any).args.toString(), ',-x,-y', 'should be ,-x,-y');
+        done();
+    })
     it('handles literal path', function (done) {
         this.timeout(10000);
 
