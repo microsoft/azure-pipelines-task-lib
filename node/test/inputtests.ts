@@ -738,6 +738,25 @@ describe('Input Tests', function () {
 
         done();
     })
+    it('gets path value separated by ;', function (done) {
+        this.timeout(1000);
+
+        var errStream = testutil.createStringStream();
+        tl.setErrStream(errStream);
+
+        var inputValue = "./A/A.csproj;./B/B.csproj";
+        process.env['INPUT_PATH1'] = inputValue;
+        im._loadData();
+
+        var path = tl.getPathInput('path1', /*required=*/true, /*check=*/false);
+        assert(path, 'should return a path');
+        assert.equal(path, inputValue, 'test path value was "' + path + '", expected "' + inputValue + '"');
+
+        var errMsg = errStream.getContents();
+        assert(errMsg === "", "no err");
+
+        done();
+    })
 
     // filePathSupplied tests
     it('filePathSupplied checks not supplied', function (done) {
