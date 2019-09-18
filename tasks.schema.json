@@ -51,6 +51,16 @@
         ]
       }
     },
+    "visibility": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Build",
+          "Release"
+        ]
+      }
+    },
     "category": {
       "type": "string",
       "description": "Where the task appears in Azure DevOps. Use the 'Azure *' categories for Azure DevOps and Azure DevOps Server 2019. Use the other categories for Team Foundation Server 2018 and below.",
