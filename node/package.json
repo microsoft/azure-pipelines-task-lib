@@ -13,10 +13,12 @@
     "url": "https://github.com/Microsoft/azure-pipelines-task-lib"
   },
   "keywords": [
-    "vsts",
-    "xplat",
+    "azure-pipelines",
     "agent",
-    "build"
+    "build",
+    "release",
+    "ci-cd",
+    "task"
   ],
   "author": "Microsoft",
   "license": "MIT",
