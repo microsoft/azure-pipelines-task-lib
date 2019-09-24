@@ -288,6 +288,25 @@
         }
       }
     },
+    "postjobexecution": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Execution options for this task (on Post-Job stage)",
+      "properties": {
+        "Node10": {
+          "$ref": "#/definitions/executionObject"
+        },
+        "Node": {
+          "$ref": "#/definitions/executionObject"
+        },
+        "PowerShell3": {
+          "$ref": "#/definitions/executionObject"
+        },
+        "PowerShell": {
+          "$ref": "#/definitions/executionObject"
+        }
+      }
+    },
     "messages": {
       "type": "object"
     },
@@ -324,7 +343,7 @@
       "properties": {
         "target": {
           "type": "string",
-          "description": "The target file to be executed. You can use variables here in brackets e.g. $(currentDirectory)\filename.ps1"
+          "description": "The target file to be executed. You can use variables here in brackets e.g. $(currentDirectory)\\filename.ps1"
         },
         "platforms": {
           "type": "array",
