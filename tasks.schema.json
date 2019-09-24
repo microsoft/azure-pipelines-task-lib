@@ -343,7 +343,7 @@
       "properties": {
         "target": {
           "type": "string",
-          "description": "The target file to be executed. You can use variables here in brackets e.g. $(currentDirectory)\\filename.ps1"
+          "description": "The target file to be executed. You can use variables here in brackets e.g. $(currentDirectory)\filename.ps1"
         },
         "platforms": {
           "type": "array",
