@@ -51,6 +51,16 @@
         ]
       }
     },
+    "visibility": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Build",
+          "Release"
+        ]
+      }
+    },
     "category": {
       "type": "string",
       "description": "Where the task appears in Azure DevOps. Use the 'Azure *' categories for Azure DevOps and Azure DevOps Server 2019. Use the other categories for Team Foundation Server 2018 and below.",
@@ -278,8 +288,49 @@
         }
       }
     },
+    "postjobexecution": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Execution options for this task (on Post-Job stage)",
+      "properties": {
+        "Node10": {
+          "$ref": "#/definitions/executionObject"
+        },
+        "Node": {
+          "$ref": "#/definitions/executionObject"
+        },
+        "PowerShell3": {
+          "$ref": "#/definitions/executionObject"
+        },
+        "PowerShell": {
+          "$ref": "#/definitions/executionObject"
+        }
+      }
+    },
     "messages": {
       "type": "object"
+    },
+    "OutputVariables": {
+      "type": "array",
+      "description": "Describes output variables of task.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The variable name",
+            "pattern": "^[A-Za-z][A-Za-z0-9]*$"
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed description of the variable"
+          }
+        }
+      }
     },
     "$schema": {
       "type": "string"
