@@ -49,3 +49,7 @@ Starting from [version v2.141.0](https://github.com/Microsoft/azure-pipelines-ag
 [npm-lib-url]: https://www.npmjs.com/package/azure-pipelines-task-lib
 [npm-sdk-image]: https://img.shields.io/npm/v/vsts-task-sdk.svg?style=flat
 [npm-sdk-url]: https://www.npmjs.com/package/vsts-task-sdk
+
+## Security issues
+
+Do you think there might be a security issue? Have you been phished or identified a security vulnerability? Please don't report it here - let us know by sending an email to secure@microsoft.com.
