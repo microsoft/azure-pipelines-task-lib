@@ -42,3 +42,5 @@ MyTask
             [...]
             VstsTaskSdk.psd1
 ```
+
+The `task.json` file and task execution target file `MyTask.ps1` must also be in the root of the task folder, otherwise the task will not be able to locate the `ps_modules` directory at runtime. Having the `MyTask.ps1` execution target file in the root directory was not a requirement of the original `PowerShell` task execution handler, but is for `PowerShell3`.
