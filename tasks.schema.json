@@ -17,7 +17,7 @@
     },
     "friendlyName": {
       "type": "string",
-      "description": "Descriptive name (spaces allowed)"
+      "description": "Descriptive name (spaces allowed). Must be <= 40 chars"
     },
     "description": {
       "type": "string",
