@@ -44,6 +44,7 @@ describe('Find and Match Tests', function () {
             path.join(root, 'hello.txt'),
             path.join(root, 'world.txt'),
         ];
+        assert.deepEqual(actual, expected);
 
         done();
     });
