@@ -97,6 +97,10 @@
           },
           "isExpanded": {
             "type": "boolean"
+          },
+          "visibleRule": {
+            "type": "string",
+            "description": "Allow's you to define a rule which dictates when the group will be visible to a user, for example \"variableName = value\""
           }
         }
       }
@@ -240,6 +244,12 @@
             "type": "object"
           },
           "resultTemplate": {
+            "type": "string"
+          },
+          "endpointUrl": {
+            "type": "string"
+          },
+          "resultSelector": {
             "type": "string"
           }
         }
