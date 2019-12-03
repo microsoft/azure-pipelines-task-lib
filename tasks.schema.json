@@ -23,6 +23,9 @@
       "type": "string",
       "description": "Detailed description of what your task does"
     },
+    "helpUrl": {
+      "type": "string"
+    },
     "helpMarkDown": {
       "type": "string"
     },
