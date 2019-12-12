@@ -139,6 +139,31 @@ function Get-TfsClientCredentials {
         # Get the endpoint.
         $endpoint = Get-Endpoint -Name SystemVssConnection -Require
 
+        # Test if the Newtonsoft.Json DLL exists in the OM directory.
+        $newtonsoftDll = [System.IO.Path]::Combine($OMDirectory, "Newtonsoft.Json.dll")
+        Write-Verbose "Testing file path: '$newtonsoftDll'"
+        if (!(Test-Path -LiteralPath $newtonsoftDll -PathType Leaf)) {
+            Write-Verbose 'Not found. Rethrowing exception.'
+            throw
+        }
+
+        # Add a binding redirect and try again. Parts of the Dev15 preview SDK have a
+        # dependency on the 6.0.0.0 Newtonsoft.Json DLL, while other parts reference
+        # the 8.0.0.0 Newtonsoft.Json DLL.
+        Write-Verbose "Adding assembly resolver."
+        $onAssemblyResolve = [System.ResolveEventHandler] {
+            param($sender, $e)
+
+            if ($e.Name -like 'Newtonsoft.Json, *') {
+                Write-Verbose "Resolving '$($e.Name)' to '$newtonsoftDll'."
+
+                return [System.Reflection.Assembly]::LoadFrom($newtonsoftDll)
+            }
+
+            return $null
+        }
+        [System.AppDomain]::CurrentDomain.add_AssemblyResolve($onAssemblyResolve)
+
         # Validate the type can be found.
         $null = Get-OMType -TypeName 'Microsoft.TeamFoundation.Client.TfsClientCredentials' -OMKind 'ExtendedClient' -OMDirectory $OMDirectory -Require
 
