@@ -26,11 +26,10 @@ export function generate(filePaths: string[], options: ts.CompilerOptions): DocE
     program = ts.createProgram(filePaths, options);
     checker = program.getTypeChecker();
 
-    let files: ts.SourceFile[] = program.getSourceFiles();
     for (const sourceFile of program.getSourceFiles()) {
         // only document files we specified. dependency files may be in program
         if (filePaths.indexOf(sourceFile.fileName) >= 0) {
-            let name = path.basename(sourceFile.fileName, '.ts'); 
+            let name = path.basename(sourceFile.fileName, '.ts');
             console.log('Processing:', name);
 
             let fd: DocEntry = {
@@ -38,14 +37,14 @@ export function generate(filePaths: string[], options: ts.CompilerOptions): DocE
                 kind: 'file',
                 members: {} as { string: [DocEntry]}
             };
-            
+
             doc.members[name] = fd;
             push(fd);
 
             ts.forEachChild(sourceFile, visit);
         }
     }
-    
+
     return doc;
 }
 
@@ -80,7 +79,7 @@ function visit(node: ts.Node): void {
     else if (node.kind == ts.SyntaxKind.InterfaceDeclaration) {
         if (!isNodeExported(node)) {
             return;
-        }        
+        }
         let id: ts.InterfaceDeclaration = <ts.InterfaceDeclaration>node;
         let symbol = checker.getSymbolAtLocation(id.name);
         if (symbol) {
@@ -100,7 +99,7 @@ function visit(node: ts.Node): void {
                 let memberDeclarations: ts.Declaration[] = s.getDeclarations();
                 if (memberDeclarations.length > 0) {
                     let memberDoc: DocEntry = {};
-                    memberDoc.documentation = ts.displayPartsToString(s.getDocumentationComment());
+                    memberDoc.documentation = ts.displayPartsToString(s.getDocumentationComment(checker));
                     memberDoc.name = memberName;
                     memberDoc.return = checker.typeToString(checker.getTypeAtLocation(memberDeclarations[0]))
                     doc.members[memberName] = memberDoc;
@@ -109,7 +108,7 @@ function visit(node: ts.Node): void {
 
             current.members[doc.name] = doc;
             push(doc);
-        }        
+        }
     }
     if (node.kind == ts.SyntaxKind.EndOfFileToken) {
         inClass = false;
@@ -118,7 +117,7 @@ function visit(node: ts.Node): void {
     else if (node.kind == ts.SyntaxKind.MethodDeclaration) {
         let m: ts.MethodDeclaration = <ts.MethodDeclaration>node;
         let symbol = checker.getSymbolAtLocation(m.name);
-        
+
         if (symbol) {
             let doc: DocEntry = getDocEntryFromSymbol(symbol);
             doc.kind = 'method';
@@ -156,7 +155,7 @@ function visit(node: ts.Node): void {
         }
     }
     // handle re-export from internal.ts
-    else if (node.kind === ts.SyntaxKind.VariableStatement && node.flags === ts.NodeFlags.Export) {
+    else if (node.kind === ts.SyntaxKind.VariableStatement && node.flags === ts.NodeFlags.ExportContext) {
         let statement = <ts.VariableStatement>node;
         let list: ts.VariableDeclarationList = statement.declarationList;
         for (let declaration of list.declarations) {
@@ -171,13 +170,12 @@ function visit(node: ts.Node): void {
         }
     }
 
-    ts.forEachChild(node, visit);      
+    ts.forEachChild(node, visit);
 }
 
 function getDocEntryFromSignature(signature: ts.Signature): DocEntry {
     let paramEntries: DocEntry[] = [];
-    let params: ts.Symbol[] = signature.parameters;
-    params.forEach((ps: ts.Symbol) => {
+    signature.parameters.forEach((ps: ts.Symbol) => {
         let de = {} as DocEntry;
         de.name = ps.getName();
 
@@ -185,7 +183,7 @@ function getDocEntryFromSignature(signature: ts.Signature): DocEntry {
         let paramType: ts.Type = checker.getTypeAtLocation(decls[0]);
         de.type = checker.typeToString(paramType);
         de.optional = checker.isOptionalParameter(ps.declarations[0] as ts.ParameterDeclaration);
-        de.documentation = ts.displayPartsToString(ps.getDocumentationComment());
+        de.documentation = ts.displayPartsToString(ps.getDocumentationComment(checker));
         paramEntries.push(de);
     });
 
@@ -193,7 +191,7 @@ function getDocEntryFromSignature(signature: ts.Signature): DocEntry {
         parameters: paramEntries,
         members: {} as { string: [DocEntry]},
         return: checker.typeToString(signature.getReturnType()),
-        documentation: ts.displayPartsToString(signature.getDocumentationComment())
+        documentation: ts.displayPartsToString(signature.getDocumentationComment(checker))
     };
 
     return e;
@@ -203,19 +201,19 @@ function getDocEntryFromSymbol(symbol: ts.Symbol): DocEntry {
     return {
         name: symbol.getName(),
         members: {} as { string: [DocEntry]},
-        documentation: ts.displayPartsToString(symbol.getDocumentationComment()),
-        
+        documentation: ts.displayPartsToString(symbol.getDocumentationComment(checker)),
+
         //type: checker.typeToString(checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration))
     };
 }
 
     /** True if this is visible outside this file, false otherwise */
 function isNodeExported(node: ts.Node): boolean {
-    return (node.flags & ts.NodeFlags.Export) !== 0 || (node.parent && node.parent.kind === ts.SyntaxKind.SourceFile);
-}   
+    return (node.flags & ts.NodeFlags.ExportContext) !== 0 || (node.parent && node.parent.kind === ts.SyntaxKind.SourceFile);
+}
 
 //
-// convenience stack 
+// convenience stack
 //
 
 let push = function(entry: DocEntry) {
