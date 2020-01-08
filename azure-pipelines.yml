@@ -1,147 +1,42 @@
-trigger:
-- master
-- features/*
-- releases/*
-
 jobs:
-#################################################
-- job: windows
-#################################################
-  displayName: windows
+- job: 'Ubuntu_1604'
   pool:
-    vmImage: vs2017-win2016
+    vmImage: 'Ubuntu-16.04'
 
   steps:
-  ################################################################################
-  # azure-pipelines-task-lib
-  ################################################################################
-  
-  # npm install
-  - task: Npm@1
-    displayName: (azure-pipelines-task-lib) npm install
-    inputs:
-      command: install
-      workingDir: node
+  - template: azure-pipelines-steps.yml
 
-  # use node 5
-  - powershell: |
-      & "$(build.sourcesDirectory)/res/UseNode5.ps1"
-    displayName: (azure-pipelines-task-lib) use node 5.10.1
-
-  # build/test
-  - script: |
-      chcp 437
-      node make.js test
-    workingDirectory: node
-    displayName: (azure-pipelines-task-lib) node make.js test  
-
-  # use node 6
-  - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 6.10.3
-    inputs:
-      versionSpec: "6.10.3"
-
-  # build/test
-  - script: |
-      chcp 437
-      node make.js test
-    displayName: (azure-pipelines-task-lib) node make.js test
-    workingDirectory: node
-
-  ################################################################################
-  # VstsTaskSdk
-  ################################################################################
-
-  # npm install
-  - task: Npm@1
-    displayName: (VstsTaskSdk) npm install
-    inputs:
-      command: install
-      workingDir: powershell
-
-  # npm test
-  - script: npm test
-    displayName: (VstsTaskSdk) npm test
-    workingDirectory: powershell
-
-#################################################
-- job: linux
-#################################################
-  displayName: Linux
+- job: 'VS2017_Win2016'
   pool:
-    vmImage: ubuntu-16.04
+    vmImage: 'vs2017-win2016'
 
   steps:
-  ################################################################################
-  # azure-pipelines-task-lib
-  ################################################################################
-  
-  # npm install
-  - task: Npm@1
-    displayName: (azure-pipelines-task-lib) npm install
+  - template: azure-pipelines-steps.yml
+
+  - script: npm pack
+    displayName: 'npm pack'
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+
+  - task: CopyFiles@2
     inputs:
-      command: install
-      workingDir: node
+      sourceFolder: '$(Build.SourcesDirectory)'
+      contents: 
+        '*.tgz'
+        'package.json'
+      targetFolder: $(Build.ArtifactStagingDirectory)
+    displayName: 'Copy npm package to staging'
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
 
-  # use node 5
-  - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 5.10.1
+  - task: PublishBuildArtifacts@1
     inputs:
-      versionSpec: "5.10.1"
-      
-  # build/test
-  - script: node make.js test
-    workingDirectory: node
-    displayName: (azure-pipelines-task-lib) node make.js test  
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: npm
+    displayName: 'Publish npm artifact'
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
 
-  # use node 6
-  - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 6.10.3
-    inputs:
-      versionSpec: "6.10.3"
-
-  # build/test
-  - script: node make.js test
-    displayName: (azure-pipelines-task-lib) node make.js test
-    workingDirectory: node
-
-#################################################
-- job: macOS
-#################################################
-  displayName: macOS
+- job: 'MacOS_1013'
   pool:
-    vmImage: macOS-10.13
+    vmImage: 'macOS-10.13'
 
   steps:
-  ################################################################################
-  # azure-pipelines-task-lib
-  ################################################################################
-  
-  # npm install
-  - task: Npm@1
-    displayName: (azure-pipelines-task-lib) npm install
-    inputs:
-      command: install
-      workingDir: node
-
-  # use node 5
-  - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 5.10.1
-    inputs:
-      versionSpec: "5.10.1"
-      
-  # build/test
-  - script: node make.js test
-    workingDirectory: node
-    displayName: (azure-pipelines-task-lib) node make.js test  
-
-  # use node 6
-  - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 6.10.3
-    inputs:
-      versionSpec: "6.10.3"
-
-  # build/test
-  - script: node make.js test
-    displayName: (azure-pipelines-task-lib) node make.js test
-    workingDirectory: node
+  - template: azure-pipelines-steps.yml
