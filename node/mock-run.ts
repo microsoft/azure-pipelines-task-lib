@@ -1,5 +1,7 @@
 import ma = require('./mock-answer');
 import mockery = require('mockery');
+import im = require('./internal');
+
 
 export class TaskMockRunner {
     constructor(taskPath: string) {
@@ -12,15 +14,17 @@ export class TaskMockRunner {
     _moduleCount: number = 0;
 
     public setInput(name: string, val: string) {
-        process.env['INPUT_' + name.replace(' ', '_').toUpperCase()] = val;
+        let key: string = im._getVariableKey(name);
+        process.env['INPUT_' + key] = val;
     }
 
     public setVariableName(name: string, val: string, isSecret?: boolean) {
+        let key: string = im._getVariableKey(name);
         if (isSecret) {
-            process.env['SECRET_' + name.replace(' ', '_').toUpperCase()] = val;
+            process.env['SECRET_' + key] = val;
         }
         else {
-            process.env['VSTS_TASKVARIABLE_' + name.replace(' ', '_').toUpperCase()] = val;
+            process.env['VSTS_TASKVARIABLE_' + key] = val;
         }
     }
 
