@@ -30,7 +30,7 @@ Use the `PowerShell3` execution handler and set the target to the entry PS1 scri
 ```
 
 ## Package the SDK with the task
-The SDK should be packaged with the task in a `ps_modules` folder. The `ps_modules` folder should be in the root of the task folder.
+The SDK should be packaged with the task in a `ps_modules` folder. The `ps_modules` folder should be at the same level as the entry PS1 script.
 
 Example layout: Consider the following layout where `MyTask` is the root folder for the task.
 ```
