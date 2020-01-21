@@ -212,7 +212,7 @@
           "properties": {
             "type": "object",
             "properties": {
-              "editableOptions": {
+              "EditableOptions": {
                 "type": "string",
                 "enum": [
                   "True",
