@@ -40,7 +40,7 @@ export class ToolRunner extends events.EventEmitter {
         debug('toolRunner toolPath: ' + toolPath);
 
         super();
-        
+
         this.toolPath = toolPath;
         this.args = [];
     }
@@ -83,7 +83,7 @@ export class ToolRunner extends events.EventEmitter {
                 }
                 continue;
             }
-            
+
             if (c === "\\" && inQuotes) {
                 escaped = true;
                 continue;
@@ -123,7 +123,7 @@ export class ToolRunner extends events.EventEmitter {
 
         return this;
     }
-    
+
     public argIf(condition: any, val: any): ToolRunner {
         if (condition) {
             this.arg(val);
@@ -139,7 +139,7 @@ export class ToolRunner extends events.EventEmitter {
 
         this._debug(this.toolPath + ' arg: ' + val);
         this.args = this.args.concat(this._argStringToArray(val));
-        return this;    
+        return this;
     }
 
     public pipeExecOutputToTool(tool: ToolRunner) : ToolRunner {
@@ -156,7 +156,7 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         return cmdString;
-    } 
+    }
 
     //
     // Exec - use for long running tools where you need to stream live output as it runs
@@ -244,13 +244,17 @@ export class ToolRunner extends events.EventEmitter {
 
         var code = res.code;
 
-        ops.outStream.write('rc:' + res.code + os.EOL);
+        if (!ops.silent) {
+            ops.outStream.write('rc:' + res.code + os.EOL);
+        }
 
         if (code != 0 && !ops.ignoreReturnCode) {
             success = false;
         }
 
-        ops.outStream.write('success:' + success + os.EOL);
+        if (!ops.silent) {
+            ops.outStream.write('success:' + success + os.EOL);
+        }
         if (success) {
             defer.resolve(code);
         }
