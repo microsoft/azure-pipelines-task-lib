@@ -27,7 +27,7 @@ export interface IExecSyncOptions {
     cwd?: string;
 
     /** optional envvar dictionary.  defaults to current process's env */
-    env?: { [key: string]: string };
+    env?: { [key: string]: string | undefined };
 
     /** optional.  defaults to false */
     silent?: boolean;
