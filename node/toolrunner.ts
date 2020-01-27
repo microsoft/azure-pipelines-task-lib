@@ -32,9 +32,11 @@ export interface IExecSyncOptions {
     /** optional.  defaults to false */
     silent?: boolean;
 
-    outStream: stream.Writable;
+    /** Optional. Default is process.stdout. */
+    outStream?: stream.Writable;
 
-    errStream: stream.Writable;
+    /** Optional. Default is process.stderr. */
+    errStream?: stream.Writable;
 
     /** optional.  foo.whether to skip quoting/escaping arguments if needed.  defaults to false. */
     windowsVerbatimArguments?: boolean;
@@ -515,7 +517,7 @@ export class ToolRunner extends events.EventEmitter {
         const optionsNonNull = this._cloneExecOptions(options);
 
         if (!optionsNonNull.silent) {
-            optionsNonNull.outStream.write(this._getCommandString(optionsNonNull) + os.EOL);
+            optionsNonNull.outStream!.write(this._getCommandString(optionsNonNull) + os.EOL);
         }
 
         let cp: child.ChildProcess;
@@ -592,7 +594,7 @@ export class ToolRunner extends events.EventEmitter {
             }
             successFirst = !optionsNonNull.failOnStdErr;
             if (!optionsNonNull.silent) {
-                var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream : optionsNonNull.outStream;
+                var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream! : optionsNonNull.outStream!;
                 s.write(data);
             }
         });
@@ -633,7 +635,7 @@ export class ToolRunner extends events.EventEmitter {
             this.emit('stdout', data);
 
             if (!optionsNonNull.silent) {
-                optionsNonNull.outStream.write(data);
+                optionsNonNull.outStream!.write(data);
             }
 
             this._processLineBuffer(data, stdbuffer, (line: string) => {
@@ -647,7 +649,7 @@ export class ToolRunner extends events.EventEmitter {
 
             success = !optionsNonNull.failOnStdErr;
             if (!optionsNonNull.silent) {
-                var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream : optionsNonNull.outStream;
+                var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream! : optionsNonNull.outStream!;
                 s.write(data);
             }
 
@@ -796,7 +798,7 @@ export class ToolRunner extends events.EventEmitter {
 
         const optionsNonNull = this._cloneExecOptions(options);
         if (!optionsNonNull.silent) {
-            optionsNonNull.outStream.write(this._getCommandString(optionsNonNull) + os.EOL);
+            optionsNonNull.outStream!.write(this._getCommandString(optionsNonNull) + os.EOL);
         }
 
         let state = new ExecState(optionsNonNull, this.toolPath);
@@ -811,7 +813,7 @@ export class ToolRunner extends events.EventEmitter {
         // stream. Adding this event forces a flush before the child streams are closed.
         cp.stdout.on('finish', () => {
             if (!optionsNonNull.silent) {
-                optionsNonNull.outStream.write(os.EOL);
+                optionsNonNull.outStream!.write(os.EOL);
             }
         });
 
@@ -820,7 +822,7 @@ export class ToolRunner extends events.EventEmitter {
             this.emit('stdout', data);
 
             if (!optionsNonNull.silent) {
-                optionsNonNull.outStream.write(data);
+                optionsNonNull.outStream!.write(data);
             }
 
             this._processLineBuffer(data, stdbuffer, (line: string) => {
@@ -835,7 +837,7 @@ export class ToolRunner extends events.EventEmitter {
             this.emit('stderr', data);
 
             if (!optionsNonNull.silent) {
-                var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream : optionsNonNull.outStream;
+                var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream! : optionsNonNull.outStream!;
                 s.write(data);
             }
 
@@ -909,17 +911,17 @@ export class ToolRunner extends events.EventEmitter {
         options = this._cloneExecOptions(options as IExecOptions);
 
         if (!options.silent) {
-            options.outStream.write(this._getCommandString(options as IExecOptions) + os.EOL);
+            options.outStream!.write(this._getCommandString(options as IExecOptions) + os.EOL);
         }
 
         var r = child.spawnSync(this._getSpawnFileName(), this._getSpawnArgs(options as IExecOptions), this._getSpawnSyncOptions(options));
 
         if (!options.silent && r.stdout && r.stdout.length > 0) {
-            options.outStream.write(r.stdout);
+            options.outStream!.write(r.stdout);
         }
 
         if (!options.silent && r.stderr && r.stderr.length > 0) {
-            options.errStream.write(r.stderr);
+            options.errStream!.write(r.stderr);
         }
 
         var res: IExecSyncResult = <IExecSyncResult>{ code: r.status, error: r.error };
