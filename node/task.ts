@@ -1146,10 +1146,9 @@ function _legacyFindFiles_getMatchingItems(
 
 /**
  * Remove a path recursively with force
- * Returns whether it succeeds
  * 
- * @param     path     path to remove
- * @returns   void
+ * @param     inputPath path to remove
+ * @throws    when the file or directory exists but could not be deleted.
  */
 export function rmRF(inputPath: string): void {
     debug('rm -rf ' + inputPath);
