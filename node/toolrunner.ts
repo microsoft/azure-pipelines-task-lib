@@ -38,7 +38,7 @@ export interface IExecSyncOptions {
     /** Optional. Default is process.stderr. */
     errStream?: stream.Writable;
 
-    /** optional.  foo.whether to skip quoting/escaping arguments if needed.  defaults to false. */
+    /** optional. Whether to skip quoting/escaping arguments if needed.  defaults to false. */
     windowsVerbatimArguments?: boolean;
 }
 
