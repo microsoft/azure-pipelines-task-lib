@@ -445,7 +445,7 @@ options | IExecSyncOptions | optional exec options.  See IExecSyncOptions
 Pipe output of exec() to another tool
 @returns {ToolRunner}
 ```javascript
-pipeExecOutputToTool(tool:ToolRunner, file?:string):ToolRunner
+pipeExecOutputToTool(tool:ToolRunner[], file?:string):ToolRunner
 ```
  
 Param | Type | Description

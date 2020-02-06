@@ -74,7 +74,7 @@ export class ToolRunner extends events.EventEmitter {
 
     private toolPath: string;
     private args: string[];
-    private pipeOutputToTool: ToolRunner | undefined;
+    private pipeOutputToTools: ToolRunner[] | undefined;
     private pipeOutputToFile: string | undefined;
 
     private _debug(message: string) {
@@ -183,8 +183,10 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         // append second tool
-        if (this.pipeOutputToTool) {
-            cmd += ' | ' + this.pipeOutputToTool._getCommandString(options, /*noPrefix:*/true);
+        if (this.pipeOutputToTools) {
+            for (const tr of this.pipeOutputToTools) {
+                cmd += ' | ' + tr._getCommandString(options, /*noPrefix:*/true);
+            }
         }
 
         return cmd;
@@ -504,7 +506,7 @@ export class ToolRunner extends events.EventEmitter {
         return result;
     }
 
-    private execWithPiping(pipeOutputToTool: ToolRunner, options?: IExecOptions): Q.Promise<number> {
+    private execWithPiping(pipeOutputToTools: ToolRunner[], options?: IExecOptions): Q.Promise<number> {
         var defer = Q.defer<number>();
 
         this._debug('exec tool: ' + this.toolPath);
@@ -520,8 +522,9 @@ export class ToolRunner extends events.EventEmitter {
             optionsNonNull.outStream!.write(this._getCommandString(optionsNonNull) + os.EOL);
         }
 
-        let cp: child.ChildProcess;
-        let toolPath: string = pipeOutputToTool.toolPath;
+        const cps: child.ChildProcess[] = [];
+        pipeOutputToTools.unshift(this);
+        let toolPath: string = pipeOutputToTools[0].toolPath;
         let toolPathFirst: string;
         let successFirst = true;
         let returnCodeFirst: number;
@@ -530,23 +533,20 @@ export class ToolRunner extends events.EventEmitter {
         let returnCode: number = 0;
         let error: any;
 
-        toolPathFirst = this.toolPath;
+        toolPathFirst = toolPath;
 
         // Following node documentation example from this link on how to pipe output of one process to another
         // https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options
 
-        //start the child process for both tools
-        waitingEvents++;
-        var cpFirst = child.spawn(
-            this._getSpawnFileName(),
-            this._getSpawnArgs(optionsNonNull),
-            this._getSpawnOptions(optionsNonNull));
-
-        waitingEvents ++;
-        cp = child.spawn(
-            pipeOutputToTool._getSpawnFileName(),
-            pipeOutputToTool._getSpawnArgs(optionsNonNull),
-            pipeOutputToTool._getSpawnOptions(optionsNonNull));
+        //start the child process for all tools
+        for (const tr of pipeOutputToTools) {
+            waitingEvents++;
+            const cp = child.spawn(
+                tr._getSpawnFileName(),
+                tr._getSpawnArgs(optionsNonNull),
+                tr._getSpawnOptions(optionsNonNull));
+            cps.push(cp);
+        }
 
         fileStream = this.pipeOutputToFile ? fs.createWriteStream(this.pipeOutputToFile) : null;
         if (fileStream) {
@@ -576,60 +576,67 @@ export class ToolRunner extends events.EventEmitter {
             });
         }
 
-        //pipe stdout of first tool to stdin of second tool
-        cpFirst.stdout.on('data', (data: Buffer) => {
-            try {
-                if (fileStream) {
+        //pipe stdout of tool to stdin of next tool
+        for (var i = 0; i<=(cps.length - 2); i++) {
+            const cpFirst = cps[i];
+            const cp = cps[i + 1];
+            toolPathFirst = pipeOutputToTools[i].toolPath;
+            toolPath = pipeOutputToTools[i + 1].toolPath;
+            cpFirst.stdout.on('data', (data: Buffer) => {
+                try {
+                    if (fileStream && i==0) {
+                        fileStream.write(data);
+                    }
+                    cp.stdin.write(data);
+                } catch (err) {
+                    this._debug('Failed to pipe output of ' + toolPathFirst + ' to ' + toolPath);
+                    this._debug(toolPath + ' might have exited due to errors prematurely. Verify the arguments passed are valid.');
+                }
+            });
+            cpFirst.stderr.on('data', (data: Buffer) => {
+                if (fileStream && i==0) {
                     fileStream.write(data);
                 }
-                cp.stdin.write(data);
-            } catch (err) {
-                this._debug('Failed to pipe output of ' + toolPathFirst + ' to ' + toolPath);
-                this._debug(toolPath + ' might have exited due to errors prematurely. Verify the arguments passed are valid.');
-            }
-        });
-        cpFirst.stderr.on('data', (data: Buffer) => {
-            if (fileStream) {
-                fileStream.write(data);
-            }
-            successFirst = !optionsNonNull.failOnStdErr;
-            if (!optionsNonNull.silent) {
-                var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream! : optionsNonNull.outStream!;
-                s.write(data);
-            }
-        });
-        cpFirst.on('error', (err: Error) => {
-            waitingEvents--; //first process is complete with errors
-            if (fileStream) {
-                fileStream.end();
-            }
-            cp.stdin.end();
-            error = new Error(toolPathFirst + ' failed. ' + err.message);
-            if(waitingEvents == 0) {
-                defer.reject(error);
-            }
-        });
-        cpFirst.on('close', (code: number, signal: any) => {
-            waitingEvents--; //first process is complete
-            if (code != 0 && !optionsNonNull.ignoreReturnCode) {
-                successFirst = false;
-                returnCodeFirst = code;
-                returnCode = returnCodeFirst;
-            }
-            this._debug('success of first tool:' + successFirst);
-            if (fileStream) {
-                fileStream.end();
-            }
-            cp.stdin.end();
-            if(waitingEvents == 0) {
-                if (error) {
-                    defer.reject(error);
-                } else {
-                    defer.resolve(returnCode);
+                successFirst = !optionsNonNull.failOnStdErr;
+                if (!optionsNonNull.silent) {
+                    var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream! : optionsNonNull.outStream!;
+                    s.write(data);
                 }
-            }
-        });
+            });
+            cpFirst.on('error', (err: Error) => {
+                waitingEvents--; //first process is complete with errors
+                if (fileStream && i==0) {
+                    fileStream.end();
+                }
+                cp.stdin.end();
+                error = new Error(toolPathFirst + ' failed. ' + err.message);
+                if(waitingEvents == 0) {
+                    defer.reject(error);
+                }
+            });
+            cpFirst.on('close', (code: number, signal: any) => {
+                waitingEvents--; //first process is complete
+                if (code != 0 && !optionsNonNull.ignoreReturnCode) {
+                    successFirst = false;
+                    returnCodeFirst = code;
+                    returnCode = returnCodeFirst;
+                }
+                this._debug('success of first tool:' + successFirst);
+                if (fileStream && i==0) {
+                    fileStream.end();
+                }
+                cp.stdin.end();
+                if(waitingEvents == 0) {
+                    if (error) {
+                        defer.reject(error);
+                    } else {
+                        defer.resolve(returnCode);
+                    }
+                }
+            });
+        }
 
+        const cp = cps[cps.length - 1]
         var stdbuffer: string = '';
         cp.stdout.on('data', (data: Buffer) => {
             this.emit('stdout', data);
@@ -642,7 +649,7 @@ export class ToolRunner extends events.EventEmitter {
                 this.emit('stdline', line);
             });
         });
-
+    
         var errbuffer: string = '';
         cp.stderr.on('data', (data: Buffer) => {
             this.emit('stderr', data);
@@ -657,7 +664,7 @@ export class ToolRunner extends events.EventEmitter {
                 this.emit('errline', line);
             });
         });
-
+    
         cp.on('error', (err: Error) => {
             waitingEvents--; //process is done with errors
             error = new Error(toolPath + ' failed. ' + err.message);
@@ -764,12 +771,12 @@ export class ToolRunner extends events.EventEmitter {
 
     /**
      * Pipe output of exec() to another tool
-     * @param tool
+     * @param tools
      * @param file  optional filename to additionally stream the output to.
      * @returns {ToolRunner}
      */
-    public pipeExecOutputToTool(tool: ToolRunner, file?: string): ToolRunner {
-        this.pipeOutputToTool = tool;
+    public pipeExecOutputToTool(tools: ToolRunner[], file?: string): ToolRunner {
+        this.pipeOutputToTools = tools;
         this.pipeOutputToFile = file;
         return this;
     }
@@ -784,8 +791,8 @@ export class ToolRunner extends events.EventEmitter {
      * @returns   number
      */
     public exec(options?: IExecOptions): Q.Promise<number> {
-        if (this.pipeOutputToTool) {
-            return this.execWithPiping(this.pipeOutputToTool, options);
+        if (this.pipeOutputToTools) {
+            return this.execWithPiping(this.pipeOutputToTools, options);
         }
 
         var defer = Q.defer<number>();

@@ -423,7 +423,7 @@
                   "parameters": [
                     {
                       "name": "tool",
-                      "type": "ToolRunner",
+                      "type": "ToolRunner[]",
                       "optional": false,
                       "documentation": ""
                     },
