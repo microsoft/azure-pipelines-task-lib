@@ -631,7 +631,7 @@ describe('Toolrunner Tests', function () {
                 .arg('line 1')
                 .arg('line 2')
                 .arg('line 3');
-            outputExe.pipeExecOutputToTool(matchExe);
+            outputExe.pipeExecOutputToTool([matchExe]);
 
             var output = '';
             outputExe.on('stdout', (data) => {
@@ -654,7 +654,7 @@ describe('Toolrunner Tests', function () {
 
             var ps = tl.tool(tl.which('ps', true));
             ps.arg('ax');
-            ps.pipeExecOutputToTool(grep);
+            ps.pipeExecOutputToTool([grep]);
 
             var output = '';
             ps.on('stdout', (data) => {
@@ -694,7 +694,7 @@ describe('Toolrunner Tests', function () {
                 .arg('line 1')
                 .arg('line 2')
                 .arg('line 3');
-            outputExe.pipeExecOutputToTool(matchExe);
+            outputExe.pipeExecOutputToTool([matchExe]);
 
             var output = '';
             outputExe.on('stdout', (data) => {
@@ -726,7 +726,7 @@ describe('Toolrunner Tests', function () {
 
             var ps = tl.tool(tl.which('ps', true));
             ps.arg('bad');
-            ps.pipeExecOutputToTool(grep);
+            ps.pipeExecOutputToTool([grep]);
 
             var output = '';
             ps.on('stdout', (data) => {
@@ -777,7 +777,7 @@ describe('Toolrunner Tests', function () {
                 .arg('line 1')
                 .arg('line 2')
                 .arg('line 3');
-            outputExe.pipeExecOutputToTool(matchExe);
+            outputExe.pipeExecOutputToTool([matchExe]);
 
             var output = '';
             outputExe.on('stdout', (data) => {
@@ -816,7 +816,7 @@ describe('Toolrunner Tests', function () {
             var node = tl.tool(tl.which('node', true))
                 .arg('-e')
                 .arg('console.log("line1"); setTimeout(function () { console.log("line2"); }, 200);'); // allow long enough to hook up stdout to stdin
-            node.pipeExecOutputToTool(grep);
+            node.pipeExecOutputToTool([grep]);
 
             var output = '';
             node.on('stdout', (data) => {
@@ -874,7 +874,7 @@ describe('Toolrunner Tests', function () {
                 .arg('line 1')
                 .arg('line 2')
                 .arg('line 3');
-            outputExe.pipeExecOutputToTool(matchExe, testFile);
+            outputExe.pipeExecOutputToTool([matchExe], testFile);
 
             var output = '';
             outputExe.on('stdout', (data) => {
@@ -900,7 +900,7 @@ describe('Toolrunner Tests', function () {
 
             var ps = tl.tool(tl.which('ps', true));
             ps.arg('ax');
-            ps.pipeExecOutputToTool(grep, testFile);
+            ps.pipeExecOutputToTool([grep], testFile);
 
             var output = '';
             ps.on('stdout', (data) => {
@@ -945,7 +945,7 @@ describe('Toolrunner Tests', function () {
                 .arg('line 1')
                 .arg('line 2')
                 .arg('line 3');
-            outputExe.pipeExecOutputToTool(matchExe, testFile);
+            outputExe.pipeExecOutputToTool([matchExe], testFile);
 
             var output = '';
             outputExe.on('stdout', (data) => {
@@ -980,7 +980,7 @@ describe('Toolrunner Tests', function () {
 
             var ps = tl.tool(tl.which('ps', true));
             ps.arg('bad');
-            ps.pipeExecOutputToTool(grep, testFile);
+            ps.pipeExecOutputToTool([grep], testFile);
 
             var output = '';
             ps.on('stdout', (data) => {
@@ -1036,7 +1036,7 @@ describe('Toolrunner Tests', function () {
                 .arg('line 1')
                 .arg('line 2')
                 .arg('line 3');
-            outputExe.pipeExecOutputToTool(matchExe, testFile);
+            outputExe.pipeExecOutputToTool([matchExe], testFile);
 
             var output = '';
             outputExe.on('stdout', (data) => {
@@ -1077,7 +1077,7 @@ describe('Toolrunner Tests', function () {
 
             var ps = tl.tool(tl.which('ps', true));
             ps.arg('ax');
-            ps.pipeExecOutputToTool(grep, testFile);
+            ps.pipeExecOutputToTool([grep], testFile);
 
             var output = '';
             ps.on('stdout', (data) => {
@@ -1804,7 +1804,7 @@ describe('Toolrunner Tests', function () {
             cmdRunner.on('stdout', (data) => {
                 output += data.toString();
             });
-            cmdRunner.pipeExecOutputToTool(exeRunner);
+            cmdRunner.pipeExecOutputToTool([exeRunner]);
             cmdRunner.exec(options)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code should be 0');
@@ -1841,7 +1841,7 @@ describe('Toolrunner Tests', function () {
             cmdRunner.on('stdout', (data) => {
                 output += data.toString();
             });
-            cmdRunner.pipeExecOutputToTool(exeRunner);
+            cmdRunner.pipeExecOutputToTool([exeRunner]);
             cmdRunner.exec(options)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code should be 0');

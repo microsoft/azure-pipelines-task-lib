@@ -47,7 +47,7 @@ export class ToolRunner extends events.EventEmitter {
 
     private toolPath: string;
     private args: string[];
-    private pipeOutputToTool: ToolRunner | undefined;
+    private pipeOutputToTools: ToolRunner[] | undefined;
 
     private _debug(message) {
         debug(message);
@@ -142,8 +142,8 @@ export class ToolRunner extends events.EventEmitter {
         return this;
     }
 
-    public pipeExecOutputToTool(tool: ToolRunner) : ToolRunner {
-        this.pipeOutputToTool = tool;
+    public pipeExecOutputToTool(tools: ToolRunner[]) : ToolRunner {
+        this.pipeOutputToTools = tools;
         return this;
     }
 
@@ -195,14 +195,16 @@ export class ToolRunner extends events.EventEmitter {
         cmdString = this.ignoreTempPath(cmdString);
 
         if (!ops.silent) {
-            if(this.pipeOutputToTool) {
-                var pipeToolArgString = this.pipeOutputToTool.args.join(' ') || '';
-                var pipeToolCmdString = this.ignoreTempPath(this.pipeOutputToTool.toolPath);
-                if(pipeToolArgString) {
-                    pipeToolCmdString += (' ' + pipeToolArgString);
+            if(this.pipeOutputToTools) {
+                for (const tr of this.pipeOutputToTools) {
+                    const pipeToolArgString = tr.args.join(' ') || '';
+                    let pipeToolCmdString = this.ignoreTempPath(tr.toolPath);
+                    if(pipeToolArgString) {
+                        pipeToolCmdString += (' ' + pipeToolArgString);
+                    }
+                    
+                    cmdString += ' | ' + pipeToolCmdString;
                 }
-
-                cmdString += ' | ' + pipeToolCmdString;
             }
 
             ops.outStream.write('[command]' + cmdString + os.EOL);
