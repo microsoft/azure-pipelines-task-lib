@@ -32,6 +32,9 @@ export interface IExecSyncOptions {
     /** optional.  defaults to false */
     silent?: boolean;
 
+    /** optional.  defaults to false */
+    quiet?: boolean;
+
     /** Optional. Default is process.stdout. */
     outStream?: stream.Writable;
 
@@ -478,6 +481,7 @@ export class ToolRunner extends events.EventEmitter {
             cwd: options.cwd || process.cwd(),
             env: options.env || process.env,
             silent: options.silent || false,
+            quite: options.quiet || false,
             failOnStdErr: options.failOnStdErr || false,
             ignoreReturnCode: options.ignoreReturnCode || false,
             windowsVerbatimArguments: options.windowsVerbatimArguments || false
@@ -516,7 +520,7 @@ export class ToolRunner extends events.EventEmitter {
         let success = true;
         const optionsNonNull = this._cloneExecOptions(options);
 
-        if (!optionsNonNull.silent) {
+        if (!optionsNonNull.silent && !optionsNonNull.quiet) {
             optionsNonNull.outStream!.write(this._getCommandString(optionsNonNull) + os.EOL);
         }
 
@@ -705,9 +709,9 @@ export class ToolRunner extends events.EventEmitter {
 
     /**
      * Add argument
-     * Append an argument or an array of arguments 
+     * Append an argument or an array of arguments
      * returns ToolRunner for chaining
-     * 
+     *
      * @param     val        string cmdline or array of strings
      * @returns   ToolRunner
      */
@@ -732,7 +736,7 @@ export class ToolRunner extends events.EventEmitter {
      * Parses an argument line into one or more arguments
      * e.g. .line('"arg one" two -z') is equivalent to .arg(['arg one', 'two', '-z'])
      * returns ToolRunner for chaining
-     * 
+     *
      * @param     val        string argument line
      * @returns   ToolRunner
      */
@@ -778,7 +782,7 @@ export class ToolRunner extends events.EventEmitter {
      * Exec a tool.
      * Output will be streamed to the live console.
      * Returns promise with return code
-     * 
+     *
      * @param     tool     path to tool to exec
      * @param     options  optional exec options.  See IExecOptions
      * @returns   number
@@ -797,7 +801,7 @@ export class ToolRunner extends events.EventEmitter {
         });
 
         const optionsNonNull = this._cloneExecOptions(options);
-        if (!optionsNonNull.silent) {
+        if (!optionsNonNull.silent && !optionsNonNull.quiet) {
             optionsNonNull.outStream!.write(this._getCommandString(optionsNonNull) + os.EOL);
         }
 
@@ -812,7 +816,7 @@ export class ToolRunner extends events.EventEmitter {
         // because stdout is buffered, this causes the last line to not get sent to the parent
         // stream. Adding this event forces a flush before the child streams are closed.
         cp.stdout.on('finish', () => {
-            if (!optionsNonNull.silent) {
+            if (!optionsNonNull.silent && !optionsNonNull.quiet) {
                 optionsNonNull.outStream!.write(os.EOL);
             }
         });
@@ -891,11 +895,11 @@ export class ToolRunner extends events.EventEmitter {
     }
 
     /**
-     * Exec a tool synchronously. 
+     * Exec a tool synchronously.
      * Output will be *not* be streamed to the live console.  It will be returned after execution is complete.
-     * Appropriate for short running tools 
+     * Appropriate for short running tools
      * Returns IExecSyncResult with output and return code
-     * 
+     *
      * @param     tool     path to tool to exec
      * @param     options  optional exec options.  See IExecSyncOptions
      * @returns   IExecSyncResult
