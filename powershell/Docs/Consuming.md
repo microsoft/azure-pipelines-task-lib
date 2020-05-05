@@ -17,6 +17,15 @@ or install a specific version:
 Save-Module -Name VstsTaskSdk -Path .\ -RequiredVersion 0.7.0
 ```
 
+Using the Save-Module Cmdlet creates a Folder structure like this
+```
+VstsTaskSdk
+└───<Version>
+        [...]
+        VstsTaskSdk.psd1
+```
+you need to manually adjust it to resemble the structure shown in the [Package the SDK with the task](#package-the-sdk-with-the-task) section. That means you need to move the content of the version Folder one directory up.
+
 ## task.json modifications
 Use the `PowerShell3` execution handler and set the target to the entry PS1 script. The entry PS1 script should be located in the root of the task folder.
 ```JSON
