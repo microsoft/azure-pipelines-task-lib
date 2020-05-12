@@ -40,6 +40,9 @@ export interface IExecSyncOptions {
 
     /** optional. Whether to skip quoting/escaping arguments if needed.  defaults to false. */
     windowsVerbatimArguments?: boolean;
+
+    /** optional. Run command inside of the shell.  Defaults to false. */
+    shell?: boolean;
 }
 
 /**
@@ -480,7 +483,8 @@ export class ToolRunner extends events.EventEmitter {
             silent: options.silent || false,
             failOnStdErr: options.failOnStdErr || false,
             ignoreReturnCode: options.ignoreReturnCode || false,
-            windowsVerbatimArguments: options.windowsVerbatimArguments || false
+            windowsVerbatimArguments: options.windowsVerbatimArguments || false,
+            shell: options.shell || false
         };
         result.outStream = options.outStream || <stream.Writable>process.stdout;
         result.errStream = options.errStream || <stream.Writable>process.stderr;
@@ -492,6 +496,7 @@ export class ToolRunner extends events.EventEmitter {
         let result = <child.SpawnOptions>{};
         result.cwd = options.cwd;
         result.env = options.env;
+        result.shell = options.shell;
         result['windowsVerbatimArguments'] = options.windowsVerbatimArguments || this._isCmdFile();
         return result;
     }
@@ -500,6 +505,7 @@ export class ToolRunner extends events.EventEmitter {
         let result = <child.SpawnSyncOptions>{};
         result.cwd = options.cwd;
         result.env = options.env;
+        result.shell = options.shell;
         result['windowsVerbatimArguments'] = options.windowsVerbatimArguments || this._isCmdFile();
         return result;
     }
