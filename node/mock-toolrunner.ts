@@ -142,7 +142,12 @@ export class ToolRunner extends events.EventEmitter {
         return this;
     }
 
-    public pipeExecOutputToTool(tools: ToolRunner[]) : ToolRunner {
+    public pipeExecOutputToTool(tools: ToolRunner) : ToolRunner {
+        this.pipeOutputToTools = [tools];
+        return this;
+    }
+
+    public pipeExecOutputToTools(tools: ToolRunner[]) : ToolRunner {
         this.pipeOutputToTools = tools;
         return this;
     }

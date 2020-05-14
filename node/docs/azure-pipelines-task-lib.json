@@ -423,7 +423,7 @@
                   "parameters": [
                     {
                       "name": "tool",
-                      "type": "ToolRunner[]",
+                      "type": "ToolRunner",
                       "optional": false,
                       "documentation": ""
                     },
@@ -437,6 +437,33 @@
                   "members": {},
                   "return": "ToolRunner",
                   "documentation": "Pipe output of exec() to another tool\n@returns {ToolRunner}"
+                }
+              ]
+            },
+            "pipeExecOutputToTools": {
+              "name": "pipeExecOutputToTools",
+              "members": {},
+              "documentation": "Pipe output through all other tools. The execution order will be the same as the position in the list (0 -> first ... n -> last)\n@returns {ToolRunner}",
+              "kind": "method",
+              "signatures": [
+                {
+                  "parameters": [
+                    {
+                      "name": "tool",
+                      "type": "ToolRunner[]",
+                      "optional": false,
+                      "documentation": ""
+                    },
+                    {
+                      "name": "file",
+                      "type": "string",
+                      "optional": true,
+                      "documentation": "optional filename to additionally stream the output to."
+                    }
+                  ],
+                  "members": {},
+                  "return": "ToolRunner",
+                  "documentation": "Pipe output through all other tools. The execution order will be the same as the position in the list (0 -> first ... n -> last)\n@returns {ToolRunner}"
                 }
               ]
             },

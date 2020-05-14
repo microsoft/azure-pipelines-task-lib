@@ -182,7 +182,7 @@ export class ToolRunner extends events.EventEmitter {
             });
         }
 
-        // append second tool
+        // append other tools
         if (this.pipeOutputToTools) {
             for (const tr of this.pipeOutputToTools) {
                 cmd += ' | ' + tr._getCommandString(options, /*noPrefix:*/true);
@@ -525,15 +525,13 @@ export class ToolRunner extends events.EventEmitter {
         const cps: child.ChildProcess[] = [];
         pipeOutputToTools.unshift(this);
         let toolPath: string = pipeOutputToTools[0].toolPath;
-        let toolPathFirst: string;
+        let toolPathNext: string = pipeOutputToTools[1].toolPath;        
         let successFirst = true;
         let returnCodeFirst: number;
         let fileStream: fs.WriteStream | null;
         let waitingEvents: number = 0; // number of process or stream events we are waiting on to complete
         let returnCode: number = 0;
         let error: any;
-
-        toolPathFirst = toolPath;
 
         // Following node documentation example from this link on how to pipe output of one process to another
         // https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options
@@ -564,7 +562,7 @@ export class ToolRunner extends events.EventEmitter {
             });
             fileStream.on('error', (err: Error) => {
                 waitingEvents--; //there were errors writing to the file, write is done
-                this._debug(`Failed to pipe output of ${toolPathFirst} to file ${this.pipeOutputToFile}. Error = ${err}`);
+                this._debug(`Failed to pipe output of ${toolPath} to file ${this.pipeOutputToFile}. Error = ${err}`);
                 fileStream = null;
                 if(waitingEvents == 0) {
                     if (error) {
@@ -576,25 +574,26 @@ export class ToolRunner extends events.EventEmitter {
             });
         }
 
-        //pipe stdout of tool to stdin of next tool
+        //pipe stdout of tool to stdin of next tool in list
         for (var i = 0; i<=(cps.length - 2); i++) {
-            const cpFirst = cps[i];
-            const cp = cps[i + 1];
-            toolPathFirst = pipeOutputToTools[i].toolPath;
-            toolPath = pipeOutputToTools[i + 1].toolPath;
-            cpFirst.stdout.on('data', (data: Buffer) => {
+            const cp = cps[i];
+            const cpNext = cps[i + 1];
+            toolPath = pipeOutputToTools[i].toolPath;
+            toolPathNext = pipeOutputToTools[i + 1].toolPath;
+            const numberCp = i;
+            cp.stdout.on('data', (data: Buffer) => {
                 try {
-                    if (fileStream && i==0) {
+                    if (fileStream && numberCp==0) {
                         fileStream.write(data);
                     }
-                    cp.stdin.write(data);
+                    cpNext.stdin.write(data);
                 } catch (err) {
-                    this._debug('Failed to pipe output of ' + toolPathFirst + ' to ' + toolPath);
-                    this._debug(toolPath + ' might have exited due to errors prematurely. Verify the arguments passed are valid.');
+                    this._debug('Failed to pipe output of ' + toolPath + ' to ' + toolPathNext);
+                    this._debug(toolPathNext + ' might have exited due to errors prematurely. Verify the arguments passed are valid.');
                 }
             });
-            cpFirst.stderr.on('data', (data: Buffer) => {
-                if (fileStream && i==0) {
+            cp.stderr.on('data', (data: Buffer) => {
+                if (fileStream && numberCp==0) {
                     fileStream.write(data);
                 }
                 successFirst = !optionsNonNull.failOnStdErr;
@@ -603,29 +602,29 @@ export class ToolRunner extends events.EventEmitter {
                     s.write(data);
                 }
             });
-            cpFirst.on('error', (err: Error) => {
+            cp.on('error', (err: Error) => {
                 waitingEvents--; //first process is complete with errors
-                if (fileStream && i==0) {
+                if (fileStream && numberCp==0) {
                     fileStream.end();
                 }
-                cp.stdin.end();
-                error = new Error(toolPathFirst + ' failed. ' + err.message);
+                cpNext.stdin.end();
+                error = new Error(toolPath + ' failed. ' + err.message);
                 if(waitingEvents == 0) {
                     defer.reject(error);
                 }
             });
-            cpFirst.on('close', (code: number, signal: any) => {
+            cp.on('close', (code: number, signal: any) => {
                 waitingEvents--; //first process is complete
                 if (code != 0 && !optionsNonNull.ignoreReturnCode) {
                     successFirst = false;
                     returnCodeFirst = code;
                     returnCode = returnCodeFirst;
                 }
-                this._debug('success of first tool:' + successFirst);
-                if (fileStream && i==0) {
+                this._debug(`success of tool ${toolPath}: ${successFirst}`);
+                if (fileStream && numberCp==0) {
                     fileStream.end();
                 }
-                cp.stdin.end();
+                cpNext.stdin.end();
                 if(waitingEvents == 0) {
                     if (error) {
                         defer.reject(error);
@@ -667,7 +666,7 @@ export class ToolRunner extends events.EventEmitter {
     
         cp.on('error', (err: Error) => {
             waitingEvents--; //process is done with errors
-            error = new Error(toolPath + ' failed. ' + err.message);
+            error = new Error(toolPathNext + ' failed. ' + err.message);
             if(waitingEvents == 0) {
                 defer.reject(error);
             }
@@ -693,9 +692,9 @@ export class ToolRunner extends events.EventEmitter {
             this._debug('success:' + success);
 
             if (!successFirst) { //in the case output is piped to another tool, check exit code of both tools
-                error = new Error(toolPathFirst + ' failed with return code: ' + returnCodeFirst);
+                error = new Error(toolPath + ' failed with return code: ' + returnCodeFirst);
             } else if (!success) {
-                error = new Error(toolPath + ' failed with return code: ' + code);
+                error = new Error(toolPathNext + ' failed with return code: ' + code);
             }
 
             if(waitingEvents == 0) {
@@ -771,11 +770,23 @@ export class ToolRunner extends events.EventEmitter {
 
     /**
      * Pipe output of exec() to another tool
-     * @param tools
+     * @param tool
      * @param file  optional filename to additionally stream the output to.
      * @returns {ToolRunner}
      */
-    public pipeExecOutputToTool(tools: ToolRunner[], file?: string): ToolRunner {
+    public pipeExecOutputToTool(tool: ToolRunner, file?: string): ToolRunner {
+        this.pipeOutputToTools = [tool];
+        this.pipeOutputToFile = file;
+        return this;
+    }
+
+    /**
+     * Pipe output through all other tools. The execution order will be the same as the position in the list (0 -> first ... n -> last)
+     * @param tools list of toolrunners to pipe the output to
+     * @param file optional filename to additionally stream the output to.
+     * @returns {ToolRunner}
+     */
+    public pipeExecOutputToTools(tools: ToolRunner[], file?: string): ToolRunner {
         this.pipeOutputToTools = tools;
         this.pipeOutputToFile = file;
         return this;
@@ -790,8 +801,8 @@ export class ToolRunner extends events.EventEmitter {
      * @param     options  optional exec options.  See IExecOptions
      * @returns   number
      */
-    public exec(options?: IExecOptions): Q.Promise<number> {
-        if (this.pipeOutputToTools) {
+    public exec(options?: IExecOptions): Q.Promise<number> {        
+        if (this.pipeOutputToTools && this.pipeOutputToTools.length > 0) {
             return this.execWithPiping(this.pipeOutputToTools, options);
         }
 

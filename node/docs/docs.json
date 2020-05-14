@@ -36,6 +36,7 @@
                 "toolrunner.ToolRunner.exec",
                 "toolrunner.ToolRunner.execSync",
                 "toolrunner.ToolRunner.pipeExecOutputToTool",
+                "toolrunner.ToolRunner.pipeExecOutputToTools",
                 "toolrunner.IExecSyncResult",
                 "task.exec",
                 "task.execSync",
