@@ -1224,7 +1224,7 @@ describe('Toolrunner Tests', function () {
                         done(err);
                     }
                     else {
-                        const errOut: testutil.StringStream = _testExecOptions.errStream;
+                        const errOut: testutil.StringStream = _testExecOptions.errStream as testutil.StringStream;
                         assert(errOut && errOut.getContents().length > 0 && errOut.getContents().indexOf('some error message') >= 0, 'error output from node command is expected');
                         // grep is /bin/grep on Linux and /usr/bin/grep on OSX
                         assert(err && err.message && err.message.indexOf('match-input.exe') >= 0, 'error from find does not match expeced. actual: ' + err.message);
@@ -1243,24 +1243,23 @@ describe('Toolrunner Tests', function () {
             var firstGrep = tl.tool(tl.which('grep', true));
             firstGrep.arg('--?');
 
-            var node = tl.tool(tl.which('node', true))
-                .arg('-e')
-                .arg('console.log("line1"); setTimeout(function () { console.log("line2"); }, 200);'); // allow long enough to hook up stdout to stdin
-            node.pipeExecOutputToTools([firstGrep, secondGrep]);
+            var ps = tl.tool(tl.which('ps', true));
+            ps.arg('ax');
+            ps.pipeExecOutputToTools([firstGrep, secondGrep]);
 
             var succeeded = false;
-            node.exec(_testExecOptions)
+            ps.exec(_testExecOptions)
                 .then(function (code) {
                     succeeded = true;
-                    assert.fail('node [...] | grep --? was a bad command and it did not fail');
+                    assert.fail('ps ax | grep --? | grep node was a bad command and it did not fail');
                 })
                 .fail(function (err) {
                     if (succeeded) {
                         done(err);
                     }
                     else {
-                        const errOut: testutil.StringStream = _testExecOptions.errStream;
-                        assert(errOut && errOut.getContents().length > 0 && errOut.getContents().indexOf('grep: unrecognized option') >= 0, 'error output from node command is expected');
+                        const errOut: testutil.StringStream = _testExecOptions.errStream as testutil.StringStream;
+                        assert(errOut && errOut.getContents().length > 0 && errOut.getContents().indexOf('grep: unrecognized option') >= 0, 'error output from ps command is expected');
                         // grep is /bin/grep on Linux and /usr/bin/grep on OSX
                         assert(err && err.message && err.message.match(/\/[usr\/]?bin\/grep/), 'error from grep is not reported. actual: ' + err.message);
                         done();
