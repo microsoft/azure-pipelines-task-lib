@@ -902,7 +902,6 @@ describe('Toolrunner Tests', function () {
             var ps = tl.tool(tl.which('ps', true));
             ps.arg('ax');
             ps.pipeExecOutputToTool(grep, testFile);
-            console.log("testFile - " + testFile);
             var output = '';
             ps.on('stdout', (data) => {
                 output += data.toString();
@@ -910,7 +909,6 @@ describe('Toolrunner Tests', function () {
 
             ps.exec(_testExecOptions)
                 .then(function (code) {
-                    console.log("code" + code);
                     assert.equal(code, 0, 'return code of exec should be 0');
                     assert(output && output.length > 0 && output.indexOf('node') >= 0, 'should have emitted stdout ' + output);
                     assert(fs.existsSync(testFile), 'Log of first tool output is created when both tools succeed');
@@ -919,7 +917,6 @@ describe('Toolrunner Tests', function () {
                     done();
                 })
                 .fail(function (err) {
-                    console.log("err" + err);
                     done(err);
                 });
         }
@@ -1188,6 +1185,92 @@ describe('Toolrunner Tests', function () {
                 });
         }
     })
+    it('Exec pipe through all tools, fails if second tool fails', function (done) {
+        this.timeout(30000);
+
+        var _testExecOptions = <trm.IExecOptions>{
+            cwd: __dirname,
+            env: {},
+            silent: false,
+            failOnStdErr: true,
+            ignoreReturnCode: false,
+            outStream: testutil.createStringStream(),
+            errStream: testutil.createStringStream()
+        };
+
+        if (os.platform() === 'win32') {
+            var firstMatchExe = tl.tool(compileMatchExe())
+                .arg('1') // exit code
+                .arg('line 2') // match value
+                .arg('some error message'); // error
+            var secondMatchExe = tl.tool(compileMatchExe())
+                .arg('0') // exit code
+                .arg('line 2'); // match value
+            var outputExe = tl.tool(compileOutputExe())
+                .arg('0') // exit code
+                .arg('line 1')
+                .arg('line 2')
+                .arg('line 3');
+            outputExe.pipeExecOutputToTools([firstMatchExe, secondMatchExe]);
+
+            var succeeded = false;
+            outputExe.exec(_testExecOptions)
+                .then(function (code) {
+                    succeeded = true;
+                    assert.fail('print-output.exe 0 "line 1" "line 2" "line 3" | match-input.exe 0 "line 2" | match-input.exe 1 "line 2" "some error message" was a bad command and it did not fail');
+                })
+                .fail(function (err) {
+                    if (succeeded) {
+                        done(err);
+                    }
+                    else {
+                        const errOut: testutil.StringStream = _testExecOptions.errStream;
+                        assert(errOut && errOut.getContents().length > 0 && errOut.getContents().indexOf('some error message') >= 0, 'error output from node command is expected');
+                        // grep is /bin/grep on Linux and /usr/bin/grep on OSX
+                        assert(err && err.message && err.message.indexOf('match-input.exe') >= 0, 'error from find does not match expeced. actual: ' + err.message);
+                        done();
+                    }
+                })
+                .fail(function (err) {
+                    done(err);
+                });
+        }
+        else {
+
+            var secondGrep = tl.tool(tl.which('grep', true));
+            secondGrep.arg('node');
+
+            var firstGrep = tl.tool(tl.which('grep', true));
+            firstGrep.arg('--?');
+
+            var node = tl.tool(tl.which('node', true))
+                .arg('-e')
+                .arg('console.log("line1"); setTimeout(function () { console.log("line2"); }, 200);'); // allow long enough to hook up stdout to stdin
+            node.pipeExecOutputToTools([firstGrep, secondGrep]);
+
+            var succeeded = false;
+            node.exec(_testExecOptions)
+                .then(function (code) {
+                    succeeded = true;
+                    assert.fail('node [...] | grep --? was a bad command and it did not fail');
+                })
+                .fail(function (err) {
+                    if (succeeded) {
+                        done(err);
+                    }
+                    else {
+                        const errOut: testutil.StringStream = _testExecOptions.errStream;
+                        assert(errOut && errOut.getContents().length > 0 && errOut.getContents().indexOf('grep: unrecognized option') >= 0, 'error output from node command is expected');
+                        // grep is /bin/grep on Linux and /usr/bin/grep on OSX
+                        assert(err && err.message && err.message.match(/\/[usr\/]?bin\/grep/), 'error from grep is not reported. actual: ' + err.message);
+                        done();
+                    }
+                })
+                .fail(function (err) {
+                    done(err);
+                });
+        }
+    })
     it('Exec pipe through all tools, fails if last tool fails', function (done) {
         this.timeout(30000);
 
@@ -1203,12 +1286,12 @@ describe('Toolrunner Tests', function () {
 
         if (os.platform() === 'win32') {
             var firstMatchExe = tl.tool(compileMatchExe())
-                .arg('1') // exit code
-                .arg('line 2') // match value
-                .arg('some error message'); // error
-            var secondMatchExe = tl.tool(compileMatchExe())
                 .arg('0') // exit code
                 .arg('line 2'); // match value
+            var secondMatchExe = tl.tool(compileMatchExe())
+                .arg('0') // exit code
+                .arg('line 2') // match value
+                .arg('some error message'); // error
             var outputExe = tl.tool(compileOutputExe())
                 .arg('0') // exit code
                 .arg('line 1')
@@ -1279,7 +1362,7 @@ describe('Toolrunner Tests', function () {
                         done(err);
                     }
                     else {
-                        assert(errOut && errOut.length > 0 && errOut.indexOf('grep: unrecognized option') >= 0, 'error output from ps command is expected');
+                        assert(errOut && errOut.length > 0 && errOut.indexOf('grep: unrecognized option') >= 0, 'error output from grep command is expected');
                         // grep is /bin/grep on Linux and /usr/bin/grep on OSX
                         assert(err && err.message && err.message.match(/\/[usr\/]?bin\/grep/), 'error from grep is not reported. actual: ' + err.message);
                         done();

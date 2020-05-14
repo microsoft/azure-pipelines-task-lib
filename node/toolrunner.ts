@@ -577,7 +577,6 @@ export class ToolRunner extends events.EventEmitter {
         //pipe stdout of tool to stdin of next tool in list
         for (var i = 0; i<=(cps.length - 2); i++) {
             const cp = cps[i];
-            const cpNext = cps[i + 1];
             toolPath = pipeOutputToTools[i].toolPath;
             toolPathNext = pipeOutputToTools[i + 1].toolPath;
             const numberCp = i;
@@ -586,7 +585,8 @@ export class ToolRunner extends events.EventEmitter {
                     if (fileStream && numberCp==0) {
                         fileStream.write(data);
                     }
-                    cpNext.stdin.write(data);
+
+                    cps[numberCp + 1].stdin.write(data);                    
                 } catch (err) {
                     this._debug('Failed to pipe output of ' + toolPath + ' to ' + toolPathNext);
                     this._debug(toolPathNext + ' might have exited due to errors prematurely. Verify the arguments passed are valid.');
@@ -607,7 +607,7 @@ export class ToolRunner extends events.EventEmitter {
                 if (fileStream && numberCp==0) {
                     fileStream.end();
                 }
-                cpNext.stdin.end();
+                cps[numberCp + 1].stdin.end();
                 error = new Error(toolPath + ' failed. ' + err.message);
                 if(waitingEvents == 0) {
                     defer.reject(error);
@@ -624,7 +624,7 @@ export class ToolRunner extends events.EventEmitter {
                 if (fileStream && numberCp==0) {
                     fileStream.end();
                 }
-                cpNext.stdin.end();
+                cps[numberCp + 1].stdin.end();
                 if(waitingEvents == 0) {
                     if (error) {
                         defer.reject(error);
