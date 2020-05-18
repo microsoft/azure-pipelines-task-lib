@@ -620,6 +620,18 @@ describe('Input Tests', function () {
 
         done();
     })
+    it('gets delimited input with a Regexp', function (done) {
+        this.timeout(1000);
+
+        var inputValue = 'a,b\nc';
+        process.env['INPUT_DELIM'] = inputValue;
+        im._loadData();
+
+        var outVal = tl.getDelimitedInput(/[,\n]/, ' ', /*required*/false);
+        assert.equal(outVal.length, 3, 'should return array with 3 elements');
+
+        done();
+    })
 
     // getPathInput tests
     it('gets path input value', function (done) {
