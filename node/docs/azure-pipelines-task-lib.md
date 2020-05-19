@@ -44,6 +44,7 @@ import tl = require('azure-pipelines-task-lib/task')
 <a href="#toolrunnerToolRunnerexec">ToolRunner.exec</a> <br/>
 <a href="#toolrunnerToolRunnerexecSync">ToolRunner.execSync</a> <br/>
 <a href="#toolrunnerToolRunnerpipeExecOutputToTool">ToolRunner.pipeExecOutputToTool</a> <br/>
+<a href="#toolrunnerToolRunnerpipeExecOutputToTools">ToolRunner.pipeExecOutputToTools</a> <br/>
 <a href="#toolrunnerIExecSyncResult">IExecSyncResult</a> <br/>
 <a href="#taskexec">exec</a> <br/>
 <a href="#taskexecSync">execSync</a> <br/>
@@ -451,6 +452,21 @@ pipeExecOutputToTool(tool:ToolRunner, file?:string):ToolRunner
 Param | Type | Description
 --- | --- | ---
 tool | ToolRunner | 
+file | string | optional filename to additionally stream the output to.
+ 
+<br/>
+<div id="toolrunnerToolRunnerpipeExecOutputToTools">
+ 
+### toolrunner.ToolRunner.pipeExecOutputToTools <a href="#index">(^)</a>
+Pipe output through all other tools. The execution order will be the same as the position in the list (0 -> first ... n -> last)
+@returns {ToolRunner}
+```javascript
+pipeExecOutputToTools(tool:ToolRunner[], file?:string):ToolRunner
+```
+ 
+Param | Type | Description
+--- | --- | ---
+tool | ToolRunner[] | 
 file | string | optional filename to additionally stream the output to.
  
 <br/>

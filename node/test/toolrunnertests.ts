@@ -186,14 +186,15 @@ describe('Toolrunner Tests', function () {
                 });
         }
         else {
-            var ls = tl.tool(tl.which('ls', true));
+            var lsPath = tl.which('ls', true);
+            var ls = tl.tool(lsPath);
             ls.arg('-l');
             ls.arg('-a');
 
             ls.exec(_testExecOptions)
                 .then(function (code) {
                     var contents = stdStream.getContents();
-                    assert(contents.indexOf('exec tool: /bin/ls') >= 0, 'should exec ls');
+                    assert(contents.indexOf('exec tool: ' + lsPath) >= 0, 'should exec ls');
                     assert.equal(code, 0, 'return code of ls should be 0');
                     done();
                 })
@@ -901,7 +902,6 @@ describe('Toolrunner Tests', function () {
             var ps = tl.tool(tl.which('ps', true));
             ps.arg('ax');
             ps.pipeExecOutputToTool(grep, testFile);
-
             var output = '';
             ps.on('stdout', (data) => {
                 output += data.toString();
@@ -1106,6 +1106,264 @@ describe('Toolrunner Tests', function () {
                         assert(fs.existsSync(testFile), 'Log of first tool output is created when second tool fails');
                         const fileContents = fs.readFileSync(testFile);
                         assert(fileContents.indexOf('unrecognized option') < 0, 'error from second tool should not be in the first tool log file: ' + fileContents);
+                        done();
+                    }
+                })
+                .fail(function (err) {
+                    done(err);
+                });
+        }
+    })
+    it('Exec pipe output through all tools, succeeds if all tools succeed', function (done) {
+        this.timeout(30000);
+
+        var _testExecOptions = <trm.IExecOptions>{
+            cwd: __dirname,
+            env: {},
+            silent: false,
+            failOnStdErr: false,
+            ignoreReturnCode: false,
+            outStream: testutil.getNullStream(),
+            errStream: testutil.getNullStream()
+        };
+
+        if (os.platform() === 'win32') {
+            var firstMatchExe = tl.tool(compileMatchExe())
+                .arg('0') // exit code
+                .arg('line 2'); // match value
+            var secondMatchExe = tl.tool(compileMatchExe())
+                .arg('0') // exit code
+                .arg('line 2'); // match value
+            var outputExe = tl.tool(compileOutputExe())
+                .arg('0') // exit code
+                .arg('line 1')
+                .arg('line 2')
+                .arg('line 3');
+            outputExe.pipeExecOutputToTools([firstMatchExe, secondMatchExe]);
+
+            var output = '';
+            outputExe.on('stdout', (data) => {
+                output += data.toString();
+            });
+
+            outputExe.exec(_testExecOptions)
+                .then(function (code) {
+                    assert.equal(code, 0, 'return code of exec should be 0');
+                    assert(output && output.length > 0 && output.indexOf('line 2') >= 0, 'should have emitted stdout ' + output);
+                    done();
+                })
+                .fail(function (err) {
+                    done(err);
+                });
+        }
+        else {
+
+            var secondGrep = tl.tool(tl.which('grep', true));
+            secondGrep.arg('-v');
+            secondGrep.arg('color');
+            var firstGrep = tl.tool(tl.which('grep', true));
+            firstGrep.arg('node');
+
+            var ps = tl.tool(tl.which('ps', true));
+            ps.arg('ax');
+            ps.pipeExecOutputToTools([firstGrep, secondGrep]);
+
+            var output = '';
+            ps.on('stdout', (data) => {
+                output += data.toString();
+            });
+
+            ps.exec(_testExecOptions)
+                .then(function (code) {
+                    assert.equal(code, 0, 'return code of exec should be 0');
+                    assert(output && output.length > 0 && output.indexOf('node') >= 0, 'should have emitted stdout ' + output);
+                    assert(output && output.length > 0 && output.indexOf('color') === -1, 'should have emitted stdout ' + output);
+                    done();
+                })
+                .fail(function (err) {
+                    done(err);
+                });
+        }
+    })
+    it('Exec pipe through all tools, fails if second tool fails', function (done) {
+        this.timeout(30000);
+
+        var _testExecOptions = <trm.IExecOptions>{
+            cwd: __dirname,
+            env: {},
+            silent: false,
+            failOnStdErr: true,
+            ignoreReturnCode: false,
+            outStream: testutil.createStringStream(),
+            errStream: testutil.createStringStream()
+        };
+
+        if (os.platform() === 'win32') {
+            var firstMatchExe = tl.tool(compileMatchExe())
+                .arg('1') // exit code
+                .arg('line 2') // match value
+                .arg('some error message'); // error
+            var secondMatchExe = tl.tool(compileMatchExe())
+                .arg('0') // exit code
+                .arg('line 2'); // match value
+            var outputExe = tl.tool(compileOutputExe())
+                .arg('0') // exit code
+                .arg('line 1')
+                .arg('line 2')
+                .arg('line 3');
+            outputExe.pipeExecOutputToTools([firstMatchExe, secondMatchExe]);
+
+            var succeeded = false;
+            outputExe.exec(_testExecOptions)
+                .then(function (code) {
+                    succeeded = true;
+                    assert.fail('print-output.exe 0 "line 1" "line 2" "line 3" | match-input.exe 0 "line 2" | match-input.exe 1 "line 2" "some error message" was a bad command and it did not fail');
+                })
+                .fail(function (err) {
+                    if (succeeded) {
+                        done(err);
+                    }
+                    else {
+                        const errOut: testutil.StringStream = _testExecOptions.errStream as testutil.StringStream;
+                        assert(errOut && errOut.getContents().length > 0 && errOut.getContents().indexOf('some error message') >= 0, 'error output from node command is expected');
+                        // grep is /bin/grep on Linux and /usr/bin/grep on OSX
+                        assert(err && err.message && err.message.indexOf('match-input.exe') >= 0, 'error from find does not match expeced. actual: ' + err.message);
+                        done();
+                    }
+                })
+                .fail(function (err) {
+                    done(err);
+                });
+        }
+        else {
+
+            var secondGrep = tl.tool(tl.which('grep', true));
+            secondGrep.arg('node');
+
+            var firstGrep = tl.tool(tl.which('grep', true));
+            firstGrep.arg('--?');
+
+            var ps = tl.tool(tl.which('ps', true));
+            ps.arg('ax');
+            ps.pipeExecOutputToTools([firstGrep, secondGrep]);
+
+            var succeeded = false;
+            ps.exec(_testExecOptions)
+                .then(function (code) {
+                    succeeded = true;
+                    assert.fail('ps ax | grep --? | grep node was a bad command and it did not fail');
+                })
+                .fail(function (err) {
+                    if (succeeded) {
+                        done(err);
+                    }
+                    else {
+                        const errOut: testutil.StringStream = _testExecOptions.errStream as testutil.StringStream;
+                        assert(errOut && errOut.getContents().length > 0 && errOut.getContents().indexOf('grep: unrecognized option') >= 0, 'error output from ps command is expected');
+                        // grep is /bin/grep on Linux and /usr/bin/grep on OSX
+                        assert(err && err.message && err.message.match(/\/[usr\/]?bin\/grep/), 'error from grep is not reported. actual: ' + err.message);
+                        done();
+                    }
+                })
+                .fail(function (err) {
+                    done(err);
+                });
+        }
+    })
+    it('Exec pipe through all tools, fails if last tool fails', function (done) {
+        this.timeout(30000);
+
+        var _testExecOptions = <trm.IExecOptions>{
+            cwd: __dirname,
+            env: {},
+            silent: false,
+            failOnStdErr: false,
+            ignoreReturnCode: false,
+            outStream: testutil.getNullStream(),
+            errStream: testutil.getNullStream()
+        };
+
+        if (os.platform() === 'win32') {
+            var firstMatchExe = tl.tool(compileMatchExe())
+                .arg('0') // exit code
+                .arg('line 2'); // match value
+            var secondMatchExe = tl.tool(compileMatchExe())
+                .arg('1') // exit code
+                .arg('line 2') // match value
+                .arg('some error message'); // error
+            var outputExe = tl.tool(compileOutputExe())
+                .arg('0') // exit code
+                .arg('line 1')
+                .arg('line 2')
+                .arg('line 3');
+            outputExe.pipeExecOutputToTools([firstMatchExe, secondMatchExe]);
+
+            var output = '';
+            outputExe.on('stdout', (data) => {
+                output += data.toString();
+            });
+
+            var errOut = '';
+            outputExe.on('stderr', (data) => {
+                errOut += data.toString();
+            });
+
+            var succeeded = false;
+            outputExe.exec(_testExecOptions)
+                .then(function (code) {
+                    succeeded = true;
+                    assert.fail('print-output.exe 0 "line 1" "line 2" "line 3" | match-input.exe 0 "line 2" | match-input.exe 1 "line 2" "some error message" was a bad command and it did not fail');
+                })
+                .fail(function (err) {
+                    if (succeeded) {
+                        done(err);
+                    }
+                    else {
+                        assert(errOut && errOut.length > 0 && errOut.indexOf('some error message') >= 0, 'error output from match-input.exe is expected');
+                        assert(err && err.message && err.message.indexOf('match-input.exe') >= 0, 'error from find does not match expeced. actual: ' + err.message);
+                        done();
+                    }
+                })
+                .fail(function (err) {
+                    done(err);
+                });
+        }
+        else {
+
+            var secondGrep = tl.tool(tl.which('grep', true));
+            secondGrep.arg('--?');
+
+            var firstGrep = tl.tool(tl.which('grep', true));
+            firstGrep.arg('node');
+
+            var ps = tl.tool(tl.which('ps', true));
+            ps.arg('ax');
+            ps.pipeExecOutputToTools([firstGrep, secondGrep]);
+
+            var output = '';
+            ps.on('stdout', (data) => {
+                output += data.toString();
+            });
+
+            var errOut = '';
+            ps.on('stderr', (data) => {
+                errOut += data.toString();
+            })
+
+            var succeeded = false;
+            ps.exec(_testExecOptions)
+                .then(function (code) {
+                    succeeded = true;
+                    assert.fail('ps ax | grep node | grep --? was a bad command and it did not fail');
+                })
+                .fail(function (err) {
+                    if (succeeded) {
+                        done(err);
+                    }
+                    else {
+                        assert(errOut && errOut.length > 0 && errOut.indexOf('grep: unrecognized option') >= 0, 'error output from grep command is expected');
+                        // grep is /bin/grep on Linux and /usr/bin/grep on OSX
+                        assert(err && err.message && err.message.match(/\/[usr\/]?bin\/grep/), 'error from grep is not reported. actual: ' + err.message);
                         done();
                     }
                 })
