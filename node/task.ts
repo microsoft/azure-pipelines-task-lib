@@ -256,7 +256,7 @@ export function getBoolInput(name: string, required?: boolean): boolean {
  * @param     required whether input is required.  optional, defaults to false
  * @returns   string[]
  */
-export function getDelimitedInput(name: string, delim: string, required?: boolean): string[] {
+export function getDelimitedInput(name: string, delim: string | RegExp, required?: boolean): string[] {
     let inputVal = getInput(name, required);
     if (!inputVal) {
         return [];
