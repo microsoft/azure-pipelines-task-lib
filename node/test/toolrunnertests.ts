@@ -1288,7 +1288,7 @@ describe('Toolrunner Tests', function () {
                 .arg('0') // exit code
                 .arg('line 2'); // match value
             var secondMatchExe = tl.tool(compileMatchExe())
-                .arg('0') // exit code
+                .arg('1') // exit code
                 .arg('line 2') // match value
                 .arg('some error message'); // error
             var outputExe = tl.tool(compileOutputExe())

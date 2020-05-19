@@ -575,6 +575,7 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         //pipe stdout of tool to stdin of next tool in list
+        const _self = this;
         for (var i = 0; i<=(cps.length - 2); i++) {
             const cp = cps[i];
             toolPath = pipeOutputToTools[i].toolPath;
@@ -592,10 +593,10 @@ export class ToolRunner extends events.EventEmitter {
                     this._debug(toolPathNext + ' might have exited due to errors prematurely. Verify the arguments passed are valid.');
                 }
             });
-            cp.stdin.on('error',function(err){
+            cp.stdin.on('error', (err: Error) => {
                 // this is used to hide system error if race condition happens
                 // while a process in the middle of the pipe chain fails
-                this._debug(`Failed to pipe output to ${toolPath}. ${err}`);
+                _self._debug(`Failed to pipe output to ${toolPath}. ${err}`);
             });
             cp.stderr.on('data', (data: Buffer) => {
                 if (fileStream && numberCp==0) {
