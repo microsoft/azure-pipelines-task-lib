@@ -627,7 +627,7 @@ describe('Input Tests', function () {
         process.env['INPUT_DELIM'] = inputValue;
         im._loadData();
 
-        var outVal = tl.getDelimitedInput(/[,\n]/, ' ', /*required*/false);
+        var outVal = tl.getDelimitedInput('delim', /[,\n]/, ' ', /*required*/false);
         assert.equal(outVal.length, 3, 'should return array with 3 elements');
 
         done();
