@@ -595,7 +595,7 @@ export class ToolRunner extends events.EventEmitter {
             cp.stdin.on('error',function(err){
                 // this is used to hide system error if race condition happens
                 // while a process in the middle of the pipe chain fails
-                this.debug(`Failed to pipe output to ${toolPath}. ${err}`);
+                this._debug(`Failed to pipe output to ${toolPath}. ${err}`);
             });
             cp.stderr.on('data', (data: Buffer) => {
                 if (fileStream && numberCp==0) {
