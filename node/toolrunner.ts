@@ -216,23 +216,19 @@ export class ToolRunner extends events.EventEmitter {
 
     }
 
-    private _getSpawnFileName(): string {
+    private _getSpawnFileName(options?: IExecOptions): string {
         if (process.platform == 'win32') {
             if (this._isCmdFile()) {
                 return process.env['COMSPEC'] || 'cmd.exe';
             }
         }
-
-        return this.toolPath;
-    }
-
-    private _getSpawnFileNameForShell(): string {
-        const spawnFileName: string = this._getSpawnFileName().trim();
-        const isWrappedWithQuotes: boolean = /^\".+\"$/.test(spawnFileName);
-        if (!isWrappedWithQuotes) {
-            return `"${spawnFileName}"`;
+        if (options && options.shell) {
+            const isWrappedWithQuotes: boolean = /^\".+\"$/.test(this.toolPath.trim());
+            if (!isWrappedWithQuotes) {
+                return `"${this.toolPath}"`;
+            }
         }
-        return spawnFileName;
+        return this.toolPath;
     }
 
     private _getSpawnArgs(options: IExecOptions): string[] {
@@ -553,18 +549,14 @@ export class ToolRunner extends events.EventEmitter {
         //start the child process for both tools
         waitingEvents++;
 
-        const spawnFileName: string = optionsNonNull.shell ? this._getSpawnFileNameForShell() : this._getSpawnFileName();
-
         var cpFirst = child.spawn(
-            spawnFileName,
+            this._getSpawnFileName(optionsNonNull),
             this._getSpawnArgs(optionsNonNull),
             this._getSpawnOptions(optionsNonNull));
 
         waitingEvents ++;
-
-        const spawnFileNameForNextTool: string = optionsNonNull.shell ? pipeOutputToTool._getSpawnFileNameForShell() : pipeOutputToTool._getSpawnFileName();
         cp = child.spawn(
-            spawnFileNameForNextTool,
+            pipeOutputToTool._getSpawnFileName(optionsNonNull),
             pipeOutputToTool._getSpawnArgs(optionsNonNull),
             pipeOutputToTool._getSpawnOptions(optionsNonNull));
 
@@ -826,9 +818,7 @@ export class ToolRunner extends events.EventEmitter {
             this._debug(message);
         });
 
-        const spawnFileName: string = options && options.shell ? this._getSpawnFileNameForShell() : this._getSpawnFileName();
-
-        let cp = child.spawn(spawnFileName, this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(options));
+        let cp = child.spawn(this._getSpawnFileName(options), this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(options));
 
         // it is possible for the child process to end its last line without a new line.
         // because stdout is buffered, this causes the last line to not get sent to the parent
@@ -936,9 +926,7 @@ export class ToolRunner extends events.EventEmitter {
             options.outStream!.write(this._getCommandString(options as IExecOptions) + os.EOL);
         }
 
-        const spawnFileName: string = options && options.shell ? this._getSpawnFileNameForShell() : this._getSpawnFileName();
-
-        var r = child.spawnSync(spawnFileName, this._getSpawnArgs(options as IExecOptions), this._getSpawnSyncOptions(options));
+        var r = child.spawnSync(this._getSpawnFileName(options), this._getSpawnArgs(options as IExecOptions), this._getSpawnSyncOptions(options));
 
         if (!options.silent && r.stdout && r.stdout.length > 0) {
             options.outStream!.write(r.stdout);
