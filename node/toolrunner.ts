@@ -223,7 +223,8 @@ export class ToolRunner extends events.EventEmitter {
             }
         }
         if (options && options.shell) {
-            const isWrappedWithQuotes: boolean = /^\".+\"$/.test(this.toolPath.trim());
+            const quotesPattern: RegExp = new RegExp(/^\".+\"$/);
+            const isWrappedWithQuotes: boolean = quotesPattern.test(this.toolPath.trim());
             if (!isWrappedWithQuotes) {
                 return `"${this.toolPath}"`;
             }
