@@ -216,6 +216,20 @@ export class ToolRunner extends events.EventEmitter {
 
     }
 
+    /**
+     * Wraps a path string with double quotes if it's not already wrapped
+     * @returns {string} Path wrapped with double quotes
+     * @param {string} path Input path string
+     */
+    private _wrapWithQuotes(path: string): string {
+        const quotesPattern: RegExp = new RegExp(/^\".+\"$/);
+        const isWrappedWithQuotes: boolean = quotesPattern.test(this.toolPath.trim());
+        if (!isWrappedWithQuotes) {
+            return `"${path}"`;
+        } 
+        return path;
+    }
+
     private _getSpawnFileName(options?: IExecOptions): string {
         if (process.platform == 'win32') {
             if (this._isCmdFile()) {
@@ -223,11 +237,7 @@ export class ToolRunner extends events.EventEmitter {
             }
         }
         if (options && options.shell) {
-            const quotesPattern: RegExp = new RegExp(/^\".+\"$/);
-            const isWrappedWithQuotes: boolean = quotesPattern.test(this.toolPath.trim());
-            if (!isWrappedWithQuotes) {
-                return `"${this.toolPath}"`;
-            }
+            return this._wrapWithQuotes(this.toolPath);
         }
         return this.toolPath;
     }
