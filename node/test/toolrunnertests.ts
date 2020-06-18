@@ -2127,7 +2127,7 @@ describe('Toolrunner Tests', function () {
             }
             else {
                 let statRunner = tl.tool('stat');
-                statRunner.line('--format "%n" $TEST');
+                statRunner.line('--format "%n" $TESTPATH');
                 statRunner.on('stdout', (data) => {
                     output = data.toString();
                 });
@@ -2224,7 +2224,7 @@ describe('Toolrunner Tests', function () {
                 });
                 statRunner.exec(_testExecOptions).then(function (code) {
                     assert.equal(code, 0, 'return code of stat should be 0');
-                    assert.equal(output, '-TEST1="test value;test" -TEST2=/one/two/three -TEST3=out:$TEST');
+                    assert.equal(output, '-TEST1=test value;test -TEST2=/one/two/three -TEST3=out:$TEST');
                     done();
                 })
                 .fail(function (err) {
