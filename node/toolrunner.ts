@@ -234,9 +234,9 @@ export class ToolRunner extends events.EventEmitter {
      * @param wrapChar A char to be removed
      */
     private _unwrapArg(arg: string, wrapChar: string): string {
-        if (this._isWrapped(arg, '"')) {
+        if (this._isWrapped(arg, wrapChar)) {
             const pattern = new RegExp(`(^\\\\?${wrapChar})|(\\\\?${wrapChar}$)`, 'g');
-            return arg.replace(pattern, '');
+            return arg.trim().replace(pattern, '');
         }
         return arg;
     }
@@ -336,8 +336,8 @@ export class ToolRunner extends events.EventEmitter {
                     return arg;
                 }
                 // remove wrapping double quotes to avoid escaping
-                arg = this._unwrapArg(arg.trim(), '"');
-                arg = this._escapeChar(arg, '"', "\\");
+                arg = this._unwrapArg(arg, '"');
+                arg = this._escapeChar(arg, '"');
                 return this._wrapArg(arg, '"');
             });
         }
@@ -351,33 +351,19 @@ export class ToolRunner extends events.EventEmitter {
      * @param chars Char should be escaped
      * @param escapePrefix Char which should be used to escape. "\" is used if not specified.
      */
-    private _escapeChar(arg: string, charToEscape: string, escapePrefix?: string): string {
-        const escChar: string = escapePrefix || "\\";
-        let prevChar: string = '';
+    private _escapeChar(arg: string, charToEscape: string): string {
+        const escChar: string = "\\";
         let output: string = '';
+        let charIsEscaped: boolean = false;
         for (const char of arg) {
-            if (char === charToEscape && prevChar !== escChar) {
+            if (char === charToEscape && !charIsEscaped) {
                 output += escChar + char;
             } else {
                 output += char;
             }
-            prevChar = char;
+            charIsEscaped = char === escChar && !charIsEscaped;
         }
         return output;
-    }
-
-    /**
-     * Escape multiple string characters.
-     * @param arg String to escape chars in
-     * @param chars Chars should be escaped
-     * @param escapePrefix Char which should be used to escape. "\" is used if not specified.
-     */
-    private _escapeChars(arg: string, chars: string[], escapePrefix?: string): string {
-        let result: string = arg;
-        for (const char of chars) {
-            result = this._escapeChar(result, char, escapePrefix);
-        }
-        return result;
     }
 
     private _isCmdFile(): boolean {
