@@ -153,91 +153,6 @@ describe('Toolrunner Tests', function () {
                 });
         }
     })
-    it('Exec sync inside shell', function (done) {
-        this.timeout(10000);
-
-        let tempPath: string = testutil.getTestTemp();
-        var _testExecOptions = <trm.IExecOptions>{
-            cwd: __dirname,
-            env: { 
-                WIN_TEST: 'value',
-                TEST: tempPath
-            },
-            silent: false,
-            failOnStdErr: false,
-            ignoreReturnCode: false,
-            shell: true,
-            outStream: testutil.getNullStream(),
-            errStream: testutil.getNullStream()
-        };
-
-        if (os.platform() === 'win32') {
-            let exePath = compileArgsExe('print args with spaces.exe');
-            let exeRunner = tl.tool(exePath);
-            exeRunner.line('%WIN_TEST%')
-            var ret = exeRunner.execSync(_testExecOptions);
-            assert.equal(ret.code, 0, 'return code of cmd should be 0');
-            assert.equal(ret.stdout.trim(), 'args[0]: \'value\'', 'Command should return \"args[0]: \'value\'\"');
-        }
-        else {
-            var ret = tl.execSync('stat', '--format "%n" $TEST', _testExecOptions);
-            assert.equal(ret.code, 0, 'return code of stat should be 0');
-            assert.equal(ret.stdout.trim(), tempPath, `Command should return \'${tempPath}\'`);
-        }
-
-        assert(ret.stdout && ret.stdout.length > 0, 'should have emitted stdout');
-        done();
-    });
-    it('Exec inside shell', function (done) {
-        this.timeout(10000);
-
-        let tempPath: string = testutil.getTestTemp();
-        var _testExecOptions = <trm.IExecOptions>{
-            cwd: __dirname,
-            env: { 
-                WIN_TEST: 'value',
-                TEST: tempPath
-            },
-            silent: false,
-            failOnStdErr: false,
-            ignoreReturnCode: false,
-            shell: true,
-            outStream: testutil.getNullStream(),
-            errStream: testutil.getNullStream()
-        };
-        let output: string = '';
-        if (os.platform() === 'win32') {
-            let exePath = compileArgsExe('print args with spaces.exe');
-            let exeRunner = tl.tool(exePath);
-            exeRunner.line('%WIN_TEST%');
-            exeRunner.on('stdout', (data) => {
-                output = data.toString();
-            });
-            exeRunner.exec(_testExecOptions).then(function (code) {
-                assert.equal(code, 0, 'return code of cmd should be 0');
-                assert.equal(output.trim(), 'args[0]: \'value\'', 'Command should return \"args[0]: \'value\'\"');
-                done();
-            })
-            .fail(function (err) {
-                done(err);
-            });
-        }
-        else {
-            let statRunner = tl.tool('stat');
-            statRunner.line('--format "%n" $TEST');
-            statRunner.on('stdout', (data) => {
-                output = data.toString();
-            });
-            statRunner.exec(_testExecOptions).then(function (code) {
-                assert.equal(code, 0, 'return code of stat should be 0');
-                assert.equal(output.trim(), tempPath, `Command should return \'${tempPath}\'`);
-                done();
-            })
-            .fail(function (err) {
-                done(err);
-            });
-        }
-    });
     it('ToolRunner writes debug', function (done) {
         this.timeout(10000);
 
@@ -1438,7 +1353,7 @@ describe('Toolrunner Tests', function () {
             // this test validates the quoting that tool runner adds around the tool path
             // when using the windowsVerbatimArguments option. otherwise the target process
             // interprets the args as starting after the first space in the tool path.
-            let exePath = compileArgsExe('print-args.exe');
+            let exePath = compileArgsExe('print-args exe with spaces.exe');
             let exeRunner = tl.tool(exePath)
                 .arg('myarg1 myarg2');
             let outStream = testutil.createStringStream();
@@ -2145,6 +2060,179 @@ describe('Toolrunner Tests', function () {
             ]);
         return exePath;
     }
+
+    describe('Executing inside shell', function () {
+        
+        let tempPath: string = testutil.getTestTemp();
+        let _testExecOptions: trm.IExecOptions;
+
+        before (function () {
+            _testExecOptions = <trm.IExecOptions>{
+                cwd: __dirname,
+                env: { 
+                    WIN_TEST: 'test value',
+                    TESTPATH: tempPath,
+                    TEST_NODE: 'node',
+                    TEST: 'test value'
+                },
+                silent: false,
+                failOnStdErr: false,
+                ignoreReturnCode: false,
+                shell: true,
+                outStream: testutil.getNullStream(),
+                errStream: testutil.getNullStream()
+            };
+    
+        })
+
+        it('Exec sync inside shell', function (done) {
+            this.timeout(10000);
+    
+            if (os.platform() === 'win32') {
+                let exePath = compileArgsExe('print args with spaces.exe');
+                let exeRunner = tl.tool(exePath);
+                exeRunner.line('%WIN_TEST%')
+                var ret = exeRunner.execSync(_testExecOptions);
+                assert.equal(ret.code, 0, 'return code of cmd should be 0');
+                assert.equal(ret.stdout.trim(), 'args[0]: \'test value\'', 'Command should return \"args[0]: \'test value\'\"');
+            }
+            else {
+                var ret = tl.execSync('stat', '--format "%n" $TESTPATH', _testExecOptions);
+                assert.equal(ret.code, 0, 'return code of stat should be 0');
+                assert.equal(ret.stdout.trim(), tempPath, `Command should return \'${tempPath}\'`);
+            }
+    
+            assert(ret.stdout && ret.stdout.length > 0, 'should have emitted stdout');
+            done();
+        });
+        it('Exec inside shell', function (done) {
+            this.timeout(10000);
+    
+            let output: string = '';
+            if (os.platform() === 'win32') {
+                let exePath = compileArgsExe('print args with spaces.exe');
+                let exeRunner = tl.tool(exePath);
+                exeRunner.line('%WIN_TEST%');
+                exeRunner.on('stdout', (data) => {
+                    output = data.toString();
+                });
+                exeRunner.exec(_testExecOptions).then(function (code) {
+                    assert.equal(code, 0, 'return code of cmd should be 0');
+                    assert.equal(output.trim(), 'args[0]: \'test value\'', 'Command should return \"args[0]: \'test value\'\"');
+                    done();
+                })
+                .fail(function (err) {
+                    done(err);
+                });
+            }
+            else {
+                let statRunner = tl.tool('stat');
+                statRunner.line('--format "%n" $TEST');
+                statRunner.on('stdout', (data) => {
+                    output = data.toString();
+                });
+                statRunner.exec(_testExecOptions).then(function (code) {
+                    assert.equal(code, 0, 'return code of stat should be 0');
+                    assert.equal(output.trim(), tempPath, `Command should return \'${tempPath}\'`);
+                    done();
+                })
+                .fail(function (err) {
+                    done(err);
+                });
+            }
+        });
+        it('Exec pipe output to another tool inside shell, succeeds if both tools succeed', function (done) {
+            this.timeout(30000);
+
+            if (os.platform() === 'win32') {
+                var matchExe = tl.tool(compileMatchExe())
+                    .arg('0') // exit code
+                    .arg('test value'); // match value
+                var outputExe = tl.tool(compileOutputExe())
+                    .arg('0') // exit code
+                    .arg('line 1')
+                    .arg('"%WIN_TEST%"')
+                    .arg('line 3');
+                outputExe.pipeExecOutputToTool(matchExe);
+    
+                let output = '';
+                outputExe.on('stdout', (data) => {
+                    output += data.toString();
+                });
+    
+                outputExe.exec(_testExecOptions)
+                    .then(function (code) {
+                        assert.equal(code, 0, 'return code of exec should be 0');
+                        assert(output && output.length > 0 && output.indexOf('test value') >= 0, 'should have emitted stdout ' + output);
+                        done();
+                    })
+                    .fail(function (err) {
+                        done(err);
+                    });
+            }
+            else {
+                var grep = tl.tool(tl.which('grep', true));
+                grep.arg('$TEST_NODE');
+    
+                var ps = tl.tool(tl.which('ps', true));
+                ps.arg('ax');
+                ps.pipeExecOutputToTool(grep);
+    
+                var output = '';
+                ps.on('stdout', (data) => {
+                    output += data.toString();
+                });
+    
+                ps.exec(_testExecOptions)
+                    .then(function (code) {
+                        assert.equal(code, 0, 'return code of exec should be 0');
+                        assert(output && output.length > 0 && output.indexOf('node') >= 0, 'should have emitted stdout ' + output);
+                        done();
+                    })
+                    .fail(function (err) {
+                        done(err);
+                    });
+            }
+        });
+        it('Should handle arguments with quotes properly', function (done) {
+            this.timeout(10000);
+    
+            let output: string = '';
+            if (os.platform() === 'win32') {
+                let exePath = compileArgsExe('print args with spaces.exe');
+                let exeRunner = tl.tool(exePath);
+                exeRunner.line('-TEST1="space test" "-TEST2=%WIN_TEST%" \'-TEST3=value\'');
+                exeRunner.on('stdout', (data) => {
+                    output = data.toString();
+                });
+                exeRunner.exec(_testExecOptions).then(function (code) {
+                    assert.equal(code, 0, 'return code of cmd should be 0');
+                    assert.equal(output.trim(), 'args[0]: \'-TEST1=space test\'\r\n'
+                        + 'args[1]: \'-TEST2=test value\'\r\n'
+                        + 'args[2]: \'\'-TEST3=value\'\'');
+                    done();
+                })
+                .fail(function (err) {
+                    done(err);
+                });
+            }
+            else {
+                let statRunner = tl.tool('echo');
+                statRunner.line('-TEST1="$TEST;test" "-TEST2=/one/two/three" \'-TEST3=out:$TEST\'');
+                statRunner.on('stdout', (data) => {
+                    output = data.toString();
+                });
+                statRunner.exec(_testExecOptions).then(function (code) {
+                    assert.equal(code, 0, 'return code of stat should be 0');
+                    assert.equal(output, '-TEST1="test value;test" -TEST2=/one/two/three -TEST3=out:$TEST');
+                    done();
+                })
+                .fail(function (err) {
+                    done(err);
+                });
+            }
+        });
+    })
 
     // function to compile a .NET program that prints the command line args.
     // the helper program is used to validate that command line args are passed correctly.
