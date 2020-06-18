@@ -7,6 +7,7 @@ import child = require('child_process');
 import stream = require('stream');
 import im = require('./internal');
 import fs = require('fs');
+import { tool } from './task';
 
 /**
  * Interface for exec options
@@ -153,40 +154,36 @@ export class ToolRunner extends events.EventEmitter {
         let toolPath: string = this._getSpawnFileName();
         let args: string[] = this._getSpawnArgs(options);
         let cmd = noPrefix ? '' : '[command]'; // omit prefix when piped to a second tool
+        let commandParts: string[] = [];
         if (process.platform == 'win32') {
             // Windows + cmd file
             if (this._isCmdFile()) {
-                cmd += toolPath;
-                args.forEach((a: string): void => {
-                    cmd += ` ${a}`;
-                });
+                commandParts.push(toolPath);
+                commandParts.concat(args);
             }
             // Windows + verbatim
             else if (options.windowsVerbatimArguments) {
-                cmd += `"${toolPath}" `;
-                cmd += args.join(' ');
+                commandParts.push(`"${toolPath}"`);
+                commandParts.concat(args);
             }
             else if (options.shell) {
-                cmd += `${this._windowsQuoteCmdArg(toolPath)} `;
-                cmd += args.join(' ');
+                commandParts.push(this._windowsQuoteCmdArg(toolPath));
+                commandParts.concat(args);
             }
             // Windows (regular)
             else {
-                cmd += this._windowsQuoteCmdArg(toolPath);
-                args.forEach((a: string): void => {
-                    cmd += ` ${this._windowsQuoteCmdArg(a)}`;
-                });
+                commandParts.push(this._windowsQuoteCmdArg(toolPath));
+                commandParts.concat(args.map(arg =>this._windowsQuoteCmdArg(arg)));
             }
         }
         else {
             // OSX/Linux - this can likely be improved with some form of quoting.
             // creating processes on Unix is fundamentally different than Windows.
             // on Unix, execvp() takes an arg array.
-            cmd += toolPath;
-            args.forEach((a: string): void => {
-                cmd += ` ${a}`;
-            });
+            commandParts.push(toolPath);
+            commandParts.concat(args);
         }
+        cmd += commandParts.join(' ');
 
         // append second tool
         if (this.pipeOutputToTool) {
