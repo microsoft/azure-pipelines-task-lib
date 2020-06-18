@@ -2097,9 +2097,9 @@ describe('Toolrunner Tests', function () {
                 assert.equal(ret.stdout.trim(), 'args[0]: \'test value\'', 'Command should return \"args[0]: \'test value\'\"');
             }
             else {
-                var ret = tl.execSync('stat', '--format "%n" $TESTPATH', _testExecOptions);
+                var ret = tl.execSync('stat', '$TESTPATH', _testExecOptions);
                 assert.equal(ret.code, 0, 'return code of stat should be 0');
-                assert.equal(ret.stdout.trim(), tempPath, `Command should return \'${tempPath}\'`);
+                assert(ret.stdout.includes(tempPath), `Result should include \'${tempPath}\'`);
             }
     
             assert(ret.stdout && ret.stdout.length > 0, 'should have emitted stdout');
@@ -2127,13 +2127,13 @@ describe('Toolrunner Tests', function () {
             }
             else {
                 let statRunner = tl.tool('stat');
-                statRunner.line('--format "%n" $TESTPATH');
+                statRunner.line('$TESTPATH');
                 statRunner.on('stdout', (data) => {
                     output = data.toString();
                 });
                 statRunner.exec(_testExecOptions).then(function (code) {
                     assert.equal(code, 0, 'return code of stat should be 0');
-                    assert.equal(output.trim(), tempPath, `Command should return \'${tempPath}\'`);
+                    assert(output.includes(tempPath), `Result should include \'${tempPath}\'`);
                     done();
                 })
                 .fail(function (err) {
