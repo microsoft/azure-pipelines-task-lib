@@ -75,6 +75,7 @@ export class ToolRunner extends events.EventEmitter {
         this._debug('toolRunner toolPath: ' + toolPath);
     }
 
+    private readonly cmdSpecialChars: string[] = [' ', '\t', '&', '(', ')', '[', ']', '{', '}', '^', '=', ';', '!', '\'', '+', ',', '`', '~', '|', '<', '>', '"'];
     private toolPath: string;
     private args: string[];
     private pipeOutputToTool: ToolRunner | undefined;
@@ -152,38 +153,36 @@ export class ToolRunner extends events.EventEmitter {
         let toolPath: string = this._getSpawnFileName();
         let args: string[] = this._getSpawnArgs(options);
         let cmd = noPrefix ? '' : '[command]'; // omit prefix when piped to a second tool
+        let commandParts: string[] = [];
         if (process.platform == 'win32') {
             // Windows + cmd file
             if (this._isCmdFile()) {
-                cmd += toolPath;
-                args.forEach((a: string): void => {
-                    cmd += ` ${a}`;
-                });
+                commandParts.push(toolPath);
+                commandParts = commandParts.concat(args);
             }
             // Windows + verbatim
             else if (options.windowsVerbatimArguments) {
-                cmd += `"${toolPath}"`;
-                args.forEach((a: string): void => {
-                    cmd += ` ${a}`;
-                });
+                commandParts.push(`"${toolPath}"`);
+                commandParts = commandParts.concat(args);
+            }
+            else if (options.shell) {
+                commandParts.push(this._windowsQuoteCmdArg(toolPath));
+                commandParts = commandParts.concat(args);
             }
             // Windows (regular)
             else {
-                cmd += this._windowsQuoteCmdArg(toolPath);
-                args.forEach((a: string): void => {
-                    cmd += ` ${this._windowsQuoteCmdArg(a)}`;
-                });
+                commandParts.push(this._windowsQuoteCmdArg(toolPath));
+                commandParts = commandParts.concat(args.map(arg =>this._windowsQuoteCmdArg(arg)));
             }
         }
         else {
             // OSX/Linux - this can likely be improved with some form of quoting.
             // creating processes on Unix is fundamentally different than Windows.
             // on Unix, execvp() takes an arg array.
-            cmd += toolPath;
-            args.forEach((a: string): void => {
-                cmd += ` ${a}`;
-            });
+            commandParts.push(toolPath);
+            commandParts = commandParts.concat(args);
         }
+        cmd += commandParts.join(' ');
 
         // append second tool
         if (this.pipeOutputToTool) {
@@ -216,13 +215,50 @@ export class ToolRunner extends events.EventEmitter {
 
     }
 
-    private _getSpawnFileName(): string {
+    /**
+     * Wraps an arg string with specified char if it's not already wrapped
+     * @returns {string} Arg wrapped with specified char
+     * @param {string} arg Input argument string
+     * @param {string} wrapChar A char input string should be wrapped with
+     */
+    private _wrapArg(arg: string, wrapChar: string): string {
+        if (!this._isWrapped(arg, wrapChar)) {
+            return `${wrapChar}${arg}${wrapChar}`;
+        } 
+        return arg;
+    }
+
+    /**
+     * Unwraps an arg string wrapped with specified char
+     * @param arg Arg wrapped with specified char
+     * @param wrapChar A char to be removed
+     */
+    private _unwrapArg(arg: string, wrapChar: string): string {
+        if (this._isWrapped(arg, wrapChar)) {
+            const pattern = new RegExp(`(^\\\\?${wrapChar})|(\\\\?${wrapChar}$)`, 'g');
+            return arg.trim().replace(pattern, '');
+        }
+        return arg;
+    }
+
+    /**
+     * Determine if arg string is wrapped with specified char
+     * @param arg Input arg string
+     */
+    private _isWrapped(arg: string, wrapChar: string): boolean {
+        const pattern: RegExp = new RegExp(`^\\\\?${wrapChar}.+\\\\?${wrapChar}$`);
+        return pattern.test(arg.trim())
+    }
+
+    private _getSpawnFileName(options?: IExecOptions): string {
         if (process.platform == 'win32') {
             if (this._isCmdFile()) {
                 return process.env['COMSPEC'] || 'cmd.exe';
             }
         }
-
+        if (options && options.shell) {
+            return this._wrapArg(this.toolPath, '"');
+        }
         return this.toolPath;
     }
 
@@ -283,15 +319,73 @@ export class ToolRunner extends events.EventEmitter {
                     return Array.prototype.unshift.call(args, `"${arguments[0]}"`); // quote the file name
                 };
                 return args;
+            } else if (options.shell) {
+                let args: string[] = [];
+                for (let arg of this.args) {
+                    if (this._needQuotesForCmd(arg, '%')) {
+                        args.push(this._wrapArg(arg, '"'));
+                    } else {
+                        args.push(arg);
+                    }
+                }
+                return args;
             }
+        } else if (options.shell) {
+            return this.args.map(arg =>  {
+                if (this._isWrapped(arg, "'")) {
+                    return arg;
+                }
+                // remove wrapping double quotes to avoid escaping
+                arg = this._unwrapArg(arg, '"');
+                arg = this._escapeChar(arg, '"');
+                return this._wrapArg(arg, '"');
+            });
         }
 
         return this.args;
     }
 
+    /**
+     * Escape specified character.
+     * @param arg String to escape char in
+     * @param charToEscape Char should be escaped
+     */
+    private _escapeChar(arg: string, charToEscape: string): string {
+        const escChar: string = "\\";
+        let output: string = '';
+        let charIsEscaped: boolean = false;
+        for (const char of arg) {
+            if (char === charToEscape && !charIsEscaped) {
+                output += escChar + char;
+            } else {
+                output += char;
+            }
+            charIsEscaped = char === escChar && !charIsEscaped;
+        }
+        return output;
+    }
+
     private _isCmdFile(): boolean {
         let upperToolPath: string = this.toolPath.toUpperCase();
         return im._endsWith(upperToolPath, '.CMD') || im._endsWith(upperToolPath, '.BAT');
+    }
+
+    /**
+     * Determine whether the cmd arg needs to be quoted. Returns true if arg contains any of special chars array.
+     * @param arg The cmd command arg.
+     * @param additionalChars Additional chars which should be also checked.
+     */
+    private _needQuotesForCmd(arg: string, additionalChars?: string[] | string): boolean {
+        let specialChars: string[] = this.cmdSpecialChars;
+        if (additionalChars) {
+            specialChars = this.cmdSpecialChars.concat(additionalChars);
+        }
+        for (let char of arg) {
+            if (specialChars.some(x => x === char)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private _windowsQuoteCmdArg(arg: string): string {
@@ -313,14 +407,7 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         // determine whether the arg needs to be quoted
-        const cmdSpecialChars = [' ', '\t', '&', '(', ')', '[', ']', '{', '}', '^', '=', ';', '!', '\'', '+', ',', '`', '~', '|', '<', '>', '"'];
-        let needsQuotes = false;
-        for (let char of arg) {
-            if (cmdSpecialChars.some(x => x == char)) {
-                needsQuotes = true;
-                break;
-            }
-        }
+        const needsQuotes: boolean = this._needQuotesForCmd(arg);
 
         // short-circuit if quotes not needed
         if (!needsQuotes) {
@@ -544,13 +631,13 @@ export class ToolRunner extends events.EventEmitter {
         //start the child process for both tools
         waitingEvents++;
         var cpFirst = child.spawn(
-            this._getSpawnFileName(),
+            this._getSpawnFileName(optionsNonNull),
             this._getSpawnArgs(optionsNonNull),
             this._getSpawnOptions(optionsNonNull));
 
         waitingEvents ++;
         cp = child.spawn(
-            pipeOutputToTool._getSpawnFileName(),
+            pipeOutputToTool._getSpawnFileName(optionsNonNull),
             pipeOutputToTool._getSpawnArgs(optionsNonNull),
             pipeOutputToTool._getSpawnOptions(optionsNonNull));
 
@@ -812,7 +899,7 @@ export class ToolRunner extends events.EventEmitter {
             this._debug(message);
         });
 
-        let cp = child.spawn(this._getSpawnFileName(), this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(options));
+        let cp = child.spawn(this._getSpawnFileName(options), this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(options));
 
         // it is possible for the child process to end its last line without a new line.
         // because stdout is buffered, this causes the last line to not get sent to the parent
@@ -920,7 +1007,7 @@ export class ToolRunner extends events.EventEmitter {
             options.outStream!.write(this._getCommandString(options as IExecOptions) + os.EOL);
         }
 
-        var r = child.spawnSync(this._getSpawnFileName(), this._getSpawnArgs(options as IExecOptions), this._getSpawnSyncOptions(options));
+        var r = child.spawnSync(this._getSpawnFileName(options), this._getSpawnArgs(options as IExecOptions), this._getSpawnSyncOptions(options));
 
         if (!options.silent && r.stdout && r.stdout.length > 0) {
             options.outStream!.write(r.stdout);
