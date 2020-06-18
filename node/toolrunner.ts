@@ -348,8 +348,7 @@ export class ToolRunner extends events.EventEmitter {
     /**
      * Escape specified character.
      * @param arg String to escape char in
-     * @param chars Char should be escaped
-     * @param escapePrefix Char which should be used to escape. "\" is used if not specified.
+     * @param charToEscape Char should be escaped
      */
     private _escapeChar(arg: string, charToEscape: string): string {
         const escChar: string = "\\";
