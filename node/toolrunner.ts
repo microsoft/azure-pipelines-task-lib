@@ -7,7 +7,6 @@ import child = require('child_process');
 import stream = require('stream');
 import im = require('./internal');
 import fs = require('fs');
-import { tool } from './task';
 
 /**
  * Interface for exec options
