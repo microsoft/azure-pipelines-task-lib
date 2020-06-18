@@ -1232,6 +1232,7 @@ describe('Toolrunner Tests', function () {
         assert.equal((node as any).args.toString(), '--path,/bin/working folder1', 'should be --path /bin/working folder1');
         done();
     })
+
     if (process.platform != 'win32') {
         it('exec prints [command] (OSX/Linux)', function (done) {
             this.timeout(10000);
@@ -1353,7 +1354,7 @@ describe('Toolrunner Tests', function () {
             // this test validates the quoting that tool runner adds around the tool path
             // when using the windowsVerbatimArguments option. otherwise the target process
             // interprets the args as starting after the first space in the tool path.
-            let exePath = compileArgsExe('print-args exe with spaces.exe');
+            let exePath = compileArgsExe('print args exe with spaces.exe');
             let exeRunner = tl.tool(exePath)
                 .arg('myarg1 myarg2');
             let outStream = testutil.createStringStream();

@@ -333,6 +333,7 @@ export class ToolRunner extends events.EventEmitter {
                 return this._wrapArg(arg, '"');
             });
         }
+
         return this.args;
     }
 
@@ -636,7 +637,6 @@ export class ToolRunner extends events.EventEmitter {
 
         //start the child process for both tools
         waitingEvents++;
-
         var cpFirst = child.spawn(
             this._getSpawnFileName(optionsNonNull),
             this._getSpawnArgs(optionsNonNull),
