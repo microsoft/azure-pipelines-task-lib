@@ -396,7 +396,7 @@ export class ToolRunner extends events.EventEmitter {
             specialChars = this.cmdSpecialChars.concat(additionalChars);
         }
         for (let char of arg) {
-            if (specialChars.some(x => x == char)) {
+            if (specialChars.some(x => x === char)) {
                 return true;
             }
         }

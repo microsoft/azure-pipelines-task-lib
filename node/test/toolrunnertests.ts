@@ -2146,10 +2146,10 @@ describe('Toolrunner Tests', function () {
             this.timeout(30000);
 
             if (os.platform() === 'win32') {
-                var matchExe = tl.tool(compileMatchExe())
+                const matchExe = tl.tool(compileMatchExe())
                     .arg('0') // exit code
                     .arg('test value'); // match value
-                var outputExe = tl.tool(compileOutputExe())
+                const outputExe = tl.tool(compileOutputExe())
                     .arg('0') // exit code
                     .arg('line 1')
                     .arg('"%WIN_TEST%"')
@@ -2172,14 +2172,14 @@ describe('Toolrunner Tests', function () {
                     });
             }
             else {
-                var grep = tl.tool(tl.which('grep', true));
+                const grep = tl.tool(tl.which('grep', true));
                 grep.arg('$TEST_NODE');
     
-                var ps = tl.tool(tl.which('ps', true));
+                const ps = tl.tool(tl.which('ps', true));
                 ps.arg('ax');
                 ps.pipeExecOutputToTool(grep);
     
-                var output = '';
+                let output = '';
                 ps.on('stdout', (data) => {
                     output += data.toString();
                 });
