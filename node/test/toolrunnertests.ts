@@ -2224,7 +2224,7 @@ describe('Toolrunner Tests', function () {
                 });
                 statRunner.exec(_testExecOptions).then(function (code) {
                     assert.equal(code, 0, 'return code of stat should be 0');
-                    assert.equal(output, '-TEST1=test value;test -TEST2=/one/two/three -TEST3=out:$TEST');
+                    assert.equal(output, '-TEST1=test value;test -TEST2=/one/two/three -TEST3=out:$TEST\n');
                     done();
                 })
                 .fail(function (err) {
