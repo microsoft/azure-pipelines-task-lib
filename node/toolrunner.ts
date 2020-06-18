@@ -75,6 +75,7 @@ export class ToolRunner extends events.EventEmitter {
         this._debug('toolRunner toolPath: ' + toolPath);
     }
 
+    private cmdSpecialChars: string[] = [' ', '\t', '&', '(', ')', '[', ']', '{', '}', '^', '=', ';', '!', '\'', '+', ',', '`', '~', '|', '<', '>', '"'];
     private toolPath: string;
     private args: string[];
     private pipeOutputToTool: ToolRunner | undefined;
@@ -162,10 +163,12 @@ export class ToolRunner extends events.EventEmitter {
             }
             // Windows + verbatim
             else if (options.windowsVerbatimArguments) {
-                cmd += `"${toolPath}"`;
-                args.forEach((a: string): void => {
-                    cmd += ` ${a}`;
-                });
+                cmd += `"${toolPath}" `;
+                cmd += args.join(' ');
+            }
+            else if (options.shell) {
+                cmd += `${this._windowsQuoteCmdArg(toolPath)} `;
+                cmd += args.join(' ');
             }
             // Windows (regular)
             else {
@@ -217,17 +220,24 @@ export class ToolRunner extends events.EventEmitter {
     }
 
     /**
-     * Wraps a path string with double quotes if it's not already wrapped
-     * @returns {string} Path wrapped with double quotes
-     * @param {string} path Input path string
+     * Wraps a arg string with specified char if it's not already wrapped
+     * @returns {string} Arg wrapped with specified char
+     * @param {string} arg Input argument string
      */
-    private _wrapWithQuotes(path: string): string {
-        const quotesPattern: RegExp = new RegExp(/^\".+\"$/);
-        const isWrappedWithQuotes: boolean = quotesPattern.test(this.toolPath.trim());
-        if (!isWrappedWithQuotes) {
-            return `"${path}"`;
+    private _wrapArg(arg: string, wrapChar: string): string {
+        if (!this._isWrapped(arg, wrapChar)) {
+            return `${wrapChar}${arg}${wrapChar}`;
         } 
-        return path;
+        return arg;
+    }
+
+    /**
+     * Determine if arg string is wrapped with specified char
+     * @param arg Input arg string
+     */
+    private _isWrapped(arg: string, wrapChar: string): boolean {
+        const quotesPattern: RegExp = new RegExp(`^\\\\?${wrapChar}.+\\\\?${wrapChar}$`);
+        return quotesPattern.test(arg.trim())
     }
 
     private _getSpawnFileName(options?: IExecOptions): string {
@@ -237,7 +247,7 @@ export class ToolRunner extends events.EventEmitter {
             }
         }
         if (options && options.shell) {
-            return this._wrapWithQuotes(this.toolPath);
+            return this._wrapArg(this.toolPath, '"');
         }
         return this.toolPath;
     }
@@ -299,15 +309,89 @@ export class ToolRunner extends events.EventEmitter {
                     return Array.prototype.unshift.call(args, `"${arguments[0]}"`); // quote the file name
                 };
                 return args;
+            } else if (options.shell) {
+                let args: string[] = [];
+                for (let arg of this.args) {
+                    if (this._needQuotesForCmd(arg, '%')) {
+                        args.push(this._wrapArg(arg, '"'));
+                    } else {
+                        args.push(arg);
+                    }
+                }
+                return args;
             }
+        } else if (options.shell) {
+            return this.args.map(arg =>  {
+                if (this._isWrapped(arg, "'")) {
+                    return arg;
+                }
+                // remove wrapping double quotes to avoid escaping
+                if (this._isWrapped(arg, '"')) {
+                    arg = arg.trim().replace(/(^\\?")|(\\?"$)/g, '');
+                }
+                arg = this._escapeChar(arg, '"', "\\");
+                return this._wrapArg(arg, '"');
+            });
         }
-
         return this.args;
+    }
+
+    /**
+     * Escape specified character.
+     * @param arg String to escape char in
+     * @param chars Char should be escaped
+     * @param escapePrefix Char which should be used to escape. "\" is used if not specified.
+     */
+    private _escapeChar(arg: string, charToEscape: string, escapePrefix?: string): string {
+        const escChar: string = escapePrefix || "\\";
+        let prevChar: string = '';
+        let output: string = '';
+        for (const char of arg) {
+            if (char === charToEscape && prevChar !== escChar) {
+                output += escChar + char;
+            } else {
+                output += char;
+            }
+            prevChar = char;
+        }
+        return output;
+    }
+
+    /**
+     * Escape multiple string characters.
+     * @param arg String to escape chars in
+     * @param chars Chars should be escaped
+     * @param escapePrefix Char which should be used to escape. "\" is used if not specified.
+     */
+    private _escapeChars(arg: string, chars: string[], escapePrefix?: string): string {
+        let result: string = arg;
+        for (const char of chars) {
+            result = this._escapeChar(result, char, escapePrefix);
+        }
+        return result;
     }
 
     private _isCmdFile(): boolean {
         let upperToolPath: string = this.toolPath.toUpperCase();
         return im._endsWith(upperToolPath, '.CMD') || im._endsWith(upperToolPath, '.BAT');
+    }
+
+    /**
+     * Determine whether the cmd arg needs to be quoted. Returns true if arg contains any of special chars array.
+     * @param arg The cmd command arg.
+     * @param additionalChars Additional chars which should be also checked.
+     */
+    private _needQuotesForCmd(arg: string, additionalChars?: string[] | string): boolean {
+        let specialChars: string[] = this.cmdSpecialChars;
+        if (additionalChars) {
+            specialChars = this.cmdSpecialChars.concat(additionalChars);
+        }
+        for (let char of arg) {
+            if (specialChars.some(x => x == char)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private _windowsQuoteCmdArg(arg: string): string {
@@ -329,14 +413,7 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         // determine whether the arg needs to be quoted
-        const cmdSpecialChars = [' ', '\t', '&', '(', ')', '[', ']', '{', '}', '^', '=', ';', '!', '\'', '+', ',', '`', '~', '|', '<', '>', '"'];
-        let needsQuotes = false;
-        for (let char of arg) {
-            if (cmdSpecialChars.some(x => x == char)) {
-                needsQuotes = true;
-                break;
-            }
-        }
+        const needsQuotes: boolean = this._needQuotesForCmd(arg);
 
         // short-circuit if quotes not needed
         if (!needsQuotes) {
