@@ -159,21 +159,21 @@ export class ToolRunner extends events.EventEmitter {
             // Windows + cmd file
             if (this._isCmdFile()) {
                 commandParts.push(toolPath);
-                commandParts.concat(args);
+                commandParts = commandParts.concat(args);
             }
             // Windows + verbatim
             else if (options.windowsVerbatimArguments) {
                 commandParts.push(`"${toolPath}"`);
-                commandParts.concat(args);
+                commandParts = commandParts.concat(args);
             }
             else if (options.shell) {
                 commandParts.push(this._windowsQuoteCmdArg(toolPath));
-                commandParts.concat(args);
+                commandParts = commandParts.concat(args);
             }
             // Windows (regular)
             else {
                 commandParts.push(this._windowsQuoteCmdArg(toolPath));
-                commandParts.concat(args.map(arg =>this._windowsQuoteCmdArg(arg)));
+                commandParts = commandParts.concat(args.map(arg =>this._windowsQuoteCmdArg(arg)));
             }
         }
         else {
@@ -181,7 +181,7 @@ export class ToolRunner extends events.EventEmitter {
             // creating processes on Unix is fundamentally different than Windows.
             // on Unix, execvp() takes an arg array.
             commandParts.push(toolPath);
-            commandParts.concat(args);
+            commandParts = commandParts.concat(args);
         }
         cmd += commandParts.join(' ');
 
@@ -217,9 +217,10 @@ export class ToolRunner extends events.EventEmitter {
     }
 
     /**
-     * Wraps a arg string with specified char if it's not already wrapped
+     * Wraps an arg string with specified char if it's not already wrapped
      * @returns {string} Arg wrapped with specified char
      * @param {string} arg Input argument string
+     * @param {string} wrapChar A char input string should be wrapped with
      */
     private _wrapArg(arg: string, wrapChar: string): string {
         if (!this._isWrapped(arg, wrapChar)) {
@@ -229,12 +230,25 @@ export class ToolRunner extends events.EventEmitter {
     }
 
     /**
+     * Unwraps an arg string wrapped with specified char
+     * @param arg Arg wrapped with specified char
+     * @param wrapChar A char to be removed
+     */
+    private _unwrapArg(arg: string, wrapChar: string): string {
+        if (this._isWrapped(arg, '"')) {
+            const pattern = new RegExp(`(^\\\\?${wrapChar})|(\\\\?${wrapChar}$)`, 'g');
+            return arg.replace(pattern, '');
+        }
+        return arg;
+    }
+
+    /**
      * Determine if arg string is wrapped with specified char
      * @param arg Input arg string
      */
     private _isWrapped(arg: string, wrapChar: string): boolean {
-        const quotesPattern: RegExp = new RegExp(`^\\\\?${wrapChar}.+\\\\?${wrapChar}$`);
-        return quotesPattern.test(arg.trim())
+        const pattern: RegExp = new RegExp(`^\\\\?${wrapChar}.+\\\\?${wrapChar}$`);
+        return pattern.test(arg.trim())
     }
 
     private _getSpawnFileName(options?: IExecOptions): string {
@@ -323,9 +337,7 @@ export class ToolRunner extends events.EventEmitter {
                     return arg;
                 }
                 // remove wrapping double quotes to avoid escaping
-                if (this._isWrapped(arg, '"')) {
-                    arg = arg.trim().replace(/(^\\?")|(\\?"$)/g, '');
-                }
+                arg = this._unwrapArg(arg.trim(), '"');
                 arg = this._escapeChar(arg, '"', "\\");
                 return this._wrapArg(arg, '"');
             });
