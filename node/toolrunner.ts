@@ -75,7 +75,7 @@ export class ToolRunner extends events.EventEmitter {
         this._debug('toolRunner toolPath: ' + toolPath);
     }
 
-    private cmdSpecialChars: string[] = [' ', '\t', '&', '(', ')', '[', ']', '{', '}', '^', '=', ';', '!', '\'', '+', ',', '`', '~', '|', '<', '>', '"'];
+    private readonly cmdSpecialChars: string[] = [' ', '\t', '&', '(', ')', '[', ']', '{', '}', '^', '=', ';', '!', '\'', '+', ',', '`', '~', '|', '<', '>', '"'];
     private toolPath: string;
     private args: string[];
     private pipeOutputToTool: ToolRunner | undefined;
