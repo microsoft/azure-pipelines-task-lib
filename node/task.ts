@@ -2085,7 +2085,7 @@ export function addBuildTag(value: string) {
  * @returns         void
  */
 export function updateReleaseName(name: string) {
-    assertAgent("2.132");
+    assertAgent("2.132.0");
     command("release.updatereleasename", null, name);
 }
 
