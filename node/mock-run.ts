@@ -18,13 +18,14 @@ export class TaskMockRunner {
         process.env['INPUT_' + key] = val;
     }
 
-    public setVariableName(name: string, val: string, isSecret?: boolean) {
+    public setVariableName(name: string, val: string, isSecret?: boolean, isTaskVariable?: boolean = true) {
         let key: string = im._getVariableKey(name);
         if (isSecret) {
             process.env['SECRET_' + key] = val;
-        }
-        else {
+        } else if (isTaskVariable) {
             process.env['VSTS_TASKVARIABLE_' + key] = val;
+        } else {
+            process.env[key] = val;
         }
     }
 
