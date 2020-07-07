@@ -187,7 +187,10 @@
                   "pickList",
                   "radio",
                   "secureFile",
-                  "string"
+                  "string",
+                  "int",
+                  "identities",
+                  "querycontrol"
                 ]
               },
               {
