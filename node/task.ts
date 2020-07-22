@@ -209,7 +209,7 @@ export interface VariableInfo {
 }
 
 /**
- * Gets the value of an input.  The value is also trimmed.
+ * Gets the value of an input.
  * If required is true and the value is not set, it will throw.
  * 
  * @param     name     name of the input to get
@@ -218,9 +218,6 @@ export interface VariableInfo {
  */
 export function getInput(name: string, required?: boolean): string | undefined {
     var inval = im._vault.retrieveSecret('INPUT_' + im._getVariableKey(name));
-    if (inval) {
-        inval = inval.trim();
-    }
 
     if (required && !inval) {
         throw new Error(loc('LIB_InputRequired', name));

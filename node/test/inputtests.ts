@@ -63,18 +63,6 @@ describe('Input Tests', function () {
 
         done();
     })
-    it('gets input value with whitespace', function (done) {
-        this.timeout(1000);
-
-        process.env['INPUT_UNITTESTINPUT'] = '   test value   ';
-        im._loadData();
-
-        var inval = tl.getInput('UnitTestInput', true);
-        assert.equal(inval, 'test value');
-
-        done();
-    })
-
     // getVariable tests
     it('gets a variable', function (done) {
         this.timeout(1000);
