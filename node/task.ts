@@ -728,7 +728,7 @@ export const which = im._which;
  * @param  {string[]} paths    Paths to search.
  * @return {string[]}          An array of files in the given path(s).
  */
-export function ls(options: string, paths: string[]): string[] {
+export function ls(options: string, paths: string[]): string[] | string {
     if (options) {
         return shell.ls(options, paths);
     } else {
