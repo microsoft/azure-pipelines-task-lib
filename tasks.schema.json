@@ -360,7 +360,7 @@
       "description": "Describes output variables of task.",
       "items": {
         "type": "object",
-        "additionalProperties": false,
+        "additionalProperties": true,
         "required": [
           "name"
         ],
@@ -402,7 +402,7 @@
     },
     "httpRequestChainObject": {
       "type": "object",
-      "additionalProperties": false,
+      "additionalProperties": true,
       "properties": {
         "Execute": {
           "type": "array",
@@ -418,7 +418,7 @@
     },
     "httpRequestChainExecuteObject": {
       "type": "object",
-      "additionalProperties": false,
+      "additionalProperties": true,
       "properties": {
         "RequestInputs": {
           "$ref": "#/definitions/httpRequestChainRequestInputsObject"
@@ -434,7 +434,7 @@
     },
     "httpRequestChainExecutionOptionsObject": {
       "type": "object",
-      "additionalProperties": false,
+      "additionalProperties": true,
       "properties": {
         "OutputVariables": {
           "$ref": "#/definitions/httpRequestChainOutputVariablesObject"
@@ -448,7 +448,7 @@
     },
     "httpRequestChainRequestInputsObject": {
       "type": "object",
-      "additionalProperties": false,
+      "additionalProperties": true,
       "properties": {
         "EndpointId": {
           "type": "string"
