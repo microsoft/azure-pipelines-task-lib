@@ -224,6 +224,13 @@
                     "options": {
                         "type": "object",
                         "additionalProperties": true
+                    },
+                    "inputs": {
+                        "type": "array",
+                        "description": "Allows you to define a list of input aliases used later in the pipeline",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 }
             }
