@@ -316,6 +316,9 @@
         "HttpRequestChain": {
           "$ref": "#/definitions/httpRequestChainObject"
         },
+        "HttpRequest": {
+          "$ref": "#/definitions/executionObject"
+        },
         "Node10": {
           "$ref": "#/definitions/executionObject"
         },
