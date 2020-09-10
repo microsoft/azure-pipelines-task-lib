@@ -33,10 +33,10 @@ export interface IExecSyncOptions {
     silent?: boolean;
 
     /** Optional. Default is process.stdout. */
-    outStream?: stream.Writable;
+    outStream?: NodeJS.WritableStream;
 
     /** Optional. Default is process.stderr. */
-    errStream?: stream.Writable;
+    errStream?: NodeJS.WritableStream;
 
     /** optional. Whether to skip quoting/escaping arguments if needed.  defaults to false. */
     windowsVerbatimArguments?: boolean;
@@ -224,7 +224,7 @@ export class ToolRunner extends events.EventEmitter {
     private _wrapArg(arg: string, wrapChar: string): string {
         if (!this._isWrapped(arg, wrapChar)) {
             return `${wrapChar}${arg}${wrapChar}`;
-        } 
+        }
         return arg;
     }
 
@@ -573,8 +573,8 @@ export class ToolRunner extends events.EventEmitter {
             windowsVerbatimArguments: options.windowsVerbatimArguments || false,
             shell: options.shell || false
         };
-        result.outStream = options.outStream || <stream.Writable>process.stdout;
-        result.errStream = options.errStream || <stream.Writable>process.stderr;
+        result.outStream = options.outStream || process.stdout;
+        result.errStream = options.errStream || process.stderr;
         return result;
     }
 
@@ -798,9 +798,9 @@ export class ToolRunner extends events.EventEmitter {
 
     /**
      * Add argument
-     * Append an argument or an array of arguments 
+     * Append an argument or an array of arguments
      * returns ToolRunner for chaining
-     * 
+     *
      * @param     val        string cmdline or array of strings
      * @returns   ToolRunner
      */
@@ -825,7 +825,7 @@ export class ToolRunner extends events.EventEmitter {
      * Parses an argument line into one or more arguments
      * e.g. .line('"arg one" two -z') is equivalent to .arg(['arg one', 'two', '-z'])
      * returns ToolRunner for chaining
-     * 
+     *
      * @param     val        string argument line
      * @returns   ToolRunner
      */
@@ -871,7 +871,7 @@ export class ToolRunner extends events.EventEmitter {
      * Exec a tool.
      * Output will be streamed to the live console.
      * Returns promise with return code
-     * 
+     *
      * @param     tool     path to tool to exec
      * @param     options  optional exec options.  See IExecOptions
      * @returns   number
@@ -984,11 +984,11 @@ export class ToolRunner extends events.EventEmitter {
     }
 
     /**
-     * Exec a tool synchronously. 
+     * Exec a tool synchronously.
      * Output will be *not* be streamed to the live console.  It will be returned after execution is complete.
-     * Appropriate for short running tools 
+     * Appropriate for short running tools
      * Returns IExecSyncResult with output and return code
-     * 
+     *
      * @param     tool     path to tool to exec
      * @param     options  optional exec options.  See IExecSyncOptions
      * @returns   IExecSyncResult
