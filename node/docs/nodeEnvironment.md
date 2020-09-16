@@ -1,6 +1,6 @@
 # Node Handler Versioning
 
-As of agent version 2.175.0, Azure Pipelines supports running tasks in a Node 14 environment in addition to the previously supported Node 6 and Node 10 environment.
+As of agent version 2.175.0, Azure Pipelines supports running tasks in a Node 14 environment in addition to the previously supported Node 6 and Node 10 environments.
 
 To leverage this capability, simply add `Node14` as an execution target:
 
