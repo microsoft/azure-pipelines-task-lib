@@ -1800,7 +1800,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('move to existing destination should fail unless forced', function (done) {
+    it('move to existing destination should fail if no-clobber is enabled', function (done) {
         this.timeout(1000);
 
         var sourceFile = 'sourceFile';
@@ -1825,7 +1825,7 @@ describe('Dir Operation Tests', function () {
 
         var worked: boolean = false;
         try {
-            tl.mv(sourceFile, destFile);
+            tl.mv(sourceFile, destFile, "-n");
             worked = true;
         }
         catch (err) {
