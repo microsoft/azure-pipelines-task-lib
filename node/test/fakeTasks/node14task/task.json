@@ -1,0 +1,9 @@
+{
+    "id": "id",
+    "name": "Node14Task",
+    "execution": {
+        "Node14": {
+            "target": "usedotnet.js"
+        }
+    }
+}
