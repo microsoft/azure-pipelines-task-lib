@@ -11,7 +11,7 @@ var testPath = path.join(__dirname, '_test');
 
 exports.run = function(cl) {
     console.log('> ' + cl);
-    var rc = exec(cl).code;
+    var rc = exec(cl, {fatal: false}).code;
     if (rc !== 0) {
         echo('Exec failed with rc ' + rc);
         exit(rc);
@@ -34,7 +34,7 @@ exports.getExternals = function () {
     // download the same version of node used by the agent
     // and add node to the PATH
     var nodeUrl = 'https://nodejs.org/dist';
-    var nodeVersion = 'v6.17.1';
+    var nodeVersion = 'v14.11.0';
     switch (platform) {
         case 'darwin':
             var nodeArchivePath = downloadArchive(nodeUrl + '/' + nodeVersion + '/node-' + nodeVersion + '-darwin-x64.tar.gz');

@@ -670,18 +670,18 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         //pipe stdout of first tool to stdin of second tool
-        cpFirst.stdout.on('data', (data: Buffer) => {
+        cpFirst.stdout?.on('data', (data: Buffer) => {
             try {
                 if (fileStream) {
                     fileStream.write(data);
                 }
-                cp.stdin.write(data);
+                cp.stdin?.write(data);
             } catch (err) {
                 this._debug('Failed to pipe output of ' + toolPathFirst + ' to ' + toolPath);
                 this._debug(toolPath + ' might have exited due to errors prematurely. Verify the arguments passed are valid.');
             }
         });
-        cpFirst.stderr.on('data', (data: Buffer) => {
+        cpFirst.stderr?.on('data', (data: Buffer) => {
             if (fileStream) {
                 fileStream.write(data);
             }
@@ -696,7 +696,7 @@ export class ToolRunner extends events.EventEmitter {
             if (fileStream) {
                 fileStream.end();
             }
-            cp.stdin.end();
+            cp.stdin?.end();
             error = new Error(toolPathFirst + ' failed. ' + err.message);
             if(waitingEvents == 0) {
                 defer.reject(error);
@@ -713,7 +713,7 @@ export class ToolRunner extends events.EventEmitter {
             if (fileStream) {
                 fileStream.end();
             }
-            cp.stdin.end();
+            cp.stdin?.end();
             if(waitingEvents == 0) {
                 if (error) {
                     defer.reject(error);
@@ -724,7 +724,7 @@ export class ToolRunner extends events.EventEmitter {
         });
 
         var stdbuffer: string = '';
-        cp.stdout.on('data', (data: Buffer) => {
+        cp.stdout?.on('data', (data: Buffer) => {
             this.emit('stdout', data);
 
             if (!optionsNonNull.silent) {
@@ -737,7 +737,7 @@ export class ToolRunner extends events.EventEmitter {
         });
 
         var errbuffer: string = '';
-        cp.stderr.on('data', (data: Buffer) => {
+        cp.stderr?.on('data', (data: Buffer) => {
             this.emit('stderr', data);
 
             success = !optionsNonNull.failOnStdErr;
@@ -904,14 +904,14 @@ export class ToolRunner extends events.EventEmitter {
         // it is possible for the child process to end its last line without a new line.
         // because stdout is buffered, this causes the last line to not get sent to the parent
         // stream. Adding this event forces a flush before the child streams are closed.
-        cp.stdout.on('finish', () => {
+        cp.stdout?.on('finish', () => {
             if (!optionsNonNull.silent) {
                 optionsNonNull.outStream!.write(os.EOL);
             }
         });
 
         var stdbuffer: string = '';
-        cp.stdout.on('data', (data: Buffer) => {
+        cp.stdout?.on('data', (data: Buffer) => {
             this.emit('stdout', data);
 
             if (!optionsNonNull.silent) {
@@ -925,7 +925,7 @@ export class ToolRunner extends events.EventEmitter {
 
 
         var errbuffer: string = '';
-        cp.stderr.on('data', (data: Buffer) => {
+        cp.stderr?.on('data', (data: Buffer) => {
             state.processStderr = true;
             this.emit('stderr', data);
 
