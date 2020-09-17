@@ -80,6 +80,7 @@ export class ToolRunner extends events.EventEmitter {
     private args: string[];
     private pipeOutputToTool: ToolRunner | undefined;
     private pipeOutputToFile: string | undefined;
+    private childProcess: child.ChildProcess | undefined;
 
     private _debug(message: string) {
         this.emit('debug', message);
@@ -900,7 +901,7 @@ export class ToolRunner extends events.EventEmitter {
         });
 
         let cp = child.spawn(this._getSpawnFileName(options), this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(options));
-
+        this.childProcess = cp;
         // it is possible for the child process to end its last line without a new line.
         // because stdout is buffered, this causes the last line to not get sent to the parent
         // stream. Adding this event forces a flush before the child streams are closed.
@@ -1021,6 +1022,16 @@ export class ToolRunner extends events.EventEmitter {
         res.stdout = (r.stdout) ? r.stdout.toString() : '';
         res.stderr = (r.stderr) ? r.stderr.toString() : '';
         return res;
+    }
+
+    /**
+     * Used to close child process by sending SIGNINT signal.
+     * It allows executed script to have some additional logic on SIGINT, before exiting.
+     */
+    public killChildProcess(): void {
+        if (this.childProcess) {
+            this.childProcess.kill();
+        }
     }
 }
 
