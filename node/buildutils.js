@@ -11,7 +11,7 @@ var testPath = path.join(__dirname, '_test');
 
 exports.run = function(cl) {
     console.log('> ' + cl);
-    var rc = exec(cl, {fatal: false}).code;
+    var rc = exec(cl).code;
     if (rc !== 0) {
         echo('Exec failed with rc ' + rc);
         exit(rc);
