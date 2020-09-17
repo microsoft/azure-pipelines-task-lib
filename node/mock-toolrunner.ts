@@ -17,7 +17,7 @@ export interface IExecOptions extends IExecSyncOptions {
 
 export interface IExecSyncOptions {
     cwd?: string;
-    env?: { [key: string]: string };
+    env?: { [key: string]: string | undefined };
     silent?: boolean;
     outStream: NodeJS.WritableStream;
     errStream: NodeJS.WritableStream;
@@ -152,7 +152,7 @@ export class ToolRunner extends events.EventEmitter {
         this._debug('tempPath=' + process.env['MOCK_TEMP_PATH']);
         if (process.env['MOCK_IGNORE_TEMP_PATH'] === 'true') {
             // Using split/join to replace the temp path
-            cmdString = cmdString.split(process.env['MOCK_TEMP_PATH']).join('');
+            cmdString = cmdString.split(process.env['MOCK_TEMP_PATH'] || "").join('');
         }
 
         return cmdString;

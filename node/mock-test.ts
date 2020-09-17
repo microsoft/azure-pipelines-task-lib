@@ -5,11 +5,11 @@ import os = require('os');
 import path = require('path');
 import cmdm = require('./taskcommand');
 import shelljs = require('shelljs');
-import syncRequest = require('sync-request');
+import syncRequest from 'sync-request';
 
 const COMMAND_TAG = '[command]';
 const COMMAND_LENGTH = COMMAND_TAG.length;
-const downloadDirectory = path.join(process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE, 'azure-pipelines-task-lib', '_download');
+const downloadDirectory = path.join(process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE as string, 'azure-pipelines-task-lib', '_download');
 
 export class MockTestRunner {
     constructor(testPath: string, taskJsonPath?: string) {
