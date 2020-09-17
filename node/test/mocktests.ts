@@ -320,4 +320,14 @@ describe('Mock Tests', function () {
         assert(semver.satisfies(version, '10.x'), 'Downloaded node version should be Node 10 instead of ' + version);
         done();
     })
+
+    it('MockTest handles node 14 tasks correctly', function (done) {
+        this.timeout(10000);
+        const runner = new mtm.MockTestRunner(path.join(__dirname, 'fakeTasks', 'node14task', 'entry.js'));
+        const nodePath = runner.nodePath;
+        assert(nodePath, 'node path should have been correctly set');
+        const version = ncp.execSync(nodePath + ' -v').toString().trim();
+        assert(semver.satisfies(version, '14.x'), 'Downloaded node version should be Node 14 instead of ' + version);
+        done();
+    })
 });
