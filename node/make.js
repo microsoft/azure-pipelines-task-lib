@@ -46,7 +46,7 @@ target.test = function() {
     cp('-Rf', rp('test/scripts'), testPath);
     cp('-Rf', rp('test/fakeTasks'), testPath);
     process.env['TASKLIB_INPROC_UNITS'] = '1'; // export task-lib internals for internal unit testing
-    set('+e');
+    set('+e'); // Don't throw an exception when tests fail
     run('mocha ' + testPath);
 }
 
