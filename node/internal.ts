@@ -27,7 +27,7 @@ export var _vault: vm.Vault;
 
 // async await needs generators in node 4.x+
 if (semver.lt(process.versions.node, '4.2.0')) {
-    this.warning('Tasks require a new agent.  Upgrade your agent or node to 4.2.0 or later');
+    _warning('Tasks require a new agent.  Upgrade your agent or node to 4.2.0 or later');
 }
 
 //-----------------------------------------------------
@@ -140,7 +140,7 @@ function _loadLocStrings(resourceFile: string, culture: string): { [key: string]
 /**
  * Sets the location of the resources json.  This is typically the task.json file.
  * Call once at the beginning of the script before any calls to loc.
- * 
+ *
  * @param     path      Full path to the json.
  * @returns   void
  */
@@ -172,7 +172,7 @@ export function _setResourcePath(path: string): void {
 
 /**
  * Gets the localized string from the json resource file.  Optionally formats with additional params.
- * 
+ *
  * @param     key      key of the resources string in the resource file
  * @param     param    additional params for formatting the string
  * @returns   string
@@ -219,7 +219,7 @@ export function _loc(key: string, ...param: any[]): string {
 
 /**
  * Gets a variable value that is defined on the build/release definition or set at runtime.
- * 
+ *
  * @param     name     name of the variable to get
  * @returns   string
  */
@@ -296,9 +296,9 @@ export function _debug(message: string): void {
 
 /**
  * Returns whether a path exists.
- * 
+ *
  * @param     path      path to check
- * @returns   boolean 
+ * @returns   boolean
  */
 export function _exist(path: string): boolean {
     var exist = false;
@@ -317,7 +317,7 @@ export function _exist(path: string): boolean {
 /**
  * Checks whether a path exists.
  * If the path does not exist, it will throw.
- * 
+ *
  * @param     p         path to check
  * @param     name      name only used in error message to identify the path
  * @returns   void
@@ -332,7 +332,7 @@ export function _checkPath(p: string, name: string): void {
 /**
  * Returns path of a tool had the tool actually been invoked.  Resolves via paths.
  * If you check and the tool does not exist, it will throw.
- * 
+ *
  * @param     tool       name of the tool
  * @param     check      whether to check if tool exists
  * @returns   string
@@ -718,10 +718,11 @@ export function _loadData(): void {
             }
 
             // store the secret
-            if (process.env[envvar]) {
+            var value = process.env[envvar];
+            if (value) {
                 ++loaded;
                 _debug('loading ' + envvar);
-                _vault.storeSecret(envvar, process.env[envvar]);
+                _vault.storeSecret(envvar, value);
                 delete process.env[envvar];
             }
         }
