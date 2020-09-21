@@ -23,10 +23,11 @@ jobs:
       command: install
       workingDir: node
 
-  # use node 5
-  - powershell: |
-      & "$(build.sourcesDirectory)/res/UseNode5.ps1"
-    displayName: (azure-pipelines-task-lib) use node 5.10.1
+  # use node 14
+  - task: NodeTool@0
+    displayName: (azure-pipelines-task-lib) use node 14.11.0
+    inputs:
+      versionSpec: "14.11.0"
 
   # build/test
   - script: |
@@ -34,12 +35,6 @@ jobs:
       node make.js test
     workingDirectory: node
     displayName: (azure-pipelines-task-lib) node make.js test  
-
-  # use node 6
-  - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 6.10.3
-    inputs:
-      versionSpec: "6.10.3"
 
   # build/test
   - script: |
@@ -83,22 +78,16 @@ jobs:
       command: install
       workingDir: node
 
-  # use node 5
+  # use node 14
   - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 5.10.1
+    displayName: (azure-pipelines-task-lib) use node 14.11.0
     inputs:
-      versionSpec: "5.10.1"
+      versionSpec: "14.11.0"
       
   # build/test
   - script: node make.js test
     workingDirectory: node
     displayName: (azure-pipelines-task-lib) node make.js test  
-
-  # use node 6
-  - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 6.10.3
-    inputs:
-      versionSpec: "6.10.3"
 
   # build/test
   - script: node make.js test
@@ -124,22 +113,16 @@ jobs:
       command: install
       workingDir: node
 
-  # use node 5
+  # use node 14
   - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 5.10.1
+    displayName: (azure-pipelines-task-lib) use node 14.11.0
     inputs:
-      versionSpec: "5.10.1"
+      versionSpec: "14.11.0"
       
   # build/test
   - script: node make.js test
     workingDirectory: node
     displayName: (azure-pipelines-task-lib) node make.js test  
-
-  # use node 6
-  - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 6.10.3
-    inputs:
-      versionSpec: "6.10.3"
 
   # build/test
   - script: node make.js test
