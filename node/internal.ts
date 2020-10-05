@@ -140,11 +140,11 @@ function _loadLocStrings(resourceFile: string, culture: string): { [key: string]
 /**
  * Sets the location of the resources json.  This is typically the task.json file.
  * Call once at the beginning of the script before any calls to loc.
- *
  * @param     path      Full path to the json.
+ * @param     ignoreWarnings  Won't throw warnings if path already set.
  * @returns   void
  */
-export function _setResourcePath(path: string): void {
+export function _setResourcePath(path: string, ignoreWarnings: boolean = false): void {
     if (process.env['TASKLIB_INPROC_UNITS']) {
         _resourceFiles = {};
         _libResourceFileLoaded = false;
@@ -166,7 +166,11 @@ export function _setResourcePath(path: string): void {
 
     }
     else {
-        _warning(_loc('LIB_ResourceFileAlreadySet', path));
+        if (ignoreWarnings) {
+            _debug(_loc('LIB_ResourceFileAlreadySet', path));
+        } else {
+            _warning(_loc('LIB_ResourceFileAlreadySet', path));
+        }
     }
 }
 
