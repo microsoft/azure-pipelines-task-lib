@@ -1,6 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+/// <reference path="../typings/index.d.ts" />
+/// <reference path="../_build/task.d.ts" />
+
 import assert = require('assert');
 import child_process = require('child_process');
 import fs = require('fs');
@@ -460,7 +463,7 @@ describe('Toolrunner Tests', function () {
             toolRunnerDebug.push(data);
         });
 
-        process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'] = "500"; // 0.5 seconds
+        process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'] = 500; // 0.5 seconds
 
         let options = <trm.IExecOptions>{
             cwd: __dirname,
@@ -515,7 +518,7 @@ describe('Toolrunner Tests', function () {
             toolRunnerDebug.push(data);
         });
 
-        process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'] = "500"; // 0.5 seconds
+        process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'] = 500; // 0.5 seconds
 
         let options = <trm.IExecOptions>{
             cwd: __dirname,
@@ -575,7 +578,7 @@ describe('Toolrunner Tests', function () {
             toolRunnerDebug.push(data);
         });
 
-        process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'] = "500"; // 0.5 seconds
+        process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'] = 500; // 0.5 seconds
 
         let options = <trm.IExecOptions>{
             cwd: __dirname,
@@ -998,7 +1001,7 @@ describe('Toolrunner Tests', function () {
                         assert(err && err.message && err.message.indexOf('/bin/ps') >= 0, 'error from ps is not reported');
                         assert(fs.existsSync(testFile), 'Log of first tool output is created when first tool fails');
                         const fileContents = fs.readFileSync(testFile);
-                        assert(fileContents.indexOf('illegal option') >= 0 || fileContents.indexOf('unsupported option') >= 0,
+                        assert(fileContents.indexOf('illegal option') >= 0 || fileContents.indexOf('unsupported option') >= 0, 
                             'error from first tool should be written to log file: ' + fileContents);
                         done();
                     }
@@ -1179,7 +1182,7 @@ describe('Toolrunner Tests', function () {
         assert.equal((node as any).args.length, 2, 'should have 2 args');
         assert.equal((node as any).args.toString(), 'one,\\\\two\\arg', 'should be one,\\\\two\\arg');
         done();
-    })
+    })    
     it('handles equals and switches', function (done) {
         this.timeout(10000);
 
@@ -2060,14 +2063,14 @@ describe('Toolrunner Tests', function () {
     }
 
     describe('Executing inside shell', function () {
-
+        
         let tempPath: string = testutil.getTestTemp();
         let _testExecOptions: trm.IExecOptions;
 
         before (function () {
             _testExecOptions = <trm.IExecOptions>{
                 cwd: __dirname,
-                env: {
+                env: { 
                     WIN_TEST: 'test value',
                     TESTPATH: tempPath,
                     TEST_NODE: 'node',
@@ -2080,12 +2083,12 @@ describe('Toolrunner Tests', function () {
                 outStream: testutil.getNullStream(),
                 errStream: testutil.getNullStream()
             };
-
+    
         })
 
         it('Exec sync inside shell', function (done) {
             this.timeout(10000);
-
+    
             if (os.platform() === 'win32') {
                 let exePath = compileArgsExe('print args with spaces.exe');
                 let exeRunner = tl.tool(exePath);
@@ -2099,13 +2102,13 @@ describe('Toolrunner Tests', function () {
                 assert.equal(ret.code, 0, 'return code of stat should be 0');
                 assert(ret.stdout.includes(tempPath), `Result should include \'${tempPath}\'`);
             }
-
+    
             assert(ret.stdout && ret.stdout.length > 0, 'should have emitted stdout');
             done();
         });
         it('Exec inside shell', function (done) {
             this.timeout(10000);
-
+    
             let output: string = '';
             if (os.platform() === 'win32') {
                 let exePath = compileArgsExe('print args with spaces.exe');
@@ -2152,12 +2155,12 @@ describe('Toolrunner Tests', function () {
                     .arg('"%WIN_TEST%"')
                     .arg('line 3');
                 outputExe.pipeExecOutputToTool(matchExe);
-
+    
                 let output = '';
                 outputExe.on('stdout', (data) => {
                     output += data.toString();
                 });
-
+    
                 outputExe.exec(_testExecOptions)
                     .then(function (code) {
                         assert.equal(code, 0, 'return code of exec should be 0');
@@ -2171,16 +2174,16 @@ describe('Toolrunner Tests', function () {
             else {
                 const grep = tl.tool(tl.which('grep', true));
                 grep.arg('$TEST_NODE');
-
+    
                 const ps = tl.tool(tl.which('ps', true));
                 ps.arg('ax');
                 ps.pipeExecOutputToTool(grep);
-
+    
                 let output = '';
                 ps.on('stdout', (data) => {
                     output += data.toString();
                 });
-
+    
                 ps.exec(_testExecOptions)
                     .then(function (code) {
                         assert.equal(code, 0, 'return code of exec should be 0');
@@ -2194,7 +2197,7 @@ describe('Toolrunner Tests', function () {
         });
         it('Should handle arguments with quotes properly', function (done) {
             this.timeout(10000);
-
+    
             let output: string = '';
             if (os.platform() === 'win32') {
                 let exePath = compileArgsExe('print args with spaces.exe');

@@ -1,6 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+/// <reference path="../typings/index.d.ts" />
+/// <reference path="../_build/task.d.ts" />
+
 import assert = require('assert');
 import path = require('path');
 import fs = require('fs');
@@ -116,7 +119,7 @@ describe('Loc Tests', function () {
 
         done();
     })
-
+    
     it('fallback to current string if culture resources.resjson not found', function (done) {
         this.timeout(1000);
 

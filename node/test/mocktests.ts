@@ -1,6 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+/// <reference path="../typings/index.d.ts" />
+/// <reference path="../_build/task.d.ts" />
+
 import assert = require('assert');
 import * as mt from '../_build/mock-task';
 import * as mtm from '../_build/mock-test';
@@ -299,7 +302,7 @@ describe('Mock Tests', function () {
     })
 
     it('MockTest handles node 6 tasks correctly', function (done) {
-        this.timeout(15000);
+        this.timeout(10000);
         const runner = new mtm.MockTestRunner(path.join(__dirname, 'fakeTasks', 'node6task', 'entry.js'));
         const nodePath = runner.nodePath;
         assert(nodePath, 'node path should have been correctly set');
@@ -309,7 +312,7 @@ describe('Mock Tests', function () {
     })
 
     it('MockTest handles node 10 tasks correctly', function (done) {
-        this.timeout(15000);
+        this.timeout(10000);
         const runner = new mtm.MockTestRunner(path.join(__dirname, 'fakeTasks', 'node10task', 'entry.js'));
         const nodePath = runner.nodePath;
         assert(nodePath, 'node path should have been correctly set');
@@ -319,7 +322,7 @@ describe('Mock Tests', function () {
     })
 
     it('MockTest handles node 14 tasks correctly', function (done) {
-        this.timeout(15000);
+        this.timeout(10000);
         const runner = new mtm.MockTestRunner(path.join(__dirname, 'fakeTasks', 'node14task', 'entry.js'));
         const nodePath = runner.nodePath;
         assert(nodePath, 'node path should have been correctly set');

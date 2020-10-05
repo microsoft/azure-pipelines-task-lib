@@ -1,0 +1,8 @@
+{
+	"name": "azure-pipelines-task-lib",
+	"main": "task.d.ts",
+	"globalDependencies": {
+		"node": "registry:dt/node#6.0.0+20160709114037",
+		"q": "registry:dt/q#0.0.0+20160613154756"
+	}
+}

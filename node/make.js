@@ -1,3 +1,4 @@
+
 require('shelljs/make');
 var fs = require('fs');
 var path = require('path');
@@ -27,6 +28,7 @@ target.build = function() {
     target.loc();
 
     run('tsc --outDir ' + buildPath);
+    cp(rp('dependencies/typings.json'), buildPath);
     cp(rp('package.json'), buildPath);
     cp(rp('package-lock.json'), buildPath);
     cp(rp('README.md'), buildPath);
@@ -46,7 +48,6 @@ target.test = function() {
     cp('-Rf', rp('test/scripts'), testPath);
     cp('-Rf', rp('test/fakeTasks'), testPath);
     process.env['TASKLIB_INPROC_UNITS'] = '1'; // export task-lib internals for internal unit testing
-    set('+e'); // Don't throw an exception when tests fail
     run('mocha ' + testPath);
 }
 

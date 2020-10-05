@@ -1,6 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+/// <reference path="../typings/index.d.ts" />
+/// <reference path="../_build/task.d.ts" />
+
 import assert = require('assert');
 import * as vm from '../_build/vault';
 import * as trm from '../_build/toolrunner';

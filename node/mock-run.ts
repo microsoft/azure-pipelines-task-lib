@@ -2,6 +2,7 @@ import ma = require('./mock-answer');
 import mockery = require('mockery');
 import im = require('./internal');
 
+
 export class TaskMockRunner {
     constructor(taskPath: string) {
         this._taskPath = taskPath;
