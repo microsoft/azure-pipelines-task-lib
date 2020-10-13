@@ -181,7 +181,11 @@ export class MockTestRunner {
         const taskJson: object = JSON.parse(taskJsonContents);
 
         let nodeVersionFound = false;
-        const execution: object = taskJson['execution'];
+        const execution: object = (
+            taskJson['execution']
+            || taskJson['prejobexecution']
+            || taskJson['postjobexecution']
+        );
         const keys = Object.keys(execution);
         for (let i = 0; i < keys.length; i++) {
             if (keys[i].toLowerCase() == 'node14') {
