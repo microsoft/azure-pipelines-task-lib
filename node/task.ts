@@ -1780,7 +1780,7 @@ export class TestPublisher {
         // (A parameter cannot both be optional and have an initializer)
         testRunSystem = testRunSystem || "VSTSTask";
 
-        var properties = <{ [key: string]: string }>{};
+        var properties = <{ [key: string]: string | string[] }>{};
         properties['type'] = this.testRunner;
 
         if (mergeResults) {
