@@ -1769,12 +1769,12 @@ export class TestPublisher {
     constructor(public testRunner: string) {
     }
 
-    public publish(resultFiles?: string, mergeResults?: string, platform?: string, config?: string, runTitle?: string, publishRunAttachments?: string, testRunSystem?: string) {
+    public publish(resultFiles?: string[], mergeResults?: string, platform?: string, config?: string, runTitle?: string, publishRunAttachments?: string, testRunSystem?: string) {
         // Could have used an initializer, but wanted to avoid reordering parameters when converting to strict null checks
         // (A parameter cannot both be optional and have an initializer)
         testRunSystem = testRunSystem || "VSTSTask";
 
-        var properties = <{ [key: string]: string }>{};
+        var properties = <{ [key: string]: string | string[] }>{};
         properties['type'] = this.testRunner;
 
         if (mergeResults) {
