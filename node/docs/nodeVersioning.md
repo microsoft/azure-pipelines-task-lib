@@ -11,7 +11,7 @@ If the `execution` property is specified to be `Node`, the task will run on the 
 [Unit testing](https://docs.microsoft.com/en-us/azure/devops/extend/develop/add-build-task?view=azure-devops#step-2-unit-testing-your-task-scripts) of tasks can be done using the task-lib's built in mock-task functionality.
 To ensure tests are run in the same environment as the agent, this library looks for a `task.json` file in the same directory as the supplied task entry point.
 If no `task.json` is found it searches all ancestor directories as well.
-If the `task.json` is still not found, the library defaults to Node 14, otherwise it uses the appropriate handler based on the `execution` property.
+If the `task.json` is still not found, the library defaults to Node 10, otherwise it uses the appropriate handler based on the `execution` property.
 If this version of node is not found on the path, the library downloads the appropriate version.
 
 ### Behavior overrides
