@@ -23,11 +23,11 @@ jobs:
       command: install
       workingDir: node
 
-  # use node 14
+  # use node 10
   - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 14.11.0
+    displayName: (azure-pipelines-task-lib) use node 10.23.0
     inputs:
-      versionSpec: "14.11.0"
+      versionSpec: "10.23.0"
 
   # build/test
   - script: |
@@ -78,11 +78,11 @@ jobs:
       command: install
       workingDir: node
 
-  # use node 14
+  # use node 10
   - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 14.11.0
+    displayName: (azure-pipelines-task-lib) use node 10.23.0
     inputs:
-      versionSpec: "14.11.0"
+      versionSpec: "10.23.0"
       
   # build/test
   - script: node make.js test
@@ -113,11 +113,11 @@ jobs:
       command: install
       workingDir: node
 
-  # use node 14
+  # use node 10
   - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 14.11.0
+    displayName: (azure-pipelines-task-lib) use node 10.23.0
     inputs:
-      versionSpec: "14.11.0"
+      versionSpec: "10.23.0"
       
   # build/test
   - script: node make.js test

@@ -17,17 +17,17 @@ Documentation: [TypeScript API](docs/azure-pipelines-task-lib.md), [task JSON sc
 
 Guidance: [Finding Files](docs/findingfiles.md), [Minimum agent version](docs/minagent.md), [Proxy](docs/proxy.md), [Certificate](docs/cert.md)
 
-## Node 14 Upgrade Notice
+## Node 10 Upgrade Notice
 
-Azure DevOps is currently working to establish Node 14 as the new preferred runtime for tasks, upgrading from Node 6.
+Azure DevOps is currently working to establish Node 10 as the new preferred runtime for tasks, upgrading from Node 6.
 Relevant work is happening in the releases/3.x branch and will be merged into master when we have successfully migrated the majority of our first party tasks.
 Any changes should be dual-commited to both `master` and `releases/3.x` until the merge into master occurs.
 
-### Upgrading to Node 14
+### Upgrading to Node 10
 
 Upgrading your tasks from Node 6 should be relatively painless, however there are some things to note:
 * Typescript has been upgraded to TS 4. Older versions of TS may or may not work with Node 14 or the 3.x branch. We recommend upgrading to TS 4 when upgrading to task-lib 3.x.
-* Node has made some changes to `fs` between Node 6 and Node 14. It is worth reviewing and testing your tasks thoroughly before publishing updates to Node 14.
+* Node has made some changes to `fs` between Node 6 and Node 10. It is worth reviewing and testing your tasks thoroughly before publishing updates to Node 10.
 
 ## Reference Examples
 
