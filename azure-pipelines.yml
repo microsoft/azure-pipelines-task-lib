@@ -94,6 +94,17 @@ jobs:
     displayName: (azure-pipelines-task-lib) node make.js test
     workingDirectory: node
 
+  # For CI runs on master, automatically publish packages
+  - bash: |
+        echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
+        cd _build
+        npm publish || true # Ignore publish failures, usually will happen because package already exists
+    displayName: (azure-pipelines-task-lib) npm publish
+    workingDirectory: node
+    condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranchname'], 'master', 'releases/3.x'))
+    env:
+      NPM_TOKEN: $(npmPublishToken)
+
 #################################################
 - job: macOS
 #################################################
