@@ -50,7 +50,8 @@
         "enum": [
           "Agent",
           "MachineGroup",
-          "Server"
+          "Server",
+          "ServerGate"
         ]
       }
     },
@@ -73,7 +74,6 @@
         "Test",
         "Package",
         "Deploy",
-
         "Azure Repos",
         "Azure Boards",
         "Azure Pipelines",
@@ -224,6 +224,13 @@
           "options": {
             "type": "object",
             "additionalProperties": true
+          },
+          "aliases": {
+            "type": "array",
+            "description": "Allows you to define a list of input aliases used later in the pipeline",
+            "items": {
+              "type": "string"
+            }
           }
         }
       }
@@ -306,6 +313,12 @@
       "additionalProperties": false,
       "description": "Execution options for this task",
       "properties": {
+        "HttpRequestChain": {
+          "$ref": "#/definitions/httpRequestChainObject"
+        },
+        "HttpRequest": {
+          "$ref": "#/definitions/executionObject"
+        },
         "Node10": {
           "$ref": "#/definitions/executionObject"
         },
@@ -347,7 +360,7 @@
       "description": "Describes output variables of task.",
       "items": {
         "type": "object",
-        "additionalProperties": false,
+        "additionalProperties": true,
         "required": [
           "name"
         ],
@@ -386,6 +399,76 @@
           }
         }
       }
+    },
+    "httpRequestChainObject": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "Execute": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/httpRequestChainExecuteObject"
+          }
+        }
+      },
+      "required": [
+        "Execute"
+      ],
+      "title": "HTTPRequestChain"
+    },
+    "httpRequestChainExecuteObject": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "RequestInputs": {
+          "$ref": "#/definitions/httpRequestChainRequestInputsObject"
+        },
+        "ExecutionOptions": {
+          "$ref": "#/definitions/httpRequestChainExecutionOptionsObject"
+        }
+      },
+      "required": [
+        "RequestInputs"
+      ],
+      "title": "Execute"
+    },
+    "httpRequestChainExecutionOptionsObject": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "OutputVariables": {
+          "$ref": "#/definitions/httpRequestChainOutputVariablesObject"
+        }
+      },
+      "title": "ExecutionOptions"
+    },
+    "httpRequestChainOutputVariablesObject": {
+      "type": "object",
+      "title": "OutputVariables"
+    },
+    "httpRequestChainRequestInputsObject": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "EndpointId": {
+          "type": "string"
+        },
+        "EndpointUrl": {
+          "type": "string"
+        },
+        "Method": {
+          "type": "string"
+        },
+        "Headers": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "EndpointId",
+        "EndpointUrl",
+        "Method"
+      ],
+      "title": "RequestInputs"
     }
   }
 }
