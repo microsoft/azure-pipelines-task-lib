@@ -276,11 +276,7 @@
                 ]
               },
               "resizable": {
-                "type": "string",
-                "enum": [
-                  "true",
-                  "false"
-                ]
+                "type": "boolean"
               },
               "rows": {
                 "type": "string",
