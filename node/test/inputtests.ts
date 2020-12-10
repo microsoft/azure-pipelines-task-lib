@@ -140,6 +140,15 @@ describe('Input Tests', function () {
 
         done();
     })
+    it('sets and gets an output variable', function (done) {
+        this.timeout(1000);
+
+        tl.setVariable('UnitTestVariable', 'test var value', false, true);
+        let varVal: string = tl.getVariable('UnitTestVariable');
+        assert.equal(varVal, 'test var value');
+
+        done();
+    })
     it('sets and gets a secret variable', function (done) {
         this.timeout(1000);
 
