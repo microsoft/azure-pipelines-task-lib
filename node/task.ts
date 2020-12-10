@@ -184,7 +184,7 @@ export function setVariable(name: string, val: string, secret: boolean = false, 
     // store the metadata
     im._knownVariableMap[key] = <im._KnownVariableInfo>{ name: name, secret: secret };
 
-    // write the command
+    // write the setvariable command
     command('task.setvariable', { 'variable': name || '', isOutput: (isOutput || false).toString(), 'issecret': (secret || false).toString() }, varValue);
 }
 
