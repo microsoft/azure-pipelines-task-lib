@@ -154,12 +154,13 @@ export function getVariables(): VariableInfo[] {
 /**
  * Sets a variable which will be available to subsequent tasks as well.
  * 
- * @param     name    name of the variable to set
- * @param     val     value to set
- * @param     secret  whether variable is secret.  Multi-line secrets are not allowed.  Optional, defaults to false
+ * @param     name     name of the variable to set
+ * @param     val      value to set
+ * @param     secret   whether variable is secret.  Multi-line secrets are not allowed.  Optional, defaults to false
+ * @param     isOutput whether variable is an output variable.  Optional, defaults to false
  * @returns   void
  */
-export function setVariable(name: string, val: string, secret: boolean = false): void {
+export function setVariable(name: string, val: string, secret: boolean = false, isOutput: boolean = false): void {
     // once a secret always a secret
     let key: string = im._getVariableKey(name);
     if (im._knownVariableMap.hasOwnProperty(key)) {
@@ -183,8 +184,8 @@ export function setVariable(name: string, val: string, secret: boolean = false):
     // store the metadata
     im._knownVariableMap[key] = <im._KnownVariableInfo>{ name: name, secret: secret };
 
-    // write the command
-    command('task.setvariable', { 'variable': name || '', 'issecret': (secret || false).toString() }, varValue);
+    // write the setvariable command
+    command('task.setvariable', { 'variable': name || '', isOutput: (isOutput || false).toString(), 'issecret': (secret || false).toString() }, varValue);
 }
 
 /**

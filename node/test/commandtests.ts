@@ -75,6 +75,16 @@ describe('Command Tests', function () {
         done();
     })
 
+    it ('toString writes isOutput', function (done) {
+        this.timeout(1000);
+
+        var tc = new tcm.TaskCommand('task.setvariable', { variable: 'bar', isOutput: 'true' }, 'dog');
+        assert(tc, 'TaskCommand constructor works');
+        var cmdStr = tc.toString();
+        assert.equal(cmdStr, '##vso[task.setvariable variable=bar;isOutput=true;]dog');
+        done();
+    })
+
     it('handles null properties', function (done) {
         this.timeout(1000);
 
