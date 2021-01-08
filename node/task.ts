@@ -1776,12 +1776,12 @@ export class TestPublisher {
     constructor(public testRunner: string) {
     }
 
-    public publish(resultFiles?: string[], mergeResults?: string, platform?: string, config?: string, runTitle?: string, publishRunAttachments?: string, testRunSystem?: string) {
+    public publish(resultFiles?: string | string[], mergeResults?: string, platform?: string, config?: string, runTitle?: string, publishRunAttachments?: string, testRunSystem?: string) {
         // Could have used an initializer, but wanted to avoid reordering parameters when converting to strict null checks
         // (A parameter cannot both be optional and have an initializer)
         testRunSystem = testRunSystem || "VSTSTask";
 
-        var properties = <{ [key: string]: string | string[] }>{};
+        var properties = <{ [key: string]: string }>{};
         properties['type'] = this.testRunner;
 
         if (mergeResults) {
@@ -1805,7 +1805,7 @@ export class TestPublisher {
         }
 
         if (resultFiles) {
-            properties['resultFiles'] = resultFiles;
+            properties['resultFiles'] = Array.isArray(resultFiles) ? resultFiles.join() : resultFiles;
         }
 
         properties['testRunSystem'] = testRunSystem;
@@ -1820,7 +1820,7 @@ export class TestPublisher {
 export class CodeCoveragePublisher {
     constructor() {
     }
-    public publish(codeCoverageTool?: string, summaryFileLocation?: string, reportDirectory?: string, additionalCodeCoverageFiles?: string) {
+    public publish(codeCoverageTool?: string, summaryFileLocation?: string, reportDirectory?: string, additionalCodeCoverageFiles?: string | string[]) {
 
         var properties = <{ [key: string]: string }>{};
 
@@ -1837,7 +1837,7 @@ export class CodeCoveragePublisher {
         }
 
         if (additionalCodeCoverageFiles) {
-            properties['additionalcodecoveragefiles'] = additionalCodeCoverageFiles;
+            properties['additionalcodecoveragefiles'] = Array.isArray(additionalCodeCoverageFiles) ? additionalCodeCoverageFiles.join() : additionalCodeCoverageFiles;
         }
 
         command('codecoverage.publish', properties, "");
