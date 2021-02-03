@@ -177,7 +177,7 @@ export class MockTestRunner {
             console.warn('Unable to find task.json, defaulting to use Node 14');
             return 10;
         }
-        const taskJsonContents = fs.readFileSync(taskJsonPath, { encoding: 'utf-8' });
+        const taskJsonContents = fs.readFileSync(taskJsonPath, { encoding: 'utf-8' }).trim();
         const taskJson: object = JSON.parse(taskJsonContents);
 
         let nodeVersionFound = false;
