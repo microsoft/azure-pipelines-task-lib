@@ -5,11 +5,15 @@
   "loc.messages.LIB_MkdirFailedFileExists": "Non è possibile creare la directory '%s'. Esiste un file in conflitto: '%s'",
   "loc.messages.LIB_MkdirFailedInvalidDriveRoot": "Non è possibile creare la directory '%s'. La directory radice non esiste: '%s'",
   "loc.messages.LIB_MkdirFailedInvalidShare": "Non è possibile creare la directory '%s' perché non è possibile verificarne l'esistenza: '%s'. Se la directory è una condivisione file, verificare che il nome della condivisione sia corretto, che la condivisione sia online e che il processo corrente sia autorizzato ad accedervi.",
-  "loc.messages.LIB_MultilineSecret": "Secrets cannot contain multiple lines",
+  "loc.messages.LIB_MultilineSecret": "I segreti non possono contenere più righe",
+  "loc.messages.LIB_ProcessError": "There was an error when attempting to execute the process '%s'. This may indicate the process failed to start. Error: %s",
+  "loc.messages.LIB_ProcessExitCode": "The process '%s' failed with exit code %s",
+  "loc.messages.LIB_ProcessStderr": "The process '%s' failed because one or more lines were written to the STDERR stream",
   "loc.messages.LIB_ReturnCode": "Codice restituito: %d",
   "loc.messages.LIB_ResourceFileNotExist": "Il file di risorse non esiste: %s",
   "loc.messages.LIB_ResourceFileAlreadySet": "Il file di risorse è già stato impostato su %s",
   "loc.messages.LIB_ResourceFileNotSet": "Il file di risorse non è stato impostato. La stringa localizzata per la chiave %s non è stata trovata",
+  "loc.messages.LIB_StdioNotClosed": "The STDIO streams did not close within %s seconds of the exit event from process '%s'. This may indicate a child process inherited the STDIO streams and has not yet exited.",
   "loc.messages.LIB_WhichNotFound_Linux": "Il file eseguibile '%s' non è stato trovato. Verificare se il percorso di file esiste o il file è presente in una directory specificata dalla variabile di ambiente PATH. Controllare anche la modalità file per verificare che il file sia eseguibile.",
   "loc.messages.LIB_WhichNotFound_Win": "Il file eseguibile '%s' non è stato trovato. Verificare se il percorso di file esiste o il file è presente in una directory specificata dalla variabile di ambiente PATH. Controllare anche che l'estensione sia valida per un file eseguibile.",
   "loc.messages.LIB_LocStringNotFound": "La stringa localizzata per la chiave %s non è stata trovata",
@@ -25,5 +29,6 @@
   "loc.messages.LIB_PathHasNullByte": "Il percorso non può contenere byte Null",
   "loc.messages.LIB_OperationFailed": "Operazione %s non riuscita: %s",
   "loc.messages.LIB_UseFirstGlobMatch": "Sono presenti più corrispondenze dell'area di lavoro. Verrà usata la prima.",
-  "loc.messages.LIB_MergeTestResultNotSupported": "L'unione di più file risultanti da un'unica esecuzione dei test non è supportata in questa versione dell'agente di compilazione per OS X/Linux. Ogni file dei risultati del test verrà pubblicato come esecuzione dei test separata in VSO/TFS."
+  "loc.messages.LIB_MergeTestResultNotSupported": "L'unione di più file risultanti da un'unica esecuzione dei test non è supportata in questa versione dell'agente di compilazione per OS X/Linux. Ogni file dei risultati del test verrà pubblicato come esecuzione dei test separata in VSO/TFS.",
+  "loc.messages.LIB_PlatformNotSupported": "Platform not supported: %s"
 }

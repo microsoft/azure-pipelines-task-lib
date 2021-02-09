@@ -5,11 +5,15 @@
   "loc.messages.LIB_MkdirFailedFileExists": "ディレクトリ '%s' を作成できません。競合するファイルが存在します: '%s'",
   "loc.messages.LIB_MkdirFailedInvalidDriveRoot": "ディレクトリ '%s' を作成できません。ルート ディレクトリが存在しません: '%s'",
   "loc.messages.LIB_MkdirFailedInvalidShare": "ディレクトリ '%s' を作成できません。ディレクトリが存在することを確認できません: '%s'。ディレクトリがファイル共有である場合、その共有名が正しいこと、その共有がオンラインであること、そして現在のプロセスにその共有へのアクセス許可があることをご確認ください。",
-  "loc.messages.LIB_MultilineSecret": "Secrets cannot contain multiple lines",
+  "loc.messages.LIB_MultilineSecret": "シークレットに複数の行を含めることはできません",
+  "loc.messages.LIB_ProcessError": "There was an error when attempting to execute the process '%s'. This may indicate the process failed to start. Error: %s",
+  "loc.messages.LIB_ProcessExitCode": "The process '%s' failed with exit code %s",
+  "loc.messages.LIB_ProcessStderr": "The process '%s' failed because one or more lines were written to the STDERR stream",
   "loc.messages.LIB_ReturnCode": "リターン コード: %d",
   "loc.messages.LIB_ResourceFileNotExist": "リソース ファイルが存在しません: %s",
   "loc.messages.LIB_ResourceFileAlreadySet": "リソース ファイルは既に %s に設定されています",
   "loc.messages.LIB_ResourceFileNotSet": "リソース ファイルが設定されておらず、キーの loc 文字列が見つかりません: %s",
+  "loc.messages.LIB_StdioNotClosed": "The STDIO streams did not close within %s seconds of the exit event from process '%s'. This may indicate a child process inherited the STDIO streams and has not yet exited.",
   "loc.messages.LIB_WhichNotFound_Linux": "実行可能ファイルが見つかりません: '%s'。ファイル パスが存在すること、またはそのファイルが PATH 環境変数で指定されたディレクトリ内にあることをご確認ください。ファイルが実行可能かどうかについてファイル モードもご確認ください。",
   "loc.messages.LIB_WhichNotFound_Win": "実行可能ファイルが見つかりません: '%s'。ファイル パスが存在すること、またはそのファイルが PATH 環境変数で指定されたディレクトリ内にあることをご確認ください。そのファイルに実行可能ファイルの有効な拡張子がついていることもご確認ください。",
   "loc.messages.LIB_LocStringNotFound": "キーの loc 文字列が見つかりません: %s",
@@ -25,5 +29,6 @@
   "loc.messages.LIB_PathHasNullByte": "パスに null バイトを含めることはできません",
   "loc.messages.LIB_OperationFailed": "失敗しました %s: %s",
   "loc.messages.LIB_UseFirstGlobMatch": "複数のワークスペースが一致します。最初のワークスペースが使用されます。",
-  "loc.messages.LIB_MergeTestResultNotSupported": "複数のファイルからのテスト結果を 1 つのテスト実行にマージする処理は、OSX/Linux 用のビルド エージェントのこのバージョンではサポートされていません。各テスト結果ファイルが VSO/TFS で別個のテスト実行として発行されます。"
+  "loc.messages.LIB_MergeTestResultNotSupported": "複数のファイルからのテスト結果を 1 つのテスト実行にマージする処理は、OSX/Linux 用のビルド エージェントのこのバージョンではサポートされていません。各テスト結果ファイルが VSO/TFS で別個のテスト実行として発行されます。",
+  "loc.messages.LIB_PlatformNotSupported": "Platform not supported: %s"
 }

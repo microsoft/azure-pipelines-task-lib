@@ -4,7 +4,7 @@
   "loc.messages.PSLIB_EndpointAuth0": "Учетные данные конечной точки службы \"{0}\"",
   "loc.messages.PSLIB_EndpointUrl0": "URL-адрес конечной точки службы \"{0}\"",
   "loc.messages.PSLIB_EnumeratingSubdirectoriesFailedForPath0": "Сбой перечисления подкаталогов для пути: \"{0}\".",
-  "loc.messages.PSLIB_FileNotFound0": "Файл не найден: \"{0}\".",
+  "loc.messages.PSLIB_FileNotFound0": "Файл не найден: \"{0}\"",
   "loc.messages.PSLIB_Input0": "Входные данные \"{0}\".",
   "loc.messages.PSLIB_InvalidPattern0": "Недопустимый шаблон: \"{0}\".",
   "loc.messages.PSLIB_LeafPathNotFound0": "Путь к конечному объекту не найден: \"{0}\".",

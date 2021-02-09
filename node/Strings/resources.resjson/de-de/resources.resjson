@@ -5,11 +5,15 @@
   "loc.messages.LIB_MkdirFailedFileExists": "Das Verzeichnis \"%s\" kann nicht erstellt werden. Eine in Konflikt stehende Datei ist vorhanden: \"%s\"",
   "loc.messages.LIB_MkdirFailedInvalidDriveRoot": "Das Verzeichnis \"%s\" kann nicht erstellt werden. Das Stammverzeichnis ist nicht vorhanden: %s",
   "loc.messages.LIB_MkdirFailedInvalidShare": "Das Verzeichnis \"%s\" kann nicht erstellt werden. Es kann nicht überprüft werden, ob das Verzeichnis vorhanden ist: {%s}. Wenn das Verzeichnis eine Dateifreigabe ist, stellen Sie sicher, dass der Freigabename richtig, die Freigabe online und der aktuelle Prozess berechtigt ist, auf die Freigabe zuzugreifen.",
-  "loc.messages.LIB_MultilineSecret": "Secrets cannot contain multiple lines",
+  "loc.messages.LIB_MultilineSecret": "Geheimnisse dürfen nicht mehrere Zeilen enthalten",
+  "loc.messages.LIB_ProcessError": "There was an error when attempting to execute the process '%s'. This may indicate the process failed to start. Error: %s",
+  "loc.messages.LIB_ProcessExitCode": "The process '%s' failed with exit code %s",
+  "loc.messages.LIB_ProcessStderr": "The process '%s' failed because one or more lines were written to the STDERR stream",
   "loc.messages.LIB_ReturnCode": "Rückgabecode: %d",
   "loc.messages.LIB_ResourceFileNotExist": "Die Ressourcendatei ist nicht vorhanden: %s",
   "loc.messages.LIB_ResourceFileAlreadySet": "Die Ressourcendatei wurde bereits festgelegt auf: %s",
   "loc.messages.LIB_ResourceFileNotSet": "Die Ressourcendatei wurde nicht festgelegt. Die Lokalisierungszeichenfolge für den folgenden Schlüssel wurde nicht gefunden: %s",
+  "loc.messages.LIB_StdioNotClosed": "The STDIO streams did not close within %s seconds of the exit event from process '%s'. This may indicate a child process inherited the STDIO streams and has not yet exited.",
   "loc.messages.LIB_WhichNotFound_Linux": "Ausführbare Datei nicht gefunden: '%s'. Prüfen Sie, ob der Dateipfad vorhanden ist oder sich die Datei in einem von der PATH-Umgebungsvariablen angegebenen Verzeichnis befindet. Prüfen Sie zudem den Dateimodus, um sicherzustellen, dass die Datei ausführbar ist.",
   "loc.messages.LIB_WhichNotFound_Win": "Ausführbare Datei nicht gefunden: \"%s\". Prüfen Sie, ob der Dateipfad vorhanden ist oder sich die Datei in einem von der PATH-Umgebungsvariablen angegebenen Verzeichnis befindet. Prüfen Sie zudem, ob die Datei eine gültige Erweiterung für eine ausführbare Datei aufweist.",
   "loc.messages.LIB_LocStringNotFound": "Die Lokalisierungszeichenfolge für den folgenden Schlüssel wurde nicht gefunden: %s",
@@ -25,5 +29,6 @@
   "loc.messages.LIB_PathHasNullByte": "Der Pfad darf keine NULL-Bytes enthalten.",
   "loc.messages.LIB_OperationFailed": "Fehler %s: %s",
   "loc.messages.LIB_UseFirstGlobMatch": "Mehrere Arbeitsbereichübereinstimmungen. Die erste Übereinstimmung wird verwendet.",
-  "loc.messages.LIB_MergeTestResultNotSupported": "Das Mergen von Testergebnissen aus mehreren Dateien in einen Testlauf wird von dieser Version des Build-Agents für OSX/Linux nicht unterstützt. Jede Testergebnisdatei wird als separater Testlauf in VSO/TFS veröffentlicht."
+  "loc.messages.LIB_MergeTestResultNotSupported": "Das Mergen von Testergebnissen aus mehreren Dateien in einen Testlauf wird von dieser Version des Build-Agents für OSX/Linux nicht unterstützt. Jede Testergebnisdatei wird als separater Testlauf in VSO/TFS veröffentlicht.",
+  "loc.messages.LIB_PlatformNotSupported": "Platform not supported: %s"
 }

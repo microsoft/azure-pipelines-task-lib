@@ -5,11 +5,15 @@
   "loc.messages.LIB_MkdirFailedFileExists": "No se puede crear el directorio '%s'. Hay un conflicto entre archivos: '%s'",
   "loc.messages.LIB_MkdirFailedInvalidDriveRoot": "No se puede crear el directorio '%s'. El directorio raíz no existe: '%s'",
   "loc.messages.LIB_MkdirFailedInvalidShare": "No se puede crear el directorio '%s'. No se puede comprobar si el directorio existe: '%s'. Si el directorio es un recurso compartido de archivos, compruebe que el nombre es correcto, que está en línea y que el proceso actual tiene permiso de acceso a este.",
-  "loc.messages.LIB_MultilineSecret": "Secrets cannot contain multiple lines",
+  "loc.messages.LIB_MultilineSecret": "Los secretos no pueden contener varias líneas.",
+  "loc.messages.LIB_ProcessError": "There was an error when attempting to execute the process '%s'. This may indicate the process failed to start. Error: %s",
+  "loc.messages.LIB_ProcessExitCode": "The process '%s' failed with exit code %s",
+  "loc.messages.LIB_ProcessStderr": "The process '%s' failed because one or more lines were written to the STDERR stream",
   "loc.messages.LIB_ReturnCode": "Código de retorno: %d",
   "loc.messages.LIB_ResourceFileNotExist": "El archivo de recursos no existe: %s",
   "loc.messages.LIB_ResourceFileAlreadySet": "El archivo de recursos se ha establecido ya en: %s",
   "loc.messages.LIB_ResourceFileNotSet": "No se ha establecido el archivo de recursos. No se encuentra la cadena localizada para la clave: %s",
+  "loc.messages.LIB_StdioNotClosed": "The STDIO streams did not close within %s seconds of the exit event from process '%s'. This may indicate a child process inherited the STDIO streams and has not yet exited.",
   "loc.messages.LIB_WhichNotFound_Linux": "No se puede encontrar el archivo ejecutable: \"%s\". Compruebe que la ruta de acceso del archivo existe o que el archivo se puede encontrar en un directorio especificado en la variable de entorno PATH. Revise también el modo de archivo para comprobar que el archivo es ejecutable.",
   "loc.messages.LIB_WhichNotFound_Win": "No se puede encontrar el archivo ejecutable: \"%s\". Compruebe que la ruta de acceso del archivo existe o que el archivo se puede encontrar en un directorio especificado en la variable de entorno PATH. Revise también que el archivo tenga una extensión válida para un archivo ejecutable.",
   "loc.messages.LIB_LocStringNotFound": "No se encuentra la cadena localizada para la clave: %s",
@@ -25,5 +29,6 @@
   "loc.messages.LIB_PathHasNullByte": "La ruta de acceso no puede tener bytes nulos",
   "loc.messages.LIB_OperationFailed": "Error de %s: %s",
   "loc.messages.LIB_UseFirstGlobMatch": "Hay varias coincidencias en el área de trabajo. Se usará la primera.",
-  "loc.messages.LIB_MergeTestResultNotSupported": "Esta versión del agente de compilación para OSX/Linux no admite la fusión mediante combinación de resultados de pruebas de varios archivos en una serie de pruebas. Cada archivo de resultados de pruebas se publicará como una serie de pruebas diferente en VSO/TFS."
+  "loc.messages.LIB_MergeTestResultNotSupported": "Esta versión del agente de compilación para OSX/Linux no admite la fusión mediante combinación de resultados de pruebas de varios archivos en una serie de pruebas. Cada archivo de resultados de pruebas se publicará como una serie de pruebas diferente en VSO/TFS.",
+  "loc.messages.LIB_PlatformNotSupported": "Platform not supported: %s"
 }
