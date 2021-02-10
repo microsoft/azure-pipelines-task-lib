@@ -560,8 +560,8 @@ export interface FsOptions {
 }
 
 export function writeFile(file: string, data: string | Buffer, options?: string | FsOptions) {
-    if(typeof(options) === 'string'){
-        fs.writeFileSync(file, data, {encoding: options});
+    if (typeof (options) === 'string') {
+        fs.writeFileSync(file, data, { encoding: options });
     }
     else {
         fs.writeFileSync(file, data, options);
@@ -744,15 +744,23 @@ export function ls(options: string, paths: string[]): string[] {
  * @param     dest       destination path
  * @param     options    string -r, -f or -rf for recursive and force 
  * @param     continueOnError optional. whether to continue on error
+ * @param     retryCount optional. Attempts count to copy the file
  */
-export function cp(source: string, dest: string, options?: string, continueOnError?: boolean): void {
-    if (options) {
-        shell.cp(options, source, dest);
+export function cp(source: string, dest: string, options?: string, continueOnError?: boolean, retryCount: number = 1): void {
+    while (retryCount) {
+        try {
+            if (options) {
+                shell.cp(options, source, dest);
+            }
+            else {
+                shell.cp(source, dest);
+            }
+            break;
+        } catch (e) {
+            retryCount--;
+            debug('Error while copying the file. Attempts left: ' + retryCount);
+        };
     }
-    else {
-        shell.cp(source, dest);
-    }
-
     _checkShell('cp', continueOnError);
 }
 
