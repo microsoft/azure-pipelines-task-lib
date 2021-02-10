@@ -744,24 +744,30 @@ export function ls(options: string, paths: string[]): string[] {
  * @param     dest       destination path
  * @param     options    string -r, -f or -rf for recursive and force 
  * @param     continueOnError optional. whether to continue on error
- * @param     retryCount optional. Attempts count to copy the file
+ * @param     retryCount optional. Retry count to copy the file
  */
-export function cp(source: string, dest: string, options?: string, continueOnError?: boolean, retryCount: number = 1): void {
-    while (retryCount) {
-        try {
-            if (options) {
-                shell.cp(options, source, dest);
-            }
-            else {
-                shell.cp(source, dest);
-            }
-            break;
-        } catch (e) {
-            retryCount--;
-            debug('Error while copying the file. Attempts left: ' + retryCount);
-        };
+export function cp(source: string, dest: string, options?: string, continueOnError?: boolean, retryCount: number = 0): void {
+    if (options) {
+        shell.cp(options, source, dest);
     }
-    _checkShell('cp', continueOnError);
+    else {
+        shell.cp(source, dest);
+    }
+
+    try {
+        _checkShell('cp', false);
+    } catch (e) {
+        if (retryCount > 0) {
+            console.log(loc('LIB_CopyFileFailed', retryCount));
+            cp(source, dest, options, continueOnError, retryCount - 1);
+        } else {
+            if (continueOnError) {
+                warning(e);
+            } else {
+                throw e;
+            }
+        }
+    }
 }
 
 /**
