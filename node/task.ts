@@ -739,7 +739,7 @@ export function ls(options: string, paths: string[]): string[] {
  * @param     options    string -r, -f or -rf for recursive and force
  * @param     continueOnError optional. whether to continue on error
  */
-export function cp(source: string, dest: string, options?: string, continueOnError?: boolean): void {
+export function cp(source: string, dest: string, options?: string, continueOnError?: boolean, retryCount: number = 0): void {
     if (options) {
         shell.cp(options, source, dest);
     }
@@ -747,7 +747,20 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
         shell.cp(source, dest);
     }
 
-    _checkShell('cp', continueOnError);
+    try {
+        _checkShell('cp', false);
+    } catch (e) {
+        if (retryCount > 0) {
+            console.log(loc('LIB_CopyFileFailed', retryCount));
+            cp(source, dest, options, continueOnError, retryCount - 1);
+        } else {
+            if (continueOnError) {
+                warning(e);
+            } else {
+                throw e;
+            }
+        }
+    }
 }
 
 /**
