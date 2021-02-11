@@ -755,6 +755,7 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
             if (retryCount <= 0) {
                 if (continueOnError) {
                     warning(e);
+                    break;
                 } else {
                     throw e;
                 }
