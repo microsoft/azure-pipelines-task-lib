@@ -777,7 +777,7 @@ source | string | source path
 dest | string | destination path
 options | string | string \-r, \-f or \-rf for recursive and force 
 continueOnError | boolean | optional. whether to continue on error
-retryCount | number | optional. Retry count to copy the file
+retryCount | number | optional. Retry count to copy the file. It might help to resolve intermittent issues e.g. with UNC target paths on a remote host.
  
 <br/>
 <div id="taskmv">
