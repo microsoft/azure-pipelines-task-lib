@@ -777,6 +777,7 @@ source | string | source path
 dest | string | destination path
 options | string | string \-r, \-f or \-rf for recursive and force 
 continueOnError | boolean | optional. whether to continue on error
+retryCount | number | optional. Retry count to copy the file
  
 <br/>
 <div id="taskmv">
