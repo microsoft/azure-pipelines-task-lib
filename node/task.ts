@@ -741,24 +741,22 @@ export function ls(options: string, paths: string[]): string[] {
  * @param     retryCount optional. Retry count to copy the file
  */
 export function cp(source: string, dest: string, options?: string, continueOnError?: boolean, retryCount: number = 0): void {
-    if (options) {
-        shell.cp(options, source, dest);
-    }
-    else {
-        shell.cp(source, dest);
-    }
-
-    try {
-        _checkShell('cp', false);
-    } catch (e) {
-        if (retryCount > 0) {
-            console.log(loc('LIB_CopyFileFailed', retryCount));
-            cp(source, dest, options, continueOnError, retryCount - 1);
-        } else {
-            if (continueOnError) {
-                warning(e);
-            } else {
+    while (retryCount >= 0) {
+        if (options) {
+            shell.cp(options, source, dest);
+        }
+        else {
+            shell.cp(source, dest);
+        }
+        try {
+            _checkShell('cp', false);
+            break;
+        } catch (e) {
+            if (retryCount <= 0) {
                 throw e;
+            } else {
+                console.log(loc('LIB_CopyFileFailed', retryCount));
+                retryCount--;
             }
         }
     }
