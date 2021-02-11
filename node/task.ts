@@ -753,7 +753,11 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
             break;
         } catch (e) {
             if (retryCount <= 0) {
-                throw e;
+                if (continueOnError) {
+                    warning(e);
+                } else {
+                    throw e;
+                }
             } else {
                 console.log(loc('LIB_CopyFileFailed', retryCount));
                 retryCount--;
