@@ -738,16 +738,33 @@ export function ls(options: string, paths: string[]): string[] {
  * @param     dest       destination path
  * @param     options    string -r, -f or -rf for recursive and force
  * @param     continueOnError optional. whether to continue on error
+ * @param     retryCount optional. Retry count to copy the file. It might help to resolve intermittent issues e.g. with UNC target paths on a remote host.
  */
-export function cp(source: string, dest: string, options?: string, continueOnError?: boolean): void {
-    if (options) {
-        shell.cp(options, source, dest);
+export function cp(source: string, dest: string, options?: string, continueOnError?: boolean, retryCount: number = 0): void {
+    while (retryCount >= 0) {
+        if (options) {
+            shell.cp(options, source, dest);
+        }
+        else {
+            shell.cp(source, dest);
+        }
+        try {
+            _checkShell('cp', false);
+            break;
+        } catch (e) {
+            if (retryCount <= 0) {
+                if (continueOnError) {
+                    warning(e);
+                    break;
+                } else {
+                    throw e;
+                }
+            } else {
+                console.log(loc('LIB_CopyFileFailed', retryCount));
+                retryCount--;
+            }
+        }
     }
-    else {
-        shell.cp(source, dest);
-    }
-
-    _checkShell('cp', continueOnError);
 }
 
 /**
