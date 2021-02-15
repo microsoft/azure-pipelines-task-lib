@@ -125,6 +125,10 @@ export class FsStats implements fs.Stats {
     mtime: Date = new Date();
     ctime: Date = new Date();
     birthtime: Date = new Date();
+    atimeMs: number;
+    mtimeMs: number;
+    ctimeMs: number;
+    birthtimeMs: number;
 
     setAnswers(mockResponses: any): void {
         this.m_isFile = mockResponses['isFile'] || this.m_isFile;

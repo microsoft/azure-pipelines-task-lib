@@ -1,5 +1,5 @@
-/// <reference path="../typings/index.d.ts" />
-/// <reference path="../_build/task.d.ts" />
+// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 import assert = require('assert');
 import path = require('path');
@@ -31,7 +31,7 @@ describe('Dir Operation Tests', function () {
         this.timeout(1000);
 
         console.log('node version: ' + process.version);
-        const supportedNodeVersions = ['v5.10.1', 'v6.10.3', 'v6.17.1', 'v8.9.1', 'v10.17.0', 'v10.18.0'];
+        const supportedNodeVersions = ['v5.10.1', 'v6.10.3', 'v6.17.1', 'v8.9.1', 'v10.17.0', 'v10.18.0', 'v10.23.0', 'v14.11.0'];
         if (supportedNodeVersions.indexOf(process.version) === -1) {
             assert.fail(`expected node node version to be one of ${supportedNodeVersions.map(o => o).join(', ')}. actual: ` + process.version);
         }
@@ -41,7 +41,7 @@ describe('Dir Operation Tests', function () {
 
     // which tests
     it('which() finds file name', function (done) {
-        this.timeout(1000);
+        this.timeout(3000);
 
         // create a executable file
         let testPath = path.join(testutil.getTestTemp(), 'which-finds-file-name');
@@ -1801,7 +1801,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('move to existing destination should fail unless forced', function (done) {
+    it('move to existing destination should fail if no-clobber is enabled', function (done) {
         this.timeout(1000);
 
         var sourceFile = 'sourceFile';
@@ -1826,7 +1826,7 @@ describe('Dir Operation Tests', function () {
 
         var worked: boolean = false;
         try {
-            tl.mv(sourceFile, destFile);
+            tl.mv(sourceFile, destFile, "-n");
             worked = true;
         }
         catch (err) {
