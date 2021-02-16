@@ -20,8 +20,8 @@ Guidance: [Finding Files](docs/findingfiles.md), [Minimum agent version](docs/mi
 ## Node 10 Upgrade Notice
 
 Azure DevOps is currently working to establish Node 10 as the new preferred runtime for tasks, upgrading from Node 6.
-Relevant work is happening in the releases/3.x branch and will be merged into master when we have successfully migrated the majority of our first party tasks.
-Any changes should be dual-commited to both `master` and `releases/3.x` until the merge into master occurs.
+Relevant work is happening in the `master`` branch and the major version should be used with Node 10 is 3.
+Previous major version is stored in the `releases/2.x`
 
 ### Upgrading to Node 10
 
