@@ -6,10 +6,10 @@ To leverage this capability, simply add `Node10` as an execution target:
 
 ```
 "execution": {
-        "Node10": {
-            "target": "path/to/entry"
-        }
-    },
+    "Node10": {
+        "target": "path/to/entry"
+    }
+},
 ```
 
 Existing `Node` execution targets will still resolve to a Node 6 environment for now to maintain back-compat.
