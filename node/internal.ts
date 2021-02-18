@@ -708,6 +708,13 @@ export function _loadData(): void {
             _startsWith(envvar, 'SECRET_') ||
             _startsWith(envvar, 'VSTS_TASKVARIABLE_')) {
 
+            if (_startsWith(envvar, 'VSTS_TASKVARIABLE_')) {
+                var variableName = envvar.substring('VSTS_TASKVARIABLE_'.length);
+                if (variableName) {
+                    exports._knownVariableMap[_getVariableKey(variableName)] = { name: variableName, secret: false };
+                }
+            }            
+
             // Record the secret variable metadata. This is required by getVariable to know whether
             // to retrieve the value from the vault. In a 2.104.1 agent or higher, this metadata will
             // be overwritten when the VSTS_SECRET_VARIABLES env var is processed below.
@@ -727,7 +734,9 @@ export function _loadData(): void {
                 ++loaded;
                 _debug('loading ' + envvar);
                 _vault.storeSecret(envvar, value);
-                delete process.env[envvar];
+                if (_startsWith(envvar, 'SECRET_')) { // avoid deleting public variables
+                    delete process.env[envvar];       // as they are searched later to get their values
+                }
             }
         }
     }
