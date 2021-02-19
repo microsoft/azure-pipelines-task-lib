@@ -9,6 +9,7 @@ import os = require('os');
 import stream = require('stream');
 import * as tl from '../_build/task';
 import * as trm from '../_build/toolrunner';
+import * as tmrm from '../_build/mock-run';
 
 import testutil = require('./testutil');
 
@@ -2192,6 +2193,17 @@ describe('Toolrunner Tests', function () {
                     });
             }
         });
+        it('gets variable created with setVariableName', function (done) {
+            this.timeout(5000);
+    
+            var task_path = path.join(__dirname, 'scripts/index.js');
+            let tmr: tmrm.TaskMockRunner = new tmrm.TaskMockRunner(task_path);
+            tmr.setVariableName('foo', 'bar', false);
+    
+            tmr.run(true)
+    
+            done();
+        })
         it('Should handle arguments with quotes properly', function (done) {
             this.timeout(10000);
 
