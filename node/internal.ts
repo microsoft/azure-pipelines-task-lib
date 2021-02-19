@@ -734,8 +734,8 @@ export function _loadData(): void {
                 ++loaded;
                 _debug('loading ' + envvar);
                 _vault.storeSecret(envvar, value);
-                if (_startsWith(envvar, 'SECRET_')) { // avoid deleting public variables
-                    delete process.env[envvar];       // as they are searched later to get their values
+                if (!_startsWith(envvar, 'VSTS_TASKVARIABLE_')) { // avoid deleting public variables
+                    delete process.env[envvar];                   // as they are searched later to get their values
                 }
             }
         }
