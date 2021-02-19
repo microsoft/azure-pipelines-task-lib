@@ -709,9 +709,8 @@ export function _loadData(): void {
             _startsWith(envvar, 'VSTS_TASKVARIABLE_')) {
 
             if (_startsWith(envvar, 'VSTS_TASKVARIABLE_')) {
-                var variableName = envvar.substring('VSTS_TASKVARIABLE_'.length);
-                if (variableName) {
-                    exports._knownVariableMap[_getVariableKey(variableName)] = { name: variableName, secret: false };
+                if (envvar) {
+                    exports._knownVariableMap[_getVariableKey(envvar)] = { name: envvar, secret: false };
                 }
             }            
 
