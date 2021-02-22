@@ -229,7 +229,8 @@ export class MockTestRunner {
     // Downloads the specified node version to the download destination. Returns a path to node.exe
     private downloadNode(nodeVersion: string, downloadDestination: string): string {
         shelljs.rm('-rf', downloadDestination);
-        const nodeUrl: string = 'https://nodejs.org/dist';
+        let nodeUrl: string = process.env['TASK_NODE_URL'] || 'https://nodejs.org/dist';
+        nodeUrl = nodeUrl.replace(/\/$/, '');  // ensure there is no trailing slash on the base URL
         let downloadPath = '';
         switch (this.getPlatform()) {
             case 'darwin':
