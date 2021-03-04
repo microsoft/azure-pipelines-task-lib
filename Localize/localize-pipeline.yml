@@ -13,7 +13,7 @@ schedules:
 stages:
 - stage: __default
   jobs:
-  - job: Job1
+  - job: LocalizationUpdate
     pool:
       vmImage: windows-latest
     steps:
