@@ -462,6 +462,40 @@
         }
       }
     },
+    "restrictions": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Restrictions on tasks",
+      "properties": {
+        "commands": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Restrictions on available task commands",
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": [
+                "any",
+                "restricted"
+              ]
+            }
+          }
+        },
+        "settableVariables": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Restrictions on which variables can be set via commands",
+          "properties": {
+            "allowed": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
     "$schema": {
       "type": "string"
     }
