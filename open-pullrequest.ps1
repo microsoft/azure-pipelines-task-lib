@@ -9,11 +9,7 @@ function Get-PullRequest() {
     return $prInfo.html_url
 }
 
-<<<<<<< HEAD
 $openedPR = Get-PullRequest
-=======
-$openedPR=Get-PullRequest
->>>>>>> 01e2015 (Create open-pullrequest.ps1)
 
 if ($openedPR.length -ne 0) {
     throw "A PR from $SourceBranch to master already exists."
