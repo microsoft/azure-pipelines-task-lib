@@ -55,7 +55,7 @@ stages:
     - task: PublishBuildArtifacts@1
       condition: and(succeeded(), or(and(eq(variables['WEEK'], '3'), eq(variables['build.reason'], 'Schedule')), eq(variables['build.reason'], 'Manual')))
       displayName: 'Publish an artifact'
-      
+
     - powershell: |
         $date= Get-Date -Format "MMddyyyy"
         $updateBranch="Localization-update_$date"
@@ -101,4 +101,3 @@ stages:
         Invoke-RestMethod -Uri $(slackUri) -Method Post -Body $body -ContentType 'application/json'
       displayName: 'Send Slack notification about error'
       condition: and(failed(), eq(variables['WEEK'], '3'), eq(variables['build.reason'], 'Schedule'))
-
