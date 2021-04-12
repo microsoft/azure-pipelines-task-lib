@@ -183,24 +183,36 @@
       <Item ItemId=";loc.messages.LIB_PlatformNotSupported" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Platform not supported: %s]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Plateforme non prise en charge : %s]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";loc.messages.LIB_ProcessError" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[There was an error when attempting to execute the process '%s'. This may indicate the process failed to start. Error: %s]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Erreur durant la tentative d'exécution du processus '%s'. Cela peut indiquer que le processus n'a pas réussi à démarrer. Erreur : %s]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";loc.messages.LIB_ProcessExitCode" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The process '%s' failed with exit code %s]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Échec du processus '%s'. Code de sortie : %s]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";loc.messages.LIB_ProcessStderr" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The process '%s' failed because one or more lines were written to the STDERR stream]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Échec du processus '%s', car une ou plusieurs lignes ont été écrites dans le flux STDERR]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -243,6 +255,9 @@
       <Item ItemId=";loc.messages.LIB_StdioNotClosed" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The STDIO streams did not close within %s seconds of the exit event from process '%s'. This may indicate a child process inherited the STDIO streams and has not yet exited.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Les flux STDIO ne se sont pas fermés dans les %s secondes qui ont suivi l'événement exit du processus '%s'. Cela peut indiquer qu'un processus enfant a hérité des flux STDIO et qu'il n'est pas encore sorti.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
