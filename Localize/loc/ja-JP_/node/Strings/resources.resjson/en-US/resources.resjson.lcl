@@ -183,24 +183,36 @@
       <Item ItemId=";loc.messages.LIB_PlatformNotSupported" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Platform not supported: %s]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[プラットフォームがサポートされていません: %s]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";loc.messages.LIB_ProcessError" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[There was an error when attempting to execute the process '%s'. This may indicate the process failed to start. Error: %s]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[プロセス '%s' を実行しようとしているときにエラーが発生しました。プロセスの開始に失敗したおそれがあります。エラー: %s]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";loc.messages.LIB_ProcessExitCode" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The process '%s' failed with exit code %s]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[プロセス '%s' が終了コード %s で失敗しました]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";loc.messages.LIB_ProcessStderr" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The process '%s' failed because one or more lines were written to the STDERR stream]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[1 つ以上の行が STDERR ストリームに書き込まれたため、プロセス '%s' が失敗しました]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -243,6 +255,9 @@
       <Item ItemId=";loc.messages.LIB_StdioNotClosed" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The STDIO streams did not close within %s seconds of the exit event from process '%s'. This may indicate a child process inherited the STDIO streams and has not yet exited.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[STDIO ストリームが、プロセス '%s' の終了イベントから %s 秒以内に終了しませんでした。これは、子プロセスが STDIO ストリームを継承し、まだ終了していないことを示している可能性があります。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
