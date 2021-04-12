@@ -183,24 +183,36 @@
       <Item ItemId=";loc.messages.LIB_PlatformNotSupported" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Platform not supported: %s]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Plattform wird nicht unterstützt: %s]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";loc.messages.LIB_ProcessError" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[There was an error when attempting to execute the process '%s'. This may indicate the process failed to start. Error: %s]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fehler beim Ausführen des Prozesses "%s". Möglicherweise konnte der Prozess nicht gestartet werden. Fehler: %s]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";loc.messages.LIB_ProcessExitCode" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The process '%s' failed with exit code %s]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fehler beim Prozess "%s" mit Exitcode %s.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";loc.messages.LIB_ProcessStderr" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The process '%s' failed because one or more lines were written to the STDERR stream]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fehler beim Prozess "%s": Mindestens eine Zeile wurde in den STDERR-Datenstrom geschrieben.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -243,6 +255,9 @@
       <Item ItemId=";loc.messages.LIB_StdioNotClosed" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The STDIO streams did not close within %s seconds of the exit event from process '%s'. This may indicate a child process inherited the STDIO streams and has not yet exited.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Die STDIO-Datenströme wurden nicht innerhalb von %s Sekunden nach dem Beendigungsereignis aus dem Prozess "%s" geschlossen. Möglicherweise hat ein untergeordneter Prozess die STDIO-Datenströme geerbt und wurde noch nicht beendet.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
