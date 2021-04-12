@@ -66,7 +66,7 @@ export const setErrStream = im._setErrStream;
  * Execution will continue.
  * If not set, task will be Succeeded.
  * If multiple calls are made to setResult the most pessimistic call wins (Failed) regardless of the order of calls.
- * 
+ *
  * @param result    TaskResult enum of Succeeded, SucceededWithIssues, Failed, Cancelled or Skipped.
  * @param message   A message which will be logged as an error issue if the result is Failed.
  * @param done      Optional. Instructs the agent the task is done. This is helpful when child processes
@@ -212,7 +212,7 @@ export interface VariableInfo {
 /**
  * Gets the value of an input.
  * If required is true and the value is not set, it will throw.
- * 
+ *
  * @param     name     name of the input to get
  * @param     required whether input is required.  optional, defaults to false
  * @returns   string
@@ -232,7 +232,7 @@ export function getInput(name: string, required?: boolean): string | undefined {
  * Gets the value of an input and converts to a bool.  Convenience.
  * If required is true and the value is not set, it will throw.
  * If required is false and the value is not set, returns false.
- * 
+ *
  * @param     name     name of the bool input to get
  * @param     required whether input is required.  optional, defaults to false
  * @returns   boolean
@@ -248,7 +248,7 @@ export function getBoolInput(name: string, required?: boolean): boolean {
  * IMPORTANT: Do not use this function for splitting additional args!  Instead use argString(), which
  * follows normal argument splitting rules and handles values encapsulated by quotes.
  * If required is true and the value is not set, it will throw.
- * 
+ *
  * @param     name     name of the input to get
  * @param     delim    delimiter to split on
  * @param     required whether input is required.  optional, defaults to false
@@ -274,7 +274,7 @@ export function getDelimitedInput(name: string, delim: string | RegExp, required
  * Checks whether a path inputs value was supplied by the user
  * File paths are relative with a picker, so an empty path is the root of the repo.
  * Useful if you need to condition work (like append an arg) if a value was supplied
- * 
+ *
  * @param     name      name of the path input to check
  * @returns   boolean
  */
@@ -293,10 +293,10 @@ export function filePathSupplied(name: string): boolean {
  * It will be quoted for you if it isn't already and contains spaces
  * If required is true and the value is not set, it will throw.
  * If check is true and the path does not exist, it will throw.
- * 
+ *
  * @param     name      name of the input to get
  * @param     required  whether input is required.  optional, defaults to false
- * @param     check     whether path is checked.  optional, defaults to false 
+ * @param     check     whether path is checked.  optional, defaults to false
  * @returns   string
  */
 export function getPathInput(name: string, required?: boolean, check?: boolean): string | undefined {
@@ -317,12 +317,12 @@ export function getPathInput(name: string, required?: boolean, check?: boolean):
 /**
  * Gets the url for a service endpoint
  * If the url was not set and is not optional, it will throw.
- * 
+ *
  * @param     id        name of the service endpoint
  * @param     optional  whether the url is optional
  * @returns   string
  */
-export function getEndpointUrl(id: string, optional: boolean): string {
+export function getEndpointUrl(id: string, optional: boolean): string | undefined {
     var urlval = process.env['ENDPOINT_URL_' + id];
 
     if (!optional && !urlval) {
@@ -342,7 +342,7 @@ export function getEndpointUrl(id: string, optional: boolean): string {
  * @param optional whether the endpoint data is optional
  * @returns {string} value of the endpoint data parameter
  */
-export function getEndpointDataParameter(id: string, key: string, optional: boolean): string {
+export function getEndpointDataParameter(id: string, key: string, optional: boolean): string | undefined {
     var dataParamVal = process.env['ENDPOINT_DATA_' + id + '_' + key.toUpperCase()];
 
     if (!optional && !dataParamVal) {
@@ -408,7 +408,7 @@ export interface EndpointAuthorization {
 /**
  * Gets the authorization details for a service endpoint
  * If the authorization was not set and is not optional, it will throw.
- * 
+ *
  * @param     id        name of the service endpoint
  * @param     optional  whether the url is optional
  * @returns   string
@@ -441,18 +441,18 @@ export function getEndpointAuthorization(id: string, optional: boolean): Endpoin
 
 /**
  * Gets the name for a secure file
- * 
+ *
  * @param     id        secure file id
  * @returns   string
  */
-export function getSecureFileName(id: string): string {
+export function getSecureFileName(id: string): string | undefined {
     var name = process.env['SECUREFILE_NAME_' + id];
 
     debug('secure file name for id ' + id + ' = ' + name);
     return name;
 }
 
-/** 
+/**
   * Gets the secure file ticket that can be used to download the secure file contents
   *
   * @param id name of the secure file
@@ -471,7 +471,7 @@ export function getSecureFileTicket(id: string): string | undefined {
 /**
  * Gets a variable value that is set by previous step from the same wrapper task.
  * Requires a 2.115.0 agent or higher.
- * 
+ *
  * @param     name     name of the variable to get
  * @returns   string
  */
@@ -489,7 +489,7 @@ export function getTaskVariable(name: string): string | undefined {
 /**
  * Sets a task variable which will only be available to subsequent steps belong to the same wrapper task.
  * Requires a 2.115.0 agent or higher.
- * 
+ *
  * @param     name    name of the variable to set
  * @param     val     value to set
  * @param     secret  whether variable is secret.  optional, defaults to false
@@ -540,12 +540,12 @@ export interface FsStats extends fs.Stats {
 }
 
 /**
- * Get's stat on a path. 
+ * Get's stat on a path.
  * Useful for checking whether a file or directory.  Also getting created, modified and accessed time.
  * see [fs.stat](https://nodejs.org/api/fs.html#fs_class_fs_stats)
- * 
+ *
  * @param     path      path to check
- * @returns   fsStat 
+ * @returns   fsStat
  */
 export function stats(path: string): FsStats {
     return fs.statSync(path);
@@ -553,15 +553,9 @@ export function stats(path: string): FsStats {
 
 export const exist = im._exist;
 
-export interface FsOptions {
-    encoding?: string;
-    mode?: number;
-    flag?: string;
-}
-
-export function writeFile(file: string, data: string | Buffer, options?: string | FsOptions) {
-    if(typeof(options) === 'string'){
-        fs.writeFileSync(file, data, {encoding: options});
+export function writeFile(file: string, data: string | Buffer, options?: BufferEncoding | fs.WriteFileOptions) {
+    if (typeof(options) === 'string'){
+        fs.writeFileSync(file, data, {encoding: options as BufferEncoding});
     }
     else {
         fs.writeFileSync(file, data, options);
@@ -572,7 +566,7 @@ export function writeFile(file: string, data: string | Buffer, options?: string 
  * @deprecated Use `getPlatform`
  * Useful for determining the host operating system.
  * see [os.type](https://nodejs.org/api/os.html#os_os_type)
- * 
+ *
  * @return      the name of the operating system
  */
 export function osType(): string {
@@ -596,7 +590,7 @@ export function getPlatform(): Platform {
 /**
  * Returns the process's current working directory.
  * see [process.cwd](https://nodejs.org/api/process.html#process_process_cwd)
- * 
+ *
  * @return      the path to the current working directory of the process
  */
 export function cwd(): string {
@@ -607,9 +601,9 @@ export const checkPath = im._checkPath;
 
 /**
  * Change working directory.
- * 
+ *
  * @param     path      new working directory path
- * @returns   void 
+ * @returns   void
  */
 export function cd(path: string): void {
     if (path) {
@@ -620,7 +614,7 @@ export function cd(path: string): void {
 
 /**
  * Change working directory and push it on the stack
- * 
+ *
  * @param     path      new working directory path
  * @returns   void
  */
@@ -631,7 +625,7 @@ export function pushd(path: string): void {
 
 /**
  * Change working directory back to previously pushed directory
- * 
+ *
  * @returns   void
  */
 export function popd(): void {
@@ -642,7 +636,7 @@ export function popd(): void {
 /**
  * Make a directory.  Creates the full path with folders in between
  * Will throw if it fails
- * 
+ *
  * @param     p       path to create
  * @returns   void
  */
@@ -739,29 +733,46 @@ export function ls(options: string, paths: string[]): string[] {
 
 /**
  * Copies a file or folder.
- * 
+ *
  * @param     source     source path
  * @param     dest       destination path
- * @param     options    string -r, -f or -rf for recursive and force 
+ * @param     options    string -r, -f or -rf for recursive and force
  * @param     continueOnError optional. whether to continue on error
+ * @param     retryCount optional. Retry count to copy the file. It might help to resolve intermittent issues e.g. with UNC target paths on a remote host.
  */
-export function cp(source: string, dest: string, options?: string, continueOnError?: boolean): void {
-    if (options) {
-        shell.cp(options, source, dest);
+export function cp(source: string, dest: string, options?: string, continueOnError?: boolean, retryCount: number = 0): void {
+    while (retryCount >= 0) {
+        if (options) {
+            shell.cp(options, source, dest);
+        }
+        else {
+            shell.cp(source, dest);
+        }
+        try {
+            _checkShell('cp', false);
+            break;
+        } catch (e) {
+            if (retryCount <= 0) {
+                if (continueOnError) {
+                    warning(e);
+                    break;
+                } else {
+                    throw e;
+                }
+            } else {
+                console.log(loc('LIB_CopyFileFailed', retryCount));
+                retryCount--;
+            }
+        }
     }
-    else {
-        shell.cp(source, dest);
-    }
-
-    _checkShell('cp', continueOnError);
 }
 
 /**
  * Moves a path.
- * 
+ *
  * @param     source     source path
  * @param     dest       destination path
- * @param     options    string -f or -n for force and no clobber 
+ * @param     options    string -f or -n for force and no clobber
  * @param     continueOnError optional. whether to continue on error
  */
 export function mv(source: string, dest: string, options?: string, continueOnError?: boolean): void {
@@ -1144,7 +1155,7 @@ function _legacyFindFiles_getMatchingItems(
 
 /**
  * Remove a path recursively with force
- * 
+ *
  * @param     inputPath path to remove
  * @throws    when the file or directory exists but could not be deleted.
  */
@@ -1226,7 +1237,7 @@ export function rmRF(inputPath: string): void {
  * Exec a tool.  Convenience wrapper over ToolRunner to exec with args in one call.
  * Output will be streamed to the live console.
  * Returns promise with return code
- * 
+ *
  * @param     tool     path to tool to exec
  * @param     args     an arg string or array of args
  * @param     options  optional exec options.  See IExecOptions
@@ -1252,9 +1263,9 @@ export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Pro
 /**
  * Exec a tool synchronously.  Convenience wrapper over ToolRunner to execSync with args in one call.
  * Output will be *not* be streamed to the live console.  It will be returned after execution is complete.
- * Appropriate for short running tools 
+ * Appropriate for short running tools
  * Returns IExecResult with output and return code
- * 
+ *
  * @param     tool     path to tool to exec
  * @param     args     an arg string or array of args
  * @param     options  optional exec options.  See IExecSyncOptions
@@ -1280,7 +1291,7 @@ export function execSync(tool: string, args: string | string[], options?: trm.IE
 
 /**
  * Convenience factory to create a ToolRunner.
- * 
+ *
  * @param     tool     path to tool to exec
  * @returns   ToolRunner
  */
@@ -1868,11 +1879,11 @@ export class CodeCoverageEnabler {
 //-----------------------------------------------------
 
 /**
- * Upload user interested file as additional log information 
+ * Upload user interested file as additional log information
  * to the current timeline record.
- * 
+ *
  * The file shall be available for download along with task logs.
- * 
+ *
  * @param path      Path to the file that should be uploaded.
  * @returns         void
  */
@@ -1884,7 +1895,7 @@ export function uploadFile(path: string) {
  * Instruction for the agent to update the PATH environment variable.
  * The specified directory is prepended to the PATH.
  * The updated environment variable will be reflected in subsequent tasks.
- * 
+ *
  * @param path      Local directory path.
  * @returns         void
  */
@@ -1895,9 +1906,9 @@ export function prependPath(path: string) {
 
 /**
  * Upload and attach summary markdown to current timeline record.
- * This summary shall be added to the build/release summary and 
+ * This summary shall be added to the build/release summary and
  * not available for download with logs.
- * 
+ *
  * @param path      Local directory path.
  * @returns         void
  */
@@ -1908,8 +1919,8 @@ export function uploadSummary(path: string) {
 /**
  * Upload and attach attachment to current timeline record.
  * These files are not available for download with logs.
- * These can only be referred to by extensions using the type or name values. 
- * 
+ * These can only be referred to by extensions using the type or name values.
+ *
  * @param type      Attachment type.
  * @param name      Attachment name.
  * @param path      Attachment path.
@@ -1921,9 +1932,9 @@ export function addAttachment(type: string, name: string, path: string) {
 
 /**
  * Set an endpoint field with given value.
- * Value updated will be retained in the endpoint for 
+ * Value updated will be retained in the endpoint for
  * the subsequent tasks that execute within the same job.
- * 
+ *
  * @param id      Endpoint id.
  * @param field   FieldType enum of AuthParameter, DataParameter or Url.
  * @param key     Key.
@@ -1936,9 +1947,9 @@ export function setEndpoint(id: string, field: FieldType, key: string, value: st
 
 /**
  * Set progress and current operation for current task.
- * 
+ *
  * @param percent           Percentage of completion.
- * @param currentOperation  Current pperation. 
+ * @param currentOperation  Current pperation.
  * @returns                 void
  */
 export function setProgress(percent: number, currentOperation: string) {
@@ -2009,11 +2020,11 @@ export function logIssue(type: IssueType, message: string, sourcePath?: string, 
 //-----------------------------------------------------
 
 /**
- * Upload user interested file as additional log information 
+ * Upload user interested file as additional log information
  * to the current timeline record.
- * 
+ *
  * The file shall be available for download along with task logs.
- * 
+ *
  * @param containerFolder   Folder that the file will upload to, folder will be created if needed.
  * @param path              Path to the file that should be uploaded.
  * @param name              Artifact name.
@@ -2024,11 +2035,11 @@ export function uploadArtifact(containerFolder: string, path: string, name?: str
 }
 
 /**
- * Create an artifact link, artifact location is required to be 
- * a file container path, VC path or UNC share path. 
- * 
+ * Create an artifact link, artifact location is required to be
+ * a file container path, VC path or UNC share path.
+ *
  * The file shall be available for download along with task logs.
- * 
+ *
  * @param name              Artifact name.
  * @param path              Path to the file that should be associated.
  * @param artifactType      ArtifactType enum of Container, FilePath, VersionControl, GitRef or TfvcLabel.
@@ -2044,7 +2055,7 @@ export function associateArtifact(name: string, path: string, artifactType: Arti
 
 /**
  * Upload user interested log to build’s container “logs\tool” folder.
- * 
+ *
  * @param path      Path to the file that should be uploaded.
  * @returns         void
  */
@@ -2054,7 +2065,7 @@ export function uploadBuildLog(path: string) {
 
 /**
  * Update build number for current build.
- * 
+ *
  * @param value     Value to be assigned as the build number.
  * @returns         void
  */
@@ -2064,7 +2075,7 @@ export function updateBuildNumber(value: string) {
 
 /**
  * Add a tag for current build.
- * 
+ *
  * @param value     Tag value.
  * @returns         void
  */
@@ -2078,7 +2089,7 @@ export function addBuildTag(value: string) {
 
 /**
  * Update release name for current release.
- * 
+ *
  * @param value     Value to be assigned as the release name.
  * @returns         void
  */
@@ -2100,7 +2111,7 @@ exports.ToolRunner = trm.ToolRunner;
 
 // async await needs generators in node 4.x+
 if (semver.lt(process.versions.node, '4.2.0')) {
-    this.warning('Tasks require a new agent.  Upgrade your agent or node to 4.2.0 or later');
+    warning('Tasks require a new agent.  Upgrade your agent or node to 4.2.0 or later');
 }
 
 //-------------------------------------------------------------------

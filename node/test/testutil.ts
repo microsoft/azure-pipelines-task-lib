@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 import path = require('path');
 import util = require('util');
 import stream = require('stream');
@@ -35,7 +38,7 @@ var NullStream = function () {
 util.inherits(NullStream, stream.Writable);
 
 export function getNullStream() {
-    return new NullStream();    
+    return new NullStream();
 }
 
 export class StringStream extends stream.Writable {
@@ -57,7 +60,7 @@ export class StringStream extends stream.Writable {
 }
 
 export function createStringStream() {
-    return new StringStream();    
+    return new StringStream();
 }
 
 export function buildOutput(lines: string[]): string {
