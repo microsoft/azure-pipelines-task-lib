@@ -906,7 +906,14 @@ export function find(findPath: string, options?: FindOptions): string[] {
 
                 if (options.followSymbolicLinks) {
                     // get the realpath
-                    let realPath: string = fs.realpathSync(item.path);
+                    let realPath: string;
+                    try {
+                        realPath = fs.realpathSync(item.path);
+                    } 
+                    catch {
+                        // retry once in case of failure
+                        realPath = fs.realpathSync(item.path);
+                    }
 
                     // fixup the traversal chain to match the item level
                     while (traversalChain.length >= item.level) {
