@@ -17,7 +17,7 @@ jobs:
         labels: |
           "Area: TaskLib"
           triage
-    - name: "Assign new opened issues to project board"
+    - name: "Assign newly opened issues to project board"
       uses: srggrs/assign-one-project-github-action@1.2.0
       with:
         project: 'https://github.com/orgs/microsoft/projects/48'
