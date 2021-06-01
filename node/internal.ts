@@ -243,7 +243,11 @@ export function _getVariable(name: string): string | undefined  {
     }
     else {
         // get the public value
-        varval = process.env[key];
+        if (_startsWith(key, 'VSTS_TASKVARIABLE_')) {
+            varval = _knownVariableMap[key].value
+        } else {
+            varval = process.env[key];
+        }
 
         // fallback for pre 2.104.1 agent
         if (!varval && name.toUpperCase() == 'AGENT.JOBSTATUS') {
@@ -267,10 +271,13 @@ export function _getVariableKey(name: string): string {
  * Used to store the following information about job variables:
  *  1) the real variable name (not the formatted environment variable name)
  *  2) whether the variable is a secret variable
+ *  3) if it is not a secret variable, the value can be stored in value field,
+ *     otherwise, it will use vault to store the secret
  */
 export interface _KnownVariableInfo {
     name: string;
     secret: boolean;
+    value: string;
 }
 
 //-----------------------------------------------------
@@ -710,7 +717,9 @@ export function _loadData(): void {
 
             if (_startsWith(envvar, 'VSTS_TASKVARIABLE_')) {
                 if (envvar) {
-                    exports._knownVariableMap[_getVariableKey(envvar)] = { name: envvar, secret: false };
+                    exports._knownVariableMap[_getVariableKey(envvar)] = <_KnownVariableInfo>{ name: envvar, 
+                                                                                               secret: false, 
+                                                                                               value: process.env[envvar] };
                 }
             }            
 
@@ -733,9 +742,7 @@ export function _loadData(): void {
                 ++loaded;
                 _debug('loading ' + envvar);
                 _vault.storeSecret(envvar, value);
-                if (!_startsWith(envvar, 'VSTS_TASKVARIABLE_')) { // avoid deleting public variables
-                    delete process.env[envvar];                   // as they are searched later to get their values
-                }
+                delete process.env[envvar]; 
             }
         }
     }
