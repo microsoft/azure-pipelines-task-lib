@@ -742,7 +742,7 @@ export function _loadData(): void {
                 ++loaded;
                 _debug('loading ' + envvar);
                 _vault.storeSecret(envvar, value);
-                delete process.env[envvar]; 
+                delete process.env[envvar];
             }
         }
     }
