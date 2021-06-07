@@ -742,13 +742,14 @@ export function ls(options: string, paths: string[]): string[] {
  */
 export function cp(source: string, dest: string, options?: string, continueOnError?: boolean, retryCount: number = 0): void {
     while (retryCount >= 0) {
-        if (options) {
-            shell.cp(options, source, dest);
-        }
-        else {
-            shell.cp(source, dest);
-        }
         try {
+            if (options) {
+                shell.cp(options, source, dest);
+            }
+            else {
+                shell.cp(source, dest);
+            }
+
             _checkShell('cp', false);
             break;
         } catch (e) {
