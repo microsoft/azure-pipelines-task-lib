@@ -1229,7 +1229,16 @@ describe('Toolrunner Tests', function () {
         assert.equal((node as any).args.toString(), '--path,/bin/working folder1', 'should be --path /bin/working folder1');
         done();
     })
-
+    it('handles escaped quotes', function (done) {
+        this.timeout(10000);
+        var node = tl.tool(tl.which('node', true));
+        node.line('-TEST="escaped\\\"quotes" -x');
+        node.arg('-y');
+        console.log((node as any).args.toString())
+        assert.equal((node as any).args.length, 3, 'should have 3 args');
+        assert.equal((node as any).args.toString(), '-TEST=escaped"quotes,-x,-y', 'should be -TEST=escaped"quotes');
+        done();        
+    })
     if (process.platform != 'win32') {
         it('exec prints [command] (OSX/Linux)', function (done) {
             this.timeout(10000);
