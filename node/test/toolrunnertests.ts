@@ -1234,7 +1234,6 @@ describe('Toolrunner Tests', function () {
         var node = tl.tool(tl.which('node', true));
         node.line('-TEST="escaped\\\"quotes" -x');
         node.arg('-y');
-        console.log((node as any).args.toString())
         assert.equal((node as any).args.length, 3, 'should have 3 args');
         assert.equal((node as any).args.toString(), '-TEST=escaped"quotes,-x,-y', 'should be -TEST=escaped"quotes,-x,-y');
         done();        
