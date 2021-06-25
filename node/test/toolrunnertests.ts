@@ -1236,7 +1236,7 @@ describe('Toolrunner Tests', function () {
         node.arg('-y');
         console.log((node as any).args.toString())
         assert.equal((node as any).args.length, 3, 'should have 3 args');
-        assert.equal((node as any).args.toString(), '-TEST=escaped"quotes,-x,-y', 'should be -TEST=escaped"quotes');
+        assert.equal((node as any).args.toString(), '-TEST=escaped"quotes,-x,-y', 'should be -TEST=escaped"quotes,-x,-y');
         done();        
     })
     if (process.platform != 'win32') {
