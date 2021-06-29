@@ -96,8 +96,8 @@ export class ToolRunner extends events.EventEmitter {
 
         var append = function (c: string) {
             // we only escape double quotes.
-            if (escaped){
-                if(c !== '"') {
+            if (escaped) {
+                if (c !== '"') {
                     arg += '\\';
                 } else {
                     arg.slice(0, -1);         
