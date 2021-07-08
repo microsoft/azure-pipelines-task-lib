@@ -813,13 +813,60 @@ export interface FindOptions {
 }
 
 /**
+ * Interface for RetryOptions
+ *
+ * Contains "continueOnError" and "retryCount" options.
+ */
+export interface RetryOptions {
+
+    /**
+     * If true, code still continues to execute when all retries failed.
+     */
+    continueOnError: boolean,
+
+    /**
+     * Number of retries.
+     */
+    retryCount: number
+}
+
+/**
+ * Tries to execute a function a specified number of times.
+ *
+ * @param   func            a function to be executed.
+ * @param   args            executed function arguments array.
+ * @param   retryOptions    optional. Defaults to { continueOnError: false, retryCount: 0 }.
+ * @returns the same as the usual function
+ */
+function retry(func: Function, args: any[], retryOptions: RetryOptions = { continueOnError: false, retryCount: 0 }): any {
+    while (retryOptions.retryCount >= 0) {
+        try {
+            return func(...args);
+        } catch (e) {
+            if (retryOptions.retryCount <= 0) {
+                if (retryOptions.continueOnError) {
+                    warning(e);
+                    break;
+                } else {
+                    throw e;
+                }
+            } else {
+                console.log(`Attempt to execute function "${func?.name}" failed, retries left: ${retryOptions.retryCount}`);
+                retryOptions.retryCount--;
+            }
+        }
+    }
+}
+
+/**
  * Recursively finds all paths a given path. Returns an array of paths.
  *
  * @param     findPath  path to search
  * @param     options   optional. defaults to { followSymbolicLinks: true }. following soft links is generally appropriate unless deleting files.
+ * @param     realpathSyncRetryOptions  optional. Allows setting retry logic for "fs.realpathSync" method.
  * @returns   string[]
  */
-export function find(findPath: string, options?: FindOptions): string[] {
+export function find(findPath: string, options?: FindOptions, realpathSyncRetryOptions?: RetryOptions): string[] {
     if (!findPath) {
         debug('no path specified');
         return [];
@@ -907,7 +954,7 @@ export function find(findPath: string, options?: FindOptions): string[] {
 
                 if (options.followSymbolicLinks) {
                     // get the realpath
-                    let realPath: string = fs.realpathSync(item.path);
+                    let realPath: string = retry(fs.realpathSync, [item.path], realpathSyncRetryOptions);
 
                     // fixup the traversal chain to match the item level
                     while (traversalChain.length >= item.level) {
