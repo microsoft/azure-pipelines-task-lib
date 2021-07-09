@@ -898,7 +898,7 @@ export function find(findPath: string, options?: FindOptions): string[] {
             }
             else {
                 if (!fs.existsSync(item.path)) {
-                    debug(`File "${item.path}" has not been found and will be skipped.`);
+                    debug(`File "${item.path}" seems to be removed during find operation execution - so skipping it.`);
                     continue;
                 }
                 // use lstat (not following symlinks)
