@@ -897,6 +897,10 @@ export function find(findPath: string, options?: FindOptions): string[] {
                 }
             }
             else {
+                if (!fs.existsSync(item.path)) {
+                    debug(`File ${item.path} has not been found and will be ignored.`);
+                    continue;
+                }
                 // use lstat (not following symlinks)
                 stats = fs.lstatSync(item.path);
             }
