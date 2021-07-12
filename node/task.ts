@@ -812,6 +812,12 @@ export interface FindOptions {
     followSymbolicLinks: boolean;
 }
 
+/**
+ * Defines if path is unc-path
+ * 
+ * @param path  a path to a file
+ * @returns     true if path starts with double backslash, otherwise returns false
+ */
 function isUncPath(path: string) {
     return /^\\\\[^\\]/.test(path);
 }
@@ -959,7 +965,7 @@ export function find(findPath: string, options?: FindOptions): string[] {
                     // get the realpath
                     let realPath: string;
                     if (isUncPath(item.path)) {
-                        realPath = retry(fs.realpathSync, [item.path], { continueOnError: false, retryCount: 10 });
+                        realPath = retry(fs.realpathSync, [item.path], { continueOnError: false, retryCount: 5 });
                     } else {
                         realPath = fs.realpathSync(item.path);
                     }
