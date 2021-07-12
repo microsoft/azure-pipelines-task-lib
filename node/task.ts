@@ -812,6 +812,10 @@ export interface FindOptions {
     followSymbolicLinks: boolean;
 }
 
+function isUncPath(path: string) {
+    return /^\\\\[^\\]/.test(path);
+}
+
 /**
  * Interface for RetryOptions
  *
@@ -863,10 +867,9 @@ function retry(func: Function, args: any[], retryOptions: RetryOptions = { conti
  *
  * @param     findPath  path to search
  * @param     options   optional. defaults to { followSymbolicLinks: true }. following soft links is generally appropriate unless deleting files.
- * @param     realpathSyncRetryOptions  optional. Allows setting retry logic for "fs.realpathSync" method.
  * @returns   string[]
  */
-export function find(findPath: string, options?: FindOptions, realpathSyncRetryOptions?: RetryOptions): string[] {
+export function find(findPath: string, options?: FindOptions): string[] {
     if (!findPath) {
         debug('no path specified');
         return [];
@@ -954,7 +957,12 @@ export function find(findPath: string, options?: FindOptions, realpathSyncRetryO
 
                 if (options.followSymbolicLinks) {
                     // get the realpath
-                    let realPath: string = retry(fs.realpathSync, [item.path], realpathSyncRetryOptions);
+                    let realPath: string;
+                    if (isUncPath(item.path)) {
+                        realPath = retry(fs.realpathSync, [item.path], { continueOnError: false, retryCount: 10 });
+                    } else {
+                        realPath = fs.realpathSync(item.path);
+                    }
 
                     // fixup the traversal chain to match the item level
                     while (traversalChain.length >= item.level) {
