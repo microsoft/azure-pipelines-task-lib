@@ -813,10 +813,10 @@ export interface FindOptions {
 }
 
 /**
- * Defines if path is unc-path
+ * Defines if path is unc-path.
  *
- * @param path  a path to a file
- * @returns     true if path starts with double backslash, otherwise returns false
+ * @param path  a path to a file.
+ * @returns     true if path starts with double backslash, otherwise returns false.
  */
 function isUncPath(path: string) {
     return /^\\\\[^\\]/.test(path);
