@@ -846,7 +846,7 @@ export interface RetryOptions {
  * @param   func            a function to be executed.
  * @param   args            executed function arguments array.
  * @param   retryOptions    optional. Defaults to { continueOnError: false, retryCount: 0 }.
- * @returns the same as the usual function
+ * @returns the same as the usual function.
  */
 function retry(func: Function, args: any[], retryOptions: RetryOptions = { continueOnError: false, retryCount: 0 }): any {
     while (retryOptions.retryCount >= 0) {
