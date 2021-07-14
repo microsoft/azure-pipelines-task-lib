@@ -21,6 +21,8 @@
         "matchtests.ts",
         "filtertests.ts",
         "findmatchtests.ts",
-        "mocktests.ts"
+        "mocktests.ts",
+        "retrytests.ts",
+        "isuncpathtests.ts"
     ]
 }
