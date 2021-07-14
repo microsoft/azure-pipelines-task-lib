@@ -50,6 +50,8 @@ describe('Retry Tests', function () {
         assert.deepEqual(tl.retry(fail, [count(5)], { continueOnError: false, retryCount: 5 }), 'completed');
         assert.deepEqual(tl.retry(fail, [count(5)], { continueOnError: false, retryCount: 6 }), 'completed');
         assert.deepEqual(tl.retry(fail, [count(5)], { continueOnError: true, retryCount: 3 }), undefined);
+        assert.deepEqual(tl.retry(() => 123, [0, 'a', 1, 'b', 2], { continueOnError: false, retryCount: 7 }), 123);
+        assert.deepEqual(tl.retry((a: string, b: string) => a + b, [''], { continueOnError: false, retryCount: 7 }), 'undefined');
 
         done();
     });
