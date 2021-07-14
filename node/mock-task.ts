@@ -287,12 +287,12 @@ export function cp(source: string, dest: string): void {
     module.exports.debug('copying ' + source + ' to ' + dest);
 }
 
-export function isUncPath(path: string) {
+export function isUncPath(path: string): boolean {
     module.exports.debug(`defining if ${path} is unc-path`);
     return true;
 }
 
-export function retry(func: Function, args: any[], retryOptions: task.RetryOptions) {
+export function retry(func: Function, args: any[], retryOptions: task.RetryOptions): any {
     module.exports.debug(`trying to execute ${func?.name}(${args.toString()}) with ${retryOptions.retryCount} retries`);
 }
 
