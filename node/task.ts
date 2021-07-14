@@ -818,7 +818,7 @@ export interface FindOptions {
  * @param path  a path to a file.
  * @returns     true if path starts with double backslash, otherwise returns false.
  */
-function isUncPath(path: string) {
+export function isUncPath(path: string) {
     return /^\\\\[^\\]/.test(path);
 }
 
@@ -848,7 +848,7 @@ export interface RetryOptions {
  * @param   retryOptions    optional. Defaults to { continueOnError: false, retryCount: 0 }.
  * @returns the same as the usual function.
  */
-function retry(func: Function, args: any[], retryOptions: RetryOptions = { continueOnError: false, retryCount: 0 }): any {
+export function retry(func: Function, args: any[], retryOptions: RetryOptions = { continueOnError: false, retryCount: 0 }): any {
     while (retryOptions.retryCount >= 0) {
         try {
             return func(...args);
