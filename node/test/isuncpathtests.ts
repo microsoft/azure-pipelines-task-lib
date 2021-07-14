@@ -26,7 +26,11 @@ describe('Is UNC-path Tests', function () {
         const paths = [
             { str: '\\server\\path\\to\\file', unc: false },
             { str: '\\\\server\\path\\to\\file', unc: true },
-            { str: '\\\\\\server\\path\\to\\file', unc: false }
+            { str: '\\\\\\server\\path\\to\\file', unc: false },
+            { str: '!@#$%^&*()_+', unc: false },
+            { str: '\\\\\\\\\\\\', unc: false },
+            { str: '1q2w3e4r5t6y', unc: false },
+            { str: '', unc: false }
         ];
 
         for (let path of paths) {
