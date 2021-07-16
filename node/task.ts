@@ -969,6 +969,7 @@ export function find(findPath: string, options?: FindOptions): string[] {
                     // get the realpath
                     let realPath: string;
                     if (isUncPath(item.path)) {
+                        // Sometimes there are spontaneous issues when working with unc-paths, so retries have been added for them.
                         realPath = retry(fs.realpathSync, [item.path], { continueOnError: false, retryCount: 5 });
                     } else {
                         realPath = fs.realpathSync(item.path);

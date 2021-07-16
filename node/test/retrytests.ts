@@ -10,8 +10,7 @@ describe('Retry Tests', function () {
     before(function (done) {
         try {
             testutil.initialize();
-        }
-        catch (err) {
+        } catch (err) {
             assert.fail('Failed to load task lib: ' + err.message);
         }
         done();
@@ -40,8 +39,8 @@ describe('Retry Tests', function () {
         function catchError(func: Function, args: any[]) {
             try {
                 func(...args);
-            } catch (e) {
-                return e;
+            } catch (err) {
+                return err;
             }
         }
 
