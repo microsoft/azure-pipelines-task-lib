@@ -10,8 +10,7 @@ describe('Is UNC-path Tests', function () {
     before(function (done) {
         try {
             testutil.initialize();
-        }
-        catch (err) {
+        } catch (err) {
             assert.fail('Failed to load task lib: ' + err.message);
         }
         done();
@@ -24,17 +23,17 @@ describe('Is UNC-path Tests', function () {
         this.timeout(1000);
 
         const paths = [
-            { str: '\\server\\path\\to\\file', unc: false },
-            { str: '\\\\server\\path\\to\\file', unc: true },
-            { str: '\\\\\\server\\path\\to\\file', unc: false },
-            { str: '!@#$%^&*()_+', unc: false },
-            { str: '\\\\\\\\\\\\', unc: false },
-            { str: '1q2w3e4r5t6y', unc: false },
-            { str: '', unc: false }
+            { inputPath: '\\server\\path\\to\\file', isUNC: false },
+            { inputPath: '\\\\server\\path\\to\\file', isUNC: true },
+            { inputPath: '\\\\\\server\\path\\to\\file', isUNC: false },
+            { inputPath: '!@#$%^&*()_+', isUNC: false },
+            { inputPath: '\\\\\\\\\\\\', isUNC: false },
+            { inputPath: '1q2w3e4r5t6y', isUNC: false },
+            { inputPath: '', isUNC: false }
         ];
 
         for (let path of paths) {
-            assert.deepEqual(tl.isUncPath(path.str), path.unc);
+            assert.deepEqual(tl.isUncPath(path.inputPath), path.isUNC);
         }
 
         done();
