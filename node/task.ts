@@ -851,7 +851,7 @@ export function retry(func: Function, args: any[], retryOptions: RetryOptions = 
                     throw e;
                 }
             } else {
-                console.log(`Attempt to execute function "${func?.name}" failed, retries left: ${retryOptions.retryCount}`);
+                debug(`Attempt to execute function "${func?.name}" failed, retries left: ${retryOptions.retryCount}`);
                 retryOptions.retryCount--;
             }
         }
