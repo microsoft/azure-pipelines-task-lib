@@ -291,6 +291,10 @@ export function find(findPath: string): string[] {
     return mock.getResponse('find', findPath, module.exports.debug);
 }
 
+export function getVariable(key: string): string {
+    return mock.getResponse('getVariable', key, module.exports.debug);
+}
+
 export function rmRF(path: string): void {
     module.exports.debug('rmRF ' + path);
     var response = mock.getResponse('rmRF', path, module.exports.debug);

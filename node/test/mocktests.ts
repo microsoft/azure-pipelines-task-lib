@@ -327,4 +327,50 @@ describe('Mock Tests', function () {
         assert(semver.satisfies(version, '14.x'), 'Downloaded node version should be Node 14 instead of ' + version);
         done();
     })
+
+    it('gets task variables from a MockTestRuuner execution Mauta', function (done) {
+
+        // process.env['SECRET_PASSWORD'] = '123'
+        // process.env['VSTS_TASKVARIABLE_USERNAME'] = 'user_sample'
+
+        var a: ma.TaskLibAnswers = <ma.TaskLibAnswers><unknown>{
+            "getVariable": {
+                "SECRET_PASSWORD": "123"
+            }
+        };
+
+        var b: ma.TaskLibAnswers = <ma.TaskLibAnswers><unknown>{
+            "getVariable": {
+                "VSTS_TASKVARIABLE_USERNAME": "user_sample"
+            }
+        };
+
+        // mt.setAnswers(a);
+        mt.setAnswers(b);
+
+        // const varval = mt.getVariable('SECRET_PASSWORD')
+        // console.log("varval ", varval)
+        // assert.equal(varval, '123');
+
+        const varval2 = mt.getVariable('VSTS_TASKVARIABLE_USERNAME')
+        console.log("varval2 ",varval2)
+        assert.equal(varval2, 'user_sample');
+        done();
+    })
+
+    it('gets task variables from a MockTestRuuner execution', function (done) {
+        this.timeout(15000);
+
+        var task_path = path.join(__dirname , 'fakeTasks', 'fake_task.js')
+
+        const runner = new mtm.MockTestRunner(task_path)
+
+        process.env['SECRET_PASSWORD'] = '123'
+        process.env['VSTS_TASKVARIABLE_USERNAME'] = 'user_sample'
+
+        runner.run()
+
+        assert.strictEqual(runner.succeeded, true, 'it should succeed getting the variables');
+        done();
+    })
 });
