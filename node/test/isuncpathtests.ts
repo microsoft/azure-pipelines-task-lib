@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 import assert = require('assert');
-import * as tl from '../_build/task';
+import * as im from '../_build/internal';
 import testutil = require('./testutil');
 
 describe('Is UNC-path Tests', function () {
@@ -33,7 +33,7 @@ describe('Is UNC-path Tests', function () {
         ];
 
         for (let path of paths) {
-            assert.deepEqual(tl.isUncPath(path.inputPath), path.isUNC);
+            assert.deepEqual(im._isUncPath(path.inputPath), path.isUNC);
         }
 
         done();

@@ -813,16 +813,6 @@ export interface FindOptions {
 }
 
 /**
- * Defines if path is unc-path.
- *
- * @param path  a path to a file.
- * @returns     true if path starts with double backslash, otherwise returns false.
- */
-export function isUncPath(path: string) {
-    return /^\\\\[^\\]/.test(path);
-}
-
-/**
  * Interface for RetryOptions
  *
  * Contains "continueOnError" and "retryCount" options.
@@ -964,7 +954,7 @@ export function find(findPath: string, options?: FindOptions): string[] {
                 if (options.followSymbolicLinks) {
                     // get the realpath
                     let realPath: string;
-                    if (isUncPath(item.path)) {
+                    if (im._isUncPath(item.path)) {
                         // Sometimes there are spontaneous issues when working with unc-paths, so retries have been added for them.
                         realPath = retry(fs.realpathSync, [item.path], { continueOnError: false, retryCount: 5 });
                     } else {
