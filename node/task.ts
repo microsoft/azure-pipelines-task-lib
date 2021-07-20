@@ -903,6 +903,10 @@ export function find(findPath: string, options?: FindOptions): string[] {
         while (stack.length) {
             // pop the next item and push to the result array
             let item = stack.pop()!; // non-null because `stack.length` was truthy
+            if (!fs.existsSync(item.path)) {
+                debug(`File "${item.path}" seems to be removed during find operation execution - so skipping it.`);
+                continue;
+            }
             result.push(item.path);
 
             // stat the item.  the stat info is used further below to determine whether to traverse deeper
@@ -918,11 +922,6 @@ export function find(findPath: string, options?: FindOptions): string[] {
                 catch (err) {
                     if (err.code == 'ENOENT' && options.allowBrokenSymbolicLinks) {
                         // fallback to lstat (broken symlinks allowed)
-                        if (!fs.existsSync(item.path)) {
-                            debug(`File "${item.path}" seems to be removed during find operation execution - so skipping it.`);
-                            result.pop();
-                            continue;
-                        }
                         stats = fs.lstatSync(item.path);
                         debug(`  ${item.path} (broken symlink)`);
                     }
