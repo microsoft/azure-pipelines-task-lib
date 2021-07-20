@@ -330,31 +330,17 @@ describe('Mock Tests', function () {
 
     it('gets task variables from a MockTestRuuner execution Mauta', function (done) {
 
-        // process.env['SECRET_PASSWORD'] = '123'
-        // process.env['VSTS_TASKVARIABLE_USERNAME'] = 'user_sample'
-
         var a: ma.TaskLibAnswers = <ma.TaskLibAnswers><unknown>{
             "getVariable": {
-                "SECRET_PASSWORD": "123"
-            }
-        };
-
-        var b: ma.TaskLibAnswers = <ma.TaskLibAnswers><unknown>{
-            "getVariable": {
+                "SECRET_PASSWORD": "123",
                 "VSTS_TASKVARIABLE_USERNAME": "user_sample"
             }
         };
 
-        // mt.setAnswers(a);
-        mt.setAnswers(b);
+        mt.setAnswers(a);
 
-        // const varval = mt.getVariable('SECRET_PASSWORD')
-        // console.log("varval ", varval)
-        // assert.equal(varval, '123');
-
-        const varval2 = mt.getVariable('VSTS_TASKVARIABLE_USERNAME')
-        console.log("varval2 ",varval2)
-        assert.equal(varval2, 'user_sample');
+        assert.equal(mt.getVariable('SECRET_PASSWORD'), '123');
+        assert.equal(mt.getVariable('VSTS_TASKVARIABLE_USERNAME'), 'user_sample');
         done();
     })
 
