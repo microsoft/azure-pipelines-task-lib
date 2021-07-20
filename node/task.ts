@@ -813,6 +813,52 @@ export interface FindOptions {
 }
 
 /**
+ * Interface for RetryOptions
+ *
+ * Contains "continueOnError" and "retryCount" options.
+ */
+export interface RetryOptions {
+
+    /**
+     * If true, code still continues to execute when all retries failed.
+     */
+    continueOnError: boolean,
+
+    /**
+     * Number of retries.
+     */
+    retryCount: number
+}
+
+/**
+ * Tries to execute a function a specified number of times.
+ *
+ * @param   func            a function to be executed.
+ * @param   args            executed function arguments array.
+ * @param   retryOptions    optional. Defaults to { continueOnError: false, retryCount: 0 }.
+ * @returns the same as the usual function.
+ */
+export function retry(func: Function, args: any[], retryOptions: RetryOptions = { continueOnError: false, retryCount: 0 }): any {
+    while (retryOptions.retryCount >= 0) {
+        try {
+            return func(...args);
+        } catch (e) {
+            if (retryOptions.retryCount <= 0) {
+                if (retryOptions.continueOnError) {
+                    warning(e);
+                    break;
+                } else {
+                    throw e;
+                }
+            } else {
+                debug(`Attempt to execute function "${func?.name}" failed, retries left: ${retryOptions.retryCount}`);
+                retryOptions.retryCount--;
+            }
+        }
+    }
+}
+
+/**
  * Recursively finds all paths a given path. Returns an array of paths.
  *
  * @param     findPath  path to search
@@ -907,7 +953,13 @@ export function find(findPath: string, options?: FindOptions): string[] {
 
                 if (options.followSymbolicLinks) {
                     // get the realpath
-                    let realPath: string = fs.realpathSync(item.path);
+                    let realPath: string;
+                    if (im._isUncPath(item.path)) {
+                        // Sometimes there are spontaneous issues when working with unc-paths, so retries have been added for them.
+                        realPath = retry(fs.realpathSync, [item.path], { continueOnError: false, retryCount: 5 });
+                    } else {
+                        realPath = fs.realpathSync(item.path);
+                    }
 
                     // fixup the traversal chain to match the item level
                     while (traversalChain.length >= item.level) {
