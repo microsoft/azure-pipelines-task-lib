@@ -768,6 +768,16 @@ export function _loadData(): void {
 // Internal path helpers.
 //--------------------------------------------------------------------------------
 
+/**
+ * Defines if path is unc-path.
+ *
+ * @param path  a path to a file.
+ * @returns     true if path starts with double backslash, otherwise returns false.
+ */
+ export function _isUncPath(path: string) {
+    return /^\\\\[^\\]/.test(path);
+}
+
 export function _ensureRooted(root: string, p: string) {
     if (!root) {
         throw new Error('ensureRooted() parameter "root" cannot be empty');
