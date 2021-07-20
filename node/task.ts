@@ -920,13 +920,13 @@ export function find(findPath: string, options?: FindOptions): string[] {
                         // fallback to lstat (broken symlinks allowed)
                         try {
                             stats = fs.lstatSync(item.path);
-                        } catch (e) {
-                            if (e.code !== 'ENOENT') {
-                                throw e;
+                        } catch (err2) {
+                            if (err2.code == 'ENOENT') {
+                                debug(`File "${item.path}" seems to be removed during find operation execution - so skipping it.`);
+                                result.pop();
+                                continue;
                             }
-                            debug(`File "${item.path}" seems to be removed during find operation execution - so skipping it.`);
-                            result.pop();
-                            continue;
+                            throw err2;
                         }
                         debug(`  ${item.path} (broken symlink)`);
                     }
