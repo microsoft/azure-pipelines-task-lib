@@ -328,7 +328,7 @@ describe('Mock Tests', function () {
         done();
     })
 
-    it('gets task variables from a MockTestRuuner execution Mauta', function (done) {
+    it('get mock values of environment variables using getVariable', function (done) {
 
         var a: ma.TaskLibAnswers = <ma.TaskLibAnswers><unknown>{
             "getVariable": {
@@ -339,8 +339,11 @@ describe('Mock Tests', function () {
 
         mt.setAnswers(a);
 
-        assert.equal(mt.getVariable('SECRET_PASSWORD'), '123');
-        assert.equal(mt.getVariable('VSTS_TASKVARIABLE_USERNAME'), 'user_sample');
+        const varValFirst = mt.getVariable('SECRET_PASSWORD')
+        const varValSecond = mt.getVariable('VSTS_TASKVARIABLE_USERNAME')
+
+        assert.equal(varValFirst, '123');
+        assert.equal(varValSecond, 'user_sample');
         done();
     })
 
