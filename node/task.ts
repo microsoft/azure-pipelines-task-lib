@@ -918,12 +918,16 @@ export function find(findPath: string, options?: FindOptions): string[] {
                 catch (err) {
                     if (err.code == 'ENOENT' && options.allowBrokenSymbolicLinks) {
                         // fallback to lstat (broken symlinks allowed)
-                        if (!fs.existsSync(item.path)) {
+                        try {
+                            stats = fs.lstatSync(item.path);
+                        } catch (e) {
+                            if (e.code !== 'ENOENT') {
+                                throw e;
+                            }
                             debug(`File "${item.path}" seems to be removed during find operation execution - so skipping it.`);
                             result.pop();
                             continue;
                         }
-                        stats = fs.lstatSync(item.path);
                         debug(`  ${item.path} (broken symlink)`);
                     }
                     else {
