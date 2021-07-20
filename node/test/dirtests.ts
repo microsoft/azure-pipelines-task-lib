@@ -784,12 +784,12 @@ describe('Dir Operation Tests', function () {
         testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
 
         let itemPaths: string[] = tl.find(root, <tl.FindOptions>{ });
-        assert.equal(itemPaths.length, 4);
+        assert.equal(itemPaths.length, 5);
         assert.equal(itemPaths[0], root);
-        // assert.equal(itemPaths[1], path.join(root, 'brokenSym'));
-        assert.equal(itemPaths[1], path.join(root, 'realDir'));
-        assert.equal(itemPaths[2], path.join(root, 'realDir', 'file'));
-        assert.equal(itemPaths[3], path.join(root, 'symDir'));
+        assert.equal(itemPaths[1], path.join(root, 'brokenSym'));
+        assert.equal(itemPaths[2], path.join(root, 'realDir'));
+        assert.equal(itemPaths[3], path.join(root, 'realDir', 'file'));
+        assert.equal(itemPaths[4], path.join(root, 'symDir'));
 
         done();
     });
@@ -806,8 +806,8 @@ describe('Dir Operation Tests', function () {
         testutil.createSymlinkDir(path.join(root, 'noSuch'), brokenSymPath);
 
         let itemPaths: string[] = tl.find(brokenSymPath, <tl.FindOptions>{ });
-        assert.equal(itemPaths.length, 0);
-        // assert.equal(itemPaths[0], brokenSymPath);
+        assert.equal(itemPaths.length, 1);
+        assert.equal(itemPaths[0], brokenSymPath);
 
         done();
     });
@@ -831,12 +831,12 @@ describe('Dir Operation Tests', function () {
         let options: tl.FindOptions = {} as tl.FindOptions;
         options.followSpecifiedSymbolicLink = true;
         let itemPaths: string[] = tl.find(root, options);
-        assert.equal(itemPaths.length, 4);
+        assert.equal(itemPaths.length, 5);
         assert.equal(itemPaths[0], root);
-        // assert.equal(itemPaths[1], path.join(root, 'brokenSym'));
-        assert.equal(itemPaths[1], path.join(root, 'realDir'));
-        assert.equal(itemPaths[2], path.join(root, 'realDir', 'file'));
-        assert.equal(itemPaths[3], path.join(root, 'symDir'));
+        assert.equal(itemPaths[1], path.join(root, 'brokenSym'));
+        assert.equal(itemPaths[2], path.join(root, 'realDir'));
+        assert.equal(itemPaths[3], path.join(root, 'realDir', 'file'));
+        assert.equal(itemPaths[4], path.join(root, 'symDir'));
 
         done();
     });
@@ -856,8 +856,8 @@ describe('Dir Operation Tests', function () {
         options.allowBrokenSymbolicLinks = true;
         options.followSpecifiedSymbolicLink = true;
         let itemPaths: string[] = tl.find(brokenSymPath, options);
-        assert.equal(itemPaths.length, 0);
-        // assert.equal(itemPaths[0], brokenSymPath);
+        assert.equal(itemPaths.length, 1);
+        assert.equal(itemPaths[0], brokenSymPath);
 
         done();
     });
