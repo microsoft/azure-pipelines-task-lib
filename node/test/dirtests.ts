@@ -955,7 +955,7 @@ describe('Dir Operation Tests', function () {
         options.allowBrokenSymbolicLinks = true;
         options.followSymbolicLinks = true;
         let itemPaths: string[] = tl.find(root, options);
-        assert.equal(itemPaths.length, 5);
+        assert.equal(itemPaths.length, 6);
         assert.equal(itemPaths[0], root);
         assert.equal(itemPaths[1], path.join(root, 'brokenSym'));
         assert.equal(itemPaths[2], path.join(root, 'realDir'));
