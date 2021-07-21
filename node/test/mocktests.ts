@@ -328,24 +328,24 @@ describe('Mock Tests', function () {
         done();
     })
 
-    it('get mock values of environment variables using getVariable', function (done) {
+    // it('get mock values of environment variables using getVariable', function (done) {
 
-        var a: ma.TaskLibAnswers = <ma.TaskLibAnswers><unknown>{
-            "getVariable": {
-                "SECRET_PASSWORD": "123",
-                "VSTS_TASKVARIABLE_USERNAME": "user_sample"
-            }
-        };
+    //     var a: ma.TaskLibAnswers = <ma.TaskLibAnswers><unknown>{
+    //         "getVariable": {
+    //             "SECRET_PASSWORD": "123",
+    //             "VSTS_TASKVARIABLE_USERNAME": "user_sample"
+    //         }
+    //     };
 
-        mt.setAnswers(a);
+    //     mt.setAnswers(a);
 
-        const varValFirst = mt.getVariable('SECRET_PASSWORD')
-        const varValSecond = mt.getVariable('VSTS_TASKVARIABLE_USERNAME')
+    //     const varValFirst = mt.getVariable('SECRET_PASSWORD')
+    //     const varValSecond = mt.getVariable('VSTS_TASKVARIABLE_USERNAME')
 
-        assert.equal(varValFirst, '123');
-        assert.equal(varValSecond, 'user_sample');
-        done();
-    })
+    //     assert.equal(varValFirst, '123');
+    //     assert.equal(varValSecond, 'user_sample');
+    //     done();
+    // })
 
     it('gets task variables from a MockTestRuuner execution', function (done) {
         this.timeout(15000);
@@ -357,8 +357,29 @@ describe('Mock Tests', function () {
         process.env['SECRET_PASSWORD'] = '123'
         process.env['VSTS_TASKVARIABLE_USERNAME'] = 'user_sample'
 
+        var a: ma.TaskLibAnswers = <ma.TaskLibAnswers><unknown>{
+            "getVariable": {
+                "SECRET_PASSWORD2": "12333333",
+                "VSTS_TASKVARIABLE_USERNAME2": "user_sample33333333"
+            },
+            // "getVariables": {
+            //     "getVariables": "[{name:'USERNAME',value:'user_sample', secret: false}, {name:'PASSWORD',value:'123', secret: true}]"
+            // }
+        };
+
+        mt.setAnswers(a);
+
+        console.log(mt.getVariable('SECRET_PASSWORD'))
+        console.log(mt.getVariable('VSTS_TASKVARIABLE_USERNAME'))
+        console.log(mt.getVariable('SECRET_PASSWORD2'))
+
+
         runner.run()
 
+        console.log(runner.stdout)
+
+        console.log(mt.getVariables())
+   
         assert.strictEqual(runner.succeeded, true, 'it should succeed getting the variables');
         done();
     })

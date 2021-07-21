@@ -292,7 +292,11 @@ export function find(findPath: string): string[] {
 }
 
 export function getVariable(key: string): string {
-    return mock.getResponse('getVariable', key, module.exports.debug);
+    return mock.getResponse('getVariable', key, module.exports.debug) || task.getVariable(key);
+}
+
+export function getVariables(): task.VariableInfo[] {
+    return mock.getResponse('getVariables', 'getVariables', module.exports.debug) || task.getVariables();
 }
 
 export function rmRF(path: string): void {
