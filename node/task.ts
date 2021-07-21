@@ -863,7 +863,7 @@ export function retry(func: Function, args: any[], retryOptions: RetryOptions = 
     }
 }
 
-function getStats (path: string, isFirst: boolean, options: FindOptions): fs.Stats {
+function _getStats (path: string, isFirst: boolean, options: FindOptions): fs.Stats {
     // stat returns info about the target of a symlink (or symlink chain),
     // lstat returns info about a symlink itself
     let stats: fs.Stats;
@@ -951,7 +951,7 @@ export function find(findPath: string, options?: FindOptions): string[] {
             // stat the item.  the stat info is used further below to determine whether to traverse deeper
             let stats: fs.Stats;
             try {
-                stats = getStats(item.path, !result.length, options);
+                stats = _getStats(item.path, !result.length, options);
             } catch (err) {
                 if (err.code == 'ENOENT' && options.skipMissingFiles) {
                     debug(`File "${item.path}" seems to be removed during find operation execution - so skipping it.`);
