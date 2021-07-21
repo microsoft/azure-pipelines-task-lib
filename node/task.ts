@@ -954,7 +954,7 @@ export function find(findPath: string, options?: FindOptions): string[] {
             try {
                 stats = getStats(item.path, !result.length, options);
             } catch (err) {
-                if (err.code == 'ENOENT' && options.skipMissingFiles && !fs.existsSync(item.path)) {
+                if (err.code == 'ENOENT' && options.skipMissingFiles) {
                     debug(`File "${item.path}" seems to be removed during find operation execution - so skipping it.`);
                     continue;
                 }
