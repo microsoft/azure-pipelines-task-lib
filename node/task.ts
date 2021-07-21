@@ -811,6 +811,9 @@ export interface FindOptions {
      */
     followSymbolicLinks: boolean;
 
+    /**
+     * When true, missing files will not cause an error and will be skipped.
+     */
     skipMissingFiles?: boolean;
 }
 
