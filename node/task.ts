@@ -942,7 +942,6 @@ export function find(findPath: string, options?: FindOptions): string[] {
         while (stack.length) {
             // pop the next item and push to the result array
             let item = stack.pop()!; // non-null because `stack.length` was truthy
-            result.push(item.path);
 
             // stat the item.  the stat info is used further below to determine whether to traverse deeper
             //
@@ -950,15 +949,15 @@ export function find(findPath: string, options?: FindOptions): string[] {
             // lstat returns info about a symlink itself
             let stats: fs.Stats;
             try {
-                stats = getStats(item.path, result.length == 1, options);
+                stats = getStats(item.path, !result.length, options);
             } catch (err) {
                 if (err.code == 'ENOENT' && options.skipMissingFiles && !fs.existsSync(item.path)) {
                     debug(`File "${item.path}" seems to be removed during find operation execution - so skipping it.`);
-                    result.pop();
                     continue;
                 }
                 throw err;
             }
+            result.push(item.path);
 
             // note, isDirectory() returns false for the lstat of a symlink
             if (stats.isDirectory()) {
