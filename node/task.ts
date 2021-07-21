@@ -864,6 +864,8 @@ export function retry(func: Function, args: any[], retryOptions: RetryOptions = 
 }
 
 function getStats (path: string, isFirst: boolean, options: FindOptions): fs.Stats {
+    // stat returns info about the target of a symlink (or symlink chain),
+    // lstat returns info about a symlink itself
     let stats: fs.Stats;
 
     if (options.followSymbolicLinks) {
@@ -947,9 +949,6 @@ export function find(findPath: string, options?: FindOptions): string[] {
             let item = stack.pop()!; // non-null because `stack.length` was truthy
 
             // stat the item.  the stat info is used further below to determine whether to traverse deeper
-            //
-            // stat returns info about the target of a symlink (or symlink chain),
-            // lstat returns info about a symlink itself
             let stats: fs.Stats;
             try {
                 stats = getStats(item.path, !result.length, options);
