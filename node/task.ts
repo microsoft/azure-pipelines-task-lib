@@ -1026,13 +1026,15 @@ function _debugFindOptions(options: FindOptions): void {
     debug(`findOptions.allowBrokenSymbolicLinks: '${options.allowBrokenSymbolicLinks}'`);
     debug(`findOptions.followSpecifiedSymbolicLink: '${options.followSpecifiedSymbolicLink}'`);
     debug(`findOptions.followSymbolicLinks: '${options.followSymbolicLinks}'`);
+    debug(`findOptions.skipMissingFiles: '${options.skipMissingFiles}'`);
 }
 
 function _getDefaultFindOptions(): FindOptions {
     return <FindOptions>{
         allowBrokenSymbolicLinks: false,
         followSpecifiedSymbolicLink: true,
-        followSymbolicLinks: true
+        followSymbolicLinks: true,
+        skipMissingFiles: false
     };
 }
 
