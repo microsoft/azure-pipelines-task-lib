@@ -863,7 +863,7 @@ export function retry(func: Function, args: any[], retryOptions: RetryOptions = 
     }
 }
 
-function _getStats (path: string, isFirst: boolean, options: FindOptions): fs.Stats {
+function _getStats (path: string, isPathToSearch: boolean, options: FindOptions): fs.Stats {
     // stat returns info about the target of a symlink (or symlink chain),
     // lstat returns info about a symlink itself
     let stats: fs.Stats;
@@ -881,7 +881,7 @@ function _getStats (path: string, isFirst: boolean, options: FindOptions): fs.St
                 throw err;
             }
         }
-    } else if (options.followSpecifiedSymbolicLink && isFirst) {
+    } else if (options.followSpecifiedSymbolicLink && isPathToSearch) {
         try {
             // use stat (following symlinks for the specified path and this is the specified path)
             stats = fs.statSync(path);
