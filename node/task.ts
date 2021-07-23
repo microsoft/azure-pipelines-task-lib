@@ -863,6 +863,14 @@ export function retry(func: Function, args: any[], retryOptions: RetryOptions = 
     }
 }
 
+/**
+ * Gets info about item stats.
+ *
+ * @param path              a path to the item to be processed.
+ * @param isPathToSearch    true when a path to the item is a path to search.
+ * @param options           options for following symbolic links.
+ * @returns fs.Stats
+ */
 function _getStats (path: string, isPathToSearch: boolean, options: FindOptions): fs.Stats {
     // stat returns info about the target of a symlink (or symlink chain),
     // lstat returns info about a symlink itself
@@ -951,7 +959,9 @@ export function find(findPath: string, options?: FindOptions): string[] {
             // stat the item.  the stat info is used further below to determine whether to traverse deeper
             let stats: fs.Stats;
             try {
-                stats = _getStats(item.path, !result.length, options);
+                // `item.path` equals `findPath` for the first item to be processed, when the `result` array is empty
+                const isFindPath = !result.length;
+                stats = _getStats(item.path, isFindPath, options);
             } catch (err) {
                 if (err.code == 'ENOENT' && options.skipMissingFiles) {
                     debug(`File "${item.path}" seems to be removed during find operation execution - so skipping it.`);
