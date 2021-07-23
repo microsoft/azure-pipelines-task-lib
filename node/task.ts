@@ -867,7 +867,7 @@ export function retry(func: Function, args: any[], retryOptions: RetryOptions = 
  * Gets info about item stats.
  *
  * @param path              a path to the item to be processed.
- * @param isPathToSearch    true when a path to the item is a path to search.
+ * @param isPathToSearch    true when a path to the item equals the path to search.
  * @param options           options for following symbolic links.
  * @returns fs.Stats
  */
