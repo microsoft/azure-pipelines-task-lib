@@ -878,7 +878,7 @@ function _getStats (path: string, followSymbolicLinks: boolean, allowBrokenSymbo
 
     if (followSymbolicLinks) {
         try {
-            // use stat
+            // use stat (following symlinks)
             stats = fs.statSync(path);
         } catch (err) {
             if (err.code == 'ENOENT' && allowBrokenSymbolicLinks) {
@@ -955,7 +955,7 @@ export function find(findPath: string, options?: FindOptions): string[] {
                 stats = _getStats(item.path, followSymbolicLinks, options.allowBrokenSymbolicLinks);
             } catch (err) {
                 if (err.code == 'ENOENT' && options.skipMissingFiles) {
-                    debug(`File "${item.path}" seems to be removed during find operation execution - so skipping it.`);
+                    warning(`"${item.path}" seems to be a removed file or directory / broken symlink - so skipping it.`);
                     continue;
                 }
                 throw err;
