@@ -866,35 +866,22 @@ export function retry(func: Function, args: any[], retryOptions: RetryOptions = 
 /**
  * Gets info about item stats.
  *
- * @param path              a path to the item to be processed.
- * @param isPathToSearch    true when a path to the item equals the path to search.
- * @param options           options for following symbolic links.
+ * @param path                      a path to the item to be processed.
+ * @param followSymbolicLinks       indicates whether to traverse descendants of symbolic link directories.
+ * @param allowBrokenSymbolicLinks  when true, broken symbolic link will not cause an error.
  * @returns fs.Stats
  */
-function _getStats (path: string, isPathToSearch: boolean, options: FindOptions): fs.Stats {
+function _getStats (path: string, followSymbolicLinks: boolean, allowBrokenSymbolicLinks: boolean): fs.Stats {
     // stat returns info about the target of a symlink (or symlink chain),
     // lstat returns info about a symlink itself
     let stats: fs.Stats;
 
-    if (options.followSymbolicLinks) {
+    if (followSymbolicLinks) {
         try {
-            // use stat (following all symlinks)
+            // use stat
             stats = fs.statSync(path);
         } catch (err) {
-            if (err.code == 'ENOENT' && options.allowBrokenSymbolicLinks) {
-                // fallback to lstat (broken symlinks allowed)
-                stats = fs.lstatSync(path);
-                debug(`  ${path} (broken symlink)`);
-            } else {
-                throw err;
-            }
-        }
-    } else if (options.followSpecifiedSymbolicLink && isPathToSearch) {
-        try {
-            // use stat (following symlinks for the specified path and this is the specified path)
-            stats = fs.statSync(path);
-        } catch (err) {
-            if (err.code == 'ENOENT' && options.allowBrokenSymbolicLinks) {
+            if (err.code == 'ENOENT' && allowBrokenSymbolicLinks) {
                 // fallback to lstat (broken symlinks allowed)
                 stats = fs.lstatSync(path);
                 debug(`  ${path} (broken symlink)`);
@@ -956,12 +943,16 @@ export function find(findPath: string, options?: FindOptions): string[] {
             // pop the next item and push to the result array
             let item = stack.pop()!; // non-null because `stack.length` was truthy
 
-            // stat the item.  the stat info is used further below to determine whether to traverse deeper
             let stats: fs.Stats;
             try {
                 // `item.path` equals `findPath` for the first item to be processed, when the `result` array is empty
-                const isFindPath = !result.length;
-                stats = _getStats(item.path, isFindPath, options);
+                const isPathToSearch = !result.length;
+
+                // following all symlinks OR following symlinks for the specified path AND this is the specified path
+                const followSymbolicLinks = options.followSymbolicLinks || options.followSpecifiedSymbolicLink && isPathToSearch;
+
+                // stat the item. The stat info is used further below to determine whether to traverse deeper
+                stats = _getStats(item.path, followSymbolicLinks, options.allowBrokenSymbolicLinks);
             } catch (err) {
                 if (err.code == 'ENOENT' && options.skipMissingFiles) {
                     debug(`File "${item.path}" seems to be removed during find operation execution - so skipping it.`);
