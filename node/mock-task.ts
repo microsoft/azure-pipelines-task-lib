@@ -287,6 +287,10 @@ export function cp(source: string, dest: string): void {
     module.exports.debug('copying ' + source + ' to ' + dest);
 }
 
+export function retry(func: Function, args: any[], retryOptions: task.RetryOptions): any {
+    module.exports.debug(`trying to execute ${func?.name}(${args.toString()}) with ${retryOptions.retryCount} retries`);
+}
+
 export function find(findPath: string): string[] {
     return mock.getResponse('find', findPath, module.exports.debug);
 }
