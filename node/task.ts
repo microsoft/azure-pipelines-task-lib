@@ -958,7 +958,7 @@ export function find(findPath: string, options?: FindOptions): string[] {
                 stats = _getStats(item.path, followSymbolicLink, options.allowBrokenSymbolicLinks);
             } catch (err) {
                 if (err.code == 'ENOENT' && options.skipMissingFiles) {
-                    warning(`"${item.path}" seems to be a removed file or directory / broken symlink - so skipping it.`);
+                    warning(`No such file or directory: "${item.path}" - skipping.`);
                     continue;
                 }
                 throw err;
