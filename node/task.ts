@@ -867,16 +867,16 @@ export function retry(func: Function, args: any[], retryOptions: RetryOptions = 
  * Gets info about item stats.
  *
  * @param path                      a path to the item to be processed.
- * @param followSymbolicLinks       indicates whether to traverse descendants of symbolic link directories.
+ * @param followSymbolicLink        indicates whether to traverse descendants of symbolic link directories.
  * @param allowBrokenSymbolicLinks  when true, broken symbolic link will not cause an error.
  * @returns fs.Stats
  */
-function _getStats (path: string, followSymbolicLinks: boolean, allowBrokenSymbolicLinks: boolean): fs.Stats {
+function _getStats (path: string, followSymbolicLink: boolean, allowBrokenSymbolicLinks: boolean): fs.Stats {
     // stat returns info about the target of a symlink (or symlink chain),
     // lstat returns info about a symlink itself
     let stats: fs.Stats;
 
-    if (followSymbolicLinks) {
+    if (followSymbolicLink) {
         try {
             // use stat (following symlinks)
             stats = fs.statSync(path);
@@ -946,16 +946,19 @@ export function find(findPath: string, options?: FindOptions): string[] {
             let stats: fs.Stats;
             try {
                 // `item.path` equals `findPath` for the first item to be processed, when the `result` array is empty
-                const isPathToSearch = !result.length;
+                const isPathToSearch: boolean = !result.length;
 
-                // following all symlinks OR following symlinks for the specified path AND this is the specified path
-                const followSymbolicLinks = options.followSymbolicLinks || options.followSpecifiedSymbolicLink && isPathToSearch;
+                // following specified symlinks only if current path equals specified path
+                const followSpecifiedSymbolicLink: boolean = options.followSpecifiedSymbolicLink && isPathToSearch;
+
+                // following all symlinks or following symlink for the specified path
+                const followSymbolicLink: boolean = options.followSymbolicLinks || followSpecifiedSymbolicLink;
 
                 // stat the item. The stat info is used further below to determine whether to traverse deeper
-                stats = _getStats(item.path, followSymbolicLinks, options.allowBrokenSymbolicLinks);
+                stats = _getStats(item.path, followSymbolicLink, options.allowBrokenSymbolicLinks);
             } catch (err) {
                 if (err.code == 'ENOENT' && options.skipMissingFiles) {
-                    warning(`"${item.path}" seems to be a removed file or directory / broken symlink - so skipping it.`);
+                    warning(`No such file or directory: "${item.path}" - skipping.`);
                     continue;
                 }
                 throw err;
