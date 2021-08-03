@@ -843,6 +843,10 @@ export class ToolRunner extends events.EventEmitter {
         return this;
     }
 
+    public getArgs(): string {
+        return this.args.toString();
+    }
+
     /**
      * Add argument(s) if a condition is met
      * Wraps arg().  See arg for details

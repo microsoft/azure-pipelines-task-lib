@@ -2211,6 +2211,7 @@ describe('Toolrunner Tests', function () {
                 exeRunner.on('stdout', (data) => {
                     output = data.toString();
                 });
+                console.error("Args:", exeRunner.getArgs());
                 exeRunner.exec(_testExecOptions).then(function (code) {
                     console.error("OUTPUT: " , output);
                     assert.equal(code, 0, 'return code of cmd should be 0');
