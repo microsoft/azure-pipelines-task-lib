@@ -2212,6 +2212,7 @@ describe('Toolrunner Tests', function () {
                     output = data.toString();
                 });
                 exeRunner.exec(_testExecOptions).then(function (code) {
+                    console.error("OUTPUT: " , output);
                     assert.equal(code, 0, 'return code of cmd should be 0');
                     assert.equal(output.trim(), 'args[0]: \'-TEST1=space test\'\r\n'
                         + 'args[1]: \'-TEST2=test value\'\r\n'
