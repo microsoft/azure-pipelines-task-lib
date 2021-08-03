@@ -2209,7 +2209,7 @@ describe('Toolrunner Tests', function () {
                 let exeRunner = tl.tool(exePath);
                 exeRunner.line('-TEST1="space test" "-TEST2=%WIN_TEST%" \'-TEST3=value\'');
                 exeRunner.on('stdout', (data) => {
-                    output = data.toString();
+                    output += data.toString();
                 });
                 console.error("Args:", exeRunner.getArgs());
                 exeRunner.exec(_testExecOptions).then(function (code) {
