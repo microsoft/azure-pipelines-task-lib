@@ -5,11 +5,11 @@ import os = require('os');
 import path = require('path');
 import cmdm = require('./taskcommand');
 import shelljs = require('shelljs');
-import syncRequest = require('sync-request');
+import syncRequest from 'sync-request';
 
 const COMMAND_TAG = '[command]';
 const COMMAND_LENGTH = COMMAND_TAG.length;
-const downloadDirectory = path.join(process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE, 'azure-pipelines-task-lib', '_download');
+const downloadDirectory = path.join(process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE as string, 'azure-pipelines-task-lib', '_download');
 
 export class MockTestRunner {
     constructor(testPath: string, taskJsonPath?: string) {
@@ -147,13 +147,16 @@ export class MockTestRunner {
                 downloadVersion = 'v5.10.1';
                 break;
             case 6:
-                downloadVersion = 'v6.10.3';
+                downloadVersion = 'v6.17.1';
                 break;
             case 10:
-                downloadVersion = 'v10.15.1';
+                downloadVersion = 'v10.21.0';
+                break;
+            case 14:
+                downloadVersion = 'v14.11.0';
                 break;
             default:
-                throw new Error('Invalid node version, must be 5, 6, or 10 (received ' + version + ')');
+                throw new Error('Invalid node version, must be 5, 6, 10, or 14 (received ' + version + ')');
         }
 
         // Install node in home directory if it isn't already there.
@@ -167,25 +170,31 @@ export class MockTestRunner {
         }
     }
 
-    // Determines the correct version of node to use based on the contents of the task's task.json. Defaults to Node 10.
+    // Determines the correct version of node to use based on the contents of the task's task.json. Defaults to Node 14.
     private getNodeVersion(): number {
         const taskJsonPath: string = this.getTaskJsonPath();
         if (!taskJsonPath) {
-            console.warn('Unable to find task.json, defaulting to use Node 10');
+            console.warn('Unable to find task.json, defaulting to use Node 14');
             return 10;
         }
         const taskJsonContents = fs.readFileSync(taskJsonPath, { encoding: 'utf-8' });
         const taskJson: object = JSON.parse(taskJsonContents);
 
         let nodeVersionFound = false;
-        const execution: object = taskJson['execution'];
+        const execution: object = (
+            taskJson['execution']
+            || taskJson['prejobexecution']
+            || taskJson['postjobexecution']
+        );
         const keys = Object.keys(execution);
         for (let i = 0; i < keys.length; i++) {
-            if (keys[i].toLowerCase() == 'node10') {
+            if (keys[i].toLowerCase() == 'node14') {
+                // Prefer node 14 and return immediately.
+                return 14;
+            } else if (keys[i].toLowerCase() == 'node10') {
                 // Prefer node 10 and return immediately.
                 return 10;
-            }
-            else if (keys[i].toLowerCase() == 'node') {
+            } else if (keys[i].toLowerCase() == 'node') {
                 nodeVersionFound = true;
             }
         }
@@ -220,7 +229,8 @@ export class MockTestRunner {
     // Downloads the specified node version to the download destination. Returns a path to node.exe
     private downloadNode(nodeVersion: string, downloadDestination: string): string {
         shelljs.rm('-rf', downloadDestination);
-        const nodeUrl: string = 'https://nodejs.org/dist';
+        let nodeUrl: string = process.env['TASK_NODE_URL'] || 'https://nodejs.org/dist';
+        nodeUrl = nodeUrl.replace(/\/$/, '');  // ensure there is no trailing slash on the base URL
         let downloadPath = '';
         switch (this.getPlatform()) {
             case 'darwin':
@@ -269,7 +279,7 @@ export class MockTestRunner {
         }
         const tarGzName: string = 'node.tar.gz';
         this.downloadFile(url, downloadDestination, tarGzName);
-        
+
         // Extract file
         const originalCwd: string = process.cwd();
         process.chdir(downloadDestination);

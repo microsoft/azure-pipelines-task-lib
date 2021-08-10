@@ -125,6 +125,10 @@ export class FsStats implements fs.Stats {
     mtime: Date = new Date();
     ctime: Date = new Date();
     birthtime: Date = new Date();
+    atimeMs: number;
+    mtimeMs: number;
+    ctimeMs: number;
+    birthtimeMs: number;
 
     setAnswers(mockResponses: any): void {
         this.m_isFile = mockResponses['isFile'] || this.m_isFile;
@@ -281,6 +285,10 @@ export function ls(options: string, paths: string[]): string[] {
 export function cp(source: string, dest: string): void {
     module.exports.debug('###copying###');
     module.exports.debug('copying ' + source + ' to ' + dest);
+}
+
+export function retry(func: Function, args: any[], retryOptions: task.RetryOptions): any {
+    module.exports.debug(`trying to execute ${func?.name}(${args.toString()}) with ${retryOptions.retryCount} retries`);
 }
 
 export function find(findPath: string): string[] {

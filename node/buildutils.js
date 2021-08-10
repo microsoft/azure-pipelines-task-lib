@@ -33,8 +33,9 @@ exports.getExternals = function () {
 
     // download the same version of node used by the agent
     // and add node to the PATH
-    var nodeUrl = 'https://nodejs.org/dist';
-    var nodeVersion = 'v6.17.1';
+    var nodeUrl = process.env['TASK_NODE_URL'] || 'https://nodejs.org/dist';
+    nodeUrl = nodeUrl.replace(/\/$/, '');  // ensure there is no trailing slash on the base URL
+    var nodeVersion = 'v10.23.0';
     switch (platform) {
         case 'darwin':
             var nodeArchivePath = downloadArchive(nodeUrl + '/' + nodeVersion + '/node-' + nodeVersion + '-darwin-x64.tar.gz');

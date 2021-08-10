@@ -1,9 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-/// <reference path="../typings/index.d.ts" />
-/// <reference path="../_build/task.d.ts" />
-
 import assert = require('assert');
 import * as tcm from '../_build/taskcommand';
 
@@ -71,7 +68,17 @@ describe('Command Tests', function () {
         var tc = new tcm.TaskCommand('some.cmd', { foo: ';=\r=\n%3B' }, 'dog');
         assert(tc, 'TaskCommand constructor works');
         var cmdStr = tc.toString();
-        assert.equal(cmdStr, '##vso[some.cmd foo=%3B=%0D=%0A%253B;]dog');
+        assert.equal(cmdStr, '##vso[some.cmd foo=%3B=%0D=%0A%AZP253B;]dog');
+        done();
+    })
+
+    it ('toString writes isOutput', function (done) {
+        this.timeout(1000);
+
+        var tc = new tcm.TaskCommand('task.setvariable', { variable: 'bar', isOutput: 'true' }, 'dog');
+        assert(tc, 'TaskCommand constructor works');
+        var cmdStr = tc.toString();
+        assert.equal(cmdStr, '##vso[task.setvariable variable=bar;isOutput=true;]dog');
         done();
     })
 
@@ -142,7 +149,7 @@ describe('Command Tests', function () {
     })
 
     it ('parses and unescapes properties', function (done) {
-        var cmdStr = '##vso[basic.command foo=%3B=%0D=%0A%253B;]dog';
+        var cmdStr = '##vso[basic.command foo=%3B=%0D=%0A%AZP253B;]dog';
 
         var tc = tcm.commandFromString(cmdStr);
         assert.equal(tc.command, 'basic.command', 'cmd should be basic.command');

@@ -1,9 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-/// <reference path="../typings/index.d.ts" />
-/// <reference path="../_build/task.d.ts" />
-
 import assert = require('assert');
 import path = require('path');
 import os = require('os');
@@ -63,18 +60,6 @@ describe('Input Tests', function () {
 
         done();
     })
-    it('gets input value with whitespace', function (done) {
-        this.timeout(1000);
-
-        process.env['INPUT_UNITTESTINPUT'] = '   test value   ';
-        im._loadData();
-
-        var inval = tl.getInput('UnitTestInput', true);
-        assert.equal(inval, 'test value');
-
-        done();
-    })
-
     // getVariable tests
     it('gets a variable', function (done) {
         this.timeout(1000);
@@ -147,6 +132,15 @@ describe('Input Tests', function () {
         this.timeout(1000);
 
         tl.setVariable('UnitTestVariable', 'test var value');
+        let varVal: string = tl.getVariable('UnitTestVariable');
+        assert.equal(varVal, 'test var value');
+
+        done();
+    })
+    it('sets and gets an output variable', function (done) {
+        this.timeout(1000);
+
+        tl.setVariable('UnitTestVariable', 'test var value', false, true);
         let varVal: string = tl.getVariable('UnitTestVariable');
         assert.equal(varVal, 'test var value');
 
