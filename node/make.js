@@ -1,3 +1,5 @@
+// Some changes for testing
+
 require('shelljs/make');
 var fs = require('fs');
 var path = require('path');
