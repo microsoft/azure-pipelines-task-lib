@@ -23,10 +23,11 @@ jobs:
       command: install
       workingDir: node
 
-  # use node 5
-  - powershell: |
-      & "$(build.sourcesDirectory)/res/UseNode5.ps1"
-    displayName: (azure-pipelines-task-lib) use node 5.10.1
+  # use node 10
+  - task: NodeTool@0
+    displayName: (azure-pipelines-task-lib) use node 10.23.0
+    inputs:
+      versionSpec: "10.23.0"
 
   # build/test
   - script: |
@@ -34,12 +35,6 @@ jobs:
       node make.js test
     workingDirectory: node
     displayName: (azure-pipelines-task-lib) node make.js test  
-
-  # use node 6
-  - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 6.10.3
-    inputs:
-      versionSpec: "6.10.3"
 
   # build/test
   - script: |
@@ -83,27 +78,32 @@ jobs:
       command: install
       workingDir: node
 
-  # use node 5
+  # use node 10
   - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 5.10.1
+    displayName: (azure-pipelines-task-lib) use node 10.23.0
     inputs:
-      versionSpec: "5.10.1"
+      versionSpec: "10.23.0"
       
   # build/test
   - script: node make.js test
     workingDirectory: node
     displayName: (azure-pipelines-task-lib) node make.js test  
 
-  # use node 6
-  - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 6.10.3
-    inputs:
-      versionSpec: "6.10.3"
-
   # build/test
   - script: node make.js test
     displayName: (azure-pipelines-task-lib) node make.js test
     workingDirectory: node
+
+  # For CI runs on master, automatically publish packages
+  - bash: |
+        echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
+        cd _build
+        npm publish || true # Ignore publish failures, usually will happen because package already exists
+    displayName: (azure-pipelines-task-lib) npm publish
+    workingDirectory: node
+    condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranchname'], 'master', 'releases/3.x'))
+    env:
+      NPM_TOKEN: $(npmPublishToken)
 
 #################################################
 - job: macOS
@@ -124,22 +124,16 @@ jobs:
       command: install
       workingDir: node
 
-  # use node 5
+  # use node 10
   - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 5.10.1
+    displayName: (azure-pipelines-task-lib) use node 10.23.0
     inputs:
-      versionSpec: "5.10.1"
+      versionSpec: "10.23.0"
       
   # build/test
   - script: node make.js test
     workingDirectory: node
     displayName: (azure-pipelines-task-lib) node make.js test  
-
-  # use node 6
-  - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 6.10.3
-    inputs:
-      versionSpec: "6.10.3"
 
   # build/test
   - script: node make.js test

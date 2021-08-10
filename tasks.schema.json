@@ -50,7 +50,9 @@
         "enum": [
           "Agent",
           "MachineGroup",
-          "Server"
+          "Server",
+          "ServerGate",
+          "DeploymentGroup"
         ]
       }
     },
@@ -103,7 +105,7 @@
           },
           "visibleRule": {
             "type": "string",
-            "description": "Allow's you to define a rule which dictates when the group will be visible to a user, for example \"variableName = value\""
+            "description": "Allow's you to define a rule which dictates when the group will be visible to a user, for example \"variableName1 != \\\"\\\" && variableName2 = value || variableName3 NotEndsWith value\""
           }
         }
       }
@@ -144,6 +146,9 @@
       "type": "string",
       "description": "This is how the task will be displayed within the build step list - you can use variable values by using $(variablename)"
     },
+    "releaseNotes": {
+      "type": "string"
+    },
     "inputs": {
       "type": "array",
       "items": {
@@ -159,6 +164,12 @@
             "type": "string",
             "description": "The variable name to use to store the user-supplied value",
             "pattern": "^[A-Za-z][A-Za-z0-9]*$"
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "label": {
             "type": "string",
@@ -176,7 +187,10 @@
                   "pickList",
                   "radio",
                   "secureFile",
-                  "string"
+                  "string",
+                  "int",
+                  "identities",
+                  "querycontrol"
                 ]
               },
               {
@@ -207,7 +221,7 @@
           },
           "visibleRule": {
             "type": "string",
-            "description": "Allow's you to define a rule which dictates when the input will be visible to a user, for example \"variableName = value\""
+            "description": "Allow's you to define a rule which dictates when the input will be visible to a user, for example \"variableName1 != \\\"\\\" && variableName2 = value || variableName3 NotEndsWith value\""
           },
           "properties": {
             "type": "object",
@@ -218,6 +232,65 @@
                   "True",
                   "False"
                 ]
+              },
+              "MultiSelect": {
+                "type": "string",
+                "enum": [
+                  "True",
+                  "False"
+                ]
+              },
+              "MultiSelectFlatList": {
+                "type": "string",
+                "enum": [
+                  "True",
+                  "False"
+                ]
+              },
+              "DisableManageLink": {
+                "type": "string",
+                "enum": [
+                  "True",
+                  "False"
+                ]
+              },
+              "IsSearchable": {
+                "type": "string",
+                "enum": [
+                  "True",
+                  "False"
+                ]
+              },
+              "PopulateDefaultValue": {
+                "type": "string",
+                "enum": [
+                  "True",
+                  "False"
+                ]
+              },
+              "isVariableOrNonNegativeNumber": {
+                "type": "string",
+                "enum": [
+                  "true",
+                  "false"
+                ]
+              },
+              "resizable": {
+                "type": "boolean"
+              },
+              "rows": {
+                "type": "string",
+                "pattern": "^\\d+$"
+              },
+              "maxLength": {
+                "type": "string",
+                "pattern": "^\\d+$"
+              },
+              "editorExtension": {
+                "type": "string"
+              },
+              "EndpointFilterRule": {
+                "type": "string"
               }
             }
           },
@@ -253,6 +326,31 @@
             "type": "string"
           },
           "resultSelector": {
+            "type": "string"
+          },
+          "RequestVerb": {
+            "type": "string",
+            "enum": [
+              "GET",
+              "POST",
+              "DELETE",
+              "OPTIONS",
+              "HEAD",
+              "PUT",
+              "TRACE",
+              "PATCH"
+            ]
+          },
+          "requestContent": {
+            "type": "string"
+          },
+          "callbackContextTemplate": {
+            "type": "string"
+          },
+          "callbackRequiredTemplate": {
+            "type": "string"
+          },
+          "initialContextTemplate": {
             "type": "string"
           }
         }
@@ -342,7 +440,7 @@
     "messages": {
       "type": "object"
     },
-    "OutputVariables": {
+    "outputVariables": {
       "type": "array",
       "description": "Describes output variables of task.",
       "items": {
@@ -364,6 +462,40 @@
         }
       }
     },
+    "restrictions": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Restrictions on tasks",
+      "properties": {
+        "commands": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Restrictions on available task commands",
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": [
+                "any",
+                "restricted"
+              ]
+            }
+          }
+        },
+        "settableVariables": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Restrictions on which variables can be set via commands",
+          "properties": {
+            "allowed": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
     "$schema": {
       "type": "string"
     }
@@ -372,6 +504,9 @@
     "executionObject": {
       "type": "object",
       "additionalProperties": true,
+      "required": [
+          "target"
+      ],
       "properties": {
         "target": {
           "type": "string",
@@ -384,6 +519,12 @@
               "windows"
             ]
           }
+        },
+        "argumentFormat": {
+          "type": "string"
+        },
+        "workingDirectory": {
+          "type": "string"
         }
       }
     }

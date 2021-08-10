@@ -33,10 +33,10 @@ export interface IExecSyncOptions {
     silent?: boolean;
 
     /** Optional. Default is process.stdout. */
-    outStream?: stream.Writable;
+    outStream?: NodeJS.WritableStream;
 
     /** Optional. Default is process.stderr. */
-    errStream?: stream.Writable;
+    errStream?: NodeJS.WritableStream;
 
     /** optional. Whether to skip quoting/escaping arguments if needed.  defaults to false. */
     windowsVerbatimArguments?: boolean;
@@ -80,6 +80,7 @@ export class ToolRunner extends events.EventEmitter {
     private args: string[];
     private pipeOutputToTool: ToolRunner | undefined;
     private pipeOutputToFile: string | undefined;
+    private childProcess: child.ChildProcess | undefined;
 
     private _debug(message: string) {
         this.emit('debug', message);
@@ -95,10 +96,13 @@ export class ToolRunner extends events.EventEmitter {
 
         var append = function (c: string) {
             // we only escape double quotes.
-            if (escaped && c !== '"') {
-                arg += '\\';
+            if (escaped) {
+                if (c !== '"') {
+                    arg += '\\';
+                } else {
+                    arg.slice(0, -1);         
+                }
             }
-
             arg += c;
             escaped = false;
         }
@@ -224,7 +228,7 @@ export class ToolRunner extends events.EventEmitter {
     private _wrapArg(arg: string, wrapChar: string): string {
         if (!this._isWrapped(arg, wrapChar)) {
             return `${wrapChar}${arg}${wrapChar}`;
-        } 
+        }
         return arg;
     }
 
@@ -573,8 +577,8 @@ export class ToolRunner extends events.EventEmitter {
             windowsVerbatimArguments: options.windowsVerbatimArguments || false,
             shell: options.shell || false
         };
-        result.outStream = options.outStream || <stream.Writable>process.stdout;
-        result.errStream = options.errStream || <stream.Writable>process.stderr;
+        result.outStream = options.outStream || process.stdout;
+        result.errStream = options.errStream || process.stderr;
         return result;
     }
 
@@ -670,18 +674,18 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         //pipe stdout of first tool to stdin of second tool
-        cpFirst.stdout.on('data', (data: Buffer) => {
+        cpFirst.stdout?.on('data', (data: Buffer) => {
             try {
                 if (fileStream) {
                     fileStream.write(data);
                 }
-                cp.stdin.write(data);
+                cp.stdin?.write(data);
             } catch (err) {
                 this._debug('Failed to pipe output of ' + toolPathFirst + ' to ' + toolPath);
                 this._debug(toolPath + ' might have exited due to errors prematurely. Verify the arguments passed are valid.');
             }
         });
-        cpFirst.stderr.on('data', (data: Buffer) => {
+        cpFirst.stderr?.on('data', (data: Buffer) => {
             if (fileStream) {
                 fileStream.write(data);
             }
@@ -696,7 +700,7 @@ export class ToolRunner extends events.EventEmitter {
             if (fileStream) {
                 fileStream.end();
             }
-            cp.stdin.end();
+            cp.stdin?.end();
             error = new Error(toolPathFirst + ' failed. ' + err.message);
             if(waitingEvents == 0) {
                 defer.reject(error);
@@ -713,7 +717,7 @@ export class ToolRunner extends events.EventEmitter {
             if (fileStream) {
                 fileStream.end();
             }
-            cp.stdin.end();
+            cp.stdin?.end();
             if(waitingEvents == 0) {
                 if (error) {
                     defer.reject(error);
@@ -724,7 +728,7 @@ export class ToolRunner extends events.EventEmitter {
         });
 
         var stdbuffer: string = '';
-        cp.stdout.on('data', (data: Buffer) => {
+        cp.stdout?.on('data', (data: Buffer) => {
             this.emit('stdout', data);
 
             if (!optionsNonNull.silent) {
@@ -737,7 +741,7 @@ export class ToolRunner extends events.EventEmitter {
         });
 
         var errbuffer: string = '';
-        cp.stderr.on('data', (data: Buffer) => {
+        cp.stderr?.on('data', (data: Buffer) => {
             this.emit('stderr', data);
 
             success = !optionsNonNull.failOnStdErr;
@@ -798,9 +802,9 @@ export class ToolRunner extends events.EventEmitter {
 
     /**
      * Add argument
-     * Append an argument or an array of arguments 
+     * Append an argument or an array of arguments
      * returns ToolRunner for chaining
-     * 
+     *
      * @param     val        string cmdline or array of strings
      * @returns   ToolRunner
      */
@@ -825,7 +829,7 @@ export class ToolRunner extends events.EventEmitter {
      * Parses an argument line into one or more arguments
      * e.g. .line('"arg one" two -z') is equivalent to .arg(['arg one', 'two', '-z'])
      * returns ToolRunner for chaining
-     * 
+     *
      * @param     val        string argument line
      * @returns   ToolRunner
      */
@@ -871,7 +875,7 @@ export class ToolRunner extends events.EventEmitter {
      * Exec a tool.
      * Output will be streamed to the live console.
      * Returns promise with return code
-     * 
+     *
      * @param     tool     path to tool to exec
      * @param     options  optional exec options.  See IExecOptions
      * @returns   number
@@ -900,18 +904,18 @@ export class ToolRunner extends events.EventEmitter {
         });
 
         let cp = child.spawn(this._getSpawnFileName(options), this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(options));
-
+        this.childProcess = cp;
         // it is possible for the child process to end its last line without a new line.
         // because stdout is buffered, this causes the last line to not get sent to the parent
         // stream. Adding this event forces a flush before the child streams are closed.
-        cp.stdout.on('finish', () => {
+        cp.stdout?.on('finish', () => {
             if (!optionsNonNull.silent) {
                 optionsNonNull.outStream!.write(os.EOL);
             }
         });
 
         var stdbuffer: string = '';
-        cp.stdout.on('data', (data: Buffer) => {
+        cp.stdout?.on('data', (data: Buffer) => {
             this.emit('stdout', data);
 
             if (!optionsNonNull.silent) {
@@ -925,7 +929,7 @@ export class ToolRunner extends events.EventEmitter {
 
 
         var errbuffer: string = '';
-        cp.stderr.on('data', (data: Buffer) => {
+        cp.stderr?.on('data', (data: Buffer) => {
             state.processStderr = true;
             this.emit('stderr', data);
 
@@ -984,11 +988,11 @@ export class ToolRunner extends events.EventEmitter {
     }
 
     /**
-     * Exec a tool synchronously. 
+     * Exec a tool synchronously.
      * Output will be *not* be streamed to the live console.  It will be returned after execution is complete.
-     * Appropriate for short running tools 
+     * Appropriate for short running tools
      * Returns IExecSyncResult with output and return code
-     * 
+     *
      * @param     tool     path to tool to exec
      * @param     options  optional exec options.  See IExecSyncOptions
      * @returns   IExecSyncResult
@@ -1021,6 +1025,16 @@ export class ToolRunner extends events.EventEmitter {
         res.stdout = (r.stdout) ? r.stdout.toString() : '';
         res.stderr = (r.stderr) ? r.stderr.toString() : '';
         return res;
+    }
+
+    /**
+     * Used to close child process by sending SIGNINT signal.
+     * It allows executed script to have some additional logic on SIGINT, before exiting.
+     */
+    public killChildProcess(): void {
+        if (this.childProcess) {
+            this.childProcess.kill();
+        }
     }
 }
 
