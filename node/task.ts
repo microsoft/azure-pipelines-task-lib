@@ -407,7 +407,7 @@ export interface EndpointAuthorization {
 
 /**
  * Gets the authorization details for a service endpoint
- * If the authorization was not set and is not optional, it will write logs and return undefined.
+ * If the authorization was not set and is not optional, it will specify task result as failed in case of exception.
  *
  * @param     id        name of the service endpoint
  * @param     optional  whether the url is optional
@@ -420,7 +420,7 @@ export function getEndpointAuthorization(id: string, optional: boolean): Endpoin
         setResult(TaskResult.Failed, loc('LIB_EndpointAuthNotExist', id));
     }
 
-    debug(id + ' exists ' + (aval !== undefined));
+    debug(id + ' exists ' + (!!aval));
 
     var auth: EndpointAuthorization | undefined;
     try {
