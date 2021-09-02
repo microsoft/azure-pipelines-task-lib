@@ -407,7 +407,7 @@ export interface EndpointAuthorization {
 
 /**
  * Gets the authorization details for a service endpoint
- * If the authorization was not set and is not optional, it will specify task result as failed in case of exception.
+ * If the authorization was not set and is not optional, it will set the task result to Failed.
  *
  * @param     id        name of the service endpoint
  * @param     optional  whether the url is optional
