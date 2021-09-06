@@ -616,7 +616,7 @@ scheme | string | auth scheme such as OAuth or username/password etc...
  
 ### task.getEndpointAuthorization <a href="#index">(^)</a>
 Gets the authorization details for a service endpoint
-If the authorization was not set and is not optional, it will throw.
+If the authorization was not set and is not optional, it will set the task result to Failed.
 
 @returns   string
 ```javascript
