@@ -200,10 +200,10 @@ export function _loc(key: string, ...param: any[]): string {
     }
     else {
         if (Object.keys(_resourceFiles).length <= 0) {
-            _warning(`Resource file haven\\'t been set, can\\'t find loc string for key: ${path}`);
+            _warning(`Resource file haven't been set, can't find loc string for key: ${key}`);
         }
         else {
-            _warning(`Can\\'t find loc string for key: ${path}`);
+            _warning(`Can't find loc string for key: ${key}`);
         }
 
         locString = key;
