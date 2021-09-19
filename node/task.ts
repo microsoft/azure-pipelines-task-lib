@@ -147,7 +147,12 @@ export function getVariables(): VariableInfo[] {
     return Object.keys(im._knownVariableMap)
         .map((key: string) => {
             let info: im._KnownVariableInfo = im._knownVariableMap[key];
-            return <VariableInfo>{ name: info.name, value: getVariable(info.name), secret: info.secret };
+            if (im._startsWith(info.name, 'VSTS_TASKVARIABLE_')) {
+                var variableName = (info.name).substring('VSTS_TASKVARIABLE_'.length);
+                return <VariableInfo>{ name: variableName, value: getVariable(info.name), secret: info.secret };
+            } else {
+                return <VariableInfo>{ name: info.name, value: getVariable(info.name), secret: info.secret };
+            }
         });
 }
 
