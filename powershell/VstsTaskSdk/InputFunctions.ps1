@@ -232,8 +232,9 @@ function Get-TaskVariable {
             Get-Value @PSBoundParameters -Description $description -Key $variableKey -Value $item.Value
         }
     } catch {
-        $ErrorActionPreference = $originalErrorActionPreference
         Write-Error $_
+    } finally {
+	$ErrorActionPreference = $originalErrorActionPreference
     }
 }
 
