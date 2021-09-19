@@ -401,4 +401,10 @@ describe('Internal Path Helper Tests', function () {
 
         done();
     });
+    
+    it('ReportMissingLocalization', (done: MochaDone) => {
+        const localizedMessage : string = im._loc("gizmo", "whatever", "music");
+        assert.strictEqual(localizedMessage, "gizmo whatever music");
+        done();
+    });
 });
