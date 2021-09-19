@@ -65,7 +65,7 @@ export class MockTestRunner {
         if (nodeVersion) {
             nodePath = this.getNodePath(nodeVersion);
         }
-        let spawn = cp.spawnSync(nodePath, [this._testPath]);
+        let spawn = cp.spawnSync(nodePath, [this._testPath], { env: process.env });
 
         // Clean environment
         Object.keys(process.env)
