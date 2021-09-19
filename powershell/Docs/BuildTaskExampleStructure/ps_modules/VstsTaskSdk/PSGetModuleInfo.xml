@@ -1,0 +1,213 @@
+<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>Microsoft.PowerShell.Commands.PSRepositoryItemInfo</T>
+      <T>System.Management.Automation.PSCustomObject</T>
+      <T>System.Object</T>
+    </TN>
+    <MS>
+      <S N="Name">VstsTaskSdk</S>
+      <S N="Version">0.11.0</S>
+      <S N="Type">Module</S>
+      <S N="Description">VSTS Task SDK</S>
+      <S N="Author">Microsoft</S>
+      <S N="CompanyName">VSTS</S>
+      <S N="Copyright">(c) 2016 Microsoft. All rights reserved.</S>
+      <DT N="PublishedDate">2018-05-21T03:27:56+02:00</DT>
+      <Nil N="InstalledDate" />
+      <Nil N="UpdatedDate" />
+      <Nil N="LicenseUri" />
+      <URI N="ProjectUri">https://github.com/Microsoft/vsts-task-lib</URI>
+      <Nil N="IconUri" />
+      <Obj N="Tags" RefId="1">
+        <TN RefId="1">
+          <T>System.Object[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <S>PSModule</S>
+        </LST>
+      </Obj>
+      <Obj N="Includes" RefId="2">
+        <TN RefId="2">
+          <T>System.Collections.Hashtable</T>
+          <T>System.Object</T>
+        </TN>
+        <DCT>
+          <En>
+            <S N="Key">RoleCapability</S>
+            <Obj N="Value" RefId="3">
+              <TNRef RefId="1" />
+              <LST />
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">Command</S>
+            <Obj N="Value" RefId="4">
+              <TNRef RefId="1" />
+              <LST>
+                <S>Find-Match</S>
+                <S>New-FindOptions</S>
+                <S>New-MatchOptions</S>
+                <S>Select-Match</S>
+                <S>Get-Endpoint</S>
+                <S>Get-SecureFileTicket</S>
+                <S>Get-SecureFileName</S>
+                <S>Get-Input</S>
+                <S>Get-TaskVariable</S>
+                <S>Get-TaskVariableInfo</S>
+                <S>Set-TaskVariable</S>
+                <S>Find-Files</S>
+                <S>Get-LocString</S>
+                <S>Import-LocStrings</S>
+                <S>Write-AddAttachment</S>
+                <S>Write-AddBuildTag</S>
+                <S>Write-AssociateArtifact</S>
+                <S>Write-LogDetail</S>
+                <S>Write-PrependPath</S>
+                <S>Write-SetEndpoint</S>
+                <S>Write-SetProgress</S>
+                <S>Write-SetResult</S>
+                <S>Write-SetSecret</S>
+                <S>Write-SetVariable</S>
+                <S>Write-TaskDebug</S>
+                <S>Write-TaskError</S>
+                <S>Write-TaskVerbose</S>
+                <S>Write-TaskWarning</S>
+                <S>Write-UpdateBuildNumber</S>
+                <S>Write-UpdateReleaseName</S>
+                <S>Write-UploadArtifact</S>
+                <S>Write-UploadBuildLog</S>
+                <S>Write-UploadFile</S>
+                <S>Write-UploadSummary</S>
+                <S>Out-Default</S>
+                <S>Get-AssemblyReference</S>
+                <S>Get-TfsClientCredentials</S>
+                <S>Get-TfsService</S>
+                <S>Get-VssCredentials</S>
+                <S>Get-VssHttpClient</S>
+                <S>Assert-Agent</S>
+                <S>Assert-Path</S>
+                <S>Invoke-Tool</S>
+                <S>Trace-EnteringInvocation</S>
+                <S>Trace-LeavingInvocation</S>
+                <S>Trace-Path</S>
+                <S>Get-WebProxy</S>
+                <S>Get-ClientCertificate</S>
+              </LST>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">Cmdlet</S>
+            <Ref N="Value" RefId="3" />
+          </En>
+          <En>
+            <S N="Key">Function</S>
+            <Obj N="Value" RefId="5">
+              <TNRef RefId="1" />
+              <LST>
+                <S>Find-Match</S>
+                <S>New-FindOptions</S>
+                <S>New-MatchOptions</S>
+                <S>Select-Match</S>
+                <S>Get-Endpoint</S>
+                <S>Get-SecureFileTicket</S>
+                <S>Get-SecureFileName</S>
+                <S>Get-Input</S>
+                <S>Get-TaskVariable</S>
+                <S>Get-TaskVariableInfo</S>
+                <S>Set-TaskVariable</S>
+                <S>Find-Files</S>
+                <S>Get-LocString</S>
+                <S>Import-LocStrings</S>
+                <S>Write-AddAttachment</S>
+                <S>Write-AddBuildTag</S>
+                <S>Write-AssociateArtifact</S>
+                <S>Write-LogDetail</S>
+                <S>Write-PrependPath</S>
+                <S>Write-SetEndpoint</S>
+                <S>Write-SetProgress</S>
+                <S>Write-SetResult</S>
+                <S>Write-SetSecret</S>
+                <S>Write-SetVariable</S>
+                <S>Write-TaskDebug</S>
+                <S>Write-TaskError</S>
+                <S>Write-TaskVerbose</S>
+                <S>Write-TaskWarning</S>
+                <S>Write-UpdateBuildNumber</S>
+                <S>Write-UpdateReleaseName</S>
+                <S>Write-UploadArtifact</S>
+                <S>Write-UploadBuildLog</S>
+                <S>Write-UploadFile</S>
+                <S>Write-UploadSummary</S>
+                <S>Out-Default</S>
+                <S>Get-AssemblyReference</S>
+                <S>Get-TfsClientCredentials</S>
+                <S>Get-TfsService</S>
+                <S>Get-VssCredentials</S>
+                <S>Get-VssHttpClient</S>
+                <S>Assert-Agent</S>
+                <S>Assert-Path</S>
+                <S>Invoke-Tool</S>
+                <S>Trace-EnteringInvocation</S>
+                <S>Trace-LeavingInvocation</S>
+                <S>Trace-Path</S>
+                <S>Get-WebProxy</S>
+                <S>Get-ClientCertificate</S>
+              </LST>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">Workflow</S>
+            <Ref N="Value" RefId="3" />
+          </En>
+          <En>
+            <S N="Key">DscResource</S>
+            <Ref N="Value" RefId="3" />
+          </En>
+        </DCT>
+      </Obj>
+      <Nil N="PowerShellGetFormatVersion" />
+      <Nil N="ReleaseNotes" />
+      <Obj N="Dependencies" RefId="6">
+        <TNRef RefId="1" />
+        <LST />
+      </Obj>
+      <S N="RepositorySourceLocation">https://www.powershellgallery.com/api/v2</S>
+      <S N="Repository">PSGallery</S>
+      <S N="PackageManagementProvider">NuGet</S>
+      <Obj N="AdditionalMetadata" RefId="7">
+        <TN RefId="3">
+          <T>System.Management.Automation.PSCustomObject</T>
+          <T>System.Object</T>
+        </TN>
+        <MS>
+          <S N="copyright">(c) 2016 Microsoft. All rights reserved.</S>
+          <S N="description">VSTS Task SDK</S>
+          <S N="requireLicenseAcceptance">False</S>
+          <S N="isLatestVersion">True</S>
+          <S N="isAbsoluteLatestVersion">True</S>
+          <S N="versionDownloadCount">74926</S>
+          <S N="downloadCount">240528</S>
+          <S N="packageSize">71074</S>
+          <S N="published">21/05/2018 03:27:56 +02:00</S>
+          <S N="created">21/05/2018 03:27:56 +02:00</S>
+          <S N="lastUpdated">13/04/2020 20:07:01 +02:00</S>
+          <S N="tags">PSModule PSFunction_Find-Match PSCommand_Find-Match PSFunction_New-FindOptions PSCommand_New-FindOptions PSFunction_New-MatchOptions PSCommand_New-MatchOptions PSFunction_Select-Match PSCommand_Select-Match PSFunction_Get-Endpoint PSCommand_Get-Endpoint PSFunction_Get-SecureFileTicket PSCommand_Get-SecureFileTicket PSFunction_Get-SecureFileName PSCommand_Get-SecureFileName PSFunction_Get-Input PSCommand_Get-Input PSFunction_Get-TaskVariable PSCommand_Get-TaskVariable PSFunction_Get-TaskVariableInfo PSCommand_Get-TaskVariableInfo PSFunction_Set-TaskVariable PSCommand_Set-TaskVariable PSFunction_Find-Files PSCommand_Find-Files PSFunction_Get-LocString PSCommand_Get-LocString PSFunction_Import-LocStrings PSCommand_Import-LocStrings PSFunction_Write-AddAttachment PSCommand_Write-AddAttachment PSFunction_Write-AddBuildTag PSCommand_Write-AddBuildTag PSFunction_Write-AssociateArtifact PSCommand_Write-AssociateArtifact PSFunction_Write-LogDetail PSCommand_Write-LogDetail PSFunction_Write-PrependPath PSCommand_Write-PrependPath PSFunction_Write-SetEndpoint PSCommand_Write-SetEndpoint PSFunction_Write-SetProgress PSCommand_Write-SetProgress PSFunction_Write-SetResult PSCommand_Write-SetResult PSFunction_Write-SetSecret PSCommand_Write-SetSecret PSFunction_Write-SetVariable PSCommand_Write-SetVariable PSFunction_Write-TaskDebug PSCommand_Write-TaskDebug PSFunction_Write-TaskError PSCommand_Write-TaskError PSFunction_Write-TaskVerbose PSCommand_Write-TaskVerbose PSFunction_Write-TaskWarning PSCommand_Write-TaskWarning PSFunction_Write-UpdateBuildNumber PSCommand_Write-UpdateBuildNumber PSFunction_Write-UpdateReleaseName PSCommand_Write-UpdateReleaseName PSFunction_Write-UploadArtifact PSCommand_Write-UploadArtifact PSFunction_Write-UploadBuildLog PSCommand_Write-UploadBuildLog PSFunction_Write-UploadFile PSCommand_Write-UploadFile PSFunction_Write-UploadSummary PSCommand_Write-UploadSummary PSFunction_Out-Default PSCommand_Out-Default PSFunction_Get-AssemblyReference PSCommand_Get-AssemblyReference PSFunction_Get-TfsClientCredentials PSCommand_Get-TfsClientCredentials PSFunction_Get-TfsService PSCommand_Get-TfsService PSFunction_Get-VssCredentials PSCommand_Get-VssCredentials PSFunction_Get-VssHttpClient PSCommand_Get-VssHttpClient PSFunction_Assert-Agent PSCommand_Assert-Agent PSFunction_Assert-Path PSCommand_Assert-Path PSFunction_Invoke-Tool PSCommand_Invoke-Tool PSFunction_Trace-EnteringInvocation PSCommand_Trace-EnteringInvocation PSFunction_Trace-LeavingInvocation PSCommand_Trace-LeavingInvocation PSFunction_Trace-Path PSCommand_Trace-Path PSFunction_Get-WebProxy PSCommand_Get-WebProxy PSFunction_Get-ClientCertificate PSCommand_Get-ClientCertificate PSIncludes_Function</S>
+          <S N="developmentDependency">False</S>
+          <S N="updated">2020-04-13T20:07:01Z</S>
+          <S N="NormalizedVersion">0.11.0</S>
+          <S N="Authors">Microsoft</S>
+          <S N="IsPrerelease">false</S>
+          <S N="ItemType">Module</S>
+          <S N="FileList">VstsTaskSdk.nuspec|FindFunctions.ps1|InputFunctions.ps1|LegacyFindFunctions.ps1|lib.json|LocalizationFunctions.ps1|LoggingCommandFunctions.ps1|LongPathFunctions.ps1|Minimatch.dll|OutFunctions.ps1|ServerOMFunctions.ps1|ToolFunctions.ps1|TraceFunctions.ps1|VstsTaskSdk.dll|VstsTaskSdk.psd1|VstsTaskSdk.psm1|Strings\resources.resjson\de-de\resources.resjson|Strings\resources.resjson\en-US\resources.resjson|Strings\resources.resjson\es-es\resources.resjson|Strings\resources.resjson\fr-fr\resources.resjson|Strings\resources.resjson\it-IT\resources.resjson|Strings\resources.resjson\ja-jp\resources.resjson|Strings\resources.resjson\ko-KR\resources.resjson|Strings\resources.resjson\ru-RU\resources.resjson|Strings\resources.resjson\zh-CN\resources.resjson|Strings\resources.resjson\zh-TW\resources.resjson</S>
+          <S N="GUID">bbed04e2-4e8e-4089-90a2-58b858fed8d8</S>
+          <S N="PowerShellVersion">3.0</S>
+          <S N="CompanyName">Microsoft</S>
+        </MS>
+      </Obj>
+      <S N="InstalledLocation">C:\Users\Torben\source\repos\BuildTask\TestTask\ps_modules\VstsTaskSdk\0.11.0</S>
+    </MS>
+  </Obj>
+</Objs>

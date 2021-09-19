@@ -1,0 +1,64 @@
+{
+    "id": "E213000F-5D5C-4791-802D-52EA3E7BE1F1",
+    "name": "MINTEST",
+    "friendlyName": "MinApp",
+    "description": "Test Error Printout and new Powershell Task Handler!",
+    "category": "Utility",
+    "visibility": [
+        "Build",
+        "Release"
+    ],
+    "runsOn": [
+        "Agent"
+    ],
+    "author": "Torben Clasen",
+    "version": {
+        "Major": 1,
+        "Minor": 0,
+        "Patch": 6
+    },
+    "releaseNotes": "TEST",
+    "minimumAgentVersion": "2.115.0",
+    "showEnvironmentVariables": true,
+    "groups": [
+    ],
+    "inputs": [
+        {
+            "name": "yesno",
+            "type": "boolean",
+            "label": "YesNo",
+            "required": true,
+            "defaultValue": "true",
+            "helpMarkDown": "Choose Yes or No"
+        },
+        {
+            "name": "filePath",
+            "type": "filePath",
+            "label": "File Path",
+            "required": true,
+            "defaultValue": "",
+            "helpMarkDown": "Path of the script to execute. Must be a fully qualified path or relative to $(System.DefaultWorkingDirectory)."
+        },
+        {
+            "name": "amount",
+            "type": "string",
+            "label": "Amount",
+            "required": true,
+            "defaultValue": "0",
+            "helpMarkDown": "Arguments passed to the PowerShell script. Either ordinal parameters or named parameters."
+        }
+    ],
+    "instanceNameFormat": "PowerShell Script",
+    "execution": {
+        "PowerShell3": {
+            "target": "task.ps1",
+            "platforms": [
+                "windows"
+            ]
+        }
+    },
+    "messages": {
+        "Example1": "Some Message1",
+        "Uff": "Massive Uff"
+    }
+}
