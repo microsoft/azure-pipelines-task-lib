@@ -7,6 +7,7 @@ import * as path from 'path';
 import * as testutil from './testutil';
 import * as tl from '../_build/task';
 import * as im from '../_build/internal';
+import * as mockery from 'mockery'
 
 describe('Internal Path Helper Tests', function () {
 
@@ -399,6 +400,34 @@ describe('Internal Path Helper Tests', function () {
             assertNormalizeSeparators('hello/////world', 'hello/world');
         }
 
+        done();
+    });
+    
+    it('ReportMissingStrings', (done: MochaDone) => {
+
+        mockery.registerAllowable('../_build/internal')
+        const fsMock = {
+            statSync: function (path) { return null; }
+        };
+        mockery.registerMock('fs', fsMock);
+        mockery.enable({ useCleanCache: true })
+
+        const local_im = require('../_build/internal');
+
+        try{
+            const localizedMessage : string = local_im._loc("gizmo", "whatever", "music");
+            assert.strictEqual(localizedMessage, "gizmo whatever music");
+
+        }finally{
+            mockery.disable();
+            mockery.deregisterAll();
+        }
+        done();
+    });
+
+    it('ReportMissingLocalization', (done: MochaDone) => {
+        const localizedMessage : string = im._loc("gizmo", "whatever", "music");
+        assert.strictEqual(localizedMessage, "gizmo whatever music");
         done();
     });
 });
