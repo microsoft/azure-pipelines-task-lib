@@ -71,8 +71,14 @@ stages:
 
         git checkout -b $updateBranch
 
-        Remove-Item -Recurse -Force Localize, OneLocBuild -ErrorAction Ignore
-
+        if (Test-Path -Path Localize) { 
+          Remove-Item -Recurse -Force Localize 
+        }
+        
+        if (Test-Path -Path OneLocBuild) { 
+          Remove-Item -Recurse -Force OneLocBuild 
+        }
+        
         git add -A
         git commit -m "Removing Localize and OneLocBuild folder"
         git push origin $updateBranch
