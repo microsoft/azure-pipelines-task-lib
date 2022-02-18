@@ -200,10 +200,10 @@ export function _loc(key: string, ...param: any[]): string {
     }
     else {
         if (Object.keys(_resourceFiles).length <= 0) {
-            _warning(_loc('LIB_ResourceFileNotSet', key));
+            _warning(`Resource file haven't been set, can't find loc string for key: ${key}`);
         }
         else {
-            _warning(_loc('LIB_LocStringNotFound', key));
+            _warning(`Can't find loc string for key: ${key}`);
         }
 
         locString = key;
@@ -767,6 +767,16 @@ export function _loadData(): void {
 //--------------------------------------------------------------------------------
 // Internal path helpers.
 //--------------------------------------------------------------------------------
+
+/**
+ * Defines if path is unc-path.
+ *
+ * @param path  a path to a file.
+ * @returns     true if path starts with double backslash, otherwise returns false.
+ */
+ export function _isUncPath(path: string) {
+    return /^\\\\[^\\]/.test(path);
+}
 
 export function _ensureRooted(root: string, p: string) {
     if (!root) {

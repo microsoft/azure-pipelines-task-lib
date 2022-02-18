@@ -49,7 +49,8 @@ export class MockAnswers {
 
         const cmd_answer = this._answers[cmd]!;
 
-        if (cmd_answer[key]) {
+        //use this construction to avoid falsy zero
+        if (cmd_answer[key] != null) {
             debug('found mock response');
             return cmd_answer[key];
         }

@@ -299,7 +299,7 @@ describe('Mock Tests', function () {
     })
 
     it('MockTest handles node 6 tasks correctly', function (done) {
-        this.timeout(15000);
+        this.timeout(30000);
         const runner = new mtm.MockTestRunner(path.join(__dirname, 'fakeTasks', 'node6task', 'entry.js'));
         const nodePath = runner.nodePath;
         assert(nodePath, 'node path should have been correctly set');
@@ -309,7 +309,7 @@ describe('Mock Tests', function () {
     })
 
     it('MockTest handles node 10 tasks correctly', function (done) {
-        this.timeout(15000);
+        this.timeout(30000);
         const runner = new mtm.MockTestRunner(path.join(__dirname, 'fakeTasks', 'node10task', 'entry.js'));
         const nodePath = runner.nodePath;
         assert(nodePath, 'node path should have been correctly set');
@@ -319,7 +319,7 @@ describe('Mock Tests', function () {
     })
 
     it('MockTest handles node 14 tasks correctly', function (done) {
-        this.timeout(15000);
+        this.timeout(30000);
         const runner = new mtm.MockTestRunner(path.join(__dirname, 'fakeTasks', 'node14task', 'entry.js'));
         const nodePath = runner.nodePath;
         assert(nodePath, 'node path should have been correctly set');

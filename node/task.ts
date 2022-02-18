@@ -407,7 +407,7 @@ export interface EndpointAuthorization {
 
 /**
  * Gets the authorization details for a service endpoint
- * If the authorization was not set and is not optional, it will throw.
+ * If the authorization was not set and is not optional, it will set the task result to Failed.
  *
  * @param     id        name of the service endpoint
  * @param     optional  whether the url is optional
@@ -420,7 +420,7 @@ export function getEndpointAuthorization(id: string, optional: boolean): Endpoin
         setResult(TaskResult.Failed, loc('LIB_EndpointAuthNotExist', id));
     }
 
-    debug(id + ' exists ' + (aval !== null));
+    debug(id + ' exists ' + (!!aval));
 
     var auth: EndpointAuthorization | undefined;
     try {
@@ -810,6 +810,91 @@ export interface FindOptions {
      * symbolic link directories.
      */
     followSymbolicLinks: boolean;
+
+    /**
+     * When true, missing files will not cause an error and will be skipped.
+     */
+    skipMissingFiles?: boolean;
+}
+
+/**
+ * Interface for RetryOptions
+ *
+ * Contains "continueOnError" and "retryCount" options.
+ */
+export interface RetryOptions {
+
+    /**
+     * If true, code still continues to execute when all retries failed.
+     */
+    continueOnError: boolean,
+
+    /**
+     * Number of retries.
+     */
+    retryCount: number
+}
+
+/**
+ * Tries to execute a function a specified number of times.
+ *
+ * @param   func            a function to be executed.
+ * @param   args            executed function arguments array.
+ * @param   retryOptions    optional. Defaults to { continueOnError: false, retryCount: 0 }.
+ * @returns the same as the usual function.
+ */
+export function retry(func: Function, args: any[], retryOptions: RetryOptions = { continueOnError: false, retryCount: 0 }): any {
+    while (retryOptions.retryCount >= 0) {
+        try {
+            return func(...args);
+        } catch (e) {
+            if (retryOptions.retryCount <= 0) {
+                if (retryOptions.continueOnError) {
+                    warning(e);
+                    break;
+                } else {
+                    throw e;
+                }
+            } else {
+                debug(`Attempt to execute function "${func?.name}" failed, retries left: ${retryOptions.retryCount}`);
+                retryOptions.retryCount--;
+            }
+        }
+    }
+}
+
+/**
+ * Gets info about item stats.
+ *
+ * @param path                      a path to the item to be processed.
+ * @param followSymbolicLink        indicates whether to traverse descendants of symbolic link directories.
+ * @param allowBrokenSymbolicLinks  when true, broken symbolic link will not cause an error.
+ * @returns fs.Stats
+ */
+function _getStats (path: string, followSymbolicLink: boolean, allowBrokenSymbolicLinks: boolean): fs.Stats {
+    // stat returns info about the target of a symlink (or symlink chain),
+    // lstat returns info about a symlink itself
+    let stats: fs.Stats;
+
+    if (followSymbolicLink) {
+        try {
+            // use stat (following symlinks)
+            stats = fs.statSync(path);
+        } catch (err) {
+            if (err.code == 'ENOENT' && allowBrokenSymbolicLinks) {
+                // fallback to lstat (broken symlinks allowed)
+                stats = fs.lstatSync(path);
+                debug(`  ${path} (broken symlink)`);
+            } else {
+                throw err;
+            }
+        }
+    } else {
+        // use lstat (not following symlinks)
+        stats = fs.lstatSync(path);
+    }
+
+    return stats;
 }
 
 /**
@@ -857,49 +942,28 @@ export function find(findPath: string, options?: FindOptions): string[] {
         while (stack.length) {
             // pop the next item and push to the result array
             let item = stack.pop()!; // non-null because `stack.length` was truthy
-            result.push(item.path);
 
-            // stat the item.  the stat info is used further below to determine whether to traverse deeper
-            //
-            // stat returns info about the target of a symlink (or symlink chain),
-            // lstat returns info about a symlink itself
             let stats: fs.Stats;
-            if (options.followSymbolicLinks) {
-                try {
-                    // use stat (following all symlinks)
-                    stats = fs.statSync(item.path);
+            try {
+                // `item.path` equals `findPath` for the first item to be processed, when the `result` array is empty
+                const isPathToSearch: boolean = !result.length;
+
+                // following specified symlinks only if current path equals specified path
+                const followSpecifiedSymbolicLink: boolean = options.followSpecifiedSymbolicLink && isPathToSearch;
+
+                // following all symlinks or following symlink for the specified path
+                const followSymbolicLink: boolean = options.followSymbolicLinks || followSpecifiedSymbolicLink;
+
+                // stat the item. The stat info is used further below to determine whether to traverse deeper
+                stats = _getStats(item.path, followSymbolicLink, options.allowBrokenSymbolicLinks);
+            } catch (err) {
+                if (err.code == 'ENOENT' && options.skipMissingFiles) {
+                    warning(`No such file or directory: "${item.path}" - skipping.`);
+                    continue;
                 }
-                catch (err) {
-                    if (err.code == 'ENOENT' && options.allowBrokenSymbolicLinks) {
-                        // fallback to lstat (broken symlinks allowed)
-                        stats = fs.lstatSync(item.path);
-                        debug(`  ${item.path} (broken symlink)`);
-                    }
-                    else {
-                        throw err;
-                    }
-                }
+                throw err;
             }
-            else if (options.followSpecifiedSymbolicLink && result.length == 1) {
-                try {
-                    // use stat (following symlinks for the specified path and this is the specified path)
-                    stats = fs.statSync(item.path);
-                }
-                catch (err) {
-                    if (err.code == 'ENOENT' && options.allowBrokenSymbolicLinks) {
-                        // fallback to lstat (broken symlinks allowed)
-                        stats = fs.lstatSync(item.path);
-                        debug(`  ${item.path} (broken symlink)`);
-                    }
-                    else {
-                        throw err;
-                    }
-                }
-            }
-            else {
-                // use lstat (not following symlinks)
-                stats = fs.lstatSync(item.path);
-            }
+            result.push(item.path);
 
             // note, isDirectory() returns false for the lstat of a symlink
             if (stats.isDirectory()) {
@@ -907,7 +971,13 @@ export function find(findPath: string, options?: FindOptions): string[] {
 
                 if (options.followSymbolicLinks) {
                     // get the realpath
-                    let realPath: string = fs.realpathSync(item.path);
+                    let realPath: string;
+                    if (im._isUncPath(item.path)) {
+                        // Sometimes there are spontaneous issues when working with unc-paths, so retries have been added for them.
+                        realPath = retry(fs.realpathSync, [item.path], { continueOnError: false, retryCount: 5 });
+                    } else {
+                        realPath = fs.realpathSync(item.path);
+                    }
 
                     // fixup the traversal chain to match the item level
                     while (traversalChain.length >= item.level) {
@@ -960,13 +1030,15 @@ function _debugFindOptions(options: FindOptions): void {
     debug(`findOptions.allowBrokenSymbolicLinks: '${options.allowBrokenSymbolicLinks}'`);
     debug(`findOptions.followSpecifiedSymbolicLink: '${options.followSpecifiedSymbolicLink}'`);
     debug(`findOptions.followSymbolicLinks: '${options.followSymbolicLinks}'`);
+    debug(`findOptions.skipMissingFiles: '${options.skipMissingFiles}'`);
 }
 
 function _getDefaultFindOptions(): FindOptions {
     return <FindOptions>{
         allowBrokenSymbolicLinks: false,
         followSpecifiedSymbolicLink: true,
-        followSymbolicLinks: true
+        followSymbolicLinks: true,
+        skipMissingFiles: false
     };
 }
 
@@ -2095,7 +2167,7 @@ export function addBuildTag(value: string) {
  * @returns         void
  */
 export function updateReleaseName(name: string) {
-    assertAgent("2.132");
+    assertAgent("2.132.0");
     command("release.updatereleasename", null, name);
 }
 
