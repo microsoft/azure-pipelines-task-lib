@@ -913,6 +913,12 @@ export class ToolRunner extends events.EventEmitter {
                 optionsNonNull.outStream!.write(os.EOL);
             }
         });
+        cp.stderr?.on('finish', () => {
+            if (!optionsNonNull.silent) {
+                var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream! : optionsNonNull.outStream!;
+                s.write(os.EOL);
+            }
+        });
 
         var stdbuffer: string = '';
         cp.stdout?.on('data', (data: Buffer) => {
@@ -975,6 +981,18 @@ export class ToolRunner extends events.EventEmitter {
             }
 
             cp.removeAllListeners();
+            this._debug(`Destroy STDERR`);
+            cp.stderr?.destroy();
+            this._debug(`STDERR stream destroyed`);
+            this._debug(`Destroy STDIN`);
+            cp.stdin?.destroy();
+            this._debug(`STDIN stream destroyed`);
+            this._debug(`Destroy STDOUT`);
+            cp.stdout?.destroy();
+            this._debug(`STDOUT stream destroyed`);
+
+            this._debug("Unref child process");
+            cp.unref();
 
             if (error) {
                 defer.reject(error);
