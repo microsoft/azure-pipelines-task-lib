@@ -980,7 +980,25 @@ export class ToolRunner extends events.EventEmitter {
                 this.emit('errline', errbuffer);
             }
 
+            this._debug("Remove listeners in child process");
             cp.removeAllListeners();
+            this._debug(`CP: Left listenerd after remove:`);
+            this._debug(`CP: 'close' event: ${cp.listenerCount('close')}`);
+            this._debug(`CP: 'exit' event: ${cp.listenerCount('exit')}`);
+            this._debug(`CP: 'error' event: ${cp.listenerCount('error')}`);
+
+            this._debug("Remove listeners in stderr process");
+            cp.stderr?.removeAllListeners();
+            this._debug(`STDERR: Left listenerd after remove:`);
+            this._debug(`STDERR: 'data' event: ${cp.listenerCount('data')}`);
+            this._debug(`STDERR: 'finish' event: ${cp.listenerCount('finish')}`);
+
+            this._debug("Remove listeners in stdout process");
+            cp.stdout?.removeAllListeners();
+            this._debug(`STDOUT: Left listenerd after remove:`);
+            this._debug(`STDOUT: 'data' event: ${cp.listenerCount('data')}`);
+            this._debug(`STDOUT: 'finish' event: ${cp.listenerCount('finish')}`);
+
             this._debug(`Destroy STDERR`);
             cp.stderr?.destroy();
             this._debug(`STDERR stream destroyed`);
@@ -991,7 +1009,7 @@ export class ToolRunner extends events.EventEmitter {
             cp.stdout?.destroy();
             this._debug(`STDOUT stream destroyed`);
 
-            this._debug("Unref child process");
+            this._debug(`Unref child process`);
             cp.unref();
 
             if (error) {
