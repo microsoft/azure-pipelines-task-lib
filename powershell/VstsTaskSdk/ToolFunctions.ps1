@@ -107,9 +107,10 @@ function Invoke-Tool { # TODO: RENAME TO INVOKE-PROCESS?
         Write-Host "##[command]""$FileName"" $Arguments"
         try {
             Invoke-Expression "& '$FileName' --% $Arguments"
+            throw [System.Management.Automation.Host.HostException]
         } catch {
             $exception = $_.Exception
-            if (($exception.GetBaseException() -eq "System.Management.Automation.Host.HostException") -and ($IgnoreHostExpression -eq $False)) {
+            if (($exception.Message.Contains("System.Management.Automation.Host.HostException")) -and ($IgnoreHostExpression -eq $False)) {
                 throw
             }
 
