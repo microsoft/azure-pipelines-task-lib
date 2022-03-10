@@ -51,7 +51,7 @@ class PSEngineRunner extends events.EventEmitter {
 
         this.emit('starting');
         var defer = Q.defer<void>();
-        var powershell = shell.which('powershell.exe');
+        var powershell = shell.which('powershell.exe').stdout;
         this._childProcess = child.spawn(
             powershell, // command
             [ // args

@@ -99,12 +99,12 @@ var ensureTool = function (name, versionArgs, validate) {
     if (versionArgs) {
         var result = exec(name + ' ' + versionArgs);
         if (typeof validate == 'string') {
-            if (result.output.trim() != validate) {
+            if (result.stdout.trim() != validate) {
                 throw new Error('expected version: ' + validate);
             }
         }
         else {
-            validate(result.output.trim());
+            validate(result.stdout.trim());
         }
     }
 
