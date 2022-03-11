@@ -87,7 +87,7 @@ function Invoke-Tool { # TODO: RENAME TO INVOKE-PROCESS?
         [string]$WorkingDirectory,
         [System.Text.Encoding]$Encoding,
         [switch]$RequireExitCodeZero,
-        [bool]$IgnoreHostExpression)
+        [bool]$IgnoreHostException)
 
     Trace-EnteringInvocation $MyInvocation
     $isPushed = $false
@@ -108,11 +108,11 @@ function Invoke-Tool { # TODO: RENAME TO INVOKE-PROCESS?
         try {
             Invoke-Expression "& '$FileName' --% $Arguments"
         } catch [System.Management.Automation.Host.HostException] {
-            if ($IgnoreHostExpression -eq $False) {
+            if ($IgnoreHostException -eq $False) {
                 throw
             }
 
-            Write-Host "##[warning]Host Exception was thrown by Invoke-Expression, suppress it due IgnoreHostExpression setting"
+            Write-Host "##[warning]Host Exception was thrown by Invoke-Expression, suppress it due IgnoreHostException setting"
         }
         Write-Verbose "Exit code: $LASTEXITCODE"
         if ($RequireExitCodeZero -and $LASTEXITCODE -ne 0) {
