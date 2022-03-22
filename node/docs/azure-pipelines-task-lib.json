@@ -640,7 +640,7 @@
                 }
               ],
               "members": {},
-              "return": "string",
+              "return": "string | undefined",
               "documentation": "Gets a variable value that is defined on the build/release definition or set at runtime.\n\n@returns   string"
             }
           ]
