@@ -119,7 +119,7 @@ If required is true and the value is not set, it will throw.
 
 @returns   string
 ```javascript
-getInput(name:string, required?:boolean):string
+getInput(name:string, required?:boolean):string | undefined
 ```
  
 Param | Type | Description
@@ -155,7 +155,7 @@ If check is true and the path does not exist, it will throw.
 
 @returns   string
 ```javascript
-getPathInput(name:string, required?:boolean, check?:boolean):string
+getPathInput(name:string, required?:boolean, check?:boolean):string | undefined
 ```
  
 Param | Type | Description
@@ -211,7 +211,7 @@ Gets a variable value that is defined on the build/release definition or set at 
 
 @returns   string
 ```javascript
-getVariable(name:string):string
+getVariable(name:string):string | undefined
 ```
  
 Param | Type | Description
@@ -275,7 +275,7 @@ Requires a 2.115.0 agent or higher.
 
 @returns   string
 ```javascript
-getTaskVariable(name:string):string
+getTaskVariable(name:string):string | undefined
 ```
  
 Param | Type | Description
