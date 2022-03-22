@@ -60,6 +60,7 @@ module.exports.setSecret = task.setSecret;
 module.exports.getTaskVariable = task.getTaskVariable;
 module.exports.setTaskVariable = task.setTaskVariable;
 module.exports.getInput = task.getInput;
+module.exports.getInputRequired = task.getInputRequired;
 module.exports.getBoolInput = task.getBoolInput;
 module.exports.getDelimitedInput = task.getDelimitedInput;
 module.exports.filePathSupplied = task.filePathSupplied;
@@ -75,13 +76,26 @@ function getPathInput(name: string, required?: boolean, check?: boolean): string
 }
 module.exports.getPathInput = getPathInput;
 
+function getPathInputRequired(name: string, check?: boolean): string {
+    var inval = module.exports.getInputRequired(name);
+    if (check) {
+        checkPath(inval, name);
+    }
+    return inval;
+}
+module.exports.getPathInputRequired = getPathInputRequired;
+
 //-----------------------------------------------------
 // Endpoint Helpers
 //-----------------------------------------------------
 module.exports.getEndpointUrl = task.getEndpointUrl;
+module.exports.getEndpointUrlRequired = task.getEndpointUrlRequired;
 module.exports.getEndpointDataParameter = task.getEndpointDataParameter;
+module.exports.getEndpointDataParameterRequired = task.getEndpointDataParameterRequired;
 module.exports.getEndpointAuthorizationScheme = task.getEndpointAuthorizationScheme;
+module.exports.getEndpointAuthorizationSchemeRequired = task.getEndpointAuthorizationSchemeRequired;
 module.exports.getEndpointAuthorizationParameter = task.getEndpointAuthorizationParameter;
+module.exports.getEndpointAuthorizationParameterRequired = task.getEndpointAuthorizationParameterRequired;
 module.exports.getEndpointAuthorization = task.getEndpointAuthorization;
 
 // TODO: should go away when task lib

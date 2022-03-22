@@ -759,7 +759,7 @@
         "getInput": {
           "name": "getInput",
           "members": {},
-          "documentation": "Gets the value of an input.  The value is also trimmed.\nIf required is true and the value is not set, it will throw.\n\n@returns   string",
+          "documentation": "Gets the value of an input.  The value is also trimmed.\nIf required is true and the value is not set, it will throw.\n\n@returns   string | undefined",
           "kind": "function",
           "signatures": [
             {
@@ -778,8 +778,29 @@
                 }
               ],
               "members": {},
+              "return": "string | undefined",
+              "documentation": "Gets the value of an input.  The value is also trimmed.\nIf required is true and the value is not set, it will throw.\n\n@returns   string | undefined"
+            }
+          ]
+        },
+        "getInputRequired": {
+          "name": "getInputRequired",
+          "members": {},
+          "documentation": "Gets the value of an input.  The value is also trimmed.\nIf the value is not set, it will throw.\n\n@returns   string",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "name",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": "name of the input to get"
+                }
+              ],
+              "members": {},
               "return": "string",
-              "documentation": "Gets the value of an input.  The value is also trimmed.\nIf required is true and the value is not set, it will throw.\n\n@returns   string"
+              "documentation": "Gets the value of an input.  The value is also trimmed.\nIf the value is not set, it will throw.\n\n@returns   string"
             }
           ]
         },
@@ -867,7 +888,7 @@
         "getPathInput": {
           "name": "getPathInput",
           "members": {},
-          "documentation": "Gets the value of a path input\nIt will be quoted for you if it isn't already and contains spaces\nIf required is true and the value is not set, it will throw.\nIf check is true and the path does not exist, it will throw.\n\n@returns   string",
+          "documentation": "Gets the value of a path input\nIt will be quoted for you if it isn't already and contains spaces\nIf required is true and the value is not set, it will throw.\nIf check is true and the path does not exist, it will throw.\n\n@returns   string | undefined",
           "kind": "function",
           "signatures": [
             {
@@ -892,15 +913,42 @@
                 }
               ],
               "members": {},
+              "return": "string | undefined",
+              "documentation": "Gets the value of a path input\nIt will be quoted for you if it isn't already and contains spaces\nIf required is true and the value is not set, it will throw.\nIf check is true and the path does not exist, it will throw.\n\n@returns   string | undefined"
+            }
+          ]
+        },
+        "getPathInputRequired": {
+          "name": "getPathInputRequired",
+          "members": {},
+          "documentation": "Gets the value of a path input\nIt will be quoted for you if it isn't already and contains spaces\nIf the value is not set, it will throw.\nIf check is true and the path does not exist, it will throw.\n\n@returns   string",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "name",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": "name of the input to get"
+                },
+                {
+                  "name": "check",
+                  "type": "boolean",
+                  "optional": true,
+                  "documentation": "whether path is checked.  optional, defaults to false "
+                }
+              ],
+              "members": {},
               "return": "string",
-              "documentation": "Gets the value of a path input\nIt will be quoted for you if it isn't already and contains spaces\nIf required is true and the value is not set, it will throw.\nIf check is true and the path does not exist, it will throw.\n\n@returns   string"
+              "documentation": "Gets the value of a path input\nIt will be quoted for you if it isn't already and contains spaces\nIf the value is not set, it will throw.\nIf check is true and the path does not exist, it will throw.\n\n@returns   string"
             }
           ]
         },
         "getEndpointUrl": {
           "name": "getEndpointUrl",
           "members": {},
-          "documentation": "Gets the url for a service endpoint\nIf the url was not set and is not optional, it will throw.\n\n@returns   string",
+          "documentation": "Gets the url for a service endpoint\nIf the url was not set and is not optional, it will throw.\n\n@returns   string | undefined",
           "kind": "function",
           "signatures": [
             {
@@ -919,8 +967,29 @@
                 }
               ],
               "members": {},
+              "return": "string | undefined",
+              "documentation": "Gets the url for a service endpoint\nIf the url was not set and is not optional, it will throw.\n\n@returns   string | undefined"
+            }
+          ]
+        },
+        "getEndpointUrlRequired": {
+          "name": "getEndpointUrlRequired",
+          "members": {},
+          "documentation": "Gets the url for a service endpoint\nIf the url was not set, it will throw.\n\n@returns   string",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "id",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": "name of the service endpoint"
+                }
+              ],
+              "members": {},
               "return": "string",
-              "documentation": "Gets the url for a service endpoint\nIf the url was not set and is not optional, it will throw.\n\n@returns   string"
+              "documentation": "Gets the url for a service endpoint\nIf the url was not set, it will throw.\n\n@returns   string"
             }
           ]
         },
@@ -952,6 +1021,33 @@
                 }
               ],
               "members": {},
+              "return": "string | undefined",
+              "documentation": ""
+            }
+          ]
+        },
+        "getEndpointDataParameterRequired": {
+          "name": "getEndpointDataParameterRequired",
+          "members": {},
+          "documentation": "",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "id",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": ""
+                },
+                {
+                  "name": "key",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": ""
+                }
+              ],
+              "members": {},
               "return": "string",
               "documentation": ""
             }
@@ -960,7 +1056,7 @@
         "getEndpointAuthorizationScheme": {
           "name": "getEndpointAuthorizationScheme",
           "members": {},
-          "documentation": "Gets the endpoint authorization scheme for a service endpoint\nIf the endpoint authorization scheme is not set and is not optional, it will throw.\n\n@returns {string} value of the endpoint authorization scheme",
+          "documentation": "Gets the endpoint authorization scheme for a service endpoint\nIf the endpoint authorization scheme is not set and is not optional, it will throw.\n\n@returns {string} value of the endpoint authorization scheme or undefined",
           "kind": "function",
           "signatures": [
             {
@@ -979,15 +1075,36 @@
                 }
               ],
               "members": {},
+              "return": "string | undefined",
+              "documentation": "Gets the endpoint authorization scheme for a service endpoint\nIf the endpoint authorization scheme is not set and is not optional, it will throw.\n\n@returns {string} value of the endpoint authorization scheme or undefined"
+            }
+          ]
+        },
+        "getEndpointAuthorizationSchemeRequired": {
+          "name": "getEndpointAuthorizationSchemeRequired",
+          "members": {},
+          "documentation": "Gets the endpoint authorization scheme for a service endpoint\nIf the endpoint authorization scheme is not set, it will throw.\n\n@returns {string} value of the endpoint authorization scheme",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "id",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": "name of the service endpoint"
+                }
+              ],
+              "members": {},
               "return": "string",
-              "documentation": "Gets the endpoint authorization scheme for a service endpoint\nIf the endpoint authorization scheme is not set and is not optional, it will throw.\n\n@returns {string} value of the endpoint authorization scheme"
+              "documentation": "Gets the endpoint authorization scheme for a service endpoint\nIf the endpoint authorization scheme is not set, it will throw.\n\n@returns {string} value of the endpoint authorization scheme"
             }
           ]
         },
         "getEndpointAuthorizationParameter": {
           "name": "getEndpointAuthorizationParameter",
           "members": {},
-          "documentation": "Gets the endpoint authorization parameter value for a service endpoint with specified key\nIf the endpoint authorization parameter is not set and is not optional, it will throw.\n\n@returns {string} value of the endpoint authorization parameter value",
+          "documentation": "Gets the endpoint authorization parameter value for a service endpoint with specified key\nIf the endpoint authorization parameter is not set and is not optional, it will throw.\n\n@returns {string} value of the endpoint authorization parameter value or undefined",
           "kind": "function",
           "signatures": [
             {
@@ -1012,8 +1129,35 @@
                 }
               ],
               "members": {},
+              "return": "string | undefined",
+              "documentation": "Gets the endpoint authorization parameter value for a service endpoint with specified key\nIf the endpoint authorization parameter is not set and is not optional, it will throw.\n\n@returns {string} value of the endpoint authorization parameter value or undefined"
+            }
+          ]
+        },
+        "getEndpointAuthorizationParameterRequired": {
+          "name": "getEndpointAuthorizationParameterRequired",
+          "members": {},
+          "documentation": "Gets the endpoint authorization parameter value for a service endpoint with specified key\nIf the endpoint authorization parameter is not set, it will throw.\n\n@returns {string} value of the endpoint authorization parameter value",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "id",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": "name of the service endpoint"
+                },
+                {
+                  "name": "key",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": "key to find the endpoint authorization parameter"
+                }
+              ],
+              "members": {},
               "return": "string",
-              "documentation": "Gets the endpoint authorization parameter value for a service endpoint with specified key\nIf the endpoint authorization parameter is not set and is not optional, it will throw.\n\n@returns {string} value of the endpoint authorization parameter value"
+              "documentation": "Gets the endpoint authorization parameter value for a service endpoint with specified key\nIf the endpoint authorization parameter is not set, it will throw.\n\n@returns {string} value of the endpoint authorization parameter value"
             }
           ]
         },

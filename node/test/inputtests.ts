@@ -60,6 +60,44 @@ describe('Input Tests', function () {
 
         done();
     })
+
+    it('gets input value', function (done) {
+        this.timeout(1000);
+
+        process.env['INPUT_UNITTESTINPUT'] = 'test value';
+        im._loadData();
+
+        var inval = tl.getInputRequired('UnitTestInput');
+        assert.equal(inval, 'test value');
+
+        done();
+    })
+    it('should clear input envvar', function (done) {
+        this.timeout(1000);
+
+        process.env['INPUT_UNITTESTINPUT'] = 'test value';
+        im._loadData();
+        var inval = tl.getInputRequired('UnitTestInput');
+        assert.equal(inval, 'test value');
+        assert(!process.env['INPUT_UNITTESTINPUT'], 'input envvar should be cleared');
+
+        done();
+    })
+    it('required input throws', function (done) {
+        this.timeout(1000);
+
+        var worked: boolean = false;
+        try {
+            var inval = tl.getInputRequired('SomeUnsuppliedRequiredInput');
+            worked = true;
+        }
+        catch (err) { }
+
+        assert(!worked, 'req input should have not have worked');
+
+        done();
+    })
+
     // getVariable tests
     it('gets a variable', function (done) {
         this.timeout(1000);
@@ -416,6 +454,17 @@ describe('Input Tests', function () {
 
         done();
     })
+    it('gets a required endpoint url', function (done) {
+        this.timeout(1000);
+
+        process.env['ENDPOINT_URL_id1'] = 'http://url';
+        im._loadData();
+
+        var url = tl.getEndpointUrlRequired('id1');
+        assert.equal(url, 'http://url', 'url should match');
+
+        done();
+    })
     it('gets an endpoint auth', function (done) {
         this.timeout(1000);
 
@@ -472,6 +521,33 @@ describe('Input Tests', function () {
 
         done();
     })
+    it('gets required endpoint auth scheme', function (done) {
+        this.timeout(1000);
+        process.env['ENDPOINT_AUTH_SCHEME_id1'] = 'scheme1';
+        im._loadData();
+
+        var data = tl.getEndpointAuthorizationSchemeRequired('id1');
+        assert(data, 'should return a string value');
+        assert.equal(data, 'scheme1', 'should be correct scheme');
+        assert(!process.env['ENDPOINT_AUTH_SCHEME_id1'], 'should clear auth envvar');
+
+        done();
+    })
+    it('throws if endpoint auth scheme is not set', function (done) {
+        this.timeout(1000);
+        im._loadData();
+
+        var worked: boolean = false;
+        try {
+            var data = tl.getEndpointAuthorizationSchemeRequired('id1');
+            worked = true;
+        }
+        catch (err) { }
+
+        assert(!worked, 'get endpoint should have not have worked');
+
+        done();
+    })
     it('gets endpoint auth parameters', function (done) {
         this.timeout(1000);
         process.env['ENDPOINT_AUTH_PARAMETER_id1_PARAM1'] = 'value1';
@@ -493,6 +569,33 @@ describe('Input Tests', function () {
 
         done();
     })
+    it('gets required endpoint auth parameters', function (done) {
+        this.timeout(1000);
+        process.env['ENDPOINT_AUTH_PARAMETER_id1_PARAM1'] = 'value1';
+        im._loadData();
+
+        var data = tl.getEndpointAuthorizationParameterRequired('id1', 'param1');
+        assert(data, 'should return a string value');
+        assert.equal(data, 'value1', 'should be correct auth param');
+        assert(!process.env['ENDPOINT_AUTH_PARAMETER_id1_PARAM1'], 'should clear auth envvar');
+
+        done();
+    })
+    it('throws if endpoint auth parameter is not set', function (done) {
+        this.timeout(1000);
+        im._loadData();
+
+        var worked: boolean = false;
+        try {
+            var data = tl.getEndpointAuthorizationParameterRequired('id1', 'noparam');
+            worked = true;
+        }
+        catch (err) { }
+
+        assert(!worked, 'get endpoint authorization parameter should have not have worked');
+
+        done();
+    })
     it('gets an endpoint data', function (done) {
         this.timeout(1000);
         process.env['ENDPOINT_DATA_id1_PARAM1'] = 'val1';
@@ -510,6 +613,32 @@ describe('Input Tests', function () {
 
         var data = tl.getEndpointDataParameter('id1', 'noparam', true);
         assert.equal(data, undefined, 'Error should occur if endpoint data is not set');
+
+        done();
+    })
+    it('gets required endpoint data', function (done) {
+        this.timeout(1000);
+        process.env['ENDPOINT_DATA_id1_PARAM1'] = 'val1';
+        im._loadData();
+
+        var data = tl.getEndpointDataParameterRequired('id1', 'param1');
+        assert(data, 'should return a string value');
+        assert.equal(data, 'val1', 'should be correct object');
+
+        done();
+    })
+    it('throws if endpoint data is not set', function (done) {
+        this.timeout(1000);
+        im._loadData();
+
+        var worked: boolean = false;
+        try {
+            var data = tl.getEndpointDataParameterRequired('id1', 'noparam');
+            worked = true;
+        }
+        catch (err) { }
+
+        assert(!worked, 'get endpoint data should have not have worked');
 
         done();
     })
@@ -735,6 +864,110 @@ describe('Input Tests', function () {
         var worked: boolean = false;
         try {
             var path = tl.getPathInput('path1', /*required=*/true, /*check=*/true);
+            worked = true;
+        }
+        catch (err) {
+            assert(err.message.indexOf("Not found") >= 0, "error should have said Not found");
+        }
+        assert(!worked, 'invalid checked path should have not have worked');
+
+        done();
+    })
+
+    // getPathInputRequired tests
+    it('gets path input required value', function (done) {
+        this.timeout(1000);
+
+        var inputValue = 'test.txt'
+        process.env['INPUT_PATH1'] = inputValue;
+        im._loadData();
+
+        var path = tl.getPathInputRequired('path1', /*check=*/false);
+        assert(path, 'should return a path');
+        assert.equal(path, inputValue, 'test path value');
+
+        done();
+    })
+    it('throws if required path not supplied', function (done) {
+        this.timeout(1000);
+
+        var stdStream = testutil.createStringStream();
+        tl.setStdStream(stdStream);
+
+        var worked: boolean = false;
+        try {
+            var path = tl.getPathInputRequired(null, /*check=*/false);
+            worked = true;
+        }
+        catch (err) { }
+
+        assert(!worked, 'req path should have not have worked');
+
+        done();
+    })
+    it('get required path invalid checked throws', function (done) {
+        this.timeout(1000);
+
+        var stdStream = testutil.createStringStream();
+        tl.setStdStream(stdStream);
+
+        var worked: boolean = false;
+        try {
+            var path = tl.getPathInputRequired('some_missing_path', /*check=*/true);
+            worked = true;
+        }
+        catch (err) { }
+
+        assert(!worked, 'invalid checked path should have not have worked');
+
+        done();
+    })
+    it('gets path input required value with space', function (done) {
+        this.timeout(1000);
+
+        var inputValue = 'file name.txt';
+        var expectedValue = 'file name.txt';
+        process.env['INPUT_PATH1'] = inputValue;
+        im._loadData();
+
+        var path = tl.getPathInputRequired('path1', /*check=*/false);
+        assert(path, 'should return a path');
+        assert.equal(path, expectedValue, 'returned ' + path + ', expected: ' + expectedValue);
+
+        done();
+    })
+    it('gets path required value with check and exist', function (done) {
+        this.timeout(1000);
+
+        var errStream = testutil.createStringStream();
+        tl.setErrStream(errStream);
+
+        var inputValue = __filename;
+        process.env['INPUT_PATH1'] = inputValue;
+        im._loadData();
+
+        var path = tl.getPathInputRequired('path1', /*check=*/true);
+        assert(path, 'should return a path');
+        assert.equal(path, inputValue, 'test path value');
+
+        var errMsg = errStream.getContents();
+        assert(errMsg === "", "no err")
+
+        done();
+    })
+    it('gets path required value with check and not exist', function (done) {
+        this.timeout(1000);
+
+        var stdStream = testutil.createStringStream();
+        tl.setStdStream(stdStream);
+
+        var inputValue = "someRandomFile.txt";
+        process.env['INPUT_PATH1'] = inputValue;
+        im._loadData();
+
+        var worked: boolean = false;
+        try {
+            var path = tl.getPathInputRequired('path1', /*check=*/true);
             worked = true;
         }
         catch (err) {
