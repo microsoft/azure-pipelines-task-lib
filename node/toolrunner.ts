@@ -999,18 +999,24 @@ export class ToolRunner extends events.EventEmitter {
             this._debug(`STDOUT: 'data' event: ${cp.listenerCount('data')}`);
             this._debug(`STDOUT: 'finish' event: ${cp.listenerCount('finish')}`);
 
-            this._debug(`Destroy STDERR`);
-            cp.stderr?.destroy();
-            this._debug(`STDERR stream destroyed`);
-            this._debug(`Destroy STDIN`);
-            cp.stdin?.destroy();
-            this._debug(`STDIN stream destroyed`);
-            this._debug(`Destroy STDOUT`);
-            cp.stdout?.destroy();
-            this._debug(`STDOUT stream destroyed`);
+            let destroySTDIO = process.env['TEST_DESTROY_CHILDSTDIO'];
+            if (destroySTDIO && destroySTDIO === "true") {
+                this._debug(`Destroy STDERR`);
+                cp.stderr?.destroy();
+                this._debug(`STDERR stream destroyed`);
+                this._debug(`Destroy STDIN`);
+                cp.stdin?.destroy();
+                this._debug(`STDIN stream destroyed`);
+                this._debug(`Destroy STDOUT`);
+                cp.stdout?.destroy();
+                this._debug(`STDOUT stream destroyed`);
+            }
 
-            this._debug(`Unref child process`);
-            cp.unref();
+            let unrefChildProcess = process.env['TEST_UNREF_CHILD_PROCESS'];
+            if (unrefChildProcess && unrefChildProcess === "true") {
+                this._debug(`Unref child process`);
+                cp.unref();
+            }
 
             if (error) {
                 defer.reject(error);
