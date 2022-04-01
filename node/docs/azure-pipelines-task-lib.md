@@ -628,6 +628,19 @@ Param | Type | Description
 id | string | name of the service endpoint
 optional | boolean | whether the url is optional
  
+<br/>
+<div id="ServiceConnectionsAuth">
+ 
+### Retrieving authentication parameters in a task
+The following is a sample snippet for retrieving the necessary parameters from an Azure Service Connection to authenticate it in Azure.  You may use [Azure SDK for JS](https://github.com/Azure/azure-sdk-for-node/blob/master/Documentation/Authentication.md#using-the-service-principal) to do the authentication.
+```typescript
+// Assuming task.json specifies a field 'connectedServiceName' which contains the service connection
+const SERVICE_CONNECTION_INPUT_FIELD = 'connectedServiceName'
+const connectedServiceName = task.getInput(SERVICE_CONNECTION_INPUT_FIELD, true); // unique identifier for the service connection
+const servicePrincipalId = task.getEndpointAuthorizationParameter(connectedServiceName, 'serviceprincipalid', true) // Azure service principal ID
+const tenantId = task.getEndpointAuthorizationParameter(connectedServiceName, 'tenantid', false) // id of the tenant linked to this service connection
+const secret = task.getEndpointAuthorizationParameter(connectedServiceName, 'serviceprincipalkey', false) // secret key to use for authorization with Azure
+```
  
 <br/>
 <div id="Secrets">
