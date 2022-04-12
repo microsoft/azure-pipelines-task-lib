@@ -19,6 +19,7 @@ export interface IExecSyncOptions {
     cwd?: string;
     env?: { [key: string]: string | undefined };
     silent?: boolean;
+    hideCommand?: boolean;
     outStream: NodeJS.WritableStream;
     errStream: NodeJS.WritableStream;
     windowsVerbatimArguments?: boolean;
@@ -178,6 +179,7 @@ export class ToolRunner extends events.EventEmitter {
             cwd: options.cwd || process.cwd(),
             env: options.env || process.env,
             silent: options.silent || false,
+            hideCommand: options.hideCommand || false,
             outStream: options.outStream || process.stdout,
             errStream: options.errStream || process.stderr,
             failOnStdErr: options.failOnStdErr || false,
@@ -205,7 +207,9 @@ export class ToolRunner extends events.EventEmitter {
                 cmdString += ' | ' + pipeToolCmdString;
             }
 
-            ops.outStream.write('[command]' + cmdString + os.EOL);
+            if (!ops.hideCommand) {
+                ops.outStream.write('[command]' + cmdString + os.EOL);
+            }
         }
 
         // TODO: filter process.env
@@ -285,6 +289,7 @@ export class ToolRunner extends events.EventEmitter {
             cwd: options.cwd || process.cwd(),
             env: options.env || process.env,
             silent: options.silent || false,
+            hideCommand: options.hideCommand || false,
             outStream: options.outStream || process.stdout,
             errStream: options.errStream || process.stderr,
             windowsVerbatimArguments: options.windowsVerbatimArguments,
@@ -300,7 +305,7 @@ export class ToolRunner extends events.EventEmitter {
             cmdString += (' ' + argString);
         }
 
-        if (!ops.silent) {
+        if (!ops.silent && !ops.hideCommand) {
             ops.outStream.write('[command]' + cmdString + os.EOL);
         }
 

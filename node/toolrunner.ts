@@ -32,6 +32,9 @@ export interface IExecSyncOptions {
     /** optional.  defaults to false */
     silent?: boolean;
 
+    /** optional.  defaults to false */
+    hideCommand?: boolean;
+
     /** Optional. Default is process.stdout. */
     outStream?: NodeJS.WritableStream;
 
@@ -572,6 +575,7 @@ export class ToolRunner extends events.EventEmitter {
             cwd: options.cwd || process.cwd(),
             env: options.env || process.env,
             silent: options.silent || false,
+            hideCommand: options.hideCommand || false,
             failOnStdErr: options.failOnStdErr || false,
             ignoreReturnCode: options.ignoreReturnCode || false,
             windowsVerbatimArguments: options.windowsVerbatimArguments || false,
@@ -613,7 +617,7 @@ export class ToolRunner extends events.EventEmitter {
         let success = true;
         const optionsNonNull = this._cloneExecOptions(options);
 
-        if (!optionsNonNull.silent) {
+        if (!optionsNonNull.silent && !optionsNonNull.hideCommand) {
             optionsNonNull.outStream!.write(this._getCommandString(optionsNonNull) + os.EOL);
         }
 
@@ -894,7 +898,7 @@ export class ToolRunner extends events.EventEmitter {
         });
 
         const optionsNonNull = this._cloneExecOptions(options);
-        if (!optionsNonNull.silent) {
+        if (!optionsNonNull.silent && !optionsNonNull.hideCommand) {
             optionsNonNull.outStream!.write(this._getCommandString(optionsNonNull) + os.EOL);
         }
 
@@ -1007,7 +1011,7 @@ export class ToolRunner extends events.EventEmitter {
         var success = true;
         options = this._cloneExecOptions(options as IExecOptions);
 
-        if (!options.silent) {
+        if (!options.silent && !options.hideCommand) {
             options.outStream!.write(this._getCommandString(options as IExecOptions) + os.EOL);
         }
 
