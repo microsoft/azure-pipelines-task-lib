@@ -77,11 +77,7 @@ function getPathInput(name: string, required?: boolean, check?: boolean): string
 module.exports.getPathInput = getPathInput;
 
 function getPathInputRequired(name: string, check?: boolean): string {
-    var inval = module.exports.getInputRequired(name);
-    if (check) {
-        checkPath(inval, name);
-    }
-    return inval;
+    return getPathInput(name, true, check)!;
 }
 module.exports.getPathInputRequired = getPathInputRequired;
 

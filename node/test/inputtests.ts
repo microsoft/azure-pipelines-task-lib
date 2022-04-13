@@ -68,7 +68,7 @@ describe('Input Tests', function () {
         im._loadData();
 
         var inval = tl.getInputRequired('UnitTestInput');
-        assert.equal(inval, 'test value');
+        assert.strictEqual(inval, 'test value');
 
         done();
     })
@@ -78,7 +78,7 @@ describe('Input Tests', function () {
         process.env['INPUT_UNITTESTINPUT'] = 'test value';
         im._loadData();
         var inval = tl.getInputRequired('UnitTestInput');
-        assert.equal(inval, 'test value');
+        assert.strictEqual(inval, 'test value');
         assert(!process.env['INPUT_UNITTESTINPUT'], 'input envvar should be cleared');
 
         done();
@@ -465,6 +465,22 @@ describe('Input Tests', function () {
 
         done();
     })
+    it('required endpoint url throws', function (done) {
+        this.timeout(1000);
+
+        im._loadData();
+
+        var worked: boolean = false;
+        try {
+            var url = tl.getEndpointUrlRequired('SomeUnsuppliedRequiredInput');
+            worked = true;
+        }
+        catch (err) { }
+
+        assert(!worked, 'req endpoint url should have not have worked');
+
+        done();
+    })
     it('gets an endpoint auth', function (done) {
         this.timeout(1000);
 
@@ -533,18 +549,19 @@ describe('Input Tests', function () {
 
         done();
     })
-    it('throws if endpoint auth scheme is not set', function (done) {
+    it('required endpoint auth scheme throws', function (done) {
         this.timeout(1000);
+
         im._loadData();
 
         var worked: boolean = false;
         try {
-            var data = tl.getEndpointAuthorizationSchemeRequired('id1');
+            var data = tl.getEndpointAuthorizationSchemeRequired('SomeUnsuppliedRequiredInput');
             worked = true;
         }
         catch (err) { }
 
-        assert(!worked, 'get endpoint should have not have worked');
+        assert(!worked, 'req endpoint auth scheme should have not have worked');
 
         done();
     })

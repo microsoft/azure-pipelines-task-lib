@@ -236,14 +236,7 @@ export function getInput(name: string, required?: boolean): string | undefined {
  * @returns   string
  */
 export function getInputRequired(name: string): string {
-    var inval = im._vault.retrieveSecret('INPUT_' + im._getVariableKey(name));
-
-    if (!inval) {
-        throw new Error(loc('LIB_InputRequired', name));
-    }
-
-    debug(name + '=' + inval);
-    return inval;
+    return getInput(name, true)!;
 }
 
 /**
@@ -339,12 +332,7 @@ export function getPathInput(name: string, required?: boolean, check?: boolean):
  * @returns   string
  */
 export function getPathInputRequired(name: string, check?: boolean): string {
-    var inval = getInputRequired(name);
-    if (check) {
-        checkPath(inval, name);
-    }
-
-    return inval;
+    return getPathInput(name, true, check)!;
 }
 
 //-----------------------------------------------------
@@ -378,14 +366,7 @@ export function getEndpointUrl(id: string, optional: boolean): string | undefine
  * @returns   string
  */
 export function getEndpointUrlRequired(id: string): string {
-    var urlval = process.env['ENDPOINT_URL_' + id];
-
-    if (!urlval) {
-        throw new Error(loc('LIB_EndpointNotExist', id));
-    }
-
-    debug(id + '=' + urlval);
-    return urlval;
+    return getEndpointUrl(id, false)!;
 }
 
 /*
@@ -417,14 +398,7 @@ export function getEndpointDataParameter(id: string, key: string, optional: bool
  * @returns {string} value of the endpoint data parameter
  */
 export function getEndpointDataParameterRequired(id: string, key: string): string {
-    var dataParamVal = process.env['ENDPOINT_DATA_' + id + '_' + key.toUpperCase()];
-
-    if (!dataParamVal) {
-        throw new Error(loc('LIB_EndpointDataNotExist', id, key));
-    }
-
-    debug(id + ' data ' + key + ' = ' + dataParamVal);
-    return dataParamVal;
+    return getEndpointDataParameter(id, key, false)!;
 }
 
 /**
@@ -454,14 +428,7 @@ export function getEndpointAuthorizationScheme(id: string, optional: boolean): s
  * @returns {string} value of the endpoint authorization scheme
  */
 export function getEndpointAuthorizationSchemeRequired(id: string): string {
-    var authScheme = im._vault.retrieveSecret('ENDPOINT_AUTH_SCHEME_' + id);
-
-    if (!authScheme) {
-        throw new Error(loc('LIB_EndpointAuthNotExist', id));
-    }
-
-    debug(id + ' auth scheme = ' + authScheme);
-    return authScheme;
+    return getEndpointAuthorizationScheme(id, false)!;
 }
 
 /**
@@ -493,14 +460,7 @@ export function getEndpointAuthorizationParameter(id: string, key: string, optio
  * @returns {string} value of the endpoint authorization parameter value
  */
 export function getEndpointAuthorizationParameterRequired(id: string, key: string): string {
-    var authParam = im._vault.retrieveSecret('ENDPOINT_AUTH_PARAMETER_' + id + '_' + key.toUpperCase());
-
-    if (!authParam) {
-        throw new Error(loc('LIB_EndpointAuthNotExist', id));
-    }
-
-    debug(id + ' auth param ' + key + ' = ' + authParam);
-    return authParam;
+    return getEndpointAuthorizationParameter(id, key, false)!;
 }
 
 /**
