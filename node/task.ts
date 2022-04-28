@@ -1873,7 +1873,7 @@ export function getHttpProxyConfiguration(requestUrl?: string): ProxyConfigurati
             const parsedUrl: URL = new URL(proxyUrl);
             let proxyAddress: string = `${parsedUrl.protocol}//${parsedUrl.host}`;
             if (proxyUsername) {
-                proxyAddress = `${parsedUrl.protocol}//${proxyUsername}:${proxyUsername}@${parsedUrl.host}`;
+                proxyAddress = `${parsedUrl.protocol}//${proxyUsername}:${proxyPassword}@${parsedUrl.host}`;
             }
             console.log('returning proxy config');
             return {

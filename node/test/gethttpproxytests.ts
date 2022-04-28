@@ -40,10 +40,12 @@ describe('GetHttpProxyConfiguration Tests', () => {
         const expected: tl.ProxyConfiguration = {
             proxyUrl: proxyUrl,
             proxyBypassHosts: proxyByPass,
-            proxyFormattedUrl: fortmatedUrlWithCredentials
+            proxyFormattedUrl: fortmatedUrlWithCredentials,
+            proxyPassword: proxyPassword,
+            proxyUsername: proxyUsername
         }
         const result = tl.getHttpProxyConfiguration();
-        assert.notDeepStrictEqual(result, expected, 'it should have credentials in formatted url');
+        assert.deepStrictEqual(result, expected, 'it should have credentials in formatted url');
     });
 
     it('returns null if host should be bypassed', () => {
