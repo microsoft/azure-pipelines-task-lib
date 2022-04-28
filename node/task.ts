@@ -1839,6 +1839,7 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
 
 export interface ProxyConfiguration {
     proxyUrl: string;
+    proxyFormattedUrl: string;
     proxyUsername?: string;
     proxyPassword?: string;
     proxyBypassHosts?: string[];
@@ -1869,11 +1870,18 @@ export function getHttpProxyConfiguration(requestUrl?: string): ProxyConfigurati
             return null;
         }
         else {
+            const parsedUrl: URL = new URL(proxyUrl);
+            let proxyAddress: string = `${parsedUrl.protocol}//${parsedUrl.host}`;
+            if (proxyUsername) {
+                proxyAddress = `${parsedUrl.protocol}//${proxyUsername}:${proxyUsername}@${parsedUrl.host}`;
+            }
+            console.log('returning proxy config');
             return {
                 proxyUrl: proxyUrl,
                 proxyUsername: proxyUsername,
                 proxyPassword: proxyPassword,
-                proxyBypassHosts: proxyBypassHosts
+                proxyBypassHosts: proxyBypassHosts,
+                proxyFormattedUrl: proxyAddress
             };
         }
     }

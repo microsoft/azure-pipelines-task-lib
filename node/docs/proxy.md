@@ -14,6 +14,7 @@ export interface ProxyConfiguration {
      proxyUsername?: string;
      proxyPassword?: string;
      proxyBypassHosts?: string[];
+     proxyFormattedUrl: string;
  }
 ```
 
