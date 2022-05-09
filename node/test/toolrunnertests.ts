@@ -1598,7 +1598,7 @@ describe('Toolrunner Tests', function () {
                 .arg('echo')
                 .arg('helloworld');
             let outStream = testutil.createStringStream();
-            let options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream };
+            let options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream, hideCommand: true, };
             let output = '';
             exeRunner.on('stdout', (data) => {
                 output += data.toString();
