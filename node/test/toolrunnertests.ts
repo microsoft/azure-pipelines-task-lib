@@ -1269,6 +1269,37 @@ describe('Toolrunner Tests', function () {
                     done(err);
                 });
         });
+        it('exec hides [command] (OSX/Linux)', function (done) {
+            this.timeout(10000);
+            let bash = tl.tool(tl.which('echo'))
+                .arg('hello world');
+            let outStream = testutil.createStringStream();
+            let options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream, hideCommand: true, };
+            let output = '';
+            bash.on('stdout', (data) => {
+                output += data.toString();
+            });
+            bash.exec(options)
+                .then(function (code) {
+                    assert.equal(code, 0, 'return code should be 0');
+                    // validate there is no [command] header
+                    assert.notEqual(
+                        outStream.getContents().split(os.EOL)[0],
+                        `[command]${tl.which('echo')} hello world`
+                    );
+                    assert.equal(
+                        outStream.getContents().split(os.EOL)[0],
+                        'hello world');
+                    // validate stdout
+                    assert.equal(
+                        output.trim(),
+                        'hello world');
+                    done();
+                })
+                .fail(function (err) {
+                    done(err);
+                });
+        });
     }
     else { // process.platform == 'win32'
 
@@ -1557,6 +1588,41 @@ describe('Toolrunner Tests', function () {
                 .fail(function (err) {
                     done(err);
                 })
+        });
+
+        it('exec .exe AND hide [command] header (Windows)', function (done) {
+            this.timeout(10000);
+            let exePath = process.env.ComSpec;
+            let exeRunner = tl.tool(exePath)
+                .arg('/c')
+                .arg('echo')
+                .arg('helloworld');
+            let outStream = testutil.createStringStream();
+            let options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream };
+            let output = '';
+            exeRunner.on('stdout', (data) => {
+                output += data.toString();
+            });
+            exeRunner.exec(options)
+                .then(function (code) {
+                    assert.equal(code, 0, 'return code should be 0');
+                    // validate there is no [command] header
+                    assert.notEqual(
+                        outStream.getContents().split(os.EOL)[0],
+                        `[command]"${exePath}" /c echo helloworld`
+                    );
+                    assert.equal(
+                        outStream.getContents().split(os.EOL)[0],
+                        'helloworld');
+                    // validate stdout
+                    assert.equal(
+                        output.trim(),
+                        'helloworld');
+                    done();
+                })
+                .fail(function (err) {
+                    done(err);
+                });
         });
 
         // -------------------------------
