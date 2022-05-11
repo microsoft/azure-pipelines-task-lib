@@ -153,7 +153,7 @@ export function getVariables(): VariableInfo[] {
 
 /**
  * Sets a variable which will be available to subsequent tasks as well.
- * 
+ *
  * @param     name     name of the variable to set
  * @param     val      value to set
  * @param     secret   whether variable is secret.  Multi-line secrets are not allowed.  Optional, defaults to false
@@ -226,6 +226,17 @@ export function getInput(name: string, required?: boolean): string | undefined {
 
     debug(name + '=' + inval);
     return inval;
+}
+
+/**
+ * Gets the value of an input.
+ * If the value is not set, it will throw.
+ *
+ * @param     name     name of the input to get
+ * @returns   string
+ */
+export function getInputRequired(name: string): string {
+    return getInput(name, true)!;
 }
 
 /**
@@ -310,6 +321,20 @@ export function getPathInput(name: string, required?: boolean, check?: boolean):
     return inval;
 }
 
+/**
+ * Gets the value of a path input
+ * It will be quoted for you if it isn't already and contains spaces
+ * If the value is not set, it will throw.
+ * If check is true and the path does not exist, it will throw.
+ *
+ * @param     name      name of the input to get
+ * @param     check     whether path is checked.  optional, defaults to false
+ * @returns   string
+ */
+export function getPathInputRequired(name: string, check?: boolean): string {
+    return getPathInput(name, true, check)!;
+}
+
 //-----------------------------------------------------
 // Endpoint Helpers
 //-----------------------------------------------------
@@ -333,6 +358,17 @@ export function getEndpointUrl(id: string, optional: boolean): string | undefine
     return urlval;
 }
 
+/**
+ * Gets the url for a service endpoint
+ * If the url was not set, it will throw.
+ *
+ * @param     id        name of the service endpoint
+ * @returns   string
+ */
+export function getEndpointUrlRequired(id: string): string {
+    return getEndpointUrl(id, false)!;
+}
+
 /*
  * Gets the endpoint data parameter value with specified key for a service endpoint
  * If the endpoint data parameter was not set and is not optional, it will throw.
@@ -351,6 +387,18 @@ export function getEndpointDataParameter(id: string, key: string, optional: bool
 
     debug(id + ' data ' + key + ' = ' + dataParamVal);
     return dataParamVal;
+}
+
+/*
+ * Gets the endpoint data parameter value with specified key for a service endpoint
+ * If the endpoint data parameter was not set, it will throw.
+ *
+ * @param id name of the service endpoint
+ * @param key of the parameter
+ * @returns {string} value of the endpoint data parameter
+ */
+export function getEndpointDataParameterRequired(id: string, key: string): string {
+    return getEndpointDataParameter(id, key, false)!;
 }
 
 /**
@@ -373,6 +421,17 @@ export function getEndpointAuthorizationScheme(id: string, optional: boolean): s
 }
 
 /**
+ * Gets the endpoint authorization scheme for a service endpoint
+ * If the endpoint authorization scheme is not set, it will throw.
+ *
+ * @param id name of the service endpoint
+ * @returns {string} value of the endpoint authorization scheme
+ */
+export function getEndpointAuthorizationSchemeRequired(id: string): string {
+    return getEndpointAuthorizationScheme(id, false)!;
+}
+
+/**
  * Gets the endpoint authorization parameter value for a service endpoint with specified key
  * If the endpoint authorization parameter is not set and is not optional, it will throw.
  *
@@ -391,6 +450,19 @@ export function getEndpointAuthorizationParameter(id: string, key: string, optio
     debug(id + ' auth param ' + key + ' = ' + authParam);
     return authParam;
 }
+
+/**
+ * Gets the endpoint authorization parameter value for a service endpoint with specified key
+ * If the endpoint authorization parameter is not set, it will throw.
+ *
+ * @param id name of the service endpoint
+ * @param key key to find the endpoint authorization parameter
+ * @returns {string} value of the endpoint authorization parameter value
+ */
+export function getEndpointAuthorizationParameterRequired(id: string, key: string): string {
+    return getEndpointAuthorizationParameter(id, key, false)!;
+}
+
 /**
  * Interface for EndpointAuthorization
  * Contains a schema and a string/string dictionary of auth data
