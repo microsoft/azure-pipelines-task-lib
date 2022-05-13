@@ -1841,7 +1841,8 @@ export interface ProxyConfiguration {
     proxyUrl: string;
     /**
      * Proxy URI formated as: protocol://username:password@hostname:port
-     * For tools that requires to set proxy configuration in the single environment variable
+     * 
+     * For tools that require setting proxy configuration in the single environment variable
      */
     proxyFormattedUrl: string;
     proxyUsername?: string;
