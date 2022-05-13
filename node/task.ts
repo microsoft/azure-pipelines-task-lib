@@ -1839,10 +1839,23 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
 
 export interface ProxyConfiguration {
     proxyUrl: string;
+    /**
+     * Proxy URI formated as: protocol://username:password@hostname:port
+     */
     proxyFormattedUrl: string;
     proxyUsername?: string;
     proxyPassword?: string;
     proxyBypassHosts?: string[];
+}
+
+
+function getProxyFormattedUrl(proxyUrl: string, proxyUsername: string | undefined, proxyPassword: string | undefined): string {
+    const parsedUrl: URL = new URL(proxyUrl);
+    let proxyAddress: string = `${parsedUrl.protocol}//${parsedUrl.host}`;
+    if (proxyUsername) {
+        proxyAddress = `${parsedUrl.protocol}//${proxyUsername}:${proxyPassword}@${parsedUrl.host}`;
+    }
+    return proxyAddress;
 }
 
 /**
@@ -1870,12 +1883,7 @@ export function getHttpProxyConfiguration(requestUrl?: string): ProxyConfigurati
             return null;
         }
         else {
-            const parsedUrl: URL = new URL(proxyUrl);
-            let proxyAddress: string = `${parsedUrl.protocol}//${parsedUrl.host}`;
-            if (proxyUsername) {
-                proxyAddress = `${parsedUrl.protocol}//${proxyUsername}:${proxyPassword}@${parsedUrl.host}`;
-            }
-            console.log('returning proxy config');
+            const proxyAddress = getProxyFormattedUrl(proxyUrl, proxyUsername, proxyPassword)
             return {
                 proxyUrl: proxyUrl,
                 proxyUsername: proxyUsername,
