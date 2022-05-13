@@ -51,7 +51,6 @@ describe('GetHttpProxyConfiguration Tests', () => {
     it('returns null if host should be bypassed', () => {
         process.env[ProxyEnvironmentEnum.proxyUrl] = proxyUrl;
         const result = tl.getHttpProxyConfiguration(proxyByPass[0]);
-        console.log(result);
         assert.strictEqual(result, null, 'result should be null');
     });
 })
