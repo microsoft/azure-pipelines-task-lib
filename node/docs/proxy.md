@@ -62,7 +62,7 @@ async function run() {
 run();
 ```
 
-For some utils executed from shell, you might need to set environment variable which contains a formatted URL (protocol://user:password@hostname:port) to correctly handle proxy configuration
+For some utils executed from the shell, you might need to set an environment variable which contains a formatted URL (protocol://user:password@hostname:port) to correctly handle proxy configuration
 ```typescript
 import tl = require('azure-pipelines-task-lib/task');
 
