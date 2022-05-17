@@ -1850,7 +1850,13 @@ export interface ProxyConfiguration {
     proxyBypassHosts?: string[];
 }
 
-
+/**
+ * Build Proxy URL in the following format: protocol://username:password@hostname:port
+ * @param proxyUrl Url address of the proxy server (eg: http://example.com)
+ * @param proxyUsername Proxy username (optional)
+ * @param proxyPassword Proxy password (optional)
+ * @returns string
+ */
 function getProxyFormattedUrl(proxyUrl: string, proxyUsername: string | undefined, proxyPassword: string | undefined): string {
     const parsedUrl: URL = new URL(proxyUrl);
     let proxyAddress: string = `${parsedUrl.protocol}//${parsedUrl.host}`;
