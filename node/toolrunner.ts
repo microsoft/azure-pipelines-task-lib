@@ -17,6 +17,9 @@ export interface IExecOptions extends IExecSyncOptions {
 
     /** optional.  defaults to failing on non zero.  ignore will not fail leaving it up to the caller */
     ignoreReturnCode?: boolean;
+
+    /** optional.  suppress command definition from console output.  defaults to false */
+    hideCommand?: boolean;
 }
 
 /**
@@ -31,9 +34,6 @@ export interface IExecSyncOptions {
 
     /** optional.  defaults to false */
     silent?: boolean;
-
-    /** optional.  defaults to false */
-    hideCommand?: boolean;
 
     /** Optional. Default is process.stdout. */
     outStream?: NodeJS.WritableStream;
@@ -1011,7 +1011,7 @@ export class ToolRunner extends events.EventEmitter {
         var success = true;
         options = this._cloneExecOptions(options as IExecOptions);
 
-        if (!options.silent && !options.hideCommand) {
+        if (!options.silent) {
             options.outStream!.write(this._getCommandString(options as IExecOptions) + os.EOL);
         }
 

@@ -443,6 +443,7 @@ Property | Type | Description
 --- | --- | ---
 failOnStdErr | boolean | optional.  whether to fail if output to stderr.  defaults to false
 ignoreReturnCode | boolean | optional.  defaults to failing on non zero.  ignore will not fail leaving it up to the caller
+hideCommand | boolean | optional. suppress command definition from console output.  defaults to false
 
 <br/>
 <div id="toolrunnerToolRunnerexec">
