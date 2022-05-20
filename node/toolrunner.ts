@@ -913,6 +913,12 @@ export class ToolRunner extends events.EventEmitter {
                 optionsNonNull.outStream!.write(os.EOL);
             }
         });
+        cp.stderr?.on('finish', () => {
+            if (!optionsNonNull.silent) {
+                var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream! : optionsNonNull.outStream!;
+                s.write(os.EOL);
+            }
+        });
 
         var stdbuffer: string = '';
         cp.stdout?.on('data', (data: Buffer) => {
@@ -974,7 +980,43 @@ export class ToolRunner extends events.EventEmitter {
                 this.emit('errline', errbuffer);
             }
 
+            this._debug("Remove listeners in child process");
             cp.removeAllListeners();
+            this._debug(`CP: Left listenerd after remove:`);
+            this._debug(`CP: 'close' event: ${cp.listenerCount('close')}`);
+            this._debug(`CP: 'exit' event: ${cp.listenerCount('exit')}`);
+            this._debug(`CP: 'error' event: ${cp.listenerCount('error')}`);
+
+            this._debug("Remove listeners in stderr process");
+            cp.stderr?.removeAllListeners();
+            this._debug(`STDERR: Left listenerd after remove:`);
+            this._debug(`STDERR: 'data' event: ${cp.listenerCount('data')}`);
+            this._debug(`STDERR: 'finish' event: ${cp.listenerCount('finish')}`);
+
+            this._debug("Remove listeners in stdout process");
+            cp.stdout?.removeAllListeners();
+            this._debug(`STDOUT: Left listenerd after remove:`);
+            this._debug(`STDOUT: 'data' event: ${cp.listenerCount('data')}`);
+            this._debug(`STDOUT: 'finish' event: ${cp.listenerCount('finish')}`);
+
+            let destroySTDIO = process.env['TEST_DESTROY_CHILDSTDIO'];
+            if (destroySTDIO && destroySTDIO === "true") {
+                this._debug(`Destroy STDERR`);
+                cp.stderr?.destroy();
+                this._debug(`STDERR stream destroyed`);
+                this._debug(`Destroy STDIN`);
+                cp.stdin?.destroy();
+                this._debug(`STDIN stream destroyed`);
+                this._debug(`Destroy STDOUT`);
+                cp.stdout?.destroy();
+                this._debug(`STDOUT stream destroyed`);
+            }
+
+            let unrefChildProcess = process.env['TEST_UNREF_CHILD_PROCESS'];
+            if (unrefChildProcess && unrefChildProcess === "true") {
+                this._debug(`Unref child process`);
+                cp.unref();
+            }
 
             if (error) {
                 defer.reject(error);
