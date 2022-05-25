@@ -14,6 +14,7 @@ export interface ProxyConfiguration {
      proxyUsername?: string;
      proxyPassword?: string;
      proxyBypassHosts?: string[];
+     proxyFormattedUrl: string;
  }
 ```
 
@@ -61,6 +62,24 @@ async function run() {
 run();
 ```
 
+For some external applications executed from the shell, you might need to set an environment variable that contains a formatted URL 
+in the following format: protocol://user:password@hostname:port
+You can retrieve such configuration directly from task-lib: 
+```typescript
+import tl = require('azure-pipelines-task-lib/task');
+
+async function run() {
+    let proxy = tl.getProxyConfiguration()
+    
+    process.env['http_proxy'] = proxy.proxyFormattedUrl;
+    process.env['https_proxy'] = proxy.proxyFormattedUrl;
+    const gitPath: string = tl.which('git');
+    const gitPull = tl.tool(gitPath);
+    await gitPull.exec()
+}
+
+run();
+```
 #### PowerShell Lib
 
 Method for retrieve proxy settings in PowerShell lib
