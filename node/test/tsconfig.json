@@ -23,6 +23,7 @@
         "findmatchtests.ts",
         "mocktests.ts",
         "retrytests.ts",
-        "isuncpathtests.ts"
+        "isuncpathtests.ts",
+        "gethttpproxytests.ts"
     ]
 }
