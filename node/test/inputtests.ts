@@ -133,7 +133,7 @@ describe('Input Tests', function () {
 
         done();
     })
-    it('gets a variable with special characters', (done: MochaDone) => {
+    it('gets a variable with special characters', (done) => {
         this.timeout(1000);
 
         let expected = 'Value of var with special chars';
@@ -156,7 +156,7 @@ describe('Input Tests', function () {
 
         done();
     })
-    it('sets a variable with special chars as an env var', (done: MochaDone) => {
+    it('sets a variable with special chars as an env var', (done) => {
         this.timeout(1000);
 
         let expected = 'Set value of var with special chars';
