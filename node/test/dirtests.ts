@@ -31,7 +31,7 @@ describe('Dir Operation Tests', function () {
         this.timeout(1000);
 
         console.log('node version: ' + process.version);
-        const supportedNodeVersions = ['v5.10.1', 'v6.10.3', 'v6.17.1', 'v8.9.1', 'v10.17.0', 'v10.18.0', 'v10.23.0', 'v14.11.0'];
+        const supportedNodeVersions = ['v5.10.1', 'v6.10.3', 'v6.17.1', 'v8.9.1', 'v10.17.0', 'v10.18.0', 'v10.23.0', 'v14.11.0', 'v18.2.0'];
         if (supportedNodeVersions.indexOf(process.version) === -1) {
             assert.fail(`expected node node version to be one of ${supportedNodeVersions.map(o => o).join(', ')}. actual: ` + process.version);
         }
