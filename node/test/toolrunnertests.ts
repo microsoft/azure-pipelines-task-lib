@@ -182,22 +182,22 @@ describe('Toolrunner Tests', function () {
                     done(err);
                 });
         }
-        else if (os.platform() === 'linux') {
-            var ls = tl.tool(tl.which('ls', true));
-            ls.arg('-l');
-            ls.arg('-a');
+        // else if (os.platform() === 'linux') {
+        //     var ls = tl.tool(tl.which('ls', true));
+        //     ls.arg('-l');
+        //     ls.arg('-a');
 
-            ls.exec(_testExecOptions)
-                .then(function (code) {
-                    var contents = stdStream.getContents();
-                    assert(contents.indexOf('exec tool: /usr/bin/ls') >= 0, 'should exec ls');
-                    assert.equal(code, 0, 'return code of ls should be 0');
-                    done();
-                })
-                .fail(function (err) {
-                    done(err);
-                });
-        }
+        //     ls.exec(_testExecOptions)
+        //         .then(function (code) {
+        //             var contents = stdStream.getContents();
+        //             assert(contents.indexOf('exec tool: /usr/bin/ls') >= 0, 'should exec ls');
+        //             assert.equal(code, 0, 'return code of ls should be 0');
+        //             done();
+        //         })
+        //         .fail(function (err) {
+        //             done(err);
+        //         });
+        // }
         else {
             var ls = tl.tool(tl.which('ls', true));
             ls.arg('-l');

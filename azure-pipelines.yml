@@ -28,7 +28,7 @@ jobs:
   - task: NodeTool@0
     displayName: (azure-pipelines-task-lib) use node 18.2.0
     inputs:
-      versionSpec: "18.2.0"
+      versionSpec: "16.13.0"
 
   # build/test
   - script: |
@@ -65,7 +65,7 @@ jobs:
 #################################################
   displayName: Linux
   pool:
-    vmImage: ubuntu-20.04
+    vmImage: ubuntu-18.04
 
   steps:
   ################################################################################
@@ -83,7 +83,7 @@ jobs:
   - task: NodeTool@0
     displayName: (azure-pipelines-task-lib) use node 18.2.0
     inputs:
-      versionSpec: "18.2.0"
+      versionSpec: "16.13.0"
 
   # build/test
   - script: node make.js test
@@ -129,7 +129,7 @@ jobs:
   - task: NodeTool@0
     displayName: (azure-pipelines-task-lib) use node 18.2.0
     inputs:
-      versionSpec: "18.2.0"
+      versionSpec: "16.13.0"
       
   # build/test
   - script: node make.js test
