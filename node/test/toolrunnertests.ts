@@ -182,7 +182,7 @@ describe('Toolrunner Tests', function () {
                     done(err);
                 });
         }
-        else {
+        else if (os.platform() === 'linux') {
             var ls = tl.tool(tl.which('ls', true));
             ls.arg('-l');
             ls.arg('-a');
@@ -191,6 +191,22 @@ describe('Toolrunner Tests', function () {
                 .then(function (code) {
                     var contents = stdStream.getContents();
                     assert(contents.indexOf('exec tool: /usr/bin/ls') >= 0, 'should exec ls');
+                    assert.equal(code, 0, 'return code of ls should be 0');
+                    done();
+                })
+                .fail(function (err) {
+                    done(err);
+                });
+        }
+        else {
+            var ls = tl.tool(tl.which('ls', true));
+            ls.arg('-l');
+            ls.arg('-a');
+
+            ls.exec(_testExecOptions)
+                .then(function (code) {
+                    var contents = stdStream.getContents();
+                    assert(contents.indexOf('exec tool: /bin/ls') >= 0, 'should exec ls');
                     assert.equal(code, 0, 'return code of ls should be 0');
                     done();
                 })
