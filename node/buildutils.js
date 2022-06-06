@@ -35,7 +35,7 @@ exports.getExternals = function () {
     // and add node to the PATH
     var nodeUrl = process.env['TASK_NODE_URL'] || 'https://nodejs.org/dist';
     nodeUrl = nodeUrl.replace(/\/$/, '');  // ensure there is no trailing slash on the base URL
-    var nodeVersion = 'v18.2.0';
+    var nodeVersion = 'v16.13.0';
     switch (platform) {
         case 'darwin':
             var nodeArchivePath = downloadArchive(nodeUrl + '/' + nodeVersion + '/node-' + nodeVersion + '-darwin-x64.tar.gz');
