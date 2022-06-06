@@ -2,7 +2,7 @@ trigger:
 - master
 - features/*
 - releases/*
-- users/v-andivanov/release-4
+- users/v-andivanov/release-4-node16
 
 jobs:
 #################################################
@@ -10,7 +10,7 @@ jobs:
 #################################################
   displayName: windows
   pool:
-    vmImage: windows-2022
+    vmImage: windows-2019
 
   steps:
   ################################################################################
@@ -24,9 +24,9 @@ jobs:
       command: install
       workingDir: node
 
-  # use node 18
+  # use node 16
   - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 18.2.0
+    displayName: (azure-pipelines-task-lib) use node 16.13.0
     inputs:
       versionSpec: "16.13.0"
 
@@ -79,9 +79,9 @@ jobs:
       command: install
       workingDir: node
 
-  # use node 18
+  # use node 16
   - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 18.2.0
+    displayName: (azure-pipelines-task-lib) use node 16.13.0
     inputs:
       versionSpec: "16.13.0"
 
@@ -111,7 +111,7 @@ jobs:
 #################################################
   displayName: macOS
   pool:
-    vmImage: macOS-11
+    vmImage: macOS-10.15
 
   steps:
   ################################################################################
@@ -125,16 +125,16 @@ jobs:
       command: install
       workingDir: node
 
-  # use node 18
+  # use node 16
   - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 18.2.0
+    displayName: (azure-pipelines-task-lib) use node 16.13.0
     inputs:
       versionSpec: "16.13.0"
       
   # build/test
   - script: node make.js test
     workingDirectory: node
-    displayName: (azure-pipelines-task-lib) node make.js test  
+    displayName: (azure-pipelines-task-lib) node make.js test
 
   # build/test
   - script: node make.js test
