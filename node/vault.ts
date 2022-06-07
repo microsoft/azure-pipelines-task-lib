@@ -18,6 +18,8 @@ var unencryptedEncoding: 'utf8' = 'utf8';
 //
 export class Vault {
     constructor(keyPath: string) {
+        // Need to check access first
+        this.checkAccess(keyPath);
         this._keyFile = path.join(keyPath, '.taskkey');
         this._store = <{[key: string] : string}>{};
         this.genKey();
@@ -86,4 +88,17 @@ export class Vault {
     private genKey(): void {
         fs.writeFileSync(this._keyFile, uuidV4(), {encoding: 'utf8'});
     }
+
+    /**
+     * Method to check if the key store forlder exists and is accessible
+     * Need because nodejs on window return -1073741819(0xC0000005) code for access denied
+     * @param {stiring} keyPath - Path to the working forlder
+     */
+    private checkAccess(keyPath: string): void {
+        try {
+            fs.accessSync(keyPath, fs.constants.W_OK | fs.constants.R_OK);
+        } catch (e) {
+            throw Error("EACCES: permission denied on read/write, open: " + keyPath);
+        }
+    };
 }
