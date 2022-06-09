@@ -2,7 +2,6 @@ trigger:
 - master
 - features/*
 - releases/*
-- users/v-andivanov/release-4-node16
 
 jobs:
 #################################################
