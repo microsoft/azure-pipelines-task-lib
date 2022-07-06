@@ -1,0 +1,23 @@
+steps:
+  # npm install
+  - task: Npm@1
+    displayName: (azure-pipelines-task-lib) npm install
+    inputs:
+      command: install
+      workingDir: node
+
+  # use node 16
+  - task: NodeTool@0
+    displayName: (azure-pipelines-task-lib) use node 16.13.0
+    inputs:
+      versionSpec: "16.13.0"
+
+  # test
+  - script: node make.js test
+    workingDirectory: node
+    displayName: (azure-pipelines-task-lib) node make.js test  
+
+  # build
+  - script: node make.js build
+    displayName: (azure-pipelines-task-lib) node make.js build
+    workingDirectory: node
