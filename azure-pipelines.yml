@@ -23,24 +23,24 @@ jobs:
       command: install
       workingDir: node
 
-  # use node 16
+  # use node 16.13.0
   - task: NodeTool@0
     displayName: (azure-pipelines-task-lib) use node 16.13.0
     inputs:
       versionSpec: "16.13.0"
 
-  # test
+  # build/test
   - script: |
       chcp 437
       node make.js test
     workingDirectory: node
     displayName: (azure-pipelines-task-lib) node make.js test  
 
-  # build
+  # build/test
   - script: |
       chcp 437
-      node make.js build
-    displayName: (azure-pipelines-task-lib) node make.js build
+      node make.js test
+    displayName: (azure-pipelines-task-lib) node make.js test
     workingDirectory: node
 
   ################################################################################
@@ -67,12 +67,32 @@ jobs:
     vmImage: ubuntu-18.04
 
   steps:
-  - template: azure-pipelines-steps.yml
-
-  - task: PublishPipelineArtifact@1
+  ################################################################################
+  # azure-pipelines-task-lib
+  ################################################################################
+  
+  # npm install
+  - task: Npm@1
+    displayName: (azure-pipelines-task-lib) npm install
     inputs:
-      targetPath: 'node/_build'
-      artifactType: 'pipeline'
+      command: install
+      workingDir: node
+
+  # use node 16.13.0
+  - task: NodeTool@0
+    displayName: (azure-pipelines-task-lib) use node 16.13.0
+    inputs:
+      versionSpec: "16.13.0"
+      
+  # build/test
+  - script: node make.js test
+    workingDirectory: node
+    displayName: (azure-pipelines-task-lib) node make.js test  
+
+  # build/test
+  - script: node make.js test
+    displayName: (azure-pipelines-task-lib) node make.js test
+    workingDirectory: node
 
   # For CI runs on master, automatically publish packages
   - bash: |
@@ -93,4 +113,29 @@ jobs:
     vmImage: macOS-10.15
 
   steps:
-  - template: azure-pipelines-steps.yml
+  ################################################################################
+  # azure-pipelines-task-lib
+  ################################################################################
+  
+  # npm install
+  - task: Npm@1
+    displayName: (azure-pipelines-task-lib) npm install
+    inputs:
+      command: install
+      workingDir: node
+
+  # use node 16.13.0
+  - task: NodeTool@0
+    displayName: (azure-pipelines-task-lib) use node 16.13.0
+    inputs:
+      versionSpec: "16.13.0"
+      
+  # build/test
+  - script: node make.js test
+    workingDirectory: node
+    displayName: (azure-pipelines-task-lib) node make.js test  
+
+  # build/test
+  - script: node make.js test
+    displayName: (azure-pipelines-task-lib) node make.js test
+    workingDirectory: node
