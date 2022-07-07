@@ -1,0 +1,13 @@
+steps:
+  # npm install
+  - task: Npm@1
+    displayName: (azure-pipelines-task-lib) npm install
+    inputs:
+      command: install
+      workingDir: node
+
+  # use node 10
+  - task: NodeTool@0
+    displayName: (azure-pipelines-task-lib) use node 10.23.0
+    inputs:
+      versionSpec: "10.23.0"

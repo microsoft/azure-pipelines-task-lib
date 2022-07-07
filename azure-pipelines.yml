@@ -16,31 +16,20 @@ jobs:
   # azure-pipelines-task-lib
   ################################################################################
   
-  # npm install
-  - task: Npm@1
-    displayName: (azure-pipelines-task-lib) npm install
-    inputs:
-      command: install
-      workingDir: node
+  - template: azure-pipelines-steps-node.yml
 
-  # use node 10
-  - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 10.23.0
-    inputs:
-      versionSpec: "10.23.0"
-
-  # build/test
+  # test
   - script: |
       chcp 437
       node make.js test
     workingDirectory: node
     displayName: (azure-pipelines-task-lib) node make.js test  
 
-  # build/test
+  # build
   - script: |
       chcp 437
-      node make.js test
-    displayName: (azure-pipelines-task-lib) node make.js test
+      node make.js build
+    displayName: (azure-pipelines-task-lib) node make.js build
     workingDirectory: node
 
   ################################################################################
@@ -66,33 +55,15 @@ jobs:
   pool:
     vmImage: ubuntu-18.04
 
-  steps:
-  ################################################################################
-  # azure-pipelines-task-lib
-  ################################################################################
-  
-  # npm install
-  - task: Npm@1
-    displayName: (azure-pipelines-task-lib) npm install
-    inputs:
-      command: install
-      workingDir: node
+  steps:    
+  - template: azure-pipelines-steps-node.yml
+  - template: azure-pipelines-steps-test-build.yml
 
-  # use node 10
-  - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 10.23.0
+  - task: PublishPipelineArtifact@1
     inputs:
-      versionSpec: "10.23.0"
-      
-  # build/test
-  - script: node make.js test
-    workingDirectory: node
-    displayName: (azure-pipelines-task-lib) node make.js test  
-
-  # build/test
-  - script: node make.js test
-    displayName: (azure-pipelines-task-lib) node make.js test
-    workingDirectory: node
+      targetPath: 'node/_build'
+      artifactType: 'pipeline'
+      artifactName: 'npm-package'
 
   # For CI runs on master, automatically publish packages
   - bash: |
@@ -113,29 +84,5 @@ jobs:
     vmImage: macOS-10.15
 
   steps:
-  ################################################################################
-  # azure-pipelines-task-lib
-  ################################################################################
-  
-  # npm install
-  - task: Npm@1
-    displayName: (azure-pipelines-task-lib) npm install
-    inputs:
-      command: install
-      workingDir: node
-
-  # use node 10
-  - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 10.23.0
-    inputs:
-      versionSpec: "10.23.0"
-      
-  # build/test
-  - script: node make.js test
-    workingDirectory: node
-    displayName: (azure-pipelines-task-lib) node make.js test  
-
-  # build/test
-  - script: node make.js test
-    displayName: (azure-pipelines-task-lib) node make.js test
-    workingDirectory: node
+  - template: azure-pipelines-steps-node.yml
+  - template: azure-pipelines-steps-test-build.yml
