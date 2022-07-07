@@ -67,7 +67,7 @@ jobs:
     vmImage: ubuntu-18.04
 
   steps:
-  - template: scheme.yml
+  - template: azure-pipelines-steps.yml
 
   - task: PublishPipelineArtifact@1
     inputs:
@@ -93,4 +93,4 @@ jobs:
     vmImage: macOS-10.15
 
   steps:
-  - template: scheme.yml
+  - template: azure-pipelines-steps.yml
