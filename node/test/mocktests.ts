@@ -162,13 +162,13 @@ describe('Mock Tests', function () {
         done();
     })
 
-    it('Mock loc returns key', (done: MochaDone) => {
+    it('Mock loc returns key', (done) => {
         let actual = mt.loc('STR_KEY');
         assert.equal(actual, 'loc_mock_STR_KEY');
         done();
     })
 
-    it('Mock loc returns key and args', (done: MochaDone) => {
+    it('Mock loc returns key and args', (done) => {
         let actual = mt.loc('STR_KEY', false, 2, 'three');
         assert.equal(actual, 'loc_mock_STR_KEY false 2 three');
         done();

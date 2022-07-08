@@ -1,6 +1,6 @@
 {
   "name": "azure-pipelines-task-lib",
-  "version": "3.3.1",
+  "version": "4.0.0-preview",
   "description": "Azure Pipelines Task SDK",
   "main": "./task.js",
   "typings": "./task.d.ts",
@@ -37,13 +37,13 @@
   },
   "devDependencies": {
     "@types/minimatch": "3.0.3",
-    "@types/mocha": "^5.0.0",
+    "@types/mocha": "^9.1.1",
     "@types/mockery": "^1.4.29",
-    "@types/node": "^10.17.0",
+    "@types/node": "^16.11.39",
     "@types/q": "^1.5.4",
     "@types/semver": "^7.3.4",
     "@types/shelljs": "^0.8.8",
-    "mocha": "5.2.0",
+    "mocha": "^9.2.2",
     "typescript": "^4.0.0"
   }
 }
