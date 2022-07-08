@@ -1,3 +1,7 @@
+parameters:
+- name: nodeVersion 
+  type: string
+
 steps:
   # npm install
   - task: Npm@1
@@ -6,8 +10,7 @@ steps:
       command: install
       workingDir: node
 
-  # use node 10
   - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 10.23.0
+    displayName: (azure-pipelines-task-lib) use node ${{parameters.nodeVersion}}
     inputs:
-      versionSpec: "10.23.0"
+      versionSpec: ${{parameters.nodeVersion}}
