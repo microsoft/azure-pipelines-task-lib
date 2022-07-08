@@ -23,11 +23,11 @@ jobs:
       command: install
       workingDir: node
 
-  # use node 10
+  # use node 16.13.0
   - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 10.23.0
+    displayName: (azure-pipelines-task-lib) use node 16.13.0
     inputs:
-      versionSpec: "10.23.0"
+      versionSpec: "16.13.0"
 
   # build/test
   - script: |
@@ -78,11 +78,11 @@ jobs:
       command: install
       workingDir: node
 
-  # use node 10
+  # use node 16.13.0
   - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 10.23.0
+    displayName: (azure-pipelines-task-lib) use node 16.13.0
     inputs:
-      versionSpec: "10.23.0"
+      versionSpec: "16.13.0"
       
   # build/test
   - script: node make.js test
@@ -101,7 +101,7 @@ jobs:
         npm publish || true # Ignore publish failures, usually will happen because package already exists
     displayName: (azure-pipelines-task-lib) npm publish
     workingDirectory: node
-    condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranchname'], 'master', 'releases/3.x'))
+    condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranchname'], 'master', 'releases/4.x'))
     env:
       NPM_TOKEN: $(npmPublishToken)
 
@@ -124,11 +124,11 @@ jobs:
       command: install
       workingDir: node
 
-  # use node 10
+  # use node 16.13.0
   - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 10.23.0
+    displayName: (azure-pipelines-task-lib) use node 16.13.0
     inputs:
-      versionSpec: "10.23.0"
+      versionSpec: "16.13.0"
       
   # build/test
   - script: node make.js test

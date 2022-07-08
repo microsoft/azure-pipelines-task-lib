@@ -19,7 +19,7 @@ describe('Retry Tests', function () {
     after(function () {
     });
 
-    it('retries to execute a function', (done: MochaDone) => {
+    it('retries to execute a function', (done) => {
         this.timeout(1000);
 
         const testError = Error('Test Error');
