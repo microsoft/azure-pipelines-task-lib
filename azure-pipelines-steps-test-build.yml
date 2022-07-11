@@ -1,0 +1,10 @@
+steps:
+  # test
+  - script: node make.js test
+    workingDirectory: node
+    displayName: (azure-pipelines-task-lib) node make.js test  
+
+  # build
+  - script: node make.js build
+    displayName: (azure-pipelines-task-lib) node make.js build
+    workingDirectory: node
