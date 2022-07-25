@@ -1,5 +1,13 @@
 # Instructions for Contributing Code
 
+## Current status
+
+Since at the moment work is proceeding on migrating to Node16, you need to remember the following:
+
+- master branch for SDK v3 (stable and targets Node10)
+- releases/4.x branch for SDK v4 (preview and targets Node16)
+- Changes that were merged for SDK v3 should be cherry-picked for SDK v4 once they are merged to the master branch
+
 ## Contributing bug fixes
 
 We are currently accepting contributions in the form of bug fixes. A bug must have an issue tracking it in the issue tracker. Your pull request should include a link to the bug that you are fixing. If you've submitted a PR for a bug, please post a comment in the bug to avoid duplication of effort.
