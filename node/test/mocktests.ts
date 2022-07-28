@@ -318,13 +318,13 @@ describe('Mock Tests', function () {
         done();
     })
 
-    it('MockTest handles node 14 tasks correctly', function (done) {
+    it('MockTest handles node 16 tasks correctly', function (done) {
         this.timeout(30000);
-        const runner = new mtm.MockTestRunner(path.join(__dirname, 'fakeTasks', 'node14task', 'entry.js'));
+        const runner = new mtm.MockTestRunner(path.join(__dirname, 'fakeTasks', 'node16task', 'entry.js'));
         const nodePath = runner.nodePath;
         assert(nodePath, 'node path should have been correctly set');
         const version = ncp.execSync(nodePath + ' -v').toString().trim();
-        assert(semver.satisfies(version, '14.x'), 'Downloaded node version should be Node 14 instead of ' + version);
+        assert(semver.satisfies(version, '16.x'), 'Downloaded node version should be Node 16 instead of ' + version);
         done();
     })
 });
