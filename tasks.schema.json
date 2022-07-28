@@ -385,6 +385,9 @@
       "additionalProperties": false,
       "description": "Execution options for this task (on Pre-Job stage)",
       "properties": {
+        "Node16": {
+          "$ref": "#/definitions/executionObject"
+        },
         "Node10": {
           "$ref": "#/definitions/executionObject"
         },
@@ -404,6 +407,9 @@
       "additionalProperties": false,
       "description": "Execution options for this task",
       "properties": {
+        "Node16": {
+          "$ref": "#/definitions/executionObject"
+        },
         "Node10": {
           "$ref": "#/definitions/executionObject"
         },
@@ -423,6 +429,9 @@
       "additionalProperties": false,
       "description": "Execution options for this task (on Post-Job stage)",
       "properties": {
+        "Node16": {
+          "$ref": "#/definitions/executionObject"
+        },
         "Node10": {
           "$ref": "#/definitions/executionObject"
         },

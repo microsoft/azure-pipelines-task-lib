@@ -143,20 +143,17 @@ export class MockTestRunner {
 
         let downloadVersion: string;
         switch (version) {
-            case 5:
-                downloadVersion = 'v5.10.1';
-                break;
             case 6:
                 downloadVersion = 'v6.17.1';
                 break;
             case 10:
                 downloadVersion = 'v10.21.0';
                 break;
-            case 14:
-                downloadVersion = 'v14.11.0';
+            case 16:
+                downloadVersion = 'v16.13.0';
                 break;
             default:
-                throw new Error('Invalid node version, must be 5, 6, 10, or 14 (received ' + version + ')');
+                throw new Error('Invalid node version, must be 6, 10, or 16 (received ' + version + ')');
         }
 
         // Install node in home directory if it isn't already there.
@@ -170,12 +167,12 @@ export class MockTestRunner {
         }
     }
 
-    // Determines the correct version of node to use based on the contents of the task's task.json. Defaults to Node 14.
+    // Determines the correct version of node to use based on the contents of the task's task.json. Defaults to Node 16.
     private getNodeVersion(): number {
         const taskJsonPath: string = this.getTaskJsonPath();
         if (!taskJsonPath) {
-            console.warn('Unable to find task.json, defaulting to use Node 14');
-            return 10;
+            console.warn('Unable to find task.json, defaulting to use Node 16');
+            return 16;
         }
         const taskJsonContents = fs.readFileSync(taskJsonPath, { encoding: 'utf-8' });
         const taskJson: object = JSON.parse(taskJsonContents);
@@ -188,9 +185,9 @@ export class MockTestRunner {
         );
         const keys = Object.keys(execution);
         for (let i = 0; i < keys.length; i++) {
-            if (keys[i].toLowerCase() == 'node14') {
-                // Prefer node 14 and return immediately.
-                return 14;
+            if (keys[i].toLowerCase() == 'node16') {
+                // Prefer node 16 and return immediately.
+                return 16;
             } else if (keys[i].toLowerCase() == 'node10') {
                 // Prefer node 10 and return immediately.
                 return 10;
@@ -200,8 +197,8 @@ export class MockTestRunner {
         }
 
         if (!nodeVersionFound) {
-            console.warn('Unable to determine execution type from task.json, defaulting to use Node 10');
-            return 10;
+            console.warn('Unable to determine execution type from task.json, defaulting to use Node 16');
+            return 16;
         }
 
         return 6;
