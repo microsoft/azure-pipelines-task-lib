@@ -150,10 +150,10 @@ export class MockTestRunner {
                 downloadVersion = 'v6.17.1';
                 break;
             case 10:
-                downloadVersion = 'v10.21.0';
+                downloadVersion = 'v10.24.1';
                 break;
             case 14:
-                downloadVersion = 'v14.11.0';
+                downloadVersion = 'v14.20.0';
                 break;
             default:
                 throw new Error('Invalid node version, must be 5, 6, 10, or 14 (received ' + version + ')');
