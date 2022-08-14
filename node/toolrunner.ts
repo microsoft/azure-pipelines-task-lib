@@ -1028,12 +1028,14 @@ export class ToolRunner extends events.EventEmitter {
     }
 
     /**
-     * Used to close child process by sending SIGNINT signal.
-     * It allows executed script to have some additional logic on SIGINT, before exiting.
+     * Sends a signal to kill the child process. If no argument is given, the SIGTERM signal will be sent.
+     * This allows the executed script to react to kill signals before being forcibly terminated.
+     * 
+     * @param signal    The signal to send to the child process (default is SIGTERM)
      */
-    public killChildProcess(): void {
+    public killChildProcess(signal?: string): void {
         if (this.childProcess) {
-            this.childProcess.kill();
+            this.childProcess.kill(signal);
         }
     }
 }
