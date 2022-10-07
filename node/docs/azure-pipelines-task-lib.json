@@ -683,14 +683,14 @@
         "getAgentMode": {
           "name": "getAgentMode",
           "members": {},
-          "documentation": "Gets a agent hosted mode.\nRequires a 2.212.0 agent or higher for full functionality. With lower version returns AgentHostedMode.Unknown value. \n\n@returns AgentHostedMode",
+          "documentation": "Gets a agent hosted mode: Unknown, SelfHosted or MsHosted.\nRequires a 2.212.0 agent or higher for full functionality. With lower version returns AgentHostedMode.Unknown value. \n\n@returns AgentHostedMode",
           "kind": "function",
           "signatures": [
             {
               "parameters": [],
               "members": {},
               "return": "AgentHostedMode",
-              "documentation": "Gets a agent hosted mode.\nRequires a 2.212.0 agent or higher for full functionality. With lower version returns AgentHostedMode.Unknown value. \n\n@returns AgentHostedMode"
+              "documentation": "Gets a agent hosted mode: Unknown, SelfHosted or MsHosted.\nRequires a 2.212.0 agent or higher for full functionality. With lower version returns AgentHostedMode.Unknown value. \n\n@returns AgentHostedMode"
             }
           ]
         },

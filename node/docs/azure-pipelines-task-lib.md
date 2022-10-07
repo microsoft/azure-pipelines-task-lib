@@ -289,12 +289,13 @@ Limitations on an agent prior to 2.104.1:
 @returns VariableInfo[]
 ```javascript
 getVariables():VariableInfo[]
+```
 
 <br/>
 <div id="taskgetAgentMode">
 
 ### task.getAgentMode <a href="#index">(^)</a>
-Gets a agent hosted mode.
+Gets a agent hosted mode: Unknown, SelfHosted or MsHosted.
 Requires a 2.212.0 agent or higher for full functionality. With lower version returns AgentHostedMode.Unknown value.
 
 @returns AgentHostedMode
