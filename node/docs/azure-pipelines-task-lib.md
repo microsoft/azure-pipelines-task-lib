@@ -35,6 +35,7 @@ import tl = require('azure-pipelines-task-lib/task')
 <a href="#tasksetVariable">setVariable</a> <br/>
 <a href="#taskgetTaskVariable">getTaskVariable</a> <br/>
 <a href="#tasksetTaskVariable">setTaskVariable</a> <br/>
+<a href="#taskgetAgentMode">getAgentMode</a> <br/>
 
 ### Execution <a href="#Execution">(v)</a>
 
@@ -288,6 +289,17 @@ Limitations on an agent prior to 2.104.1:
 @returns VariableInfo[]
 ```javascript
 getVariables():VariableInfo[]
+
+<br/>
+<div id="taskgetAgentMode">
+
+### task.getAgentMode <a href="#index">(^)</a>
+Gets a agent hosted mode.
+Requires a 2.212.0 agent or higher for full functionality. With lower version returns AgentHostedMode.Unknown value.
+
+@returns AgentHostedMode
+```javascript
+getAgentMode():AgentHostedMode
 ```
 
 <br/>
