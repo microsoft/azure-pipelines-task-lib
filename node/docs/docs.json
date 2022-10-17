@@ -23,7 +23,8 @@
                 "task.getVariables",
                 "task.setVariable",
                 "task.getTaskVariable",
-                "task.setTaskVariable"
+                "task.setTaskVariable",
+                "task.getAgentMode"
             ]
         },
         "Execution": {
