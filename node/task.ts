@@ -51,6 +51,12 @@ export enum Platform {
     Linux
 }
 
+export enum AgentHostedMode {
+    Unknown,
+    SelfHosted,
+    MsHosted
+}
+
 //-----------------------------------------------------
 // General Helpers
 //-----------------------------------------------------
@@ -657,6 +663,22 @@ export function getPlatform(): Platform {
         case 'linux': return Platform.Linux;
         default: throw Error(loc('LIB_PlatformNotSupported', process.platform));
     }
+}
+
+/**
+ * Return hosted type of Agent
+ * @returns {AgentHostedMode}
+ */
+export function getAgentMode(): AgentHostedMode {
+    let agentCloudId = getVariable('Agent.CloudId');
+
+    if (agentCloudId === undefined)
+        return AgentHostedMode.Unknown;
+    
+    if (agentCloudId)
+        return AgentHostedMode.MsHosted;
+
+    return AgentHostedMode.SelfHosted;
 }
 
 /**
