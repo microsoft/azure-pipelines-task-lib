@@ -594,6 +594,7 @@ export class ToolRunner extends events.EventEmitter {
 
     private _getSpawnSyncOptions(options: IExecSyncOptions): child.SpawnSyncOptions {
         let result = <child.SpawnSyncOptions>{};
+        result.maxBuffer = 1024 * 1024 * 1024;
         result.cwd = options.cwd;
         result.env = options.env;
         result.shell = options.shell;
