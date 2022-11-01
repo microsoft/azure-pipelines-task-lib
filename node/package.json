@@ -1,6 +1,6 @@
 {
   "name": "azure-pipelines-task-lib",
-  "version": "4.0.1-preview",
+  "version": "4.0.2-preview",
   "description": "Azure Pipelines Task SDK",
   "main": "./task.js",
   "typings": "./task.d.ts",
@@ -28,7 +28,7 @@
   "homepage": "https://github.com/Microsoft/azure-pipelines-task-lib",
   "dependencies": {
     "minimatch": "3.0.5",
-    "mockery": "^1.7.0",
+    "mockery": "^2.1.0",
     "q": "^1.5.1",
     "semver": "^5.1.0",
     "shelljs": "^0.8.5",
