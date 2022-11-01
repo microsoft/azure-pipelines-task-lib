@@ -33,7 +33,7 @@
     "semver": "^5.1.0",
     "shelljs": "^0.8.5",
     "sync-request": "6.1.0",
-    "uuid": "^3.0.1"
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/minimatch": "3.0.3",
