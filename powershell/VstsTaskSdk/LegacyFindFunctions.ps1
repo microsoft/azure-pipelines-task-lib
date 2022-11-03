@@ -132,7 +132,7 @@ function Find-Files {
         }
 
         # Validate pattern does not end with a \.
-        if ($pattern[$pattern.Length - 1] -eq [System.IO.Path]::DirectorySeparatorChar) {
+        if ($pattern.EndsWith([System.IO.Path]::DirectorySeparatorChar)) {
             throw (Get-LocString -Key PSLIB_InvalidPattern0 -ArgumentList $pattern)
         }
 
