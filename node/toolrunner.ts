@@ -17,6 +17,9 @@ export interface IExecOptions extends IExecSyncOptions {
 
     /** optional.  defaults to failing on non zero.  ignore will not fail leaving it up to the caller */
     ignoreReturnCode?: boolean;
+
+    /** optional.  suppress command definition from console output.  defaults to false */
+    hideCommand?: boolean;
 }
 
 /**
@@ -572,6 +575,7 @@ export class ToolRunner extends events.EventEmitter {
             cwd: options.cwd || process.cwd(),
             env: options.env || process.env,
             silent: options.silent || false,
+            hideCommand: options.hideCommand || false,
             failOnStdErr: options.failOnStdErr || false,
             ignoreReturnCode: options.ignoreReturnCode || false,
             windowsVerbatimArguments: options.windowsVerbatimArguments || false,
@@ -613,7 +617,7 @@ export class ToolRunner extends events.EventEmitter {
         let success = true;
         const optionsNonNull = this._cloneExecOptions(options);
 
-        if (!optionsNonNull.silent) {
+        if (!optionsNonNull.silent && !optionsNonNull.hideCommand) {
             optionsNonNull.outStream!.write(this._getCommandString(optionsNonNull) + os.EOL);
         }
 
@@ -894,7 +898,7 @@ export class ToolRunner extends events.EventEmitter {
         });
 
         const optionsNonNull = this._cloneExecOptions(options);
-        if (!optionsNonNull.silent) {
+        if (!optionsNonNull.silent && !optionsNonNull.hideCommand) {
             optionsNonNull.outStream!.write(this._getCommandString(optionsNonNull) + os.EOL);
         }
 

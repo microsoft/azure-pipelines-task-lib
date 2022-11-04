@@ -16,6 +16,11 @@
               "documentation": "optional.  defaults to failing on non zero.  ignore will not fail leaving it up to the caller ",
               "name": "ignoreReturnCode",
               "return": "boolean"
+            },
+            "hideCommand": {
+              "documentation": "optional. suppress command definition from console output.  defaults to false ",
+              "name": "hideCommand",
+              "return": "boolean"
             }
           },
           "documentation": "Interface for exec options",

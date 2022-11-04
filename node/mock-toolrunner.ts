@@ -13,6 +13,7 @@ export function setAnswers(answers: ma.TaskLibAnswers) {
 export interface IExecOptions extends IExecSyncOptions {
     failOnStdErr?: boolean;
     ignoreReturnCode?: boolean;
+    hideCommand?: boolean;
 };
 
 export interface IExecSyncOptions {
@@ -178,6 +179,7 @@ export class ToolRunner extends events.EventEmitter {
             cwd: options.cwd || process.cwd(),
             env: options.env || process.env,
             silent: options.silent || false,
+            hideCommand: options.hideCommand || false,
             outStream: options.outStream || process.stdout,
             errStream: options.errStream || process.stderr,
             failOnStdErr: options.failOnStdErr || false,
@@ -205,7 +207,9 @@ export class ToolRunner extends events.EventEmitter {
                 cmdString += ' | ' + pipeToolCmdString;
             }
 
-            ops.outStream.write('[command]' + cmdString + os.EOL);
+            if (!ops.hideCommand) {
+                ops.outStream.write('[command]' + cmdString + os.EOL);
+            }
         }
 
         // TODO: filter process.env
