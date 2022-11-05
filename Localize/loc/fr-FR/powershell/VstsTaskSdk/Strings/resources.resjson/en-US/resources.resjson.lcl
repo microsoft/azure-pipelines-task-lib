@@ -74,10 +74,13 @@
       </Item>
       <Item ItemId=";loc.messages.PSLIB_InvalidPattern0" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Invalid pattern: '{0}']]></Val>
+          <Val><![CDATA[Path cannot end with a directory separator character: '{0}']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Modèle non valide : '{0}']]></Val>
+            <Val><![CDATA[Le chemin d’accès ne peut pas se terminer par un caractère de séparateur de répertoire : « {0} »]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Invalid pattern: '{0}']]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
