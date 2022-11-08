@@ -3,7 +3,7 @@
       {
         "LocItems": [
           {
-            "Languages": "de-de;es-es;fr-fr;it-IT;ja-jp;ko-KR;ru-RU;zh-CN;zh-TW",
+            "Languages": "de-DE;es-ES;fr-FR;it-IT;ja-JP;ko-KR;ru-RU;zh-CN;zh-TW",
             "SourceFile": "node\\Strings\\resources.resjson\\en-US\\resources.resjson",
             "CopyOption": "LangIDOnPath",
             "OutputPath": "node\\Strings\\resources.resjson"
