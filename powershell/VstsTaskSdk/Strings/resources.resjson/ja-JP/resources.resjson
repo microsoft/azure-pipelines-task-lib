@@ -6,7 +6,7 @@
   "loc.messages.PSLIB_EnumeratingSubdirectoriesFailedForPath0": "パス '{0}' のサブディレクトリを列挙できませんでした",
   "loc.messages.PSLIB_FileNotFound0": "ファイルが見つかりません: '{0}'",
   "loc.messages.PSLIB_Input0": "'{0}' 入力",
-  "loc.messages.PSLIB_InvalidPattern0": "使用できないパターンです: '{0}'",
+  "loc.messages.PSLIB_InvalidPattern0": "パスの末尾をディレクトリ区切り文字にすることはできません: '{0}'",
   "loc.messages.PSLIB_LeafPathNotFound0": "リーフ パスが見つかりません: '{0}'",
   "loc.messages.PSLIB_PathLengthNotReturnedFor0": "パスの正規化/展開に失敗しました。Kernel32 サブシステムからパス '{0}' の長さが返されませんでした",
   "loc.messages.PSLIB_PathNotFound0": "パスが見つかりません: '{0}'",

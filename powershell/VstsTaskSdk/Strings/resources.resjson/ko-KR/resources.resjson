@@ -6,7 +6,7 @@
   "loc.messages.PSLIB_EnumeratingSubdirectoriesFailedForPath0": "경로에 대해 하위 디렉터리를 열거하지 못함: '{0}'",
   "loc.messages.PSLIB_FileNotFound0": "{0} 파일을 찾을 수 없습니다.",
   "loc.messages.PSLIB_Input0": "'{0}' 입력",
-  "loc.messages.PSLIB_InvalidPattern0": "잘못된 패턴: '{0}'",
+  "loc.messages.PSLIB_InvalidPattern0": "경로는 디렉터리 구분 문자로 끝날 수 없습니다. '{0}'",
   "loc.messages.PSLIB_LeafPathNotFound0": "Leaf 경로를 찾을 수 없음: '{0}'",
   "loc.messages.PSLIB_PathLengthNotReturnedFor0": "경로 정규화/확장에 실패했습니다. 다음에 대해 Kernel32 subsystem에서 경로 길이를 반환하지 않음: '{0}'",
   "loc.messages.PSLIB_PathNotFound0": "경로를 찾을 수 없음: '{0}'",

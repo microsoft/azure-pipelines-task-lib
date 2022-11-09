@@ -6,7 +6,7 @@
   "loc.messages.PSLIB_EnumeratingSubdirectoriesFailedForPath0": "枚举路径的子目录失败:“{0}”",
   "loc.messages.PSLIB_FileNotFound0": "找不到文件: {0}。",
   "loc.messages.PSLIB_Input0": "“{0}”输入",
-  "loc.messages.PSLIB_InvalidPattern0": "无效的模式:“{0}”",
+  "loc.messages.PSLIB_InvalidPattern0": "路径不能以目录分隔符结尾:“{0}”",
   "loc.messages.PSLIB_LeafPathNotFound0": "找不到叶路径:“{0}”",
   "loc.messages.PSLIB_PathLengthNotReturnedFor0": "路径规范化/扩展失败。路径长度不是由“{0}”的 Kernel32 子系统返回的",
   "loc.messages.PSLIB_PathNotFound0": "找不到路径:“{0}”",
