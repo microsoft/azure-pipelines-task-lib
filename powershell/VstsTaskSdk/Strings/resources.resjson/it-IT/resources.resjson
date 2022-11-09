@@ -6,7 +6,7 @@
   "loc.messages.PSLIB_EnumeratingSubdirectoriesFailedForPath0": "L'enumerazione delle sottodirectory per il percorso '{0}' non è riuscita",
   "loc.messages.PSLIB_FileNotFound0": "File non trovato: '{0}'",
   "loc.messages.PSLIB_Input0": "Input di '{0}'",
-  "loc.messages.PSLIB_InvalidPattern0": "Criterio non valido: '{0}'",
+  "loc.messages.PSLIB_InvalidPattern0": "Il percorso non può terminare con un carattere separatore di directory: '{0}'",
   "loc.messages.PSLIB_LeafPathNotFound0": "Percorso foglia non trovato: '{0}'",
   "loc.messages.PSLIB_PathLengthNotReturnedFor0": "La normalizzazione o l'espansione del percorso non è riuscita. Il sottosistema Kernel32 non ha restituito la lunghezza del percorso per '{0}'",
   "loc.messages.PSLIB_PathNotFound0": "Percorso non trovato: '{0}'",
