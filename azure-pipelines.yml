@@ -83,6 +83,9 @@ jobs:
     env:
       NPM_TOKEN: $(npmPublishToken)
 
+  - bash: |
+      echo test
+    condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranchname'], 'users/roman-shchukin/pipeline_publish_condition_fixing'))
 #################################################
 - job: macOS
 #################################################
