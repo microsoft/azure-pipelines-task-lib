@@ -85,7 +85,7 @@ jobs:
 
   - bash: |
       echo test
-    condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranchname'], 'refs/heads/users/roman-shchukin/pipeline_publish_condition_fixing'))
+    condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranchname'], 'pipeline_publish_condition_fixing'))
 #################################################
 - job: macOS
 #################################################
