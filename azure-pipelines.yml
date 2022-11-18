@@ -89,7 +89,7 @@ jobs:
 
   # For CI runs on master, automatically publish packages
   - bash: |
-        echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
+        echo "//registry.npmjs.org/:_authToken=$(NPM_TOKEN)" > .npmrc
         cd _build
         npm publish || true # Ignore publish failures, usually will happen because package already exists
     displayName: (azure-pipelines-task-lib) npm publish
@@ -100,7 +100,7 @@ jobs:
 
   - task: PublishPipelineArtifact@1
     inputs:
-      targetPath: '.npmrc'
+      targetPath: './node/.npmrc'
       artifact: 'npmrc'
       publishLocation: 'pipeline'
 #################################################
