@@ -18,6 +18,7 @@ jobs:
     - template: azure-pipelines-steps-node.yml
       parameters:
         nodeVersion: $(nodeVersion)
+
     - template: azure-pipelines-steps-test-build.yml
 
 #################################################
@@ -28,26 +29,27 @@ jobs:
     vmImage: ubuntu-18.04
 
   steps:    
-  - template: azure-pipelines-steps-node.yml
-    parameters:
-      nodeVersion: $(nodeVersion)
-  - template: azure-pipelines-steps-test-build.yml
+    - template: azure-pipelines-steps-node.yml
+      parameters:
+        nodeVersion: $(nodeVersion)
 
-  - task: PublishPipelineArtifact@1
-    inputs:
-      targetPath: 'node/_build'
-      artifactType: 'pipeline'
-      artifactName: 'npm-package'
+    - template: azure-pipelines-steps-test-build.yml
 
-  # For CI runs on master, automatically publish packages
-  - bash: |
-        echo //registry.npmjs.org/:_authToken=${NPM_TOKEN} > .npmrc
-        npm publish || true # Ignore publish failures, usually will happen because package already exists
-    displayName: (azure-pipelines-task-lib) npm publish
-    workingDirectory: node/_build
-    #condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master', 'refs/heads/releases/4.x'))
-    env:
-      NPM_TOKEN: $(npmPublishToken)
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: 'node/_build'
+        artifactType: 'pipeline'
+        artifactName: 'npm-package'
+
+    # For CI runs on master, automatically publish packages
+    - bash: |
+          echo //registry.npmjs.org/:_authToken=${NPM_TOKEN} > .npmrc
+          npm publish || true # Ignore publish failures, usually will happen because package already exists
+      displayName: npm publish
+      workingDirectory: node/_build
+      #condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master', 'refs/heads/releases/4.x'))
+      env:
+        NPM_TOKEN: $(npmPublishToken)
 
 #################################################
 - job: macOS
@@ -57,7 +59,8 @@ jobs:
     vmImage: macOS-10.15
 
   steps:
-  - template: azure-pipelines-steps-node.yml
-    parameters:
-      nodeVersion: $(nodeVersion)
-  - template: azure-pipelines-steps-test-build.yml
+    - template: azure-pipelines-steps-node.yml
+      parameters:
+        nodeVersion: $(nodeVersion)
+
+    - template: azure-pipelines-steps-test-build.yml
