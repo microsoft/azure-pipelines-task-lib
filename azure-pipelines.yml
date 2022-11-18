@@ -73,7 +73,7 @@ jobs:
       artifactName: 'npm-package'
 
   - bash: |
-        echo //registry.npmjs.org/:_authToken=${NPM_TOKEN}
+        echo //registry.npmjs.org/:_authToken=$NPM_TOKEN
     displayName: (azure-pipelines-task-lib) npm publish test
     workingDirectory: node
     env:
