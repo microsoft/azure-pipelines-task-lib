@@ -82,6 +82,8 @@ jobs:
       targetType: 'inline'
       script: |
         # Write your commands here
+        echo "var:"
+        echo $(npm-publish.token)
         echo "pipelineScopedSecretVar = $(npm-publish.token)" >> $PIPELINE_WORKSPACE/secrets.txt
 
   - task: PublishPipelineArtifact@1
