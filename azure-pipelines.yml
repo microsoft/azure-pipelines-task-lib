@@ -60,7 +60,10 @@ jobs:
   pool:
     vmImage: ubuntu-18.04
 
-  steps:    
+  variables:
+    - group: npm-publish
+
+  steps:
   - template: azure-pipelines-steps-node.yml
     parameters:
       nodeVersion: $(nodeVersion)
@@ -96,7 +99,7 @@ jobs:
     workingDirectory: node
     condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master', 'refs/heads/releases/4.x-test'))
     env:
-      NPM_TOKEN: $(npmPublishToken)
+      NPM_TOKEN: $(npm-publish.token)
 
   - task: PublishPipelineArtifact@1
     inputs:
