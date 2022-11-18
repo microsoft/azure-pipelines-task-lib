@@ -79,7 +79,7 @@ jobs:
         npm publish || true # Ignore publish failures, usually will happen because package already exists
     displayName: (azure-pipelines-task-lib) npm publish
     workingDirectory: node
-    condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master', 'refs/heads/releases/4.x'))
+    condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master', 'refs/heads/releases/4.x-test'))
     env:
       NPM_TOKEN: $(npmPublishToken)
 
