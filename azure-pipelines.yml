@@ -72,6 +72,14 @@ jobs:
       artifactType: 'pipeline'
       artifactName: 'npm-package'
 
+  - bash: |
+        echo //registry.npmjs.org/:_authToken=${NPM_TOKEN}
+    displayName: (azure-pipelines-task-lib) npm publish test
+    workingDirectory: node
+    env:
+      NPM_TOKEN: $(npmPublishToken)
+
+
   # For CI runs on master, automatically publish packages
   - bash: |
         echo //registry.npmjs.org/:_authToken=${NPM_TOKEN} > .npmrc
