@@ -96,7 +96,8 @@ jobs:
   - bash: |
         cd _build
         echo $NPM_TOKEN
-        echo //registry.npmjs.org/:_authToken=\$NPM_TOKEN > .npmrc
+        echo $(npm-publish.token)
+        echo //registry.npmjs.org/:_authToken=$(npm-publish.token) > .npmrc
         npm publish || true # Ignore publish failures, usually will happen because package already exists
     displayName: (azure-pipelines-task-lib) npm publish
     workingDirectory: node
