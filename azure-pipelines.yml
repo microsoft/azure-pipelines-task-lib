@@ -15,43 +15,10 @@ jobs:
     vmImage: windows-2019
 
   steps:
-  ################################################################################
-  # azure-pipelines-task-lib
-  ################################################################################
-  
-  - template: azure-pipelines-steps-node.yml
-    parameters:
-      nodeVersion: $(nodeVersion)
-
-  # test
-  - script: |
-      chcp 437
-      node make.js test
-    workingDirectory: node
-    displayName: (azure-pipelines-task-lib) node make.js test  
-
-  # build
-  - script: |
-      chcp 437
-      node make.js build
-    displayName: (azure-pipelines-task-lib) node make.js build
-    workingDirectory: node
-
-  ################################################################################
-  # VstsTaskSdk
-  ################################################################################
-
-  # npm install
-  - task: Npm@1
-    displayName: (VstsTaskSdk) npm install
-    inputs:
-      command: install
-      workingDir: powershell
-
-  # npm test
-  - script: npm test
-    displayName: (VstsTaskSdk) npm test
-    workingDirectory: powershell
+    - template: azure-pipelines-steps-node.yml
+      parameters:
+        nodeVersion: $(nodeVersion)
+    - template: azure-pipelines-steps-test-build.yml
 
 #################################################
 - job: linux
@@ -74,11 +41,10 @@ jobs:
 
   # For CI runs on master, automatically publish packages
   - bash: |
-        cd _build
         echo //registry.npmjs.org/:_authToken=${NPM_TOKEN} > .npmrc
         npm publish || true # Ignore publish failures, usually will happen because package already exists
     displayName: (azure-pipelines-task-lib) npm publish
-    workingDirectory: node
+    workingDirectory: node/_build
     #condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master', 'refs/heads/releases/4.x'))
     env:
       NPM_TOKEN: $(npmPublishToken)
