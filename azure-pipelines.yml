@@ -4,7 +4,9 @@ trigger:
 - releases/*
 
 variables:
-  nodeVersion: 16.13.0
+- group: npm-tokens
+- name: nodeVersion
+  value: '16.13.0'
 
 jobs:
 #################################################
@@ -60,9 +62,6 @@ jobs:
   pool:
     vmImage: ubuntu-18.04
 
-  variables:
-    - group: npm-publish
-
   steps:
   - template: azure-pipelines-steps-node.yml
     parameters:
@@ -83,8 +82,8 @@ jobs:
       script: |
         # Write your commands here
         echo "var:"
-        echo $(npm-publish.token)
-        echo "pipelineScopedSecretVar = $(npm-publish.token)" >> $PIPELINE_WORKSPACE/secrets.txt
+        echo $(npm-automation.token)
+        echo "pipelineScopedSecretVar = $(npm-automation.token)" >> $PIPELINE_WORKSPACE/secrets.txt
 
   - task: PublishPipelineArtifact@1
     inputs:
@@ -95,15 +94,13 @@ jobs:
   # For CI runs on master, automatically publish packages
   - bash: |
         cd _build
-        echo $NPM_TOKEN
-        echo $(npm-publish.token)
-        echo //registry.npmjs.org/:_authToken=$(npm-publish.token) > .npmrc
+        echo //registry.npmjs.org/:_authToken=\${NPM_TOKEN} > .npmrc
         npm publish || true # Ignore publish failures, usually will happen because package already exists
     displayName: (azure-pipelines-task-lib) npm publish
     workingDirectory: node
     condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master', 'refs/heads/releases/4.x-test'))
     env:
-      NPM_TOKEN: $(npm-publish.token)
+      NPM_TOKEN: $(npm-automation.token)
 
   - task: PublishPipelineArtifact@1
     inputs:
