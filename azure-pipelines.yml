@@ -4,7 +4,9 @@ trigger:
 - releases/*
 
 variables:
-  nodeVersion: 16.13.0
+  - group: npm-tokens
+  - name: nodeVersion
+    value: '16.13.0'
 
 jobs:
 #################################################
@@ -49,7 +51,7 @@ jobs:
       workingDirectory: node/_build
       condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master', 'refs/heads/releases/4.x'))
       env:
-        NPM_TOKEN: $(npmPublishToken)
+        NPM_TOKEN: $(npm-automation.token)
 
 #################################################
 - job: macOS
