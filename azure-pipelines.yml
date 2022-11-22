@@ -1,97 +1,69 @@
 trigger:
-- master
-- features/*
-- releases/*
-
-variables:
-  nodeVersion: 10.23.0
-
-jobs:
-#################################################
-- job: windows
-#################################################
-  displayName: windows
-  pool:
-    vmImage: windows-2019
-
-  steps:
-  ################################################################################
-  # azure-pipelines-task-lib
-  ################################################################################
+  - master
+  - features/*
+  - releases/*
   
-  - template: azure-pipelines-steps-node.yml
-    parameters:
-      nodeVersion: $(nodeVersion)
-
-  # test
-  - script: |
-      chcp 437
-      node make.js test
-    workingDirectory: node
-    displayName: (azure-pipelines-task-lib) node make.js test  
-
-  # build
-  - script: |
-      chcp 437
-      node make.js build
-    displayName: (azure-pipelines-task-lib) node make.js build
-    workingDirectory: node
-
-  ################################################################################
-  # VstsTaskSdk
-  ################################################################################
-
-  # npm install
-  - task: Npm@1
-    displayName: (VstsTaskSdk) npm install
-    inputs:
-      command: install
-      workingDir: powershell
-
-  # npm test
-  - script: npm test
-    displayName: (VstsTaskSdk) npm test
-    workingDirectory: powershell
-
-#################################################
-- job: linux
-#################################################
-  displayName: Linux
-  pool:
-    vmImage: ubuntu-18.04
-
-  steps:    
-  - template: azure-pipelines-steps-node.yml
-    parameters:
-      nodeVersion: $(nodeVersion)
-  - template: azure-pipelines-steps-test-build.yml
-
-  - task: PublishPipelineArtifact@1
-    inputs:
-      targetPath: 'node/_build'
-      artifactType: 'pipeline'
-      artifactName: 'npm-package'
-
-  # For CI runs on master, automatically publish packages
-  - bash: |
-        echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
-        cd _build
-        npm publish || true # Ignore publish failures, usually will happen because package already exists
-    displayName: (azure-pipelines-task-lib) npm publish
-    workingDirectory: node
-    condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranchname'], 'master', 'releases/3.x'))
-    env:
-      NPM_TOKEN: $(npmPublishToken)
-
-#################################################
-- job: macOS
-#################################################
-  displayName: macOS
-  pool:
-    vmImage: macOS-10.15
-
-  steps:
-  - template: azure-pipelines-steps-node.yml
-    parameters:
-      nodeVersion: $(nodeVersion)
-  - template: azure-pipelines-steps-test-build.yml
+  variables:
+    - group: npm-tokens
+    - name: nodeVersion
+      value: '16.13.0'
+  
+  jobs:
+  #################################################
+  - job: windows
+  #################################################
+    displayName: windows
+    pool:
+      vmImage: windows-2019
+  
+    steps:
+      - template: azure-pipelines-steps-node.yml
+        parameters:
+          nodeVersion: $(nodeVersion)
+  
+      - template: azure-pipelines-steps-test-build.yml
+  
+  #################################################
+  - job: linux
+  #################################################
+    displayName: Linux
+    pool:
+      vmImage: ubuntu-18.04
+  
+    steps:    
+      - template: azure-pipelines-steps-node.yml
+        parameters:
+          nodeVersion: $(nodeVersion)
+  
+      - template: azure-pipelines-steps-test-build.yml
+  
+      - task: PublishPipelineArtifact@1
+        inputs:
+          targetPath: 'node/_build'
+          artifactType: 'pipeline'
+          artifactName: 'npm-package'
+  
+      # For CI runs on master, automatically publish packages
+      - bash: |
+            echo //registry.npmjs.org/:_authToken=\${NPM_TOKEN} > .npmrc
+            npm publish || true # Ignore publish failures, usually will happen because package already exists
+        displayName: npm publish
+        workingDirectory: node/_build
+        condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master'))
+        env:
+          NPM_TOKEN: $(npm-automation.token)
+  
+  #################################################
+  - job: macOS
+  #################################################
+    displayName: macOS
+    pool:
+      vmImage: macOS-10.15
+  
+    steps:
+      - template: azure-pipelines-steps-node.yml
+        parameters:
+          nodeVersion: $(nodeVersion)
+  
+      - template: azure-pipelines-steps-test-build.yml
+  

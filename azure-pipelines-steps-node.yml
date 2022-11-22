@@ -5,12 +5,12 @@ parameters:
 steps:
   # npm install
   - task: Npm@1
-    displayName: (azure-pipelines-task-lib) npm install
+    displayName: npm install
     inputs:
       command: install
       workingDir: node
 
   - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node ${{parameters.nodeVersion}}
+    displayName: use node ${{parameters.nodeVersion}}
     inputs:
       versionSpec: ${{parameters.nodeVersion}}
