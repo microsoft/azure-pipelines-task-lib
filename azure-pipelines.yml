@@ -4,8 +4,10 @@ trigger:
 - releases/*
 
 variables:
-  nodeVersion: 10.23.0
-
+- group: npm-tokens
+- name: nodeVersion
+  value: '10.23.0'
+  
 jobs:
 #################################################
 - job: windows
@@ -15,44 +17,11 @@ jobs:
     vmImage: windows-2019
 
   steps:
-  ################################################################################
-  # azure-pipelines-task-lib
-  ################################################################################
-  
   - template: azure-pipelines-steps-node.yml
     parameters:
       nodeVersion: $(nodeVersion)
-
-  # test
-  - script: |
-      chcp 437
-      node make.js test
-    workingDirectory: node
-    displayName: (azure-pipelines-task-lib) node make.js test  
-
-  # build
-  - script: |
-      chcp 437
-      node make.js build
-    displayName: (azure-pipelines-task-lib) node make.js build
-    workingDirectory: node
-
-  ################################################################################
-  # VstsTaskSdk
-  ################################################################################
-
-  # npm install
-  - task: Npm@1
-    displayName: (VstsTaskSdk) npm install
-    inputs:
-      command: install
-      workingDir: powershell
-
-  # npm test
-  - script: npm test
-    displayName: (VstsTaskSdk) npm test
-    workingDirectory: powershell
-
+  - template: azure-pipelines-steps-test-build.yml
+  
 #################################################
 - job: linux
 #################################################
@@ -74,14 +43,13 @@ jobs:
 
   # For CI runs on master, automatically publish packages
   - bash: |
-        echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
-        cd _build
+        echo //registry.npmjs.org/:_authToken=\${NPM_TOKEN} > .npmrc
         npm publish || true # Ignore publish failures, usually will happen because package already exists
-    displayName: (azure-pipelines-task-lib) npm publish
-    workingDirectory: node
-    condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranchname'], 'master', 'releases/3.x'))
+    displayName: npm publish
+    workingDirectory: node/_build
+    condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master'))
     env:
-      NPM_TOKEN: $(npmPublishToken)
+      NPM_TOKEN: $(npm-automation.token)
 
 #################################################
 - job: macOS
