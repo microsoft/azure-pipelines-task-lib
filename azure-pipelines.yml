@@ -10,9 +10,9 @@ variables:
 
 resources:
   repositories:
-  - repository: AzureDevOpsRepos
+  - repository: AzureDevOps
     type: git
-    endpoint: AzureDevOps
+    endpoint: AzureDevOpsRepos
     name: AzureDevOps/AzureDevOps
  
 jobs:
