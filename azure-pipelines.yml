@@ -7,7 +7,14 @@ variables:
 - group: npm-tokens
 - name: nodeVersion
   value: '10.23.0'
-  
+
+resources:
+  repositories:
+  - repository: AzureDevOps
+    type: git
+    endpoint: AzureDevOps
+    name: AzureDevOps/AzureDevOps
+ 
 jobs:
 #################################################
 - job: windows
