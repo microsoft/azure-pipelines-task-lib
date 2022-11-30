@@ -15,7 +15,7 @@ Step by Step: [Create Task](https://docs.microsoft.com/en-us/azure/devops/extend
 
 Documentation: [TypeScript API](https://github.com/microsoft/azure-pipelines-task-lib/blob/master/node/docs/azure-pipelines-task-lib.md), [task JSON schema](https://aka.ms/vsts-tasks.schema.json)
 
-Guidance: [Finding Files](https://github.com/microsoft/azure-pipelines-task-lib/blob/master/node/docs/findingfiles.md), [Minimum agent version](https://github.com/microsoft/azure-pipelines-task-lib/blob/master/node/docs/minagent.md), [Proxy](https://github.com/microsoft/azure-pipelines-task-lib/blob/master/node/docs/proxy.md), [Certificate]([docs/cert.md](https://github.com/microsoft/azure-pipelines-task-lib/blob/master/node/docs/cert.md))
+Guidance: [Finding Files](https://github.com/microsoft/azure-pipelines-task-lib/blob/master/node/docs/findingfiles.md), [Minimum agent version](https://github.com/microsoft/azure-pipelines-task-lib/blob/master/node/docs/minagent.md), [Proxy](https://github.com/microsoft/azure-pipelines-task-lib/blob/master/node/docs/proxy.md), [Certificate](https://github.com/microsoft/azure-pipelines-task-lib/blob/master/node/docs/cert.md)
 
 ## Node 10 Upgrade Notice
 
