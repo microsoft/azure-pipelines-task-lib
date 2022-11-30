@@ -1,5 +1,4 @@
 
-import Q = require('q');
 import os = require('os');
 import events = require('events');
 import ma = require('./mock-answer');
@@ -162,8 +161,8 @@ export class ToolRunner extends events.EventEmitter {
     // Exec - use for long running tools where you need to stream live output as it runs
     //        returns a promise with return code.
     //
-    public exec(options?: IExecOptions): Q.Promise<number> {
-        var defer = Q.defer<number>();
+    public exec(options?: IExecOptions): Promise<number> {
+        let defer: Promise<number>;
 
         this._debug('exec tool: ' + this.toolPath);
         this._debug('Arguments:');
@@ -256,13 +255,13 @@ export class ToolRunner extends events.EventEmitter {
             ops.outStream.write('success:' + success + os.EOL);
         }
         if (success) {
-            defer.resolve(code);
+            defer = Promise.resolve(code);
         }
         else {
-            defer.reject(new Error(this.toolPath + ' failed with return code: ' + code));
+            defer = Promise.reject(new Error(this.toolPath + ' failed with return code: ' + code));
         }
 
-        return <Q.Promise<number>>defer.promise;
+        return defer;
     }
 
     //
@@ -270,8 +269,6 @@ export class ToolRunner extends events.EventEmitter {
     //            but also has limits.  For example, no live output and limited to max buffer
     //
     public execSync(options?: IExecSyncOptions): IExecSyncResult {
-        var defer = Q.defer();
-
         this._debug('exec tool: ' + this.toolPath);
         this._debug('Arguments:');
         this.args.forEach((arg) => {
