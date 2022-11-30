@@ -26,6 +26,10 @@ Use the details below to determine when specific agent features were added:
 * `node` handler
   - Added in 1.95.1. Used node v5.10.1.
   - Updated in 2.117.0 to use node v6.10.3.
+* `node10` handler
+  - Added in 2.144.0. Used node v10.x
+* `node16` handler
+  - Added in 2.206.1. Used node v16.x
 * `powershell3` handler
   - Added in 1.95.1
   - Updated in 1.97 to propagate `Data` property for endpoints
