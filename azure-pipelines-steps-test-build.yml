@@ -1,10 +1,10 @@
 steps:
   # test
-  - script: node make.js test
-    workingDirectory: node
-    displayName: node make.js test  
+- script: node make.js test
+  workingDirectory: node
+  displayName: node make.js test  
 
   # build
-  - script: node make.js build
-    displayName: node make.js build
-    workingDirectory: node
+- script: node make.js build
+  displayName: node make.js build
+  workingDirectory: node

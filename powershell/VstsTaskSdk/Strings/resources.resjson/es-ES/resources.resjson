@@ -6,7 +6,7 @@
   "loc.messages.PSLIB_EnumeratingSubdirectoriesFailedForPath0": "No se pudieron enumerar los subdirectorios de la ruta de acceso: '{0}'",
   "loc.messages.PSLIB_FileNotFound0": "Archivo no encontrado: '{0}'",
   "loc.messages.PSLIB_Input0": "Entrada '{0}'",
-  "loc.messages.PSLIB_InvalidPattern0": "Patrón no válido: '{0}'",
+  "loc.messages.PSLIB_InvalidPattern0": "La ruta de acceso no puede terminar con un carácter separador de directorios: '{0}'",
   "loc.messages.PSLIB_LeafPathNotFound0": "No se encuentra la ruta de acceso de la hoja: '{0}'",
   "loc.messages.PSLIB_PathLengthNotReturnedFor0": "No se pudo normalizar o expandir la ruta de acceso. El subsistema Kernel32 no devolvió la longitud de la ruta de acceso para: '{0}'",
   "loc.messages.PSLIB_PathNotFound0": "No se encuentra la ruta de acceso: '{0}'",

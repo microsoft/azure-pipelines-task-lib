@@ -6,7 +6,7 @@
   "loc.messages.PSLIB_EnumeratingSubdirectoriesFailedForPath0": "Fehler beim Aufzählen von Unterverzeichnissen für den folgenden Pfad: \"{0}\"",
   "loc.messages.PSLIB_FileNotFound0": "Die Datei wurde nicht gefunden: \"{0}\".",
   "loc.messages.PSLIB_Input0": "\"{0}\"-Eingabe",
-  "loc.messages.PSLIB_InvalidPattern0": "Ungültiges Muster: \"{0}\"",
+  "loc.messages.PSLIB_InvalidPattern0": "Der Pfad darf nicht mit einem Verzeichnistrennzeichen enden: „{0}“",
   "loc.messages.PSLIB_LeafPathNotFound0": "Der Blattpfad wurde nicht gefunden: \"{0}\".",
   "loc.messages.PSLIB_PathLengthNotReturnedFor0": "Fehler bei der Normalisierung bzw. Erweiterung des Pfads. Die Pfadlänge wurde vom Kernel32-Subsystem nicht zurückgegeben für: \"{0}\"",
   "loc.messages.PSLIB_PathNotFound0": "Der Pfad wurde nicht gefunden: \"{0}\".",

@@ -222,6 +222,10 @@ export function getPlatform(): task.Platform {
     return mock.getResponse('getPlatform', 'getPlatform', module.exports.debug);
 }
 
+export function getAgentMode(): task.AgentHostedMode {
+    return mock.getResponse('getAgentMode', 'getAgentMode', module.exports.debug);
+}
+
 export function cwd(): string {
     return mock.getResponse('cwd', 'cwd', module.exports.debug);
 }
