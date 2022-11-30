@@ -10,8 +10,6 @@
 
 - Updated mockery and mocha dependencies - [#875](https://github.com/microsoft/azure-pipelines-task-lib/pull/875)
 
-- Updated PSLIB_InvalidPattern0 to be more readable - [#876](https://github.com/microsoft/azure-pipelines-task-lib/pull/876)
-
 - Include uncought exceptions stack trace to the output logs - [#895](https://github.com/microsoft/azure-pipelines-task-lib/pull/895)
 
 ## 4.x
@@ -31,7 +29,5 @@
 ## 4.1.0
 
 Backported from ver.`3.4.0`:
-
-- Updated PSLIB_InvalidPattern0 to be more readable - [#876](https://github.com/microsoft/azure-pipelines-task-lib/pull/876)
 
 - Include uncought exceptions stack trace to the output logs - [#895](https://github.com/microsoft/azure-pipelines-task-lib/pull/895)
