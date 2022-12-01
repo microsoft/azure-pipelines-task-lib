@@ -21,6 +21,7 @@
 ### 4.0.1-preview
 
 - Added node16 to task.schema.json - [#852](https://github.com/microsoft/azure-pipelines-task-lib/pull/852)
+- fix ToolRunner - _getSpawnSyncOptions - [#873](https://github.com/microsoft/azure-pipelines-task-lib/pull/873)
 
 ### 4.0.2
 
