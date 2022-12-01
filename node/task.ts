@@ -99,6 +99,7 @@ export function setResult(result: TaskResult, message: string, done?: boolean): 
 //
 process.on('uncaughtException', (err: Error) => {
     setResult(TaskResult.Failed, loc('LIB_UnhandledEx', err.message));
+    error(String(err.stack));
 });
 
 //-----------------------------------------------------
