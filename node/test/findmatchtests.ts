@@ -23,7 +23,7 @@ describe('Find and Match Tests', function () {
     after(function () {
     });
 
-    it('single pattern', (done: MochaDone) => {
+    it('single pattern', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -46,7 +46,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('aggregates matches', (done: MochaDone) => {
+    it('aggregates matches', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -73,7 +73,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('supports path not found', (done: MochaDone) => {
+    it('supports path not found', (done) => {
         this.timeout(1000);
 
         let root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-path-not-found');
@@ -89,7 +89,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('does not duplicate matches', (done: MochaDone) => {
+    it('does not duplicate matches', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -121,7 +121,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('supports interleaved exclude patterns', (done: MochaDone) => {
+    it('supports interleaved exclude patterns', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -168,7 +168,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('applies default match options', (done: MochaDone) => {
+    it('applies default match options', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -252,7 +252,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('trims patterns', (done: MochaDone) => {
+    it('trims patterns', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -274,7 +274,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('skips empty patterns', (done: MochaDone) => {
+    it('skips empty patterns', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -298,7 +298,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('supports nocomment true', (done: MochaDone) => {
+    it('supports nocomment true', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -320,7 +320,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('supports nobrace false', (done: MochaDone) => {
+    it('supports nobrace false', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -345,7 +345,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('brace escaping platform-specific', (done: MochaDone) => {
+    it('brace escaping platform-specific', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -380,7 +380,7 @@ describe('Find and Match Tests', function () {
     });
 
 
-    it('supports nonegate true', (done: MochaDone) => {
+    it('supports nonegate true', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -402,7 +402,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('supports flipNegate true', (done: MochaDone) => {
+    it('supports flipNegate true', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -424,7 +424,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('supports matchBase include patterns', (done: MochaDone) => {
+    it('supports matchBase include patterns', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -457,7 +457,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('supports matchBase include patterns with glob', (done: MochaDone) => {
+    it('supports matchBase include patterns with glob', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -490,7 +490,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('supports matchBase exlude pattern', (done: MochaDone) => {
+    it('supports matchBase exlude pattern', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -527,7 +527,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('counts leading negate markers', (done: MochaDone) => {
+    it('counts leading negate markers', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -564,7 +564,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('trims whitespace after trimming negate markers', (done: MochaDone) => {
+    it('trims whitespace after trimming negate markers', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -587,7 +587,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('evaluates comments before expanding braces', (done: MochaDone) => {
+    it('evaluates comments before expanding braces', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -616,7 +616,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('evaluates negation before expanding braces', (done: MochaDone) => {
+    it('evaluates negation before expanding braces', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -641,7 +641,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('evaluates comments before negation', (done: MochaDone) => {
+    it('evaluates comments before negation', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -667,7 +667,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('escapes default root when rooting patterns', (done: MochaDone) => {
+    it('escapes default root when rooting patterns', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -741,7 +741,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('applies default find options', (done: MochaDone) => {
+    it('applies default find options', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -763,7 +763,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('supports custom find options', (done: MochaDone) => {
+    it('supports custom find options', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -787,7 +787,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('default root falls back to System.DefaultWorkingDirectory', (done: MochaDone) => {
+    it('default root falls back to System.DefaultWorkingDirectory', (done) => {
         this.timeout(1000);
 
         let originalSystemDefaultWorkingDirectory = process.env['SYSTEM_DEFAULTWORKINGDIRECTORY'];
@@ -815,7 +815,7 @@ describe('Find and Match Tests', function () {
         done();
     });
 
-    it('default root falls back to cwd', (done: MochaDone) => {
+    it('default root falls back to cwd', (done) => {
         this.timeout(1000);
 
         let originalSystemDefaultWorkingDirectory = process.env['SYSTEM_DEFAULTWORKINGDIRECTORY'];
@@ -853,7 +853,7 @@ describe('Find and Match Tests', function () {
         }
     }
 
-    it('ensurePatternRooted()', (done: MochaDone) => {
+    it('ensurePatternRooted()', (done) => {
         this.timeout(1000);
 
         if (process.platform == 'win32') {
@@ -932,7 +932,7 @@ describe('Find and Match Tests', function () {
         assert.deepEqual(actual, expected);
     }
 
-    it('getFindInfoFromPattern()', (done: MochaDone) => {
+    it('getFindInfoFromPattern()', (done) => {
         this.timeout(1000);
 
         // basename
