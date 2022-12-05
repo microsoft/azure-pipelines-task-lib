@@ -1378,8 +1378,12 @@ describe('Toolrunner Tests', function () {
                     // validate stdout
                     assert.equal(
                         output.trim(),
-                        "args[0]: 'myarg1'\r\n"
-                        + "args[1]: 'myarg2'");
+                        "args[0]: 'args'\r\n"
+                        + "args[1]: 'exe'\r\n"
+                        + "args[2]: 'with'\r\n"
+                        + "args[3]: 'spaces.exe'\r\n"
+                        + "args[4]: 'myarg1'\r\n"
+                        + "args[5]: 'myarg2'");
                     done();
                 })
                 .fail(function (err) {
@@ -1641,8 +1645,12 @@ describe('Toolrunner Tests', function () {
             // validate stdout
             assert.equal(
                 result.stdout.trim(),
-                "args[0]: 'myarg1'\r\n"
-                + "args[1]: 'myarg2'");
+                "args[0]: 'args'\r\n"
+                + "args[1]: 'exe'\r\n"
+                + "args[2]: 'with'\r\n"
+                + "args[3]: 'spaces.exe'\r\n"
+                + "args[4]: 'myarg1'\r\n"
+                + "args[5]: 'myarg2'")
             done();
         });
 

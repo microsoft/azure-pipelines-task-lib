@@ -19,7 +19,7 @@ describe('Is UNC-path Tests', function () {
     after(function () {
     });
 
-    it('checks if path is unc path', (done: MochaDone) => {
+    it('checks if path is unc path', (done) => {
         this.timeout(1000);
 
         const paths = [

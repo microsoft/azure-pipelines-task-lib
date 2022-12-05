@@ -13,9 +13,9 @@ Cross platform tasks are written in TypeScript.  It is the preferred way to writ
 
 Step by Step: [Create Task](https://docs.microsoft.com/en-us/azure/devops/extend/develop/add-build-task?view=vsts)
 
-Documentation: [TypeScript API](docs/azure-pipelines-task-lib.md), [task JSON schema](https://aka.ms/vsts-tasks.schema.json)
+Documentation: [TypeScript API](https://github.com/microsoft/azure-pipelines-task-lib/blob/master/node/docs/azure-pipelines-task-lib.md), [task JSON schema](https://aka.ms/vsts-tasks.schema.json)
 
-Guidance: [Finding Files](docs/findingfiles.md), [Minimum agent version](docs/minagent.md), [Proxy](docs/proxy.md), [Certificate](docs/cert.md)
+Guidance: [Finding Files](https://github.com/microsoft/azure-pipelines-task-lib/blob/master/node/docs/findingfiles.md), [Minimum agent version](https://github.com/microsoft/azure-pipelines-task-lib/blob/master/node/docs/minagent.md), [Proxy](https://github.com/microsoft/azure-pipelines-task-lib/blob/master/node/docs/proxy.md), [Certificate](https://github.com/microsoft/azure-pipelines-task-lib/blob/master/node/docs/cert.md)
 
 ## Node 10 Upgrade Notice
 
@@ -37,7 +37,7 @@ The [ShellScript Task](https://github.com/Microsoft/azure-pipelines-tasks/tree/m
 
 We are accepting contributions and we try to stay on top of issues.
 
-[Contribution Guide](../CONTRIBUTING.md).
+[Contribution Guide](https://github.com/microsoft/azure-pipelines-task-lib/blob/master/CONTRIBUTING.md).
 
 [Logging Issues](https://github.com/Microsoft/azure-pipelines-task-lib/issues)
 
@@ -63,9 +63,9 @@ Set environment variable TASK_TEST_TRACE=1 to display test output.
 
 We also maintain a PowerShell library for Windows task development.
 
-Library: [Powershell Library](../powershell)
+Library: [Powershell Library](https://github.com/microsoft/azure-pipelines-task-lib/tree/master/powershell)
 
-Usage: [Consuming the SDK](../powershell/Docs/Consuming.md)
+Usage: [Consuming the SDK](https://github.com/microsoft/azure-pipelines-task-lib/blob/master/powershell/Docs/Consuming.md)
 
 ## Third Party Notices
 To generate/update third party notice file run:
