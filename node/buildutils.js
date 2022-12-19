@@ -4,7 +4,7 @@ var fs = require('fs');
 var os = require('os');
 var path = require('path');
 var process = require('process');
-var syncRequest = require('sync-request');
+var request = require('then-request');
 
 var downloadPath = path.join(__dirname, '_download');
 var testPath = path.join(__dirname, '_test');
@@ -77,7 +77,7 @@ var downloadFile = function (url) {
 
         // download the file
         mkdir('-p', path.join(downloadPath, 'file'));
-        var result = syncRequest('GET', url);
+        var result = request('GET', url);
         fs.writeFileSync(targetPath, result.getBody());
 
         // write the completed marker
