@@ -5,7 +5,7 @@ import os = require('os');
 import path = require('path');
 import cmdm = require('./taskcommand');
 import shelljs = require('shelljs');
-import syncRequest from 'sync-request';
+import request from 'then-request';
 
 const COMMAND_TAG = '[command]';
 const COMMAND_LENGTH = COMMAND_TAG.length;
@@ -262,7 +262,7 @@ export class MockTestRunner {
         }
         console.log('Downloading file:', url);
         shelljs.mkdir('-p', downloadDestination);
-        const result: any = syncRequest('GET', url);
+        const result: any = request('GET', url);
         fs.writeFileSync(filePath, result.getBody());
     }
 
