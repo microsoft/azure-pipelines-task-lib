@@ -32,3 +32,7 @@
 Backported from ver.`3.4.0`:
 
 - Include uncought exceptions stack trace to the output logs - [#895](https://github.com/microsoft/azure-pipelines-task-lib/pull/895)
+
+## 4.2.0
+
+- Added unhandledRejection event - [#912](https://github.com/microsoft/azure-pipelines-task-lib/pull/912)
