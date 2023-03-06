@@ -36,3 +36,7 @@ Backported from ver.`3.4.0`:
 ## 4.2.0
 
 - Added unhandledRejection event - [#912](https://github.com/microsoft/azure-pipelines-task-lib/pull/912)
+
+## 4.3.0
+
+- Described types for `argIf` - [#920](https://github.com/microsoft/azure-pipelines-task-lib/pull/920)
