@@ -853,7 +853,7 @@ export class ToolRunner extends events.EventEmitter {
      * @param     val     string cmdline or array of strings
      * @returns   ToolRunner
      */
-    public argIf(condition: any, val: any) {
+    public argIf(condition: unknown, val: string | string[]): ToolRunner {
         if (condition) {
             this.arg(val);
         }
