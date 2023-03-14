@@ -607,9 +607,11 @@ export class ToolRunner extends events.EventEmitter {
 
         this._debug('exec tool: ' + this.toolPath);
         this._debug('arguments:');
-        this.args.forEach((arg) => {
-            this._debug('   ' + arg);
-        });
+        if (!optionsNonNull.silent) {
+            this.args.forEach((arg) => {
+                this._debug('   ' + arg);
+            });
+        }
 
         let success = true;
         const optionsNonNull = this._cloneExecOptions(options);
@@ -890,9 +892,11 @@ export class ToolRunner extends events.EventEmitter {
 
         this._debug('exec tool: ' + this.toolPath);
         this._debug('arguments:');
-        this.args.forEach((arg) => {
-            this._debug('   ' + arg);
-        });
+        if (!optionsNonNull.silent) {
+            this.args.forEach((arg) => {
+                this._debug('   ' + arg);
+            });
+        }
 
         const optionsNonNull = this._cloneExecOptions(options);
         if (!optionsNonNull.silent) {
@@ -1001,9 +1005,11 @@ export class ToolRunner extends events.EventEmitter {
     public execSync(options?: IExecSyncOptions): IExecSyncResult {
         this._debug('exec tool: ' + this.toolPath);
         this._debug('arguments:');
-        this.args.forEach((arg) => {
-            this._debug('   ' + arg);
-        });
+        if (!options.silent) {
+            this.args.forEach((arg) => {
+                this._debug('   ' + arg);
+            });
+        }
 
         var success = true;
         options = this._cloneExecOptions(options as IExecOptions);
