@@ -14,7 +14,7 @@ jobs:
 #################################################
   displayName: windows
   pool:
-    vmImage: windows-2019
+    vmImage: windows-2022
 
   steps:
     - template: azure-pipelines-steps-node.yml
@@ -28,9 +28,9 @@ jobs:
 #################################################
   displayName: Linux
   pool:
-    vmImage: ubuntu-18.04
+    vmImage: ubuntu-22.04
 
-  steps:    
+  steps:
   - template: azure-pipelines-steps-node.yml
     parameters:
       nodeVersion: $(nodeVersion)
@@ -57,7 +57,7 @@ jobs:
 #################################################
   displayName: macOS
   pool:
-    vmImage: macOS-10.15
+    vmImage: macOS-12
 
   steps:
     - template: azure-pipelines-steps-node.yml
