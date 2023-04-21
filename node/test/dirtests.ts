@@ -1381,32 +1381,19 @@ describe('Dir Operation Tests', function () {
         tl.mkdirP(testPath);
         assert(shell.test('-d', testPath), 'directory created');
 
-        // can't remove folder with locked file on windows
+        // starting from windows-2022,
+        // can remove folder with locked file on windows as well,
+        // using the command `rd /s /q <path>`
         var filePath = path.join(testPath, 'file.txt');
         fs.appendFileSync(filePath, 'some data');
         assert(shell.test('-e', filePath), 'file exists');
 
         var fd = fs.openSync(filePath, 'r');
 
-        var worked = false;
-        try {
-            tl.rmRF(testPath);
-            worked = true;
-        }
-        catch (err) { }
-
-        if (os.platform() === 'win32') {
-            assert(!worked, 'should not work on windows');
-            assert(shell.test('-e', testPath), 'directory still exists');
-        }
-        else {
-            assert(worked, 'should work on nix');
-            assert(!shell.test('-e', testPath), 'directory removed');
-        }
-
-        fs.closeSync(fd);
         tl.rmRF(testPath);
         assert(!shell.test('-e', testPath), 'directory removed');
+
+        fs.closeSync(fd);
 
         done();
     });
