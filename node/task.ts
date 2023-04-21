@@ -238,6 +238,7 @@ export interface VariableInfo {
  * @param     required whether input is required.  optional, defaults to false
  * @returns   string
  */
+export function getInput(name: string, require: true): string
 export function getInput(name: string, required?: boolean): string | undefined {
     var inval = im._vault.retrieveSecret('INPUT_' + im._getVariableKey(name));
 
