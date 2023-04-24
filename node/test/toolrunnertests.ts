@@ -190,7 +190,8 @@ describe('Toolrunner Tests', function () {
             ls.exec(_testExecOptions)
                 .then(function (code) {
                     var contents = stdStream.getContents();
-                    assert(contents.indexOf('exec tool: /bin/ls') >= 0, 'should exec ls');
+                    const usr = os.platform() === 'linux' ? '/usr' : '';
+                    assert(contents.indexOf(`exec tool: ${usr}/bin/ls`) >= 0, 'should exec ls');
                     assert.equal(code, 0, 'return code of ls should be 0');
                     done();
                 })
