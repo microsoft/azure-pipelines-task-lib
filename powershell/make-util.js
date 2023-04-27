@@ -1,11 +1,11 @@
-
 var admZip = require('adm-zip');
 var child_process = require('child_process');
 var fs = require('fs');
 var path = require('path');
 var process = require('process');
 var shell = require('shelljs');
-var syncRequest = require('sync-request');
+var deasync = require("deasync")
+var axios = require("axios")
 
 // global paths
 var downloadPath = path.join(__dirname, '_download');
@@ -112,19 +112,26 @@ var ensureTool = function (name, versionArgs, validate) {
 }
 exports.ensureTool = ensureTool;
 
-var downloadFile = function (url) {
-    // validate parameters
-    if (!url) {
-        throw new Error('Parameter "url" must be set.');
-    }
+var downloadFileAsync = async function (url, fileName) {
+    return new Promise(async (resolve, reject) => {
+        // validate parameters
+        if (!url) {
+            reject(new Error('Parameter "url" must be set.'));
+        }
 
-    // skip if already downloaded
-    var scrubbedUrl = url.replace(/[/\:?]/g, '_');
-    var targetPath = path.join(downloadPath, 'file', scrubbedUrl);
-    var marker = targetPath + '.completed';
-    if (!test('-f', marker)) {
+        // skip if already downloaded
+        var scrubbedUrl = url.replace(/[/\:?]/g, '_');
+        if (fileName != undefined)
+            scrubbedUrl = fileName
+        var targetPath = path.join(downloadPath, 'file', scrubbedUrl);
+        var marker = targetPath + '.completed';
+        if (test('-f', marker)) {
+            console.log('File already exist: ' + targetPath);
+            resolve(targetPath)
+            return;
+        }
+
         console.log('Downloading file: ' + url);
-
         // delete any previous partial attempt
         if (test('-f', targetPath)) {
             rm('-f', targetPath);
@@ -132,29 +139,48 @@ var downloadFile = function (url) {
 
         // download the file
         mkdir('-p', path.join(downloadPath, 'file'));
-        var result = syncRequest('GET', url);
-        fs.writeFileSync(targetPath, result.getBody());
 
-        // write the completed marker
+        const res = await axios.get(url, { responseType: 'arraybuffer' });
+        fs.writeFileSync(targetPath, res.data);
+
         fs.writeFileSync(marker, '');
-    }
-
-    return targetPath;
+        resolve(targetPath);
+    });
 }
-exports.downloadFile = downloadFile;
+exports.downloadFileAsync = downloadFileAsync;
 
-var downloadArchive = function (url) {
-    if (!url) {
-        throw new Error('Parameter "url" must be set.');
-    }
 
-    // skip if already downloaded and extracted
-    var scrubbedUrl = url.replace(/[\/\\:?]/g, '_');
-    var targetPath = path.join(downloadPath, 'archive', scrubbedUrl);
-    var marker = targetPath + '.completed';
-    if (!test('-f', marker)) {
+var downloadFile = function (url, fileName) {
+    var result;
+    downloadFileAsync(url, fileName).then(t => result = t);
+    deasync.loopWhile(function () { return result == undefined; });
+    return result;
+}
+
+/**
+ * @deprecated This method uses library which is not prefered to use on production
+ */
+exports.downloadFile = downloadFile
+
+var downloadArchiveAsync = async function (url, fileName) {
+    return new Promise(async (resolve, reject) => {
+        if (!url) {
+            reject(new Error('Parameter "url" must be set.'))
+            return
+        }
+
+        // skip if already downloaded and extracted
+        var scrubbedUrl = url.replace(/[\/\\:?]/g, '_');
+        if (fileName != undefined)
+            scrubbedUrl = fileName
+        var targetPath = path.join(downloadPath, 'archive', scrubbedUrl);
+        var marker = targetPath + '.completed';
+        if (test('-f', marker)) {
+            resolve(targetPath)
+            return
+        }
         // download the archive
-        var archivePath = downloadFile(url);
+        var archivePath = await downloadFileAsync(url, scrubbedUrl);
         console.log('Extracting archive: ' + url);
 
         // delete any previously attempted extraction directory
@@ -169,8 +195,22 @@ var downloadArchive = function (url) {
 
         // write the completed marker
         fs.writeFileSync(marker, '');
-    }
 
-    return targetPath;
+        resolve(targetPath);
+    })
 }
+
+exports.downloadArchiveAsync = downloadArchiveAsync;
+
+var downloadArchive = function (url, fileName) {
+    var result;
+    downloadArchiveAsync(url, fileName).then(t => result = t);
+    deasync.loopWhile(function () { return result == undefined; });
+    return result;
+}
+
+/**
+ * @deprecated This method uses library which is not prefered to use on production
+ */
+
 exports.downloadArchive = downloadArchive;
