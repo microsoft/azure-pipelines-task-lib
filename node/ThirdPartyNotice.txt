@@ -36,7 +36,6 @@ This Azure Pipelines extension (azure-pipelines-task-lib) is based on or incorpo
 30.	semver (git+https://github.com/npm/node-semver.git)
 31.	shelljs (git://github.com/arturadib/shelljs.git)
 32.	string_decoder (git://github.com/rvagg/string_decoder.git)
-33.	sync-request (git+https://github.com/ForbesLindesay/sync-request.git)
 34.	then-request (git+https://github.com/then/then-request.git)
 35.	typedarray (git://github.com/substack/typedarray.git)
 36.	typescript (git+https://github.com/Microsoft/TypeScript.git)
@@ -889,29 +888,6 @@ IN THE SOFTWARE.
 =========================================
 END OF string_decoder NOTICES, INFORMATION, AND LICENSE
 
-%% sync-request NOTICES, INFORMATION, AND LICENSE BEGIN HERE
-=========================================
-Copyright (c) 2014 Forbes Lindesay
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-=========================================
-END OF sync-request NOTICES, INFORMATION, AND LICENSE
 
 %% then-request NOTICES, INFORMATION, AND LICENSE BEGIN HERE
 =========================================
