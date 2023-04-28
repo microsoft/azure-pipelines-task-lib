@@ -5,7 +5,7 @@ var path = require('path');
 var process = require('process');
 var shell = require('shelljs');
 var deasync = require("deasync")
-var axios = require("axios")
+const Downloader = require("nodejs-file-downloader");
 
 // global paths
 var downloadPath = path.join(__dirname, '_download');
@@ -121,9 +121,9 @@ var downloadFileAsync = async function (url, fileName) {
 
         // skip if already downloaded
         var scrubbedUrl = url.replace(/[/\:?]/g, '_');
-        if (fileName != undefined)
-            scrubbedUrl = fileName
-        var targetPath = path.join(downloadPath, 'file', scrubbedUrl);
+        if (fileName == undefined)
+            fileName = scrubbedUrl
+        var targetPath = path.join(downloadPath, 'file', fileName);
         var marker = targetPath + '.completed';
         if (test('-f', marker)) {
             console.log('File already exist: ' + targetPath);
@@ -140,11 +140,19 @@ var downloadFileAsync = async function (url, fileName) {
         // download the file
         mkdir('-p', path.join(downloadPath, 'file'));
 
-        const res = await axios.get(url, { responseType: 'arraybuffer' });
-        fs.writeFileSync(targetPath, res.data);
+        const downloader = new Downloader({
+            url: url,
+            directory: path.join(downloadPath, 'file'),
+            fileName: fileName
+        });
 
-        fs.writeFileSync(marker, '');
-        resolve(targetPath);
+        try {
+            const { fileName } = await downloader.download(); //Downloader.download() resolves with some useful properties.
+            fs.writeFileSync(marker, '');
+            resolve(fileName)
+        } catch (error) {
+            reject(error)
+        }
     });
 }
 exports.downloadFileAsync = downloadFileAsync;
