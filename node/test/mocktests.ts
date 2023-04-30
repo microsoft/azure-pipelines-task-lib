@@ -302,6 +302,7 @@ describe('Mock Tests', function () {
         this.timeout(30000);
         const runner = await (new mtm.MockTestRunner).LoadAsync(path.join(__dirname, 'fakeTasks', 'node6task', 'entry.js'));
         const nodePath = runner.nodePath;
+        await Promise.resolve()
         assert(nodePath, 'node path should have been correctly set');
         const version = ncp.execSync(nodePath + ' -v').toString().trim();
         assert(semver.satisfies(version, '6.x'), 'Downloaded node version should be Node 6 instead of ' + version);
@@ -311,6 +312,7 @@ describe('Mock Tests', function () {
         this.timeout(30000);
         const runner = await (new mtm.MockTestRunner).LoadAsync(path.join(__dirname, 'fakeTasks', 'node10task', 'entry.js'));
         const nodePath = runner.nodePath;
+        await Promise.resolve()
         assert(nodePath, 'node path should have been correctly set');
         const version = ncp.execSync(nodePath + ' -v').toString().trim();
         assert(semver.satisfies(version, '10.x'), 'Downloaded node version should be Node 10 instead of ' + version);
@@ -320,6 +322,7 @@ describe('Mock Tests', function () {
         this.timeout(30000);
         const runner = await (new mtm.MockTestRunner).LoadAsync(path.join(__dirname, 'fakeTasks', 'node16task', 'entry.js'));
         const nodePath = runner.nodePath;
+        await Promise.resolve()
         assert(nodePath, 'node path should have been correctly set');
         const version = ncp.execSync(nodePath + ' -v').toString().trim();
         assert(semver.satisfies(version, '16.x'), 'Downloaded node version should be Node 16 instead of ' + version);
