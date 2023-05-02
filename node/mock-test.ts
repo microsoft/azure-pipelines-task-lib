@@ -5,6 +5,7 @@ import os = require('os');
 import path = require('path');
 import cmdm = require('./taskcommand');
 import shelljs = require('shelljs');
+import deasync = require('deasync')
 const Downloader = require("nodejs-file-downloader");
 
 const COMMAND_TAG = '[command]';
@@ -12,7 +13,16 @@ const COMMAND_LENGTH = COMMAND_TAG.length;
 const downloadDirectory = path.join(process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE as string, 'azure-pipelines-task-lib', '_download');
 
 export class MockTestRunner {
-    constructor() { }
+
+    constructor(testPath?: string, taskJsonPath?: string) {
+        if (testPath === undefined)
+            return;
+
+        this._taskJsonPath = taskJsonPath || '';
+        this._testPath = testPath;
+        this.nodePath = this.getNodePathSync();
+    }
+
     private _testPath = '';
     private _taskJsonPath = '';
     public nodePath = '';
@@ -24,11 +34,15 @@ export class MockTestRunner {
     public errorIssues: string[] = [];
     public warningIssues: string[] = [];
 
-    public LoadAsync(testPath: string, taskJsonPath?: string): Promise<MockTestRunner> {
+    public async LoadAsync(testPath: string, taskJsonPath?: string): Promise<MockTestRunner> {
         return new Promise(async (resolve, reject) => {
+            if (this.nodePath != '') {
+                resolve(this);
+                return;
+            }
             this._taskJsonPath = taskJsonPath || '';
             this._testPath = testPath;
-            this.nodePath = await this.getNodePathAsync();
+            this.nodePath = await this.getNodePath();
             resolve(this)
         })
     }
@@ -57,7 +71,7 @@ export class MockTestRunner {
         return this.stderr.indexOf(message) > 0;
     }
 
-    public async run(nodeVersion?: number): Promise<void> {
+    public async runAsync(nodeVersion?: number): Promise<void> {
         this.cmdlines = {};
         this.invokedToolCount = 0;
         this.succeeded = true;
@@ -67,7 +81,7 @@ export class MockTestRunner {
 
         let nodePath = this.nodePath;
         if (nodeVersion) {
-            nodePath = await this.getNodePathAsync(nodeVersion);
+            nodePath = await this.getNodePath(nodeVersion);
         }
         let spawn = cp.spawnSync(nodePath, [this._testPath]);
 
@@ -141,8 +155,14 @@ export class MockTestRunner {
         }
     }
 
+    public run(nodeVersion?: number): void {
+        let completeExecution = false;
+        this.runAsync(nodeVersion).then(t => completeExecution = true)
+        deasync.loopWhile(function () { return !completeExecution })
+    }
+
     // Returns a path to node.exe with the correct version for this task (based on if its node10 or node)
-    private async getNodePathAsync(nodeVersion?: number): Promise<string> {
+    private async getNodePath(nodeVersion?: number): Promise<string> {
         const version: number = nodeVersion || this.getNodeVersion();
 
         let downloadVersion: string;
@@ -167,9 +187,16 @@ export class MockTestRunner {
             return pathToExe;
         }
         else {
-            const result = await this.downloadNodeAsync(downloadVersion, downloadDestination);
+            const result = await this.downloadNode(downloadVersion, downloadDestination);
             return result;
         }
+    }
+
+    private getNodePathSync(nodeVersion?: number): string {
+        let nodePath = ''
+        this.getNodePath(nodeVersion).then(t => nodePath = t);
+        deasync.loopWhile(function () { return nodePath == ''; });
+        return nodePath
     }
 
     // Determines the correct version of node to use based on the contents of the task's task.json. Defaults to Node 16.
@@ -229,7 +256,7 @@ export class MockTestRunner {
     }
 
     // Downloads the specified node version to the download destination. Returns a path to node.exe
-    private async downloadNodeAsync(nodeVersion: string, downloadDestination: string): Promise<string> {
+    private async downloadNode(nodeVersion: string, downloadDestination: string): Promise<string> {
         return new Promise(async (resolve, reject) => {
             shelljs.rm('-rf', downloadDestination);
             let nodeUrl: string = process.env['TASK_NODE_URL'] || 'https://nodejs.org/dist';
@@ -237,18 +264,18 @@ export class MockTestRunner {
             let downloadPath = '';
             switch (this.getPlatform()) {
                 case 'darwin':
-                    await this.downloadTarGzAsync(nodeUrl + '/' + nodeVersion + '/node-' + nodeVersion + '-darwin-x64.tar.gz', downloadDestination);
+                    await this.downloadTarGz(nodeUrl + '/' + nodeVersion + '/node-' + nodeVersion + '-darwin-x64.tar.gz', downloadDestination);
                     downloadPath = path.join(downloadDestination, 'node-' + nodeVersion + '-darwin-x64', 'bin', 'node');
                     resolve(downloadPath)
                     break;
                 case 'linux':
-                    await this.downloadTarGzAsync(nodeUrl + '/' + nodeVersion + '/node-' + nodeVersion + '-linux-x64.tar.gz', downloadDestination);
+                    await this.downloadTarGz(nodeUrl + '/' + nodeVersion + '/node-' + nodeVersion + '-linux-x64.tar.gz', downloadDestination);
                     downloadPath = path.join(downloadDestination, 'node-' + nodeVersion + '-linux-x64', 'bin', 'node');
                     resolve(downloadPath)
                     break;
                 case 'win32':
-                    await this.downloadFileAsync(nodeUrl + '/' + nodeVersion + '/win-x64/node.exe', downloadDestination, 'node.exe');
-                    await this.downloadFileAsync(nodeUrl + '/' + nodeVersion + '/win-x64/node.lib', downloadDestination, 'node.lib');
+                    await this.downloadFile(nodeUrl + '/' + nodeVersion + '/win-x64/node.exe', downloadDestination, 'node.exe');
+                    await this.downloadFile(nodeUrl + '/' + nodeVersion + '/win-x64/node.lib', downloadDestination, 'node.lib');
                     downloadPath = path.join(downloadDestination, 'node.exe')
                     resolve(downloadPath)
             }
@@ -261,7 +288,7 @@ export class MockTestRunner {
     }
 
     // Downloads file to the downloadDestination, making any necessary folders along the way.
-    private async downloadFileAsync(url: string, downloadDestination: string, fileName: string): Promise<void> {
+    private async downloadFile(url: string, downloadDestination: string, fileName: string): Promise<void> {
         return await new Promise(async (resolve, reject) => {
             if (!url) {
                 reject(new Error('Parameter "url" must be set.'));
@@ -281,7 +308,7 @@ export class MockTestRunner {
             });
 
             try {
-                const { fileName } = await downloader.download(); //Downloader.download() resolves with some useful properties.
+                const { fileName } = await downloader.download();
                 resolve(fileName)
             } catch (error) {
                 reject(error)
@@ -290,7 +317,7 @@ export class MockTestRunner {
     }
 
     // Downloads tarGz to the download destination, making any necessary folders along the way.
-    private async downloadTarGzAsync(url: string, downloadDestination: string): Promise<void> {
+    private async downloadTarGz(url: string, downloadDestination: string): Promise<void> {
         if (!url) {
             throw new Error('Parameter "url" must be set.');
         }
@@ -298,7 +325,7 @@ export class MockTestRunner {
             throw new Error('Parameter "downloadDestination" must be set.');
         }
         const tarGzName: string = 'node.tar.gz';
-        await this.downloadFileAsync(url, downloadDestination, tarGzName);
+        await this.downloadFile(url, downloadDestination, tarGzName);
 
         // Extract file
         const originalCwd: string = process.cwd();
