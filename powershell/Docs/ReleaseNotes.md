@@ -8,8 +8,8 @@
 
 ## 0.12.0
 * Fixed issue when Find-Match in powershell does not support searching a pattern in a path that does not exist (#365)
-* Exported `Write-LoggingCommand`
-* Resolved issue with loading `Newtonsoft.Json.dll` 
+* Resolved issue with loading `Newtonsoft.Json.dll`
+* Made `Write-LoggingCommand` exported
 
 ## 0.11.0
 * Added input functions `Get-SecureFileTicket` and `Get-SecureFileName`.
