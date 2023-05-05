@@ -257,34 +257,29 @@ export class MockTestRunner {
 
     // Downloads the specified node version to the download destination. Returns a path to node.exe
     private async downloadNode(nodeVersion: string, downloadDestination: string): Promise<string> {
-        return new Promise(async (resolve, reject) => {
-            shelljs.rm('-rf', downloadDestination);
-            let nodeUrl: string = process.env['TASK_NODE_URL'] || 'https://nodejs.org/dist';
-            nodeUrl = nodeUrl.replace(/\/$/, '');  // ensure there is no trailing slash on the base URL
-            let downloadPath = '';
-            switch (this.getPlatform()) {
-                case 'darwin':
-                    await this.downloadTarGz(nodeUrl + '/' + nodeVersion + '/node-' + nodeVersion + '-darwin-x64.tar.gz', downloadDestination);
-                    downloadPath = path.join(downloadDestination, 'node-' + nodeVersion + '-darwin-x64', 'bin', 'node');
-                    resolve(downloadPath)
-                    break;
-                case 'linux':
-                    await this.downloadTarGz(nodeUrl + '/' + nodeVersion + '/node-' + nodeVersion + '-linux-x64.tar.gz', downloadDestination);
-                    downloadPath = path.join(downloadDestination, 'node-' + nodeVersion + '-linux-x64', 'bin', 'node');
-                    resolve(downloadPath)
-                    break;
-                case 'win32':
-                    await this.downloadFile(nodeUrl + '/' + nodeVersion + '/win-x64/node.exe', downloadDestination, 'node.exe');
-                    await this.downloadFile(nodeUrl + '/' + nodeVersion + '/win-x64/node.lib', downloadDestination, 'node.lib');
-                    downloadPath = path.join(downloadDestination, 'node.exe')
-                    resolve(downloadPath)
-            }
+        shelljs.rm('-rf', downloadDestination);
+        let nodeUrl: string = process.env['TASK_NODE_URL'] || 'https://nodejs.org/dist';
+        nodeUrl = nodeUrl.replace(/\/$/, '');  // ensure there is no trailing slash on the base URL
+        let downloadPath = '';
+        switch (this.getPlatform()) {
+            case 'darwin':
+                await this.downloadTarGz(nodeUrl + '/' + nodeVersion + '/node-' + nodeVersion + '-darwin-x64.tar.gz', downloadDestination);
+                downloadPath = path.join(downloadDestination, 'node-' + nodeVersion + '-darwin-x64', 'bin', 'node');
+                break;
+            case 'linux':
+                await this.downloadTarGz(nodeUrl + '/' + nodeVersion + '/node-' + nodeVersion + '-linux-x64.tar.gz', downloadDestination);
+                downloadPath = path.join(downloadDestination, 'node-' + nodeVersion + '-linux-x64', 'bin', 'node');
+                break;
+            case 'win32':
+                await this.downloadFile(nodeUrl + '/' + nodeVersion + '/win-x64/node.exe', downloadDestination, 'node.exe');
+                await this.downloadFile(nodeUrl + '/' + nodeVersion + '/win-x64/node.lib', downloadDestination, 'node.lib');
+                downloadPath = path.join(downloadDestination, 'node.exe')
+        }
 
-            // Write marker to indicate download completed.
-            const marker = downloadDestination + '.completed';
-            fs.writeFileSync(marker, '');
-            resolve(downloadPath);
-        })
+        // Write marker to indicate download completed.
+        const marker = downloadDestination + '.completed';
+        fs.writeFileSync(marker, '');
+        return downloadPath
     }
 
     // Downloads file to the downloadDestination, making any necessary folders along the way.
