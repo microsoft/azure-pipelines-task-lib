@@ -36,7 +36,7 @@ This Azure Pipelines extension (azure-pipelines-task-lib) is based on or incorpo
 30.	semver (git+https://github.com/npm/node-semver.git)
 31.	shelljs (git://github.com/arturadib/shelljs.git)
 32.	string_decoder (git://github.com/rvagg/string_decoder.git)
-33. nodejs-file-downloader (git://github.com/ibrod83/nodejs-file-downloader.git) 
+33.	nodejs-file-downloader (git://github.com/ibrod83/nodejs-file-downloader.git)
 34.	then-request (git+https://github.com/then/then-request.git)
 35.	typedarray (git://github.com/substack/typedarray.git)
 36.	typescript (git+https://github.com/Microsoft/TypeScript.git)
