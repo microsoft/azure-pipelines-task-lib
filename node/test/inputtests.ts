@@ -1150,4 +1150,36 @@ describe('Input Tests', function () {
         assert.equal(tl.getInput('SomeInput'), 'some input value');
         done();
     })
+
+    describe('Feature flags tests', () => {
+
+        ([
+            ["true", true],
+            ["TRUE", true],
+            ["TruE", true],
+            ["false", false],
+            ["treu", false],
+            ["fasle", false],
+            ["On", false],
+            ["", false],
+            [undefined, false]
+        ] as [string, boolean][])
+            .forEach(
+                (
+                    [
+                        input,
+                        expectedResult
+                    ]
+                ) => {
+                    it(`Should return ${expectedResult} if feature flag env is ${input}`, () => {
+                        const ffName = "SOME_TEST_FF"
+                        process.env[ffName] = input
+
+                        const ffValue = tl.getBoolFeatureFlag(ffName);
+
+                        assert.equal(ffValue, expectedResult);
+                    })
+                }
+            );
+    })
 });
