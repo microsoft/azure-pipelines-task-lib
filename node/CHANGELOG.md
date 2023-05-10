@@ -40,3 +40,11 @@ Backported from ver.`3.4.0`:
 ## 4.3.0
 
 - Described types for `argIf` - [#920](https://github.com/microsoft/azure-pipelines-task-lib/pull/920)
+
+## 4.3.1
+
+- Resolve CVE-2022-24999 in qs 6.9.4 [#924](https://github.com/microsoft/azure-pipelines-task-lib/pull/924)
+
+## 4.4.0
+
+- Add `getBoolFeatureFlag` [#936](https://github.com/microsoft/azure-pipelines-task-lib/pull/936)
