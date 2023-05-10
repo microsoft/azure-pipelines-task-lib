@@ -274,6 +274,20 @@ export function getBoolInput(name: string, required?: boolean): boolean {
 }
 
 /**
+ * Gets the value of an feature flag and converts to a bool.
+ *
+ * @param     name     name of the feature flag to get
+ * @returns   boolean
+ */
+export function getBoolFeatureFlag(ffName: string): boolean{
+    const ffValue = process.env[ffName];
+
+    debug(`Feature flag ${ffName} = ${ffValue}`);
+
+    return ffValue ? ffValue.toLowerCase() === "true" : false;
+}
+
+/**
  * Gets the value of an input and splits the value using a delimiter (space, comma, etc).
  * Empty values are removed.  This function is useful for splitting an input containing a simple
  * list of items - such as build targets.
