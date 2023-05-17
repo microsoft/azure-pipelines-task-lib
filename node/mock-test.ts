@@ -155,6 +155,9 @@ export class MockTestRunner {
         }
     }
 
+    /**
+     * @deprecated due to avoid sync methods
+     */
     public run(nodeVersion?: number): void {
         let completeExecution = false;
         this.runAsync(nodeVersion).then(t => completeExecution = true)
