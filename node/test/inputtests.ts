@@ -1175,11 +1175,29 @@ describe('Input Tests', function () {
                         const ffName = "SOME_TEST_FF"
                         process.env[ffName] = input
 
-                        const ffValue = tl.getBoolFeatureFlag(ffName);
+                        const ffValue = tl.getBoolFeatureFlag(ffName, false);
 
                         assert.equal(ffValue, expectedResult);
                     })
                 }
             );
-    })
+
+        it(`Should return default value if feature flag env is empty`, () => {
+            const ffName = "SOME_TEST_FF"
+            process.env[ffName] = ""
+
+            const ffValue = tl.getBoolFeatureFlag(ffName, true);
+
+            assert.equal(ffValue, true);
+        })
+
+        it(`Should return default value if feature flag env is not specified`, () => {
+            const ffName = "SOME_TEST_FF"
+            delete process.env[ffName];
+
+            const ffValue = tl.getBoolFeatureFlag(ffName, true);
+
+            assert.equal(ffValue, true);
+        })
+    });
 });
