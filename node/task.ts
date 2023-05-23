@@ -80,6 +80,8 @@ export const setErrStream = im._setErrStream;
  *                  from agent version 2.142.0 or higher (otherwise will no-op).
  * @returns         void
  */
+export function setResult(result: TaskResult.Succeeded, message?: string, done?: boolean): void;
+export function setResult(result: Exclude<TaskResult, 'Succeeded'>, message: string, done?: boolean): void;
 export function setResult(result: TaskResult, message: string, done?: boolean): void {
     debug('task result: ' + TaskResult[result]);
 
