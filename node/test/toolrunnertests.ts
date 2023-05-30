@@ -190,7 +190,8 @@ describe('Toolrunner Tests', function () {
             ls.exec(_testExecOptions)
                 .then(function (code) {
                     var contents = stdStream.getContents();
-                    assert(contents.indexOf('exec tool: /bin/ls') >= 0, 'should exec ls');
+                    const usr = os.platform() === 'linux' ? '/usr' : '';
+                    assert(contents.indexOf(`exec tool: ${usr}/bin/ls`) >= 0, 'should exec ls');
                     assert.equal(code, 0, 'return code of ls should be 0');
                     done();
                 })
@@ -1378,8 +1379,12 @@ describe('Toolrunner Tests', function () {
                     // validate stdout
                     assert.equal(
                         output.trim(),
-                        "args[0]: 'myarg1'\r\n"
-                        + "args[1]: 'myarg2'");
+                        "args[0]: 'args'\r\n"
+                        + "args[1]: 'exe'\r\n"
+                        + "args[2]: 'with'\r\n"
+                        + "args[3]: 'spaces.exe'\r\n"
+                        + "args[4]: 'myarg1'\r\n"
+                        + "args[5]: 'myarg2'");
                     done();
                 })
                 .catch(function (err) {
@@ -1641,8 +1646,12 @@ describe('Toolrunner Tests', function () {
             // validate stdout
             assert.equal(
                 result.stdout.trim(),
-                "args[0]: 'myarg1'\r\n"
-                + "args[1]: 'myarg2'");
+                "args[0]: 'args'\r\n"
+                + "args[1]: 'exe'\r\n"
+                + "args[2]: 'with'\r\n"
+                + "args[3]: 'spaces.exe'\r\n"
+                + "args[4]: 'myarg1'\r\n"
+                + "args[5]: 'myarg2'")
             done();
         });
 

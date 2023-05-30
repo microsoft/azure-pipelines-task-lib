@@ -20,7 +20,7 @@ describe('Filter Tests', function () {
     after(function () {
     });
 
-    it('applies default option nobrace true', (done: MochaDone) => {
+    it('applies default option nobrace true', (done) => {
         this.timeout(1000);
 
         let list = [
@@ -38,7 +38,7 @@ describe('Filter Tests', function () {
         done();
     });
 
-    it('applies default option noglobstar false', (done: MochaDone) => {
+    it('applies default option noglobstar false', (done) => {
         this.timeout(1000);
 
         let list = [
@@ -58,7 +58,7 @@ describe('Filter Tests', function () {
         done();
     });
 
-    it('applies default option dot true', (done: MochaDone) => {
+    it('applies default option dot true', (done) => {
         this.timeout(1000);
 
         let list = [
@@ -75,7 +75,7 @@ describe('Filter Tests', function () {
         done();
     });
 
-    it('applies default option noext false', (done: MochaDone) => {
+    it('applies default option noext false', (done) => {
         this.timeout(1000);
 
         let list = [
@@ -94,7 +94,7 @@ describe('Filter Tests', function () {
         done();
     });
 
-    it('applies default option nocase based on platform', (done: MochaDone) => {
+    it('applies default option nocase based on platform', (done) => {
         this.timeout(1000);
 
         let list = [
@@ -114,7 +114,7 @@ describe('Filter Tests', function () {
         done();
     });
 
-    it('applies default option matchBase false', (done: MochaDone) => {
+    it('applies default option matchBase false', (done) => {
         this.timeout(1000);
 
         let list = [
@@ -131,7 +131,7 @@ describe('Filter Tests', function () {
         done();
     });
 
-    it('applies default option nocomment false', (done: MochaDone) => {
+    it('applies default option nocomment false', (done) => {
         this.timeout(1000);
 
         let list = [
@@ -145,7 +145,7 @@ describe('Filter Tests', function () {
         done();
     });
 
-    it('applies default option nonegate false', (done: MochaDone) => {
+    it('applies default option nonegate false', (done) => {
         this.timeout(1000);
 
         let list = [
@@ -162,7 +162,7 @@ describe('Filter Tests', function () {
         done();
     });
 
-    it('supports custom options', (done: MochaDone) => {
+    it('supports custom options', (done) => {
         this.timeout(1000);
 
         let list = [

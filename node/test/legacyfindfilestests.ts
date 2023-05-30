@@ -24,7 +24,7 @@ describe('Legacy Find Files Tests', function () {
     after(function () {
     });
 
-    it('supports directory name single char wildcard', (done: MochaDone) => {
+    it('supports directory name single char wildcard', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -55,7 +55,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports directory name wildcard', (done: MochaDone) => {
+    it('supports directory name wildcard', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -86,7 +86,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports exclude patterns', (done: MochaDone) => {
+    it('supports exclude patterns', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -127,7 +127,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports file name single char wildcard', (done: MochaDone) => {
+    it('supports file name single char wildcard', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -154,7 +154,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports file name wildcard', (done: MochaDone) => {
+    it('supports file name wildcard', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -181,7 +181,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports globstar', (done: MochaDone) => {
+    it('supports globstar', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -214,7 +214,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports include directories', (done: MochaDone) => {
+    it('supports include directories', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -243,7 +243,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports include directories only', (done: MochaDone) => {
+    it('supports include directories only', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -270,7 +270,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports inter-segment wildcard', (done: MochaDone) => {
+    it('supports inter-segment wildcard', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -310,7 +310,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('unions matches', (done: MochaDone) => {
+    it('unions matches', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -338,7 +338,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('has platform-specific case sensitivity', (done: MochaDone) => {
+    it('has platform-specific case sensitivity', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -373,7 +373,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports literal ; in pattern', (done: MochaDone) => {
+    it('supports literal ; in pattern', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -395,7 +395,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports literal ; in rootDirectory', (done: MochaDone) => {
+    it('supports literal ; in rootDirectory', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -419,7 +419,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports pattern is ;', (done: MochaDone) => {
+    it('supports pattern is ;', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -441,7 +441,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('does not support pattern with trailing slash', (done: MochaDone) => {
+    it('does not support pattern with trailing slash', (done) => {
         this.timeout(1000);
 
         let pattern = path.join(__dirname, 'hello', 'world') + '/';
@@ -455,7 +455,7 @@ describe('Legacy Find Files Tests', function () {
         }
     });
 
-    it('has platform-specific support for pattern with trailing backslash', (done: MochaDone) => {
+    it('has platform-specific support for pattern with trailing backslash', (done) => {
         this.timeout(1000);
 
         if (process.platform == 'win32') {
@@ -493,7 +493,7 @@ describe('Legacy Find Files Tests', function () {
         }
     });
 
-    it('follows symlink dirs', (done: MochaDone) => {
+    it('follows symlink dirs', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -528,7 +528,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports alternate include syntax', (done: MochaDone) => {
+    it('supports alternate include syntax', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -556,7 +556,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('appends root directory', (done: MochaDone) => {
+    it('appends root directory', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -584,7 +584,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports hidden files', (done: MochaDone) => {
+    it('supports hidden files', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -611,7 +611,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports hidden folders', (done: MochaDone) => {
+    it('supports hidden folders', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -662,7 +662,7 @@ describe('Legacy Find Files Tests', function () {
             `pattern '${pattern}' should not match path '${path}'`);
     }
 
-    it('converts patterns to RegExp', (done: MochaDone) => {
+    it('converts patterns to RegExp', (done) => {
         let tlAny = tl as any;
         if (process.platform == 'win32') {
             // should convert to forward slashes
