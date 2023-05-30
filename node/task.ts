@@ -107,6 +107,20 @@ process.on('uncaughtException', (err: Error) => {
     error(String(err.stack));
 });
 
+//
+// Catching unhandled rejections from promises and rethrowing them as exceptions
+// For example, a promise that is rejected but not handled by a .catch() handler in node 10 
+// doesn't cause an uncaughtException but causes in Node 16.
+// For types definitions(Error | Any) see https://nodejs.org/docs/latest-v16.x/api/process.html#event-unhandledrejection
+//
+process.on('unhandledRejection', (reason: Error | any) => {
+    if (reason instanceof Error) {
+        throw reason;
+    } else {
+        throw new Error(reason);
+    }
+});
+
 //-----------------------------------------------------
 // Loc Helpers
 //-----------------------------------------------------

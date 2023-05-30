@@ -593,6 +593,7 @@ export class ToolRunner extends events.EventEmitter {
 
     private _getSpawnSyncOptions(options: IExecSyncOptions): child.SpawnSyncOptions {
         let result = <child.SpawnSyncOptions>{};
+        result.maxBuffer = 1024 * 1024 * 1024;
         result.cwd = options.cwd;
         result.env = options.env;
         result.shell = options.shell;
@@ -851,7 +852,7 @@ export class ToolRunner extends events.EventEmitter {
      * @param     val     string cmdline or array of strings
      * @returns   ToolRunner
      */
-    public argIf(condition: any, val: any) {
+    public argIf(condition: unknown, val: string | string[]): ToolRunner {
         if (condition) {
             this.arg(val);
         }
