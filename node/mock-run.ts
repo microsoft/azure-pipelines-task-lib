@@ -1,16 +1,22 @@
-import ma = require('./mock-answer');
+//import ma = require('./mock-answer');
+import { TaskLibAnswers } from './mock-answer';
 import mockery = require('mockery');
+//import sinon = require('sinon');
+import { SinonSandbox, createSandbox } from 'sinon';
 import im = require('./internal');
+import * as taskLib from './task';
 
 export class TaskMockRunner {
     constructor(taskPath: string) {
         this._taskPath = taskPath;
+        this._sandbox = createSandbox();
     }
 
     _taskPath: string;
-    _answers: ma.TaskLibAnswers | undefined;
+    _answers?: TaskLibAnswers;
     _exports: {[key: string]: any} = { };
     _moduleCount: number = 0;
+    private _sandbox: SinonSandbox;
 
     public setInput(name: string, val: string) {
         let key: string = im._getVariableKey(name);
@@ -32,7 +38,7 @@ export class TaskMockRunner {
      *
      * @param answers   Answers to be returned when the task lib functions are called.
      */
-    public setAnswers(answers: ma.TaskLibAnswers) {
+    public setAnswers(answers: TaskLibAnswers) {
         this._answers = answers;
     }
 
@@ -46,7 +52,7 @@ export class TaskMockRunner {
     */
     public registerMock(modName: string, mod: any): void {
         this._moduleCount++;
-        mockery.registerMock(modName, mod);
+        this._sandbox.stub(require(modName), mod);
     }
 
     /**
@@ -60,6 +66,7 @@ export class TaskMockRunner {
     */
     public registerMockExport(key: string, val: any): void {
         this._exports[key] = val;
+        //this._sandbox.stub(taskLib, key).value(val);
     }
 
     /**
@@ -70,8 +77,8 @@ export class TaskMockRunner {
     */
     public run(noMockTask?: boolean): void {
         // determine whether to enable mockery
-        if (!noMockTask || this._moduleCount) {
-            mockery.enable({warnOnUnregistered: false});
+        if (!noMockTask || this._sandbox.stub().callCount > 0) {
+            //
         }
 
         // answers and exports not compatible with "noMockTask" mode
@@ -82,6 +89,9 @@ export class TaskMockRunner {
         }
         // register mock task lib
         else {
+            process.env['TASKLIB_INPROC_UNITS'] = '1';
+            process.env['TASKLIB_TESTTRACE'] = '1';
+
             var tlm = require('azure-pipelines-task-lib/mock-task');
             if (this._answers) {
                 tlm.setAnswers(this._answers);
@@ -92,10 +102,18 @@ export class TaskMockRunner {
                     tlm[key] = this._exports[key];
                 });
 
-            mockery.registerMock('azure-pipelines-task-lib/task', tlm);
+            const requireStub = this._sandbox.stub().returns(tlm);
+            this._sandbox.replace('azure-pipelines-task-lib/task', { default: tlm });
+            //this._sandbox.replace('azure-pipelines-task-lib', { ...tlm, task: { require: requireStub } });
+
+            
         }
 
         // run it
         require(this._taskPath);
+    }
+
+    public restore() {
+        this._sandbox.restore();
     }
 }
