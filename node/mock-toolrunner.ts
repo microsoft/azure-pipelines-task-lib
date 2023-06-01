@@ -2,6 +2,7 @@
 import os = require('os');
 import events = require('events');
 import ma = require('./mock-answer');
+import { Deferred } from './toolrunner';
 
 let mock: ma.MockAnswers = new ma.MockAnswers();
 
@@ -162,7 +163,7 @@ export class ToolRunner extends events.EventEmitter {
     //        returns a promise with return code.
     //
     public exec(options?: IExecOptions): Promise<number> {
-        let defer: Promise<number>;
+        let defer = new Deferred<number>();
 
         this._debug('exec tool: ' + this.toolPath);
         this._debug('Arguments:');
@@ -255,13 +256,13 @@ export class ToolRunner extends events.EventEmitter {
             ops.outStream.write('success:' + success + os.EOL);
         }
         if (success) {
-            defer = Promise.resolve(code);
+            defer.resolve(code);
         }
         else {
-            defer = Promise.reject(new Error(this.toolPath + ' failed with return code: ' + code));
+            defer.reject(new Error(this.toolPath + ' failed with return code: ' + code));
         }
 
-        return defer;
+        return defer.promise;
     }
 
     //

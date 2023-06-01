@@ -61,6 +61,18 @@ export interface IExecSyncResult {
     error: Error;
 }
 
+export class Deferred<T> {
+    promise: Promise<T>;
+    resolve: (value: T) => void;
+    reject: (reason?: any) => void;
+    constructor() {
+        this.promise = new Promise((resolve, reject) => {
+            this.resolve = resolve;
+            this.reject = reject;
+        });
+    }
+}
+
 export class ToolRunner extends events.EventEmitter {
     constructor(toolPath: string) {
         super();
@@ -602,7 +614,7 @@ export class ToolRunner extends events.EventEmitter {
     }
 
     private execWithPiping(pipeOutputToTool: ToolRunner, options?: IExecOptions): Promise<number> {
-        let defer: Promise<number> = Promise.resolve(0);
+        let defer = new Deferred<number>();
 
         this._debug('exec tool: ' + this.toolPath);
         this._debug('arguments:');
@@ -653,9 +665,9 @@ export class ToolRunner extends events.EventEmitter {
                 fileStream = null;
                 if(waitingEvents == 0) {
                     if (error) {
-                        defer = Promise.reject(error);
+                        defer.reject(error);
                     } else {
-                        defer = Promise.resolve(returnCode);
+                        defer.resolve(returnCode);
                     }
                 }
             });
@@ -665,9 +677,9 @@ export class ToolRunner extends events.EventEmitter {
                 fileStream = null;
                 if(waitingEvents == 0) {
                     if (error) {
-                        defer = Promise.reject(error);
+                        defer.reject(error);
                     } else {
-                        defer = Promise.resolve(returnCode);
+                        defer.resolve(returnCode);
                     }
                 }
             });
@@ -703,7 +715,7 @@ export class ToolRunner extends events.EventEmitter {
             cp.stdin?.end();
             error = new Error(toolPathFirst + ' failed. ' + err.message);
             if(waitingEvents == 0) {
-                defer = Promise.reject(error);
+                defer.reject(error);
             }
         });
         cpFirst.on('close', (code: number, signal: any) => {
@@ -720,9 +732,9 @@ export class ToolRunner extends events.EventEmitter {
             cp.stdin?.end();
             if(waitingEvents == 0) {
                 if (error) {
-                    defer = Promise.reject(error);
+                    defer.reject(error);
                 } else {
-                    defer = Promise.resolve(returnCode);
+                    defer.resolve(returnCode);
                 }
             }
         });
@@ -759,7 +771,7 @@ export class ToolRunner extends events.EventEmitter {
             waitingEvents--; //process is done with errors
             error = new Error(toolPath + ' failed. ' + err.message);
             if(waitingEvents == 0) {
-                defer = Promise.reject(error);
+                defer.reject(error);
             }
         });
 
@@ -790,14 +802,14 @@ export class ToolRunner extends events.EventEmitter {
 
             if(waitingEvents == 0) {
                 if (error) {
-                    defer = Promise.reject(error);
+                    defer.reject(error);
                 } else {
-                    defer = Promise.resolve(returnCode);
+                    defer.resolve(returnCode);
                 }
             }
         });
 
-        return defer;
+        return defer.promise;
     }
 
     /**
@@ -885,7 +897,7 @@ export class ToolRunner extends events.EventEmitter {
             return this.execWithPiping(this.pipeOutputToTool, options);
         }
 
-        var defer: Promise<number> = Promise.resolve(0);
+        var defer = new Deferred<number>();
 
         this._debug('exec tool: ' + this.toolPath);
         this._debug('arguments:');
@@ -977,14 +989,14 @@ export class ToolRunner extends events.EventEmitter {
             cp.removeAllListeners();
 
             if (error) {
-                defer = Promise.reject(error);
+                defer.reject(error);
             }
             else {
-                defer = Promise.resolve(exitCode);
+                defer.resolve(exitCode);
             }
         });
 
-        return defer;
+        return defer.promise;
     }
 
     /**
