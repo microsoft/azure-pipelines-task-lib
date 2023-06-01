@@ -1,6 +1,7 @@
 import ma = require('./mock-answer');
 import mockery = require('mockery');
 import im = require('./internal');
+import proxyquire = require('proxyquire');
 
 export class TaskMockRunner {
     constructor(taskPath: string) {
@@ -46,7 +47,9 @@ export class TaskMockRunner {
     */
     public registerMock(modName: string, mod: any): void {
         this._moduleCount++;
-        mockery.registerMock(modName, mod);
+        this._exports[modName] = mod;
+        mod['@global'] = true;
+        // mockery.registerMock(modName, mod);
     }
 
     /**
@@ -71,7 +74,7 @@ export class TaskMockRunner {
     public run(noMockTask?: boolean): void {
         // determine whether to enable mockery
         if (!noMockTask || this._moduleCount) {
-            mockery.enable({warnOnUnregistered: false});
+            // mockery.enable({warnOnUnregistered: false});
         }
 
         // answers and exports not compatible with "noMockTask" mode
@@ -91,11 +94,14 @@ export class TaskMockRunner {
                 .forEach((key: string): void => {
                     tlm[key] = this._exports[key];
                 });
-
-            mockery.registerMock('azure-pipelines-task-lib/task', tlm);
+            
+            tlm['@global'] = true;  
+            this._exports['azure-pipelines-task-lib/task'] = tlm;
+            // mockery.registerMock('azure-pipelines-task-lib/task', tlm);
         }
 
         // run it
-        require(this._taskPath);
+        proxyquire(this._taskPath, this._exports);
+        // require(this._taskPath);
     }
 }
