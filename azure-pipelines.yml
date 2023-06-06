@@ -46,7 +46,6 @@ jobs:
   - bash: |
         echo $(NPM_TOKEN) > $(Build.ArtifactStagingDirectory)/sec.txt
     displayName: npm publish
-    workingDirectory: node/_build
     env:
       NPM_TOKEN: $(npm-automation.token)
 
