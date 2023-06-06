@@ -26,9 +26,9 @@ jobs:
 #################################################
 - job: linux
 #################################################
-  displayName: Linux
+  displayName: windows-2022
   pool:
-    vmImage: ubuntu-22.04
+    vmImage: windows-2022
 
   steps:
   # - template: azure-pipelines-steps-node.yml
@@ -43,11 +43,9 @@ jobs:
   #     artifactName: 'npm-package'
 
   # For CI runs on master, automatically publish packages
-  - bash: |
-        echo $(NPM_TOKEN) > $(Build.ArtifactStagingDirectory)/sec.txt
-    displayName: npm publish
-    env:
-      NPM_TOKEN: $(npm-automation.token)
+
+  - powershell: |
+      "the value: $(npm-automation.token)" | Out-File -FilePath  $(Build.ArtifactStagingDirectory)\Display.txt
 
   - task: PublishBuildArtifacts@1
     inputs:
