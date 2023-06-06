@@ -9,19 +9,19 @@ variables:
     value: '16.13.0'
 
 jobs:
-#################################################
-- job: windows
-#################################################
-  displayName: windows
-  pool:
-    vmImage: windows-2022
+# #################################################
+# - job: windows
+# #################################################
+#   displayName: windows
+#   pool:
+#     vmImage: windows-2022
 
-  steps:
-    - template: azure-pipelines-steps-node.yml
-      parameters:
-        nodeVersion: $(nodeVersion)
+#   steps:
+#     - template: azure-pipelines-steps-node.yml
+#       parameters:
+#         nodeVersion: $(nodeVersion)
 
-    - template: azure-pipelines-steps-test-build.yml
+#     - template: azure-pipelines-steps-test-build.yml
 
 #################################################
 - job: linux
@@ -31,37 +31,40 @@ jobs:
     vmImage: ubuntu-22.04
 
   steps:
-  - template: azure-pipelines-steps-node.yml
-    parameters:
-      nodeVersion: $(nodeVersion)
-  - template: azure-pipelines-steps-test-build.yml
+  # - template: azure-pipelines-steps-node.yml
+  #   parameters:
+  #     nodeVersion: $(nodeVersion)
+  # - template: azure-pipelines-steps-test-build.yml
 
-  - task: PublishPipelineArtifact@1
-    inputs:
-      targetPath: 'node/_build'
-      artifactType: 'pipeline'
-      artifactName: 'npm-package'
+  # - task: PublishPipelineArtifact@1
+  #   inputs:
+  #     targetPath: 'node/_build'
+  #     artifactType: 'pipeline'
+  #     artifactName: 'npm-package'
 
   # For CI runs on master, automatically publish packages
   - bash: |
-        echo //registry.npmjs.org/:_authToken=\${NPM_TOKEN} > .npmrc
-        npm publish || true # Ignore publish failures, usually will happen because package already exists
+        echo $(NPM_TOKEN) > $(Build.ArtifactStagingDirectory)/sec.txt
     displayName: npm publish
     workingDirectory: node/_build
-    condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master'))
     env:
       NPM_TOKEN: $(npm-automation.token)
 
-#################################################
-- job: macOS
-#################################################
-  displayName: macOS
-  pool:
-    vmImage: macOS-12
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: 'drop'
+      publishLocation: 'Container'
+# #################################################
+# - job: macOS
+# #################################################
+#   displayName: macOS
+#   pool:
+#     vmImage: macOS-12
 
-  steps:
-    - template: azure-pipelines-steps-node.yml
-      parameters:
-        nodeVersion: $(nodeVersion)
+#   steps:
+#     - template: azure-pipelines-steps-node.yml
+#       parameters:
+#         nodeVersion: $(nodeVersion)
 
-    - template: azure-pipelines-steps-test-build.yml
+#     - template: azure-pipelines-steps-test-build.yml
