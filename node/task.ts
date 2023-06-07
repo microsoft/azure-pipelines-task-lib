@@ -276,10 +276,11 @@ export function getBoolInput(name: string, required?: boolean): boolean {
 /**
  * Gets the value of an feature flag and converts to a bool.
  *
- * @param     name     name of the feature flag to get
+ * @param     name     name of the feature flag to get.
+ * @param     defaultValue default value of the feature flag in case it's not found in env. (optional. Default value = false)
  * @returns   boolean
  */
-export function getBoolFeatureFlag(ffName: string, defaultValue: boolean): boolean {
+export function getBoolFeatureFlag(ffName: string, defaultValue: boolean = false): boolean {
     const ffValue = process.env[ffName];
 
     if (!ffValue) {
