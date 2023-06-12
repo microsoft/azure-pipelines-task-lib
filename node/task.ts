@@ -1,3 +1,4 @@
+import { URL } from 'url';
 import Q = require('q');
 import shell = require('shelljs');
 import childProcess = require('child_process');
