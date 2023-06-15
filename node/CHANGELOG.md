@@ -40,3 +40,8 @@ Backported from ver.`3.4.0`:
 ## 4.3.0
 
 - Described types for `argIf` - [#920](https://github.com/microsoft/azure-pipelines-task-lib/pull/920)
+
+
+## 4.4.0
+
+- Replaced deprecated "sync-request" lib and Added new Async methods - [#932](https://github.com/microsoft/azure-pipelines-task-lib/pull/932)
