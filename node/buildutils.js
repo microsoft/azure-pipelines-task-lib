@@ -68,7 +68,6 @@ exports.getExternalsAsync = getExternalsAsync
 /**
  * @deprecated This method uses library which is not prefered to use on production
  */
-
 exports.getExternals = function () {
     var result = false;
     getExternalsAsync().then(t => result = true);
@@ -78,86 +77,81 @@ exports.getExternals = function () {
 
 
 var downloadFileAsync = async function (url, fileName) {
-    return new Promise(async (resolve, reject) => {
-        // validate parameters
-        if (!url) {
-            reject(new Error('Parameter "url" must be set.'));
-        }
+    // validate parameters
+    if (!url) {
+        throw new Error('Parameter "url" must be set.');
+    }
 
-        // skip if already downloaded
-        var scrubbedUrl = url.replace(/[/\:?]/g, '_');
-        if (fileName == undefined)
-            fileName = scrubbedUrl
-        var targetPath = path.join(downloadPath, 'file', fileName);
-        var marker = targetPath + '.completed';
-        if (test('-f', marker)) {
-            console.log('File already exist: ' + targetPath);
-            resolve(targetPath)
-            return;
-        }
+    // skip if already downloaded
+    var scrubbedUrl = url.replace(/[/\:?]/g, '_');
+    if (fileName == undefined) {
+        fileName = scrubbedUrl;
+    }
+    var targetPath = path.join(downloadPath, 'file', fileName);
+    var marker = targetPath + '.completed';
+    if (test('-f', marker)) {
+        console.log('File already exists: ' + targetPath);
+        return targetPath;
+    }
 
-        console.log('Downloading file: ' + url);
-        // delete any previous partial attempt
-        if (test('-f', targetPath)) {
-            rm('-f', targetPath);
-        }
+    console.log('Downloading file: ' + url);
+    // delete any previous partial attempt
+    if (test('-f', targetPath)) {
+        rm('-f', targetPath);
+    }
 
-        // download the file
-        mkdir('-p', path.join(downloadPath, 'file'));
+    // download the file
+    mkdir('-p', path.join(downloadPath, 'file'));
 
-        const downloader = new Downloader({
-            url: url,
-            directory: path.join(downloadPath, 'file'),
-            fileName: fileName
-        });
-
-        try {
-            const { fileName } = await downloader.download(); //Downloader.download() resolves with some useful properties.
-            fs.writeFileSync(marker, '');
-            resolve(fileName)
-        } catch (error) {
-            reject(error)
-        }
+    const downloader = new Downloader({
+        url: url,
+        directory: path.join(downloadPath, 'file'),
+        fileName: fileName
     });
-}
+
+    const { fileName: downloadedFileName } = await downloader.download(); // Downloader.download() resolves with some useful properties.
+    fs.writeFileSync(marker, '');
+    return downloadedFileName;
+
+};
 
 
 var downloadArchiveAsync = async function (url, fileName) {
-    return new Promise(async (resolve, reject) => {
-        if (!url) {
-            reject(new Error('Parameter "url" must be set.'))
-            return
-        }
+    if (!url) {
+        throw new Error('Parameter "url" must be set.');
+    }
 
-        // skip if already downloaded and extracted
-        var scrubbedUrl = url.replace(/[\/\\:?]/g, '_');
-        if (fileName != undefined)
-            scrubbedUrl = fileName
-        var targetPath = path.join(downloadPath, 'archive', scrubbedUrl);
-        var marker = targetPath + '.completed';
-        if (test('-f', marker)) {
-            resolve(targetPath)
-            return
-        }
-        // download the archive
-        var archivePath = await downloadFileAsync(url, scrubbedUrl);
-        console.log('Extracting archive: ' + url);
+    // skip if already downloaded and extracted
+    var scrubbedUrl = url.replace(/[\/\\:?]/g, '_');
+    if (fileName != undefined) {
+        scrubbedUrl = fileName;
+    }
+    var targetPath = path.join(downloadPath, 'archive', scrubbedUrl);
+    var marker = targetPath + '.completed';
+    if (test('-f', marker)) {
+        return targetPath;
+    }
+    
+    // download the archive
+    var archivePath = await downloadFileAsync(url, scrubbedUrl);
+    console.log('Extracting archive: ' + url);
 
-        // delete any previously attempted extraction directory
-        if (test('-d', targetPath)) {
-            rm('-rf', targetPath);
-        }
+    // delete any previously attempted extraction directory
+    if (test('-d', targetPath)) {
+        rm('-rf', targetPath);
+    }
 
-        // extract
-        mkdir('-p', targetPath);
-        var zip = new admZip(archivePath);
-        zip.extractAllTo(targetPath);
+    // extract
+    mkdir('-p', targetPath);
+    var zip = new admZip(archivePath);
+    zip.extractAllTo(targetPath);
 
-        // write the completed marker
-        fs.writeFileSync(marker, '');
-        resolve(targetPath);
-    })
-}
+    // write the completed marker
+    fs.writeFileSync(marker, '');
+
+    return targetPath;
+};
+
 
 var addPath = function (directory) {
     var separator;
