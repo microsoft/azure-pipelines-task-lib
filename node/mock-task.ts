@@ -62,6 +62,7 @@ module.exports.setTaskVariable = task.setTaskVariable;
 module.exports.getInput = task.getInput;
 module.exports.getInputRequired = task.getInputRequired;
 module.exports.getBoolInput = task.getBoolInput;
+module.exports.getBoolFeatureFlag = task.getBoolFeatureFlag;
 module.exports.getDelimitedInput = task.getDelimitedInput;
 module.exports.filePathSupplied = task.filePathSupplied;
 
