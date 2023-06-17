@@ -115,7 +115,7 @@ describe('Mock Tests', function () {
         };
 
         mt.setAnswers(a);
-        assert.throws(() => { mt.checkPath('/foo/bar', 'bar') });
+        assert.throws(() => { mt.checkPath('/foo/bar', 'bar')});
 
         done();
     })
@@ -128,7 +128,7 @@ describe('Mock Tests', function () {
                 '/baz',
             ],
             '/ba[rz]');
-        assert.deepEqual(actual, ['/bar', '/baz']);
+        assert.deepEqual(actual, [ '/bar', '/baz' ]);
 
         done();
     })
@@ -140,7 +140,7 @@ describe('Mock Tests', function () {
             '/baz',
         ];
         let actual: string[] = list.filter((mt as any).filter('/ba[rz]'));
-        assert.deepEqual(actual, ['/bar', '/baz']);
+        assert.deepEqual(actual, [ '/bar', '/baz' ]);
 
         done();
     })
@@ -157,7 +157,7 @@ describe('Mock Tests', function () {
 
         mt.setAnswers(a);
         var matches: string[] = mt.findMatch('/default-root', '/ba[rz]');
-        assert.deepEqual(matches, ['/bar', '/baz']);
+        assert.deepEqual(matches, [ '/bar', '/baz' ]);
 
         done();
     })
@@ -298,27 +298,43 @@ describe('Mock Tests', function () {
         assert.equal(numStdErrCalls, 1);
     })
 
-    it('MockTest handles node 6 tasks correctly', async () => {
-        const runner = await (new mtm.MockTestRunner).LoadAsync(path.join(__dirname, 'fakeTasks', 'node6task', 'entry.js'));
+    it('MockTest handles node 6 tasks correctly', function (done) {
+        this.timeout(30000);
+        const runner = new mtm.MockTestRunner(path.join(__dirname, 'fakeTasks', 'node6task', 'entry.js'));
         const nodePath = runner.nodePath;
         assert(nodePath, 'node path should have been correctly set');
         const version = ncp.execSync(nodePath + ' -v').toString().trim();
         assert(semver.satisfies(version, '6.x'), 'Downloaded node version should be Node 6 instead of ' + version);
+        done();
     })
 
-    it('MockTest handles node 10 tasks correctly', async () => {
-        const runner = await (new mtm.MockTestRunner).LoadAsync(path.join(__dirname, 'fakeTasks', 'node10task', 'entry.js'));
+    it('MockTest handles node 10 tasks correctly', function (done) {
+        this.timeout(30000);
+        const runner = new mtm.MockTestRunner(path.join(__dirname, 'fakeTasks', 'node10task', 'entry.js'));
         const nodePath = runner.nodePath;
         assert(nodePath, 'node path should have been correctly set');
         const version = ncp.execSync(nodePath + ' -v').toString().trim();
         assert(semver.satisfies(version, '10.x'), 'Downloaded node version should be Node 10 instead of ' + version);
+        done();
     })
 
-    it('MockTest handles node 16 tasks correctly', async () => {
+    it('MockTest handles node 16 tasks correctly', function (done) {
+        this.timeout(30000);
+        const runner = new mtm.MockTestRunner(path.join(__dirname, 'fakeTasks', 'node16task', 'entry.js'));
+        const nodePath = runner.nodePath;
+        assert(nodePath, 'node path should have been correctly set');
+        const version = ncp.execSync(nodePath + ' -v').toString().trim();
+        assert(semver.satisfies(version, '16.x'), 'Downloaded node version should be Node 16 instead of ' + version);
+        done();
+    })
+
+    it('MockTest handles node tasks correctly by async call', async () => {
+        this.timeout(30000);
         const runner = await (new mtm.MockTestRunner).LoadAsync(path.join(__dirname, 'fakeTasks', 'node16task', 'entry.js'));
         const nodePath = runner.nodePath;
         assert(nodePath, 'node path should have been correctly set');
         const version = ncp.execSync(nodePath + ' -v').toString().trim();
         assert(semver.satisfies(version, '16.x'), 'Downloaded node version should be Node 16 instead of ' + version);
+        await Promise.resolve()
     })
 });
