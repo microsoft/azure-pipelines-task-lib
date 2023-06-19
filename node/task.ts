@@ -274,6 +274,26 @@ export function getBoolInput(name: string, required?: boolean): boolean {
 }
 
 /**
+ * Gets the value of an feature flag and converts to a bool.
+ *
+ * @param     name     name of the feature flag to get.
+ * @param     defaultValue default value of the feature flag in case it's not found in env. (optional. Default value = false)
+ * @returns   boolean
+ */
+export function getBoolFeatureFlag(ffName: string, defaultValue: boolean = false): boolean {
+    const ffValue = process.env[ffName];
+
+    if (!ffValue) {
+        debug(`Feature flag ${ffName} not found. Returning ${defaultValue} as default.`);
+        return defaultValue;
+    }
+
+    debug(`Feature flag ${ffName} = ${ffValue}`);
+
+    return ffValue.toLowerCase() === "true";
+}
+
+/**
  * Gets the value of an input and splits the value using a delimiter (space, comma, etc).
  * Empty values are removed.  This function is useful for splitting an input containing a simple
  * list of items - such as build targets.
@@ -647,8 +667,8 @@ export function stats(path: string): FsStats {
 export const exist = im._exist;
 
 export function writeFile(file: string, data: string | Buffer, options?: BufferEncoding | fs.WriteFileOptions) {
-    if (typeof(options) === 'string'){
-        fs.writeFileSync(file, data, {encoding: options as BufferEncoding});
+    if (typeof (options) === 'string') {
+        fs.writeFileSync(file, data, { encoding: options as BufferEncoding });
     }
     else {
         fs.writeFileSync(file, data, options);
@@ -689,7 +709,7 @@ export function getAgentMode(): AgentHostedMode {
 
     if (agentCloudId === undefined)
         return AgentHostedMode.Unknown;
-    
+
     if (agentCloudId)
         return AgentHostedMode.MsHosted;
 
@@ -980,7 +1000,7 @@ export function retry(func: Function, args: any[], retryOptions: RetryOptions = 
  * @param allowBrokenSymbolicLinks  when true, broken symbolic link will not cause an error.
  * @returns fs.Stats
  */
-function _getStats (path: string, followSymbolicLink: boolean, allowBrokenSymbolicLinks: boolean): fs.Stats {
+function _getStats(path: string, followSymbolicLink: boolean, allowBrokenSymbolicLinks: boolean): fs.Stats {
     // stat returns info about the target of a symlink (or symlink chain),
     // lstat returns info about a symlink itself
     let stats: fs.Stats;
