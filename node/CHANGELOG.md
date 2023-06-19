@@ -51,4 +51,4 @@ Backported from ver.`3.4.0`:
 
 ## 4.5.0
 
-- Replace Q with native promises [#905](https://github.com/microsoft/azure-pipelines-task-lib/pull/905)
+- Added `execAsync` methods that return native promises. Marked `exec` methods that return promises from the Q library as deprecated [#905](https://github.com/microsoft/azure-pipelines-task-lib/pull/905)
