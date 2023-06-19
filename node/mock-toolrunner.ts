@@ -263,10 +263,11 @@ export class ToolRunner extends events.EventEmitter {
         });        
     }
 
-    // Deprecated, use execAsync instead
-    // Exec - use for long running tools where you need to stream live output as it runs
-    //        returns a promise with return code.
-    //
+    /**
+     * Exec - use for long running tools where you need to stream live output as it runs
+     * @deprecated use `execAsync` instead
+     * @returns a promise with return code.
+     */
     public exec(options?: IExecOptions): Q.Promise<number> {
         var defer = Q.defer<number>();
 
