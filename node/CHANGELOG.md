@@ -48,3 +48,7 @@ Backported from ver.`3.4.0`:
 ## 4.4.0
 
 - Add `getBoolFeatureFlag` [#936](https://github.com/microsoft/azure-pipelines-task-lib/pull/936)
+
+## 4.5.0
+
+- Replace Q with native promises [#905](https://github.com/microsoft/azure-pipelines-task-lib/pull/905)
