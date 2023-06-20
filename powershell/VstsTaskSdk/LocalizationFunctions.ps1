@@ -60,10 +60,10 @@ function Get-LocString {
 
 <#
 .SYNOPSIS
-Imports resource strings for use with Get-VstsLocString.
+Imports resource strings for use with GetVstsLocString.
 
 .DESCRIPTION
-Imports resource strings for use with Get-VstsLocString. The imported strings are stored in an internal resource string dictionary. Optionally, if a separate resource file for the current culture exists, then the localized strings from that file then imported (overlaid) into the same internal resource string dictionary.
+Imports resource strings for use with GetVstsLocString. The imported strings are stored in an internal resource string dictionary. Optionally, if a separate resource file for the current culture exists, then the localized strings from that file then imported (overlaid) into the same internal resource string dictionary.
 
 Resource strings from the SDK are prefixed with "PSLIB_". This prefix should be avoided for custom resource strings.
 
