@@ -243,7 +243,11 @@ export function _getVariable(name: string): string | undefined  {
     }
     else {
         // get the public value
-        varval = process.env[key];
+        if (_startsWith(key, 'VSTS_TASKVARIABLE_')) {
+            varval = _knownVariableMap[key].value
+        } else {
+            varval = process.env[key];
+        }
 
         // fallback for pre 2.104.1 agent
         if (!varval && name.toUpperCase() == 'AGENT.JOBSTATUS') {
@@ -267,10 +271,13 @@ export function _getVariableKey(name: string): string {
  * Used to store the following information about job variables:
  *  1) the real variable name (not the formatted environment variable name)
  *  2) whether the variable is a secret variable
+ *  3) if it is not a secret variable, the value can be stored in value field,
+ *     otherwise, it will use vault to store the secret
  */
 export interface _KnownVariableInfo {
     name: string;
     secret: boolean;
+    value: string;
 }
 
 //-----------------------------------------------------
@@ -707,6 +714,14 @@ export function _loadData(): void {
             _startsWith(envvar, 'SECUREFILE_TICKET_') ||
             _startsWith(envvar, 'SECRET_') ||
             _startsWith(envvar, 'VSTS_TASKVARIABLE_')) {
+
+            if (_startsWith(envvar, 'VSTS_TASKVARIABLE_')) {
+                if (envvar) {
+                    exports._knownVariableMap[_getVariableKey(envvar)] = <_KnownVariableInfo>{ name: envvar, 
+                                                                                               secret: false, 
+                                                                                               value: process.env[envvar] };
+                }
+            }            
 
             // Record the secret variable metadata. This is required by getVariable to know whether
             // to retrieve the value from the vault. In a 2.104.1 agent or higher, this metadata will
