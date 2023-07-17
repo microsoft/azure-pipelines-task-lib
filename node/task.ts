@@ -1467,7 +1467,7 @@ export function execAsync(tool: string, args: any, options?: trm.IExecOptions): 
  * Output will be streamed to the live console.
  * Returns promise with return code
  *
- * @deprecated Use the `execAsync` method that returns a native Javascript Promise instead
+ * @deprecated Use the {@link execAsync} method that returns a native Javascript Promise instead
  * @param     tool     path to tool to exec
  * @param     args     an arg string or array of args
  * @param     options  optional exec options.  See IExecOptions
