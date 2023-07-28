@@ -69,7 +69,7 @@ You can retrieve such configuration directly from task-lib:
 import tl = require('azure-pipelines-task-lib/task');
 
 async function run() {
-    let proxy = tl.getProxyConfiguration()
+    let proxy = tl.getHttpProxyConfiguration()
     
     process.env['http_proxy'] = proxy.proxyFormattedUrl;
     process.env['https_proxy'] = proxy.proxyFormattedUrl;
