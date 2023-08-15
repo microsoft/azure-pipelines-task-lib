@@ -1,16 +1,19 @@
-import ma = require('./mock-answer');
-import mockery = require('mockery');
+import { TaskLibAnswers } from './mock-answer';
+import { SinonSandbox, createSandbox } from 'sinon';
 import im = require('./internal');
+import * as taskLib from './task';
 
 export class TaskMockRunner {
     constructor(taskPath: string) {
         this._taskPath = taskPath;
+        this._sandbox = createSandbox();
     }
 
     _taskPath: string;
-    _answers: ma.TaskLibAnswers | undefined;
+    _answers: TaskLibAnswers | undefined;
     _exports: {[key: string]: any} = { };
     _moduleCount: number = 0;
+    private _sandbox: SinonSandbox;
 
     public setInput(name: string, val: string) {
         let key: string = im._getVariableKey(name);
@@ -32,9 +35,42 @@ export class TaskMockRunner {
      *
      * @param answers   Answers to be returned when the task lib functions are called.
      */
-    public setAnswers(answers: ma.TaskLibAnswers) {
+    public setAnswers(answers: TaskLibAnswers) {
         this._answers = answers;
     }
+
+    checkModuleName(modName: any): boolean {
+        if (typeof modName !== 'string') {
+            return false;
+        }
+
+        if (modName.includes('.')) {
+            console.log(`WARNING: ${modName} is a local module. Cannot require it from task-lib. Please pass an already imported module.`);
+            return false;
+        }
+
+        return true;
+    }
+
+
+    checkIsMockable(newModule, methodName, oldModule) {
+        const method = newModule[methodName];
+
+        if (!newModule.hasOwnProperty(methodName) || typeof method === 'undefined') {
+            return false;
+        }
+
+        if (typeof method !== 'function') {
+            console.log(`WARNING: ${methodName} of ${newModule} is not a function. There is no option to replace getter/setter in this implementation. You can consider changing it.`);
+            return false;
+        }
+
+        const descriptor = Object.getOwnPropertyDescriptor(oldModule, methodName);
+
+        return descriptor && descriptor.writable !== false;
+    }
+
+
 
     /**
     * Register a mock module. When require() is called for the module name,
@@ -44,9 +80,22 @@ export class TaskMockRunner {
     * @param val        Mock implementation of the module.
     * @returns          void
     */
-    public registerMock(modName: string, mod: any): void {
+    public registerMock(modName: any, mod: any): void {
         this._moduleCount++;
-        mockery.registerMock(modName, mod);
+        let oldMod: object;
+
+        if (this.checkModuleName(modName)) {
+            oldMod = require(modName);
+        } else {
+            oldMod = modName;
+        }
+
+        for (let method in oldMod) {
+            if (this.checkIsMockable(mod, method, oldMod)) {
+                const replacement = mod[method] || oldMod[method];
+                this._sandbox.replace(oldMod, method, replacement);
+            }
+        }
     }
 
     /**
@@ -69,11 +118,6 @@ export class TaskMockRunner {
     * @returns              void
     */
     public run(noMockTask?: boolean): void {
-        // determine whether to enable mockery
-        if (!noMockTask || this._moduleCount) {
-            mockery.enable({warnOnUnregistered: false});
-        }
-
         // answers and exports not compatible with "noMockTask" mode
         if (noMockTask) {
             if (this._answers || Object.keys(this._exports).length) {
@@ -92,10 +136,21 @@ export class TaskMockRunner {
                     tlm[key] = this._exports[key];
                 });
 
-            mockery.registerMock('azure-pipelines-task-lib/task', tlm);
+
+            var tlt = require('azure-pipelines-task-lib/task');
+            for (let method in tlt) {
+                if (tlm.hasOwnProperty(method)) {
+                    this._sandbox.replace(tlt, method, tlm[method]);
+                }
+            }
+
         }
 
         // run it
         require(this._taskPath);
+    }
+
+    public restore() {
+        this._sandbox.restore();
     }
 }
