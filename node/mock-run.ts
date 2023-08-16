@@ -80,7 +80,7 @@ export class TaskMockRunner {
     * @param val        Mock implementation of the module.
     * @returns          void
     */
-    public registerMock(modName: any, mod: any): void {
+    public registerMock(mod: string | object, modMock: object): void {
         this._moduleCount++;
         let oldMod: object;
 
