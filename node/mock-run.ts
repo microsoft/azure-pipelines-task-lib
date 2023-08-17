@@ -38,62 +38,76 @@ export class TaskMockRunner {
     public setAnswers(answers: TaskLibAnswers) {
         this._answers = answers;
     }
-
-    checkModuleName(modName: any): boolean {
-        if (typeof modName !== 'string') {
-            return false;
-        }
-
+    /**
+    * Checks if a module name is valid for import, avoiding local module references.
+    *
+    * @param {string} modName - The name of the module to be checked.
+    * @returns {boolean} Returns true if the module name is valid, otherwise false.
+    */
+    checkModuleName(modName: string): boolean {
         if (modName.includes('.')) {
-            console.log(`WARNING: ${modName} is a local module. Cannot require it from task-lib. Please pass an already imported module.`);
+            console.error(`ERROR: ${modName} is a local module. Cannot import it from task-lib. Please pass full path.`);
             return false;
         }
-
         return true;
     }
 
-
+    /**
+    * Checks if a method in a new module is mockable based on specified conditions.
+    *
+    * @param {object} newModule - The new module containing the method.
+    * @param {string} methodName - The name of the method to check.
+    * @param {object} oldModule - The original module from which the method might be inherited.
+    * @returns {boolean} Returns true if the method is mockable, otherwise false.
+    */
     checkIsMockable(newModule, methodName, oldModule) {
+        // Get the method from the newModule
         const method = newModule[methodName];
 
+        // Check if the method exists and is not undefined
         if (!newModule.hasOwnProperty(methodName) || typeof method === 'undefined') {
             return false;
         }
 
+        // Check if the method is a function
         if (typeof method !== 'function') {
-            console.log(`WARNING: ${methodName} of ${newModule} is not a function. There is no option to replace getter/setter in this implementation. You can consider changing it.`);
+            console.warn(`WARNING: ${methodName} of ${newModule} is not a function. There is no option to replace getter/setter in this implementation. You can consider changing it.`);
             return false;
         }
 
+        // Check if the method is writable
         const descriptor = Object.getOwnPropertyDescriptor(oldModule, methodName);
-
         return descriptor && descriptor.writable !== false;
     }
 
-
-
     /**
-    * Register a mock module. When require() is called for the module name,
-    * the mock implementation will be returned instead.
+    * Registers a mock module, allowing the replacement of methods with mock implementations.
     *
-    * @param modName    Module name to override.
-    * @param val        Mock implementation of the module.
-    * @returns          void
+    * @param {string} modName - The name of the module to be overridden.
+    * @param {object} modMock - The mock implementation of the module.
+    * @returns {void}
     */
-    public registerMock(mod: string | object, modMock: object): void {
+    public registerMock(modName: string, modMock: object): void {
         this._moduleCount++;
         let oldMod: object;
 
+        // Check if the module name is valid and can be imported
         if (this.checkModuleName(modName)) {
             oldMod = require(modName);
         } else {
-            oldMod = modName;
+            console.error(`ERROR: Cannot import ${modName}.`);
+            return;
         }
 
+        // Iterate through methods in the old module and replace them with mock implementations
         for (let method in oldMod) {
-            if (this.checkIsMockable(mod, method, oldMod)) {
-                const replacement = mod[method] || oldMod[method];
-                this._sandbox.replace(oldMod, method, replacement);
+            if (this.checkIsMockable(modMock, method, oldMod)) {
+                const replacement = modMock[method] || oldMod[method];
+                try {
+                    this._sandbox.replace(oldMod, method, replacement);
+                } catch (error) {
+                    console.error('ERROR: Cannot replace ${method} in ${oldMod} by ${replacement}. ${error.message}', );
+                }
             }
         }
     }
@@ -126,7 +140,7 @@ export class TaskMockRunner {
         }
         // register mock task lib
         else {
-            var tlm = require('azure-pipelines-task-lib/mock-task');
+            let tlm = require('azure-pipelines-task-lib/mock-task');
             if (this._answers) {
                 tlm.setAnswers(this._answers);
             }
@@ -136,8 +150,8 @@ export class TaskMockRunner {
                     tlm[key] = this._exports[key];
                 });
 
-
-            var tlt = require('azure-pipelines-task-lib/task');
+            // With sinon we have to iterate through methods in the old module and replace them with mock implementations
+            let tlt = require('azure-pipelines-task-lib/task');
             for (let method in tlt) {
                 if (tlm.hasOwnProperty(method)) {
                     this._sandbox.replace(tlt, method, tlm[method]);
@@ -149,7 +163,11 @@ export class TaskMockRunner {
         // run it
         require(this._taskPath);
     }
-
+    /**
+    * Restores the sandboxed environment to its original state.
+    *
+    * @returns {void}
+    */
     public restore() {
         this._sandbox.restore();
     }
