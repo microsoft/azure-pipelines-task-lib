@@ -6,7 +6,7 @@ trigger:
 variables:
   - group: npm-tokens
   - name: nodeVersion
-    value: '16.13.0'
+    value: '20.3.1'
 
 jobs:
 #################################################

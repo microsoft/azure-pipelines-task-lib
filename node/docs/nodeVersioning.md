@@ -2,9 +2,9 @@
 
 ## Agent Node Handler
 
-The agent currently has 3 different node handlers that it can use to execute node tasks: Node 6, Node 10, Node 16.
+The agent currently has 4 different node handlers that it can use to execute node tasks: Node 6, Node 10, Node 16, and Node20.
 The handler used depends on the `execution` property specified in the tasks `task.json`.
-If the `execution` property is specified to be `Node`, the task will run on the Node 6 handler, for `Node10` it will run on the Node 10 handler, for `Node16` it will run on the Node 16 handler.
+If the `execution` property is specified to be `Node`, the task will run on the Node 6 handler, for `Node10` it will run on the Node 10 handler, for `Node16` it will run on the Node 16 handler, for `Node20` it will run on the Node 20 handler.
 
 ## Mock-test Node Handler
 
