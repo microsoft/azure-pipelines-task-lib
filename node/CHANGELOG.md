@@ -48,3 +48,6 @@ Backported from ver.`3.4.0`:
 ## 4.4.0
 
 - Add `getBoolFeatureFlag` [#936](https://github.com/microsoft/azure-pipelines-task-lib/pull/936)
+
+## 5.x
+- Introduced support for node20 task handler and added node20 to task.schema.json [#962](https://github.com/microsoft/azure-pipelines-task-lib/pull/962)
