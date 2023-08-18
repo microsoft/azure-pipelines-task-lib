@@ -22,7 +22,7 @@ With agent version 2.206.1 Node 16 can be used.
 },
 ```
 
-With agent version 2.225.0 Node 20 can be used.
+With agent version 3.225.0 Node 20 can be used.
 
 ```
 "execution": {
