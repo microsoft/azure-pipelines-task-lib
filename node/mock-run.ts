@@ -71,7 +71,7 @@ export class TaskMockRunner {
 
         // Check if the method is a function
         if (typeof method !== 'function') {
-            console.warn(`WARNING: ${methodName} of ${newModule} is not a function. There is no option to replace getter/setter in this implementation. You can consider changing it.`);
+            console.log(`WARNING: ${methodName} of ${newModule} is not a function. There is no option to replace getter/setter in this implementation. You can consider changing it.`);
             return false;
         }
 
