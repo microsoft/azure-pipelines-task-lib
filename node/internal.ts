@@ -507,7 +507,12 @@ function _tryGetExecutablePath(filePath: string, extensions: string[]): string {
 //     R   W  X  R  W X R W X
 //   256 128 64 32 16 8 4 2 1
 function isUnixExecutable(stats: fs.Stats) {
-    return (stats.mode & 1) > 0 || ((stats.mode & 8) > 0 && stats.gid === process.getgid()) || ((stats.mode & 64) > 0 && stats.uid === process.getuid());
+    const uid = process.getuid?.(); // Use optional chaining here
+    const gid = process.getgid?.(); 
+
+    return (stats.mode & 1) > 0 ||
+        ((stats.mode & 8) > 0 && gid !== undefined && stats.gid === gid) ||
+        ((stats.mode & 64) > 0 && uid !== undefined && stats.uid === uid);
 }
 
 export function _legacyFindFiles_convertPatternToRegExp(pattern: string): RegExp {

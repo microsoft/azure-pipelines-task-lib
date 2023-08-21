@@ -1066,7 +1066,7 @@ class ExecState extends events.EventEmitter {
     private delay = 10000; // 10 seconds
     private done: boolean;
     private options: IExecOptions;
-    private timeout: NodeJS.Timer | null = null;
+    private timeout: NodeJS.Timeout | null = null;
     private toolPath: string;
 
     public CheckComplete(): void {
