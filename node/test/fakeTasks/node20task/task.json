@@ -1,0 +1,9 @@
+{
+    "id": "id",
+    "name": "Node20Task",
+    "execution": {
+        "Node20": {
+            "target": "usedotnet.js"
+        }
+    }
+}

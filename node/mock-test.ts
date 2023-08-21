@@ -152,8 +152,11 @@ export class MockTestRunner {
             case 16:
                 downloadVersion = 'v16.13.0';
                 break;
+            case 20:
+                downloadVersion = 'v20.3.1';
+                break;
             default:
-                throw new Error('Invalid node version, must be 6, 10, or 16 (received ' + version + ')');
+                throw new Error('Invalid node version, must be 6, 10, 16, or 20 (received ' + version + ')');
         }
 
         // Install node in home directory if it isn't already there.
@@ -185,7 +188,10 @@ export class MockTestRunner {
         );
         const keys = Object.keys(execution);
         for (let i = 0; i < keys.length; i++) {
-            if (keys[i].toLowerCase() == 'node16') {
+            if (keys[i].toLowerCase() == 'node20') {
+                // Prefer node 20 and return immediately.
+                return 20;
+            } else if (keys[i].toLowerCase() == 'node16') {
                 // Prefer node 16 and return immediately.
                 return 16;
             } else if (keys[i].toLowerCase() == 'node10') {

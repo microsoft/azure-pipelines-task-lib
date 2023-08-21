@@ -22,6 +22,15 @@ With agent version 2.206.1 Node 16 can be used.
 },
 ```
 
+With agent version 3.225.0 Node 20 can be used.
+
+```
+"execution": {
+    "Node20": {
+        "target": "path/to/entry"
+    }
+},
+```
 Existing `Node` execution targets will still resolve to a Node 6 environment for now to maintain back-compat.
 
 ### Testing your task
