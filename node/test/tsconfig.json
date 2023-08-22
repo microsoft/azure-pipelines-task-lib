@@ -16,6 +16,7 @@
         "legacyfindfilestests.ts",
         "vaulttests.ts",
         "toolrunnertests.ts",
+        "toolrunnerTestsWithExecAsync.ts",
         "cctests.ts",
         "loctests.ts",
         "matchtests.ts",
