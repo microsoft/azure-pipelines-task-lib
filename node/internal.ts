@@ -53,11 +53,11 @@ export function _writeLine(str: string): void {
     _outStream.write(str + os.EOL);
 }
 
-export function _setStdStream(stdStream): void {
+export function _setStdStream(stdStream: NodeJS.WriteStream): void {
     _outStream = stdStream;
 }
 
-export function _setErrStream(errStream): void {
+export function _setErrStream(errStream: NodeJS.WriteStream): void {
     _errStream = errStream;
 }
 

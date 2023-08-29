@@ -30,7 +30,7 @@ export interface IExecSyncResult {
     error: Error;
 }
 
-export function debug(message) {
+export function debug(message: string) {
     // do nothing, overridden
 }
 
@@ -48,7 +48,7 @@ export class ToolRunner extends events.EventEmitter {
     private args: string[];
     private pipeOutputToTool: ToolRunner | undefined;
 
-    private _debug(message) {
+    private _debug(message: string) {
         debug(message);
         this.emit('debug', message);
     }

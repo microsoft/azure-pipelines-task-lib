@@ -4,12 +4,14 @@
         "module": "commonjs",
         "declaration": true,
         "moduleResolution": "node",
-        "strictNullChecks": true
+        "strictNullChecks": true,
+        "noImplicitAny": true,
     },
     "files": [
         "index.ts",
         "mock-task.ts",
         "mock-run.ts",
-        "mock-test.ts"
+        "mock-test.ts",
+        "types/global.d.ts"
     ]
 }
