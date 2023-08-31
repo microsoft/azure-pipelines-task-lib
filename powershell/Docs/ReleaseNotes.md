@@ -1,5 +1,8 @@
 # Release Notes
 
+## 0.15.0
+* Removed the `Q` library
+
 ## 0.14.0
 * Improved error handling in function `Find-Files`
 
