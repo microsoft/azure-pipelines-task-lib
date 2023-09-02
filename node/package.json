@@ -36,6 +36,7 @@
     "uuid": "^3.0.1"
   },
   "devDependencies": {
+    "@tsconfig/node16": "1.0.4",
     "@types/minimatch": "3.0.3",
     "@types/mocha": "^9.1.1",
     "@types/mockery": "^1.4.29",
@@ -44,6 +45,6 @@
     "@types/semver": "^7.3.4",
     "@types/shelljs": "^0.8.8",
     "mocha": "^9.2.2",
-    "typescript": "^4.0.0"
+    "typescript": "^4.9.5"
   }
 }

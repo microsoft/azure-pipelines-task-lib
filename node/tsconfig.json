@@ -1,10 +1,15 @@
 {
+    "extends": "@tsconfig/node16/tsconfig.json",
     "compilerOptions": {
-        "target": "ES5",
-        "module": "commonjs",
+        "module": "CommonJS",
         "declaration": true,
-        "moduleResolution": "node",
-        "strictNullChecks": true
+
+        // TODO: Fix these strict errors
+        "noImplicitAny": false,
+        "noImplicitThis": false,
+        "strictBindCallApply": false,
+        "strictPropertyInitialization": false,
+        "useUnknownInCatchVariables": false
     },
     "files": [
         "index.ts",
