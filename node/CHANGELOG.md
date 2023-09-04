@@ -48,3 +48,7 @@ Backported from ver.`3.4.0`:
 ## 4.4.0
 
 - Add `getBoolFeatureFlag` [#936](https://github.com/microsoft/azure-pipelines-task-lib/pull/936)
+
+## 4.5.0
+
+- Added `execAsync` methods that return native promises. Marked `exec` methods that return promises from the Q library as deprecated [#905](https://github.com/microsoft/azure-pipelines-task-lib/pull/905)
