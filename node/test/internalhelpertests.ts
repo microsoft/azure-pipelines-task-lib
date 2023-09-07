@@ -404,7 +404,7 @@ describe('Internal Path Helper Tests', function () {
     });
     
     it('ReportMissingStrings', (done) => {
-
+        mockery.registerAllowable('../_build/internal')
         const fsMock = {
             statSync: function (path) { return null; }
         };
