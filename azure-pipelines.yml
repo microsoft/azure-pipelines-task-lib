@@ -52,9 +52,9 @@ jobs:
       succeeded(), 
       in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'),
       or(
-        in(variables['build.sourcebranch'], 'refs/heads/master')),
-        startsWith(variables['build.sourcebranch'], 'refs/heads/releases'))
-      ) 
+        in(variables['build.sourcebranch'], 'refs/heads/master'),
+        startsWith(variables['build.sourcebranch'], 'refs/heads/releases')
+      ))
     env:
       NPM_TOKEN: $(npm-automation.token)
 
