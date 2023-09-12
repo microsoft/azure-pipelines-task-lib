@@ -123,3 +123,55 @@ export function createSymlinkDir(real: string, link: string): void {
         fs.symlinkSync(real, link);
     }
 };
+export class ConsoleMocker {
+    private _originalConsoleLog?: null | typeof console.log = null;
+    private _originalConsoleWarn?: null | typeof console.warn = null;
+    private _originalConsoleError?: null | typeof console.error = null;
+    private _logs: string[] = [];
+    private _warns: string[] = [];
+    private _errors: string[] = [];
+
+    constructor() {
+        this.initialize();
+    }
+
+    private initialize() {
+        this._originalConsoleLog = console.log;
+        this._originalConsoleWarn = console.warn;
+        this._originalConsoleError = console.error;
+    }
+    
+    public mock() {
+        console.log = (message?: string, ...optionalParams: any[]) => {
+            this._logs.push(message);
+        };
+        console.warn = (message?: string, ...optionalParams: any[]) => {
+            this._warns.push(message);
+        };
+        console.error = (message?: string, ...optionalParams: any[]) => {
+            this._errors.push(message);
+        };
+    }
+
+    public restore() {
+        if (this._originalConsoleLog) console.log = this._originalConsoleLog;
+        if (this._originalConsoleWarn) console.warn = this._originalConsoleWarn;
+        if (this._originalConsoleError) console.error = this._originalConsoleError;
+
+        this._logs = [];
+        this._warns = [];
+        this._errors = [];
+    }
+
+    public getLogs(): string[] {
+        return this._logs;
+    }
+
+    public getWarns(): string[] {
+        return this._warns;
+    }
+
+    public getErrors(): string[] {
+        return this._errors;
+    }
+}
