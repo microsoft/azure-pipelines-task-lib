@@ -48,7 +48,13 @@ jobs:
         npm publish || true # Ignore publish failures, usually will happen because package already exists
     displayName: npm publish
     workingDirectory: node/_build
-    condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master'))
+    condition: and(
+      succeeded(), 
+      in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'),
+      or(
+        in(variables['build.sourcebranch'], 'refs/heads/master'),
+        startsWith(variables['build.sourcebranch'], 'refs/heads/releases')
+      ))
     env:
       NPM_TOKEN: $(npm-automation.token)
 
