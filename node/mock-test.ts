@@ -156,8 +156,8 @@ export class MockTestRunner {
     }
 
     /**
-     * @deprecated due to avoid sync methods
-     */
+    * @deprecated This method uses library which is not prefered to use on production
+    */
     public run(nodeVersion?: number): void {
         let completeExecution = false;
         this.runAsync(nodeVersion).then(t => completeExecution = true)
@@ -287,31 +287,27 @@ export class MockTestRunner {
 
     // Downloads file to the downloadDestination, making any necessary folders along the way.
     private async downloadFile(url: string, downloadDestination: string, fileName: string): Promise<void> {
-        return await new Promise(async (resolve, reject) => {
-            if (!url) {
-                reject(new Error('Parameter "url" must be set.'));
-                return;
-            }
-            if (!downloadDestination) {
-                reject(new Error('Parameter "downloadDestination" must be set.'));
-                return;
-            }
-            console.log('Downloading file:', url);
-            shelljs.mkdir('-p', downloadDestination);
-
-            const downloader = new Downloader({
-                url: url,
-                directory: downloadDestination,
-                fileName: fileName
-            });
-
-            try {
-                const { fileName } = await downloader.download();
-                resolve(fileName)
-            } catch (error) {
-                reject(error)
-            }
-        })
+        if (!url) {
+            throw new Error('Parameter "url" must be set.');
+        }
+        if (!downloadDestination) {
+            throw new Error('Parameter "downloadDestination" must be set.');
+        }
+        console.log('Downloading file:', url);
+        shelljs.mkdir('-p', downloadDestination);
+    
+        const downloader = new Downloader({
+            url: url,
+            directory: downloadDestination,
+            fileName: fileName
+        });
+    
+        try {
+            const { fileName } = await downloader.download();
+            return;
+        } catch (error) {
+            throw error;
+        }
     }
 
     // Downloads tarGz to the download destination, making any necessary folders along the way.
