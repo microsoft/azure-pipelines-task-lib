@@ -66,7 +66,7 @@ exports.getExternalsAsync = getExternalsAsync
 
 
 /**
- * @deprecated This method uses library which is not prefered to use on production
+* @deprecated This method uses library which is not prefered to use on production
  */
 exports.getExternals = function () {
     var result = false;
