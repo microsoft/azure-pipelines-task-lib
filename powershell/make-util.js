@@ -144,13 +144,10 @@ const downloadFileAsync = async function (url, fileName) {
         fileName: fileName
     });
 
-    try {
+
         const { fileName } = await downloader.download(); // Downloader.download() resolves with some useful properties.
         fs.writeFileSync(marker, '');
         return fileName;
-    } catch (error) {
-        throw error;
-    }
 };
 
 exports.downloadFileAsync = downloadFileAsync;
