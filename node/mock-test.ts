@@ -295,19 +295,15 @@ export class MockTestRunner {
         }
         console.log('Downloading file:', url);
         shelljs.mkdir('-p', downloadDestination);
-    
+
         const downloader = new Downloader({
             url: url,
             directory: downloadDestination,
             fileName: fileName
         });
-    
-        try {
-            const { fileName } = await downloader.download();
-            return;
-        } catch (error) {
-            throw error;
-        }
+
+        await downloader.download();
+        return;
     }
 
     // Downloads tarGz to the download destination, making any necessary folders along the way.
