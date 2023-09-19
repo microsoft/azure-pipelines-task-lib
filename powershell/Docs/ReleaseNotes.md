@@ -1,5 +1,8 @@
 # Release Notes
 
+## 0.16.0
+* Replaced deprecated "sync-request" libraryr and Added new async methods for DownloadArchive
+
 ## 0.15.0
 * Removed the `Q` library
 

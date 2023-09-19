@@ -4,12 +4,14 @@ var fs = require('fs');
 var os = require('os');
 var path = require('path');
 var process = require('process');
-var syncRequest = require('sync-request');
+var admZip = require('adm-zip');
+var deasync = require('deasync')
+const Downloader = require("nodejs-file-downloader");
 
 var downloadPath = path.join(__dirname, '_download');
 var testPath = path.join(__dirname, '_test');
 
-exports.run = function(cl) {
+exports.run = function (cl) {
     console.log('> ' + cl);
     var rc = exec(cl).code;
     if (rc !== 0) {
@@ -19,7 +21,9 @@ exports.run = function(cl) {
 }
 var run = exports.run;
 
-exports.getExternals = function () {
+
+
+const getExternalsAsync = async () => {
     if (process.env['TF_BUILD']) {
         // skip adding node 5.10.1 to the PATH. the CI definition tests against node 5 and 6.
         return;
@@ -38,16 +42,16 @@ exports.getExternals = function () {
     var nodeVersion = 'v16.13.0';
     switch (platform) {
         case 'darwin':
-            var nodeArchivePath = downloadArchive(nodeUrl + '/' + nodeVersion + '/node-' + nodeVersion + '-darwin-x64.tar.gz');
+            var nodeArchivePath = await downloadArchiveAsync(nodeUrl + '/' + nodeVersion + '/node-' + nodeVersion + '-darwin-x64.tar.gz');
             addPath(path.join(nodeArchivePath, 'node-' + nodeVersion + '-darwin-x64', 'bin'));
             break;
         case 'linux':
-            var nodeArchivePath = downloadArchive(nodeUrl + '/' + nodeVersion + '/node-' + nodeVersion + '-linux-x64.tar.gz');
+            var nodeArchivePath = await downloadArchiveAsync(nodeUrl + '/' + nodeVersion + '/node-' + nodeVersion + '-linux-x64.tar.gz');
             addPath(path.join(nodeArchivePath, 'node-' + nodeVersion + '-linux-x64', 'bin'));
             break;
         case 'win32':
-            var nodeExePath = downloadFile(nodeUrl + '/' + nodeVersion + '/win-x64/node.exe');
-            var nodeLibPath = downloadFile(nodeUrl + '/' + nodeVersion + '/win-x64/node.lib');
+            var nodeExePath = await downloadFileAsync(nodeUrl + '/' + nodeVersion + '/win-x64/node.exe');
+            var nodeLibPath = await downloadFileAsync(nodeUrl + '/' + nodeVersion + '/win-x64/node.lib');
             var nodeDirectory = path.join(testPath, 'node');
             mkdir('-p', nodeDirectory);
             cp(nodeExePath, path.join(nodeDirectory, 'node.exe'));
@@ -57,83 +61,97 @@ exports.getExternals = function () {
     }
 }
 
-var downloadFile = function (url) {
-    // validate parameters
-    if (!url) {
-        throw new Error('Parameter "url" must be set.');
-    }
+exports.getExternalsAsync = getExternalsAsync
 
-    // short-circuit if already downloaded
-    var scrubbedUrl = url.replace(/[/\:?]/g, '_');
-    var targetPath = path.join(downloadPath, 'file', scrubbedUrl);
-    var marker = targetPath + '.completed';
-    if (!test('-f', marker)) {
-        console.log('Downloading file: ' + url);
 
-        // delete any previous partial attempt
-        if (test('-f', targetPath)) {
-            rm('-f', targetPath);
-        }
 
-        // download the file
-        mkdir('-p', path.join(downloadPath, 'file'));
-        var result = syncRequest('GET', url);
-        fs.writeFileSync(targetPath, result.getBody());
-
-        // write the completed marker
-        fs.writeFileSync(marker, '');
-    }
-
-    return targetPath;
+/**
+* @deprecated This method uses library which is not prefered to use on production
+ */
+exports.getExternals = function () {
+    var result = false;
+    getExternalsAsync().then(t => result = true);
+    deasync.loopWhile(function () { return !result });
+    return result;
 }
 
-var downloadArchive = function (url) {
-    // validate platform
-    var platform = os.platform();
-    if (platform != 'darwin' && platform != 'linux') {
-        throw new Error('Unexpected platform: ' + platform);
-    }
 
+var downloadFileAsync = async function (url, fileName) {
     // validate parameters
     if (!url) {
         throw new Error('Parameter "url" must be set.');
     }
 
-    if (!url.match(/\.tar\.gz$/)) {
-        throw new Error('Expected .tar.gz');
+    // skip if already downloaded
+    var scrubbedUrl = url.replace(/[/\:?]/g, '_');
+    if (fileName == undefined) {
+        fileName = scrubbedUrl;
+    }
+    var targetPath = path.join(downloadPath, 'file', fileName);
+    var marker = targetPath + '.completed';
+    if (test('-f', marker)) {
+        console.log('File already exists: ' + targetPath);
+        return targetPath;
     }
 
-    // short-circuit if already downloaded and extracted
-    var scrubbedUrl = url.replace(/[/\:?]/g, '_');
+    console.log('Downloading file: ' + url);
+    // delete any previous partial attempt
+    if (test('-f', targetPath)) {
+        rm('-f', targetPath);
+    }
+
+    // download the file
+    mkdir('-p', path.join(downloadPath, 'file'));
+
+    const downloader = new Downloader({
+        url: url,
+        directory: path.join(downloadPath, 'file'),
+        fileName: fileName
+    });
+
+    const { fileName: downloadedFileName } = await downloader.download(); // Downloader.download() resolves with some useful properties.
+    fs.writeFileSync(marker, '');
+    return downloadedFileName;
+
+};
+
+
+var downloadArchiveAsync = async function (url, fileName) {
+    if (!url) {
+        throw new Error('Parameter "url" must be set.');
+    }
+
+    // skip if already downloaded and extracted
+    var scrubbedUrl = url.replace(/[\/\\:?]/g, '_');
+    if (fileName != undefined) {
+        scrubbedUrl = fileName;
+    }
     var targetPath = path.join(downloadPath, 'archive', scrubbedUrl);
     var marker = targetPath + '.completed';
-    if (!test('-f', marker)) {
-        // download the archive
-        var archivePath = downloadFile(url);
-        console.log('Extracting archive: ' + url);
+    if (test('-f', marker)) {
+        return targetPath;
+    }
+    
+    // download the archive
+    var archivePath = await downloadFileAsync(url, scrubbedUrl);
+    console.log('Extracting archive: ' + url);
 
-        // delete any previously attempted extraction directory
-        if (test('-d', targetPath)) {
-            rm('-rf', targetPath);
-        }
-
-        // extract
-        mkdir('-p', targetPath);
-        var cwd = process.cwd();
-        process.chdir(targetPath);
-        try {
-            run('tar -xzf "' + archivePath + '"');
-        }
-        finally {
-            process.chdir(cwd);
-        }
-
-        // write the completed marker
-        fs.writeFileSync(marker, '');
+    // delete any previously attempted extraction directory
+    if (test('-d', targetPath)) {
+        rm('-rf', targetPath);
     }
 
+    // extract
+    mkdir('-p', targetPath);
+    var zip = new admZip(archivePath);
+    zip.extractAllTo(targetPath);
+
+    // write the completed marker
+    fs.writeFileSync(marker, '');
+
     return targetPath;
-}
+};
+
 
 var addPath = function (directory) {
     var separator;
