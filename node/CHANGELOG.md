@@ -48,3 +48,11 @@ Backported from ver.`3.4.0`:
 ## 4.4.0
 
 - Add `getBoolFeatureFlag` [#936](https://github.com/microsoft/azure-pipelines-task-lib/pull/936)
+
+## 4.6.0
+
+- Replaced deprecated "sync-request" lib and Added new Async methods - [#932](https://github.com/microsoft/azure-pipelines-task-lib/pull/932)
+
+## 5.0.0-preview.0
+
+- [Mockery replacement] - Replaced mockery with similar adapter - [#968](https://github.com/microsoft/azure-pipelines-task-lib/pull/968)
