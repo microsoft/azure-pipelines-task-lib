@@ -36,7 +36,7 @@ This Azure Pipelines extension (azure-pipelines-task-lib) is based on or incorpo
 30.	semver (git+https://github.com/npm/node-semver.git)
 31.	shelljs (git://github.com/arturadib/shelljs.git)
 32.	string_decoder (git://github.com/rvagg/string_decoder.git)
-33.	sync-request (git+https://github.com/ForbesLindesay/sync-request.git)
+33.	nodejs-file-downloader (git://github.com/ibrod83/nodejs-file-downloader.git)
 34.	then-request (git+https://github.com/then/then-request.git)
 35.	typedarray (git://github.com/substack/typedarray.git)
 36.	typescript (git+https://github.com/Microsoft/TypeScript.git)
@@ -889,7 +889,8 @@ IN THE SOFTWARE.
 =========================================
 END OF string_decoder NOTICES, INFORMATION, AND LICENSE
 
-%% sync-request NOTICES, INFORMATION, AND LICENSE BEGIN HERE
+
+%% nodejs-file-downloader NOTICES, INFORMATION, AND LICENSE BEGIN HERE
 =========================================
 Copyright (c) 2014 Forbes Lindesay
 
@@ -911,7 +912,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 =========================================
-END OF sync-request NOTICES, INFORMATION, AND LICENSE
+END OF nodejs-file-downloader NOTICES, INFORMATION, AND LICENSE
+
 
 %% then-request NOTICES, INFORMATION, AND LICENSE BEGIN HERE
 =========================================
