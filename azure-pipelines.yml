@@ -1,67 +1,16 @@
 trigger:
-- master
-- features/*
-- releases/*
-
-variables:
-  - group: npm-tokens
-  - name: nodeVersion
-    value: '16.13.0'
+- none
 
 jobs:
-#################################################
 - job: windows
-#################################################
   displayName: windows
   pool:
     vmImage: windows-2022
-
   steps:
-    - template: azure-pipelines-steps-node.yml
-      parameters:
-        nodeVersion: $(nodeVersion)
-
-    - template: azure-pipelines-steps-test-build.yml
-
-#################################################
-- job: linux
-#################################################
-  displayName: Linux
-  pool:
-    vmImage: ubuntu-22.04
-
-  steps:
-  - template: azure-pipelines-steps-node.yml
-    parameters:
-      nodeVersion: $(nodeVersion)
-  - template: azure-pipelines-steps-test-build.yml
-
-  - task: PublishPipelineArtifact@1
+  - task: PowerShell@2
     inputs:
-      targetPath: 'node/_build'
-      artifactType: 'pipeline'
-      artifactName: 'npm-package'
-
-  # For CI runs on master, automatically publish packages
-  - bash: |
-        echo //registry.npmjs.org/:_authToken=\${NPM_TOKEN} > .npmrc
-        npm publish || true # Ignore publish failures, usually will happen because package already exists
-    displayName: npm publish
-    workingDirectory: node/_build
-    condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master'))
-    env:
-      NPM_TOKEN: $(npm-automation.token)
-
-#################################################
-- job: macOS
-#################################################
-  displayName: macOS
-  pool:
-    vmImage: macOS-12
-
-  steps:
-    - template: azure-pipelines-steps-node.yml
-      parameters:
-        nodeVersion: $(nodeVersion)
-
-    - template: azure-pipelines-steps-test-build.yml
+      targetType: 'inline'
+      script: |
+        # Write your PowerShell commands here.
+        
+        Write-Host "Hello World"
