@@ -49,5 +49,13 @@ Backported from ver.`3.4.0`:
 
 - Add `getBoolFeatureFlag` [#936](https://github.com/microsoft/azure-pipelines-task-lib/pull/936)
 
+## 4.5.0
+
+- Added `execAsync` methods that return native promises. Marked `exec` methods that return promises from the Q library as deprecated [#905](https://github.com/microsoft/azure-pipelines-task-lib/pull/905)
+
+## 4.6.0
+
+- Replaced deprecated "sync-request" lib and Added new Async methods - [#932](https://github.com/microsoft/azure-pipelines-task-lib/pull/932)
+
 ## 5.x
 - Introduced support for node20 task handler and added node20 to task.schema.json [#962](https://github.com/microsoft/azure-pipelines-task-lib/pull/962)

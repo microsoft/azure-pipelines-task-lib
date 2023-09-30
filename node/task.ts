@@ -1448,6 +1448,34 @@ export function rmRF(inputPath: string): void {
  * @param     options  optional exec options.  See IExecOptions
  * @returns   number
  */
+export function execAsync(tool: string, args: any, options?: trm.IExecOptions): Promise<number> {
+    let tr: trm.ToolRunner = this.tool(tool);
+    tr.on('debug', (data: string) => {
+        debug(data);
+    });
+
+    if (args) {
+        if (args instanceof Array) {
+            tr.arg(args);
+        }
+        else if (typeof (args) === 'string') {
+            tr.line(args)
+        }
+    }
+    return tr.execAsync(options);
+}
+
+/**
+ * Exec a tool.  Convenience wrapper over ToolRunner to exec with args in one call.
+ * Output will be streamed to the live console.
+ * Returns promise with return code
+ *
+ * @deprecated Use the {@link execAsync} method that returns a native Javascript Promise instead
+ * @param     tool     path to tool to exec
+ * @param     args     an arg string or array of args
+ * @param     options  optional exec options.  See IExecOptions
+ * @returns   number
+ */
 export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Promise<number> {
     let tr: trm.ToolRunner = this.tool(tool);
     tr.on('debug', (data: string) => {

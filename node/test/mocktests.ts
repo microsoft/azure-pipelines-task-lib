@@ -328,13 +328,13 @@ describe('Mock Tests', function () {
         done();
     })
 
-    it('MockTest handles node 20 tasks correctly', function (done) {
+    it('MockTest handles node 20 tasks correctly by async call', async () => {
         this.timeout(30000);
-        const runner = new mtm.MockTestRunner(path.join(__dirname, 'fakeTasks', 'node20task', 'entry.js'));
+        const runner = await (new mtm.MockTestRunner).LoadAsync(path.join(__dirname, 'fakeTasks', 'node20task', 'entry.js'));
         const nodePath = runner.nodePath;
         assert(nodePath, 'node path should have been correctly set');
         const version = ncp.execSync(nodePath + ' -v').toString().trim();
         assert(semver.satisfies(version, '20.x'), 'Downloaded node version should be Node 20 instead of ' + version);
-        done();
+        await Promise.resolve()
     })
 });
