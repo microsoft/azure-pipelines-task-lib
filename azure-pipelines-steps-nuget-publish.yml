@@ -1,0 +1,48 @@
+steps:
+
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      $packageJsonPath = "$(Build.SourcesDirectory)/powershell/package.json"
+      $nuspecPath = "$(Build.SourcesDirectory)/powershell/VstsTaskSdk/VstsTaskSdk.nuspec"
+
+      # Read the version from package.json
+      $packageJson = Get-Content $packageJsonPath | ConvertFrom-Json
+      $version = $packageJson.version
+
+      # Read the .nuspec file content
+      $nuspecContent = Get-Content $nuspecPath
+
+      # Replace the [version] placeholder with the actual version
+      $newNuspecContent = $nuspecContent -replace '\[version\]', $version
+
+      # Save the updated content back to the .nuspec file
+      $newNuspecContent | Set-Content $nuspecPath
+
+      Write-Host "Version in $nuspecPath updated to $version"
+
+
+- task: NuGetToolInstaller@1
+  inputs:
+    versionSpec: '>=6.7.0'
+    
+- task: MSBuild@1
+  inputs:
+    solution: '$(Build.SourcesDirectory)/powershell/CompiledHelpers/VstsTaskSdk.csproj'
+    configuration: 'Release'
+    msbuildArguments: '/p:OutDir=../VstsTaskSdk'
+    clean: true
+- task: NuGetCommand@2
+  inputs:
+    command: 'pack'
+    packagesToPack: 'powershell/VstsTaskSdk'
+    versioningScheme: 'off'
+  
+- task: NuGetCommand@2
+  inputs:
+    command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+    nuGetFeedType: 'external'
+    publishFeedCredentials: 'vststasksdk-feed'
+    allowPackageConflicts: true
