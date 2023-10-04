@@ -41,7 +41,7 @@
     },
     "removalDate": {
       "type": "string",
-      "description": "Date when the deprecated task will be removed. Format: YYYY-MM-DD",
+      "description": "The date included in the depreciation warning after which the task may not be available. Format: YYYY-MM-DD",
       "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
     },
     "showEnvironmentVariables": {
