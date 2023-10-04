@@ -39,6 +39,11 @@
       "type": "boolean",
       "description": "Task is deprecated only when the latest version is marked as deprecated. Deprecated tasks appear at the end of searches under a section that is collapsed by default."
     },
+    "removalDate": {
+      "type": "string",
+      "description": "Date when the deprecated task will be removed. Format: YYYY-MM-DD",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
     "showEnvironmentVariables": {
       "type": "boolean",
       "description": "Toggles showing the environment variable editor in the task editor UI. Allows passing environment variables to script based tasks."
