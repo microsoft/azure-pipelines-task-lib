@@ -39,7 +39,8 @@ function Assert-Path {
 
     if ($PathType -eq [Microsoft.PowerShell.Commands.TestPathType]::Any) {
         Write-Verbose "Asserting path exists: '$LiteralPath'"
-    } else {
+    }
+    else {
         Write-Verbose "Asserting $("$PathType".ToLowerInvariant()) path exists: '$LiteralPath'"
     }
 
@@ -75,7 +76,7 @@ This parameter not required for most scenarios. Indicates how to interpret the e
 .PARAMETER RequireExitCodeZero
 Indicates whether to write an error to the error pipeline if the exit code is not zero.
 #>
-function Invoke-Tool { # TODO: RENAME TO INVOKE-PROCESS?
+function Invoke-Tool {
     [CmdletBinding()]
     param(
         [ValidatePattern('^[^\r\n]*$')]
@@ -107,7 +108,8 @@ function Invoke-Tool { # TODO: RENAME TO INVOKE-PROCESS?
         Write-Host "##[command]""$FileName"" $Arguments"
         try {
             Invoke-Expression "& '$FileName' --% $Arguments"
-        } catch [System.Management.Automation.Host.HostException] {
+        }
+        catch [System.Management.Automation.Host.HostException] {
             if ($IgnoreHostException -eq $False) {
                 throw
             }
@@ -118,13 +120,88 @@ function Invoke-Tool { # TODO: RENAME TO INVOKE-PROCESS?
         if ($RequireExitCodeZero -and $LASTEXITCODE -ne 0) {
             Write-Error (Get-LocString -Key PSLIB_Process0ExitedWithCode1 -ArgumentList ([System.IO.Path]::GetFileName($FileName)), $LASTEXITCODE)
         }
-    } finally {
+    }
+    finally {
         if ($originalEncoding) {
             [System.Console]::OutputEncoding = $originalEncoding
         }
 
         if ($isPushed) {
             Pop-Location
+        }
+
+        Trace-LeavingInvocation $MyInvocation
+    }
+}
+
+<#
+.SYNOPSIS
+Executes an external program.
+
+.DESCRIPTION
+Executes an external program and waits for the process to exit.
+
+After calling this command, the exit code of the process can be retrieved from the variable $LASTEXITCODE.
+
+.PARAMETER Encoding
+This parameter not required for most scenarios. Indicates how to interpret the encoding from the external program. An example use case would be if an external program outputs UTF-16 XML and the output needs to be parsed.
+
+.PARAMETER RequireExitCodeZero
+Indicates whether to write an error to the error pipeline if the exit code is not zero.
+#>
+function Invoke-Process {
+    [CmdletBinding()]
+    param(
+        [ValidatePattern('^[^\r\n]*$')]
+        [Parameter(Mandatory = $true)]
+        [string]$FileName,
+        [ValidatePattern('^[^\r\n]*$')]
+        [Parameter()]
+        [string]$Arguments,
+        [string]$WorkingDirectory,
+        [System.Text.Encoding]$Encoding,
+        [switch]$RequireExitCodeZero
+    )
+
+    Trace-EnteringInvocation $MyInvocation
+    $originalEncoding = $null
+    try {
+        if ($Encoding) {
+            $originalEncoding = [System.Console]::OutputEncoding
+            [System.Console]::OutputEncoding = $Encoding
+        }
+
+        $FileName = $FileName.Replace('"', '').Replace("'", "''")
+        Write-Host "##[command]""$FileName"" $Arguments"
+
+        $processOptions = @{
+            FilePath               = $FileName
+            ArgumentList           = $Arguments
+            NoNewWindow            = $true
+        }
+        if ($WorkingDirectory) {
+            $processOptions.Add("WorkingDirectory", $WorkingDirectory)
+        }
+
+        $proc = Start-Process @processOptions -PassThru
+        $proc | Wait-Process
+
+        $procExitCode = $proc.ExitCode
+        Write-Verbose "Exit code: $procExitCode"
+
+        if ($procExitCode -ne 0) {
+            Write-Error (Get-LocString -Key PSLIB_Process0ExitedWithCode1 -ArgumentList ([System.IO.Path]::GetFileName($FileName)), $procExitCode)
+        }
+
+        Write-Verbose "Exit code: $procExitCode"
+        if ($RequireExitCodeZero -and $procExitCode -ne 0) {
+            Write-Error (Get-LocString -Key PSLIB_Process0ExitedWithCode1 -ArgumentList ([System.IO.Path]::GetFileName($FileName)), $procExitCode)
+        }
+        $LASTEXITCODE = $procExitCode
+    }
+    finally {
+        if ($originalEncoding) {
+            [System.Console]::OutputEncoding = $originalEncoding
         }
 
         Trace-LeavingInvocation $MyInvocation
