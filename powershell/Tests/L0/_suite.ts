@@ -1,6 +1,8 @@
 /// <reference path="../../definitions/mocha.d.ts"/>
 /// <reference path="../../definitions/node.d.ts"/>
+/// <reference path="../../definitions/Q.d.ts"/>
 
+import Q = require('q');
 import assert = require('assert');
 import psRunner = require('../lib/psRunner');
 import path = require('path');

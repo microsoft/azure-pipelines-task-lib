@@ -1,5 +1,7 @@
 /// <reference path="../../definitions/node.d.ts"/>
+/// <reference path="../../definitions/Q.d.ts"/>
 
+import Q = require('q');
 import events = require('events');
 import fs = require('fs');
 import path = require('path');
@@ -19,7 +21,7 @@ class PSEngineRunner extends events.EventEmitter {
 
     private _childProcess: child.ChildProcess;
     private _errors: string[];
-    private _runDeferred: Promise<void>;
+    private _runDeferred: Q.Deferred<void>;
     public stderr: string;
     public stdout: string;
 
@@ -37,7 +39,7 @@ class PSEngineRunner extends events.EventEmitter {
         .then(() => {
             done();
         })
-        .catch((err) => {
+        .fail((err) => {
             done(err);
         });
     }
@@ -48,6 +50,7 @@ class PSEngineRunner extends events.EventEmitter {
         }
 
         this.emit('starting');
+        var defer = Q.defer<void>();
         var powershell = shell.which('powershell.exe').stdout;
         this._childProcess = child.spawn(
             powershell, // command
@@ -71,9 +74,9 @@ class PSEngineRunner extends events.EventEmitter {
                 // Check for special ouput indicating end of test.
                 if (('' + data).indexOf('_END_OF_TEST_ce10a77a_') >= 0) {
                     if (this._errors.length > 0) {
-                        this._runDeferred = Promise.reject(this._errors.join('\n'));
+                        this._runDeferred.reject(this._errors.join('\n'));
                     } else {
-                        this._runDeferred = Promise.resolve();
+                        this._runDeferred.resolve(null);
                     }
                 } else if (data != '\n') {
                     if (('' + data).match(/##vso\[task.logissue .*type=error/)) {
@@ -95,12 +98,12 @@ class PSEngineRunner extends events.EventEmitter {
             });
     }
 
-    private runPromise(psPath: string): Promise<void> {
+    private runPromise(psPath: string): Q.Promise<void> {
         this.emit('running test');
         this._errors = [];
-        this._runDeferred = Promise.resolve();
+        this._runDeferred = Q.defer<void>();
         this._childProcess.stdin.write(psPath + '\n')
-        return this._runDeferred;
+        return <Q.Promise<void>>this._runDeferred.promise;
     }
 }
 

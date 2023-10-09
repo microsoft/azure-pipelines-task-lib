@@ -66,8 +66,8 @@ target.test = function() {
     target.build();
 
     util.mkdir('-p', testPath);
-    util.run(`tsc --outDir "${testPath}" --module commonjs --target es6 --rootDir Tests Tests/lib/psRunner.ts`);
-    util.run(`tsc --outDir "${testPath}" --module commonjs --target es6 --rootDir Tests Tests/L0/_suite.ts`);
+    util.run(`tsc --outDir "${testPath}" --module commonjs --rootDir Tests Tests/lib/psRunner.ts`);
+    util.run(`tsc --outDir "${testPath}" --rootDir Tests Tests/L0/_suite.ts`);
     util.cp('-r', path.join('Tests', '*'), testPath);
     util.run('mocha "' + path.join(testPath, 'L0', '_suite.js') + '"');
 }
