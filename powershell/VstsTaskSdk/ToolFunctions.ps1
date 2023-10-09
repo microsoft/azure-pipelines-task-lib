@@ -141,13 +141,15 @@ Executes an external program.
 .DESCRIPTION
 Executes an external program and waits for the process to exit.
 
-After calling this command, the exit code of the process can be retrieved from the variable $LASTEXITCODE.
+After calling this command, the exit code of the process can be retrieved from the variable $LASTEXITCODE or from the pipe.
 
 .PARAMETER Encoding
 This parameter not required for most scenarios. Indicates how to interpret the encoding from the external program. An example use case would be if an external program outputs UTF-16 XML and the output needs to be parsed.
 
 .PARAMETER RequireExitCodeZero
 Indicates whether to write an error to the error pipeline if the exit code is not zero.
+.OUTPUTS
+    Exit code of the invoked process.
 #>
 function Invoke-Process {
     [CmdletBinding()]
@@ -175,29 +177,28 @@ function Invoke-Process {
         Write-Host "##[command]""$FileName"" $Arguments"
 
         $processOptions = @{
-            FilePath               = $FileName
-            ArgumentList           = $Arguments
-            NoNewWindow            = $true
+            FilePath     = $FileName
+            ArgumentList = $Arguments
+            NoNewWindow  = $true
+            PassThru     = $true
         }
         if ($WorkingDirectory) {
             $processOptions.Add("WorkingDirectory", $WorkingDirectory)
         }
 
-        $proc = Start-Process @processOptions -PassThru
+        $proc = Start-Process @processOptions
         $proc | Wait-Process
 
         $procExitCode = $proc.ExitCode
         Write-Verbose "Exit code: $procExitCode"
 
-        if ($procExitCode -ne 0) {
-            Write-Error (Get-LocString -Key PSLIB_Process0ExitedWithCode1 -ArgumentList ([System.IO.Path]::GetFileName($FileName)), $procExitCode)
-        }
-
-        Write-Verbose "Exit code: $procExitCode"
         if ($RequireExitCodeZero -and $procExitCode -ne 0) {
             Write-Error (Get-LocString -Key PSLIB_Process0ExitedWithCode1 -ArgumentList ([System.IO.Path]::GetFileName($FileName)), $procExitCode)
         }
-        $LASTEXITCODE = $procExitCode
+
+        $global:LASTEXITCODE = $procExitCode
+
+        return $procExitCode
     }
     finally {
         if ($originalEncoding) {
