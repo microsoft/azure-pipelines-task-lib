@@ -146,10 +146,17 @@ After calling this command, the exit code of the process can be retrieved from t
 .PARAMETER Encoding
 This parameter not required for most scenarios. Indicates how to interpret the encoding from the external program. An example use case would be if an external program outputs UTF-16 XML and the output needs to be parsed.
 
+.PARAMETER StdOutPath
+Path to a file to write the stdout of the process to.
+
+.PARAMETER StdErrPath
+Path to a file to write the stderr of the process to.
+
 .PARAMETER RequireExitCodeZero
 Indicates whether to write an error to the error pipeline if the exit code is not zero.
+
 .OUTPUTS
-    Exit code of the invoked process.
+Exit code of the invoked process. Also available through the $LASTEXITCODE.
 #>
 function Invoke-Process {
     [CmdletBinding()]
@@ -162,6 +169,8 @@ function Invoke-Process {
         [string]$Arguments,
         [string]$WorkingDirectory,
         [System.Text.Encoding]$Encoding,
+        [string]$StdOutPath,
+        [string]$StdErrPath,
         [switch]$RequireExitCodeZero
     )
 
@@ -178,12 +187,20 @@ function Invoke-Process {
 
         $processOptions = @{
             FilePath     = $FileName
-            ArgumentList = $Arguments
             NoNewWindow  = $true
             PassThru     = $true
         }
+        if ($Arguments) {
+            $processOptions.Add("ArgumentList", $Arguments)
+        }
         if ($WorkingDirectory) {
             $processOptions.Add("WorkingDirectory", $WorkingDirectory)
+        }
+        if ($StdOutPath) {
+            $processOptions.Add("RedirectStandardOutput", $StdOutPath)
+        }
+        if ($StdErrPath) {
+            $processOptions.Add("RedirectStandardError", $StdErrPath)
         }
 
         # TODO: For some reason, -Wait is not working on agent.
