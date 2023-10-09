@@ -17,8 +17,16 @@ Invoke-VstsTaskScript -ScriptBlock {
         foreach ($variableSet in $variableSets) {
             $splat = $variableSet.Splat
 
+            $stdOutPath = [System.IO.Path]::Combine($tempDirectory, [System.IO.Path]::GetRandomFileName())
+
             # Act.
-            $actual = Invoke-VstsProcess -FileName 'cmd.exe' -Arguments '/c "CD"' @splat
+            Invoke-VstsProcess `
+                -FileName 'cmd.exe' `
+                -Arguments '/c "CD"' `
+                -StdOutPath $stdOutPath `
+                @splat
+
+            $actual = Get-Content -LiteralPath $stdOutPath -Encoding UTF8
 
             # Assert.
             Assert-AreEqual $variableSet.Expected $actual
