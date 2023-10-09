@@ -186,8 +186,13 @@ function Invoke-Process {
             $processOptions.Add("WorkingDirectory", $WorkingDirectory)
         }
 
+        # TODO: For some reason, -Wait is not working on agent.
+        # Agent starts executing the System usage metrics and hangs the step forever.
         $proc = Start-Process @processOptions
-        $proc | Wait-Process
+
+        # https://stackoverflow.com/a/23797762
+        $null = $($proc.Handle)
+        $proc.WaitForExit()
 
         $procExitCode = $proc.ExitCode
         Write-Verbose "Exit code: $procExitCode"
