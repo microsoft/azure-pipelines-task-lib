@@ -703,6 +703,24 @@ export function getPlatform(): Platform {
 }
 
 /**
+ * Resolves major version of Node.js engine used by the agent.
+ * @returns {Number} Node's major version.
+ */
+export function getNodeMajorVersion(): Number {
+    const version = process.versions.node;
+    if (!version) {
+        return NaN;
+    }
+
+    const parts = version.split('.').map(Number);
+    if (parts.length < 1) {
+        return NaN;
+    }
+
+    return parts[0];
+}
+
+/**
  * Return hosted type of Agent
  * @returns {AgentHostedMode}
  */
