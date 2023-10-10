@@ -136,15 +136,18 @@ function Invoke-Tool {
 
 <#
 .SYNOPSIS
-Executes an external program.
+Executes an external program as a child process.
 
 .DESCRIPTION
 Executes an external program and waits for the process to exit.
 
 After calling this command, the exit code of the process can be retrieved from the variable $LASTEXITCODE or from the pipe.
 
-.PARAMETER Encoding
-This parameter not required for most scenarios. Indicates how to interpret the encoding from the external program. An example use case would be if an external program outputs UTF-16 XML and the output needs to be parsed.
+.PARAMETER FileName
+File name (path) of the program to execute.
+
+.PARAMETER Arguments
+Arguments to pass to the program.
 
 .PARAMETER StdOutPath
 Path to a file to write the stdout of the process to.
@@ -157,6 +160,9 @@ Indicates whether to write an error to the error pipeline if the exit code is no
 
 .OUTPUTS
 Exit code of the invoked process. Also available through the $LASTEXITCODE.
+
+.NOTES
+To change output encoding, redirect stdout to file and then read the file with the desired encoding.
 #>
 function Invoke-Process {
     [CmdletBinding()]
@@ -168,20 +174,13 @@ function Invoke-Process {
         [Parameter()]
         [string]$Arguments,
         [string]$WorkingDirectory,
-        [System.Text.Encoding]$Encoding,
         [string]$StdOutPath,
         [string]$StdErrPath,
         [switch]$RequireExitCodeZero
     )
 
     Trace-EnteringInvocation $MyInvocation
-    $originalEncoding = $null
     try {
-        if ($Encoding) {
-            $originalEncoding = [System.Console]::OutputEncoding
-            [System.Console]::OutputEncoding = $Encoding
-        }
-
         $FileName = $FileName.Replace('"', '').Replace("'", "''")
         Write-Host "##[command]""$FileName"" $Arguments"
 
@@ -223,10 +222,6 @@ function Invoke-Process {
         return $procExitCode
     }
     finally {
-        if ($originalEncoding) {
-            [System.Console]::OutputEncoding = $originalEncoding
-        }
-
         Trace-LeavingInvocation $MyInvocation
     }
 }
