@@ -30,7 +30,7 @@ namespace TestEncoding {
             @{ Encoding = 'unicode' ; Expected = "Hello world" }
         )
         foreach ($variableSet in $variableSets) {
-            $stdOutPath = [System.IO.Path]::Combine($PSScriptRoot, [System.IO.Path]::GetRandomFileName())
+            $stdOutPath = [System.IO.Path]::Combine($tempDirectory, [System.IO.Path]::GetRandomFileName())
 
             # Act.
             Invoke-VstsProcess `
