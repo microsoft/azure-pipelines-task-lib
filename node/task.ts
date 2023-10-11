@@ -707,9 +707,9 @@ export function getPlatform(): Platform {
  * @returns {Number} Node's major version.
  */
 export function getNodeMajorVersion(): Number {
-    const version = process.versions.node;
+    const version = process?.versions?.node;
     if (!version) {
-        return NaN;
+        throw new Error(loc('LIB_UndefinedNodeVersion'));
     }
 
     const parts = version.split('.').map(Number);
