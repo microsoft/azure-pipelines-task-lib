@@ -57,3 +57,7 @@ Backported from ver.`3.4.0`:
 ## 4.6.0
 
 - Replaced deprecated "sync-request" lib and Added new Async methods - [#932](https://github.com/microsoft/azure-pipelines-task-lib/pull/932)
+
+## 4.6.1
+
+- Added `getNodeMajorVersion` [#979](https://github.com/microsoft/azure-pipelines-task-lib/pull/979)
