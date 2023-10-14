@@ -113,10 +113,12 @@
     },
     "satisfies": {
       "type": "array",
+      "description": "Allows you to define a list of demands that the task will satisfy.",
       "items": {
         "type": "string"
       }
     },
+
     "demands": {
       "type": "array",
       "description": "Allows you to define a list of demands that a build agent requires to run this build task.",
