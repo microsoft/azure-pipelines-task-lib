@@ -12,7 +12,7 @@ import * as trm from '../_build/toolrunner';
 
 import testutil = require('./testutil');
 
-describe('Toolrunner Tests', function () {
+describe('Toolrunner Tests With ExecAsync', function () {
 
     before(function (done) {
         try {
@@ -28,94 +28,6 @@ describe('Toolrunner Tests', function () {
 
     });
 
-    it('ExecSync convenience with stdout', function (done) {
-        this.timeout(10000);
-
-        var _testExecOptions = <trm.IExecOptions>{
-            cwd: __dirname,
-            env: {},
-            silent: false,
-            failOnStdErr: false,
-            ignoreReturnCode: false,
-            outStream: testutil.getNullStream(),
-            errStream: testutil.getNullStream()
-        };
-
-        if (os.platform() === 'win32') {
-            var ret = tl.execSync('cmd', '/c echo \'azure-pipelines-task-lib\'', _testExecOptions);
-            assert.equal(ret.code, 0, 'return code of cmd should be 0');
-        }
-        else {
-            var ret = tl.execSync('ls', '-l -a', _testExecOptions);
-            assert.equal(ret.code, 0, 'return code of ls should be 0');
-        }
-
-        assert(ret.stdout && ret.stdout.length > 0, 'should have emitted stdout');
-        done();
-    })
-    it('ExecSync with stdout', function (done) {
-        this.timeout(10000);
-
-        var _testExecOptions = <trm.IExecOptions>{
-            cwd: __dirname,
-            env: {},
-            silent: false,
-            failOnStdErr: false,
-            ignoreReturnCode: false,
-            outStream: testutil.getNullStream(),
-            errStream: testutil.getNullStream()
-        };
-
-        if (os.platform() === 'win32') {
-            var cmd = tl.tool(tl.which('cmd', true));
-            cmd.arg('/c echo \'azure-pipelines-task-lib\'');
-
-            var ret = cmd.execSync(_testExecOptions);
-            assert.equal(ret.code, 0, 'return code of cmd should be 0');
-        }
-        else {
-            var ls = tl.tool(tl.which('ls', true));
-            ls.arg('-l');
-            ls.arg('-a');
-
-            var ret = ls.execSync(_testExecOptions);
-            assert.equal(ret.code, 0, 'return code of ls should be 0');
-        }
-
-        assert(ret.stdout && ret.stdout.length > 0, 'should have emitted stdout');
-        done();
-    })
-    it('ExecSync fails with rc 1 and stderr', function (done) {
-        this.timeout(10000);
-
-        var _testExecOptions = <trm.IExecOptions>{
-            cwd: __dirname,
-            env: {},
-            silent: false,
-            failOnStdErr: false,
-            ignoreReturnCode: false,
-            outStream: testutil.getNullStream(),
-            errStream: testutil.getNullStream()
-        };
-
-        var tool;
-        if (os.platform() === 'win32') {
-            tool = tl.tool(tl.which('cmd', true));
-            tool.arg('/c');
-            tool.arg('echo hello from stderr 1>&2 && exit 123');
-        }
-        else {
-            tool = tl.tool(tl.which('bash', true));
-            tool.arg('--norc');
-            tool.arg('-c');
-            tool.arg('echo hello from stderr 1>&2 ; exit 123');
-        }
-
-        var ret = tool.execSync(_testExecOptions);
-        assert.equal(ret.code, 123, 'return code of tool should be 123');
-        assert.equal(ret.stderr.toString().trim(), 'hello from stderr');
-        done();
-    })
     it('Exec convenience with stdout', function (done) {
         this.timeout(10000);
 
@@ -130,7 +42,7 @@ describe('Toolrunner Tests', function () {
         };
 
         if (os.platform() === 'win32') {
-            tl.exec('cmd', '/c echo \'azure-pipelines-task-lib\'', _testExecOptions)
+            tl.execAsync('cmd', '/c echo \'azure-pipelines-task-lib\'', _testExecOptions)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code of cmd should be 0');
                     done();
@@ -140,7 +52,7 @@ describe('Toolrunner Tests', function () {
                 });
         }
         else {
-            tl.exec('ls', '-l -a', _testExecOptions)
+            tl.execAsync('ls', '-l -a', _testExecOptions)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code of ls should be 0');
                     done();
@@ -171,7 +83,7 @@ describe('Toolrunner Tests', function () {
             var cmd = tl.tool(cmdPath);
             cmd.arg('/c echo \'azure-pipelines-task-lib\'');
 
-            cmd.exec(_testExecOptions)
+            cmd.execAsync(_testExecOptions)
                 .then(function (code) {
                     var contents = stdStream.getContents();
                     assert(contents.indexOf('exec tool: ' + cmdPath) >= 0, 'should exec cmd');
@@ -187,7 +99,7 @@ describe('Toolrunner Tests', function () {
             ls.arg('-l');
             ls.arg('-a');
 
-            ls.exec(_testExecOptions)
+            ls.execAsync(_testExecOptions)
                 .then(function (code) {
                     var contents = stdStream.getContents();
                     const usr = os.platform() === 'linux' ? '/usr' : '';
@@ -223,7 +135,7 @@ describe('Toolrunner Tests', function () {
                 output = data.toString();
             });
 
-            cmd.exec(_testExecOptions)
+            cmd.execAsync(_testExecOptions)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code of cmd should be 0');
                     assert(output && output.length > 0, 'should have emitted stdout');
@@ -242,7 +154,7 @@ describe('Toolrunner Tests', function () {
                 output = data.toString();
             });
 
-            ls.exec(_testExecOptions)
+            ls.execAsync(_testExecOptions)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code of ls should be 0');
                     assert(output && output.length > 0, 'should have emitted stdout');
@@ -276,7 +188,7 @@ describe('Toolrunner Tests', function () {
             });
 
             var succeeded = false;
-            cmd.exec(_testExecOptions)
+            cmd.execAsync(_testExecOptions)
                 .then(function (code) {
                     succeeded = true;
                     assert.fail('should not have succeeded');
@@ -307,7 +219,7 @@ describe('Toolrunner Tests', function () {
             });
 
             var succeeded = false;
-            bash.exec(_testExecOptions)
+            bash.execAsync(_testExecOptions)
                 .then(function () {
                     succeeded = true;
                     assert.fail('should not have succeeded');
@@ -343,7 +255,7 @@ describe('Toolrunner Tests', function () {
             outStream: testutil.getNullStream(),
             errStream: testutil.getNullStream()
         };
-        ls.exec(_testExecOptions)
+        ls.execAsync(_testExecOptions)
             .then(function (code) {
                 assert.equal(code, 0, 'should have succeeded on stderr');
                 done();
@@ -375,7 +287,7 @@ describe('Toolrunner Tests', function () {
         });
 
         var succeeded = false;
-        node.exec(_testExecOptions)
+        node.execAsync(_testExecOptions)
             .then(function () {
                 succeeded = true;
                 assert.fail('should not have succeeded');
@@ -414,7 +326,7 @@ describe('Toolrunner Tests', function () {
         });
 
         var succeeded = false;
-        tool.exec(_testExecOptions)
+        tool.execAsync(_testExecOptions)
             .then(function () {
                 succeeded = true;
                 assert.fail('should not have succeeded');
@@ -474,7 +386,7 @@ describe('Toolrunner Tests', function () {
             windowsVerbatimArguments: true
         };
 
-        shell.exec(options)
+        shell.execAsync(options)
             .then(function () {
                 assert(toolRunnerDebug.filter((x) => x.indexOf('STDIO streams did not close') >= 0).length == 1, 'Did not find expected debug message');
                 done();
@@ -529,7 +441,7 @@ describe('Toolrunner Tests', function () {
             windowsVerbatimArguments: true
         };
 
-        shell.exec(options)
+        shell.execAsync(options)
             .then(function () {
                 done(new Error('should not have been successful'));
                 done();
@@ -589,7 +501,7 @@ describe('Toolrunner Tests', function () {
             windowsVerbatimArguments: true
         };
 
-        shell.exec(options)
+        shell.execAsync(options)
             .then(function () {
                 done(new Error('should not have been successful'));
                 done();
@@ -636,7 +548,7 @@ describe('Toolrunner Tests', function () {
                 output += data.toString();
             });
 
-            outputExe.exec(_testExecOptions)
+            outputExe.execAsync(_testExecOptions)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code of exec should be 0');
                     assert(output && output.length > 0 && output.indexOf('line 2') >= 0, 'should have emitted stdout ' + output);
@@ -659,7 +571,7 @@ describe('Toolrunner Tests', function () {
                 output += data.toString();
             });
 
-            ps.exec(_testExecOptions)
+            ps.execAsync(_testExecOptions)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code of exec should be 0');
                     assert(output && output.length > 0 && output.indexOf('node') >= 0, 'should have emitted stdout ' + output);
@@ -700,7 +612,7 @@ describe('Toolrunner Tests', function () {
             });
 
             var succeeded = false;
-            outputExe.exec(_testExecOptions)
+            outputExe.execAsync(_testExecOptions)
                 .then(function () {
                     succeeded = true;
                     assert.fail('print-output.exe | findstr "line 2" was a bad command and it did not fail');
@@ -732,7 +644,7 @@ describe('Toolrunner Tests', function () {
             });
 
             var succeeded = false;
-            ps.exec(_testExecOptions)
+            ps.execAsync(_testExecOptions)
                 .then(function () {
                     succeeded = true;
                     assert.fail('ps bad | grep ssh was a bad command and it did not fail');
@@ -788,7 +700,7 @@ describe('Toolrunner Tests', function () {
             });
 
             var succeeded = false;
-            outputExe.exec(_testExecOptions)
+            outputExe.execAsync(_testExecOptions)
                 .then(function (code) {
                     succeeded = true;
                     assert.fail('print-output.exe 0 "line 1" "line 2" "line 3" | match-input.exe 1 "line 2" "some error message" was a bad command and it did not fail');
@@ -827,7 +739,7 @@ describe('Toolrunner Tests', function () {
             })
 
             var succeeded = false;
-            node.exec(_testExecOptions)
+            node.execAsync(_testExecOptions)
                 .then(function (code) {
                     succeeded = true;
                     assert.fail('node [...] | grep --? was a bad command and it did not fail');
@@ -879,7 +791,7 @@ describe('Toolrunner Tests', function () {
                 output += data.toString();
             });
 
-            outputExe.exec(_testExecOptions)
+            outputExe.execAsync(_testExecOptions)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code of exec should be 0');
                     assert(output && output.length > 0 && output.indexOf('line 2') >= 0, 'should have emitted stdout ' + output);
@@ -905,7 +817,7 @@ describe('Toolrunner Tests', function () {
                 output += data.toString();
             });
 
-            ps.exec(_testExecOptions)
+            ps.execAsync(_testExecOptions)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code of exec should be 0');
                     assert(output && output.length > 0 && output.indexOf('node') >= 0, 'should have emitted stdout ' + output);
@@ -951,7 +863,7 @@ describe('Toolrunner Tests', function () {
             });
 
             var succeeded = false;
-            outputExe.exec(_testExecOptions)
+            outputExe.execAsync(_testExecOptions)
                 .then(function () {
                     succeeded = true;
                     assert.fail('print-output.exe | findstr "line 2" was a bad command and it did not fail');
@@ -986,7 +898,7 @@ describe('Toolrunner Tests', function () {
             });
 
             var succeeded = false;
-            ps.exec(_testExecOptions)
+            ps.execAsync(_testExecOptions)
                 .then(function () {
                     succeeded = true;
                     assert.fail('ps bad | grep ssh was a bad command and it did not fail');
@@ -1047,7 +959,7 @@ describe('Toolrunner Tests', function () {
             });
 
             var succeeded = false;
-            outputExe.exec(_testExecOptions)
+            outputExe.execAsync(_testExecOptions)
                 .then(function (code) {
                     succeeded = true;
                     assert.fail('print-output.exe 0 "line 1" "line 2" "line 3" | match-input.exe 1 "line 2" "some error message" was a bad command and it did not fail');
@@ -1088,7 +1000,7 @@ describe('Toolrunner Tests', function () {
             })
 
             var succeeded = false;
-            ps.exec(_testExecOptions)
+            ps.execAsync(_testExecOptions)
                 .then(function (code) {
                     succeeded = true;
                     assert.fail('ps ax | grep --? was a bad command and it did not fail');
@@ -1112,133 +1024,7 @@ describe('Toolrunner Tests', function () {
                 });
         }
     })
-    it('handles single args', function (done) {
-        this.timeout(10000);
-
-        var node = tl.tool(tl.which('node', true));
-        node.arg('one');
-        node.arg('two');
-        assert.equal((node as any).args.length, 2, 'should have 2 args');
-        assert.equal((node as any).args.toString(), 'one,two', 'should be one,two');
-        done();
-    })
-    it('handles arg chaining', function (done) {
-        this.timeout(10000);
-
-        var node = tl.tool(tl.which('node', true));
-        node.arg('one').arg('two').argIf(true, 'three').line('four five');
-        //node.arg('one').arg('two').argIf(true, 'three');
-        assert.equal((node as any).args.length, 5, 'should have 5 args');
-        assert.equal((node as any).args.toString(), 'one,two,three,four,five', 'should be one,two,three,four,five');
-        done();
-    })
-    it('handles padded spaces', function (done) {
-        this.timeout(10000);
-
-        var node = tl.tool(tl.which('node', true));
-        node.arg(' one ');
-        node.arg('two');
-        assert.equal((node as any).args.length, 2, 'should have 2 args');
-        assert.equal((node as any).args.toString(), 'one,two', 'should be one,two');
-        done();
-    })
-    it('handles basic arg string with spaces', function (done) {
-        this.timeout(10000);
-
-        var node = tl.tool(tl.which('node', true));
-        node.line('one two');
-        node.arg('three');
-        assert.equal((node as any).args.length, 3, 'should have 3 args');
-        assert.equal((node as any).args.toString(), 'one,two,three', 'should be one,two,three');
-        done();
-    })
-    it('handles arg string with extra spaces', function (done) {
-        this.timeout(10000);
-
-        var node = tl.tool(tl.which('node', true));
-        node.line('one   two');
-        node.arg('three');
-        assert.equal((node as any).args.length, 3, 'should have 3 args');
-        assert.equal((node as any).args.toString(), 'one,two,three', 'should be one,two,three');
-        done();
-    })
-    it('handles arg string with backslash', function (done) {
-        this.timeout(10000);
-
-        var node = tl.tool(tl.which('node', true));
-        node.line('one two\\arg');
-        node.arg('three');
-        assert.equal((node as any).args.length, 3, 'should have 3 args');
-        assert.equal((node as any).args.toString(), 'one,two\\arg,three', 'should be one,two,three');
-        done();
-    })
-    it('handles multiple escaped backslashes', function (done) {
-        this.timeout(10000);
-
-        var node = tl.tool(tl.which('node', true));
-        node.line('one "\\\\two\\arg"');
-        assert.equal((node as any).args.length, 2, 'should have 2 args');
-        assert.equal((node as any).args.toString(), 'one,\\\\two\\arg', 'should be one,\\\\two\\arg');
-        done();
-    })
-    it('handles equals and switches', function (done) {
-        this.timeout(10000);
-
-        var node = tl.tool(tl.which('node', true));
-        node.line('foo=bar -x');
-        node.arg('-y');
-        assert.equal((node as any).args.length, 3, 'should have 3 args');
-        assert.equal((node as any).args.toString(), 'foo=bar,-x,-y', 'should be foo=bar,-x,-y');
-        done();
-    })
-    it('handles double quotes', function (done) {
-        this.timeout(10000);
-
-        var node = tl.tool(tl.which('node', true));
-        node.line('foo="bar baz" -x');
-        node.arg('-y');
-        assert.equal((node as any).args.length, 3, 'should have 3 args');
-        assert.equal((node as any).args.toString(), 'foo=bar baz,-x,-y', 'should be foo=bar baz,-x,-y');
-        done();
-    })
-    it('handles quote in double quotes', function (done) {
-        this.timeout(10000);
-
-        var node = tl.tool(tl.which('node', true));
-        node.line('foo="bar \\" baz" -x');
-        node.arg('-y');
-        assert.equal((node as any).args.length, 3, 'should have 3 args');
-        assert.equal((node as any).args.toString(), 'foo=bar " baz,-x,-y', 'should be foo=bar " baz,-x,-y');
-        done();
-    })
-    it('handles empty string', function (done) {
-        this.timeout(10000);
-
-        var node = tl.tool(tl.which('node', true));
-        node.line('"" -x');
-        node.arg('-y');
-        assert.equal((node as any).args.length, 3, 'should have 3 args');
-        assert.equal((node as any).args.toString(), ',-x,-y', 'should be ,-x,-y');
-        done();
-    })
-    it('handles literal path', function (done) {
-        this.timeout(10000);
-
-        var node = tl.tool(tl.which('node', true));
-        node.arg('--path').arg('/bin/working folder1');
-        assert.equal((node as any).args.length, 2, 'should have 2 args');
-        assert.equal((node as any).args.toString(), '--path,/bin/working folder1', 'should be --path /bin/working folder1');
-        done();
-    })
-    it('handles escaped quotes', function (done) {
-        this.timeout(10000);
-        var node = tl.tool(tl.which('node', true));
-        node.line('-TEST="escaped\\\"quotes" -x');
-        node.arg('-y');
-        assert.equal((node as any).args.length, 3, 'should have 3 args');
-        assert.equal((node as any).args.toString(), '-TEST=escaped"quotes,-x,-y', 'should be -TEST=escaped"quotes,-x,-y');
-        done();        
-    })
+    
     if (process.platform != 'win32') {
         it('exec prints [command] (OSX/Linux)', function (done) {
             this.timeout(10000);
@@ -1253,7 +1039,7 @@ describe('Toolrunner Tests', function () {
             bash.on('stdout', (data) => {
                 output += data.toString();
             });
-            bash.exec(options)
+            bash.execAsync(options)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code should be 0');
                     // validate the [command] header
@@ -1293,7 +1079,7 @@ describe('Toolrunner Tests', function () {
             exeRunner.on('stdout', (data) => {
                 output += data.toString();
             });
-            exeRunner.exec(options)
+            exeRunner.execAsync(options)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code should be 0');
                     // validate the [command] header
@@ -1329,7 +1115,7 @@ describe('Toolrunner Tests', function () {
             exeRunner.on('stdout', (data) => {
                 output += data.toString();
             });
-            exeRunner.exec(options)
+            exeRunner.execAsync(options)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code should be 0');
                     // validate the [command] header
@@ -1369,7 +1155,7 @@ describe('Toolrunner Tests', function () {
             exeRunner.on('stdout', (data) => {
                 output += data.toString();
             });
-            exeRunner.exec(options)
+            exeRunner.execAsync(options)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code should be 0');
                     // validate the [command] header
@@ -1407,7 +1193,7 @@ describe('Toolrunner Tests', function () {
             cmdRunner.on('stdout', (data) => {
                 output += data.toString();
             });
-            cmdRunner.exec(options)
+            cmdRunner.execAsync(options)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code should be 0');
                     // validate the [command] header
@@ -1443,7 +1229,7 @@ describe('Toolrunner Tests', function () {
             cmdRunner.on('stdout', (data) => {
                 output += data.toString();
             });
-            cmdRunner.exec(options)
+            cmdRunner.execAsync(options)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code should be 0');
                     // validate the [command] header
@@ -1498,7 +1284,7 @@ describe('Toolrunner Tests', function () {
             cmdRunner.on('stdout', (data) => {
                 output += data.toString();
             });
-            cmdRunner.exec(options)
+            cmdRunner.execAsync(options)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code should be 0');
                     // validate the [command] header
@@ -1565,239 +1351,6 @@ describe('Toolrunner Tests', function () {
         });
 
         // -------------------------------
-        // exec sync arg tests (Windows)
-        // -------------------------------
-
-        it('exec sync .exe AND verbatim args (Windows)', function (done) {
-            this.timeout(10000);
-
-            // the echo built-in is a good tool for this test
-            let exePath = process.env.ComSpec;
-            let exeRunner = tl.tool(exePath)
-                .arg('/c')
-                .arg('echo')
-                .arg('helloworld')
-                .arg('hello:"world again"');
-            let outStream = testutil.createStringStream();
-            let options = <trm.IExecSyncOptions>{ outStream: <stream.Writable>outStream, windowsVerbatimArguments: true };
-            let result: trm.IExecSyncResult = exeRunner.execSync(options);
-            assert.equal(result.code, 0, 'return code of cmd should be 0');
-            // validate the [command] header
-            assert.equal(
-                outStream.getContents().split(os.EOL)[0],
-                `[command]"${exePath}" /c echo helloworld hello:"world again"`);
-            // validate stdout
-            assert.equal(
-                result.stdout.trim(),
-                'helloworld hello:"world again"');
-            done();
-        });
-
-        it('exec sync .exe AND arg quoting (Windows)', function (done) {
-            this.timeout(10000);
-
-            // the echo built-in is a good tool for this test
-            let exePath = process.env.ComSpec;
-            let exeRunner = tl.tool(exePath)
-                .arg('/c')
-                .arg('echo')
-                .arg('helloworld')
-                .arg('hello world')
-                .arg('hello:"world again"')
-                .arg('hello,world'); // "," should not be quoted for .exe (should be for .cmd)
-            let outStream = testutil.createStringStream();
-            let options = <trm.IExecSyncOptions>{ outStream: <stream.Writable>outStream };
-            let result: trm.IExecSyncResult = exeRunner.execSync(options);
-            assert.equal(result.code, 0, 'return code of cmd should be 0');
-            // validate the [command] header
-            assert.equal(
-                outStream.getContents().split(os.EOL)[0],
-                '[command]' + exePath + ' /c echo'
-                + ' helloworld'
-                + ' "hello world"'
-                + ' "hello:\\"world again\\""'
-                + ' hello,world');
-            // validate stdout
-            assert.equal(
-                result.stdout.trim(),
-                'helloworld'
-                + ' "hello world"'
-                + ' "hello:\\"world again\\""'
-                + ' hello,world');
-            done();
-        });
-
-        it('exec sync .exe with space AND verbatim args (Windows)', function (done) {
-            this.timeout(20000);
-
-            // this test validates the quoting that tool runner adds around the tool path
-            // when using the windowsVerbatimArguments option. otherwise the target process
-            // interprets the args as starting after the first space in the tool path.
-            let exePath = compileArgsExe('print args exe with spaces.exe');
-            let exeRunner = tl.tool(exePath)
-                .arg('myarg1 myarg2');
-            let outStream = testutil.createStringStream();
-            let options = <trm.IExecSyncOptions>{ outStream: <stream.Writable>outStream, windowsVerbatimArguments: true };
-            let result: trm.IExecSyncResult = exeRunner.execSync(options);
-            // validate the [command] header
-            assert.equal(
-                outStream.getContents().split(os.EOL)[0],
-                `[command]"${exePath}" myarg1 myarg2`);
-            // validate stdout
-            assert.equal(
-                result.stdout.trim(),
-                "args[0]: 'args'\r\n"
-                + "args[1]: 'exe'\r\n"
-                + "args[2]: 'with'\r\n"
-                + "args[3]: 'spaces.exe'\r\n"
-                + "args[4]: 'myarg1'\r\n"
-                + "args[5]: 'myarg2'")
-            done();
-        });
-
-        it('exec sync .cmd with space AND verbatim args (Windows)', function (done) {
-            this.timeout(10000);
-
-            // this test validates the quoting that tool runner adds around the script path.
-            // otherwise cmd.exe will not be able to resolve the path to the script.
-            let cmdPath = path.join(__dirname, 'scripts', 'print args cmd with spaces.cmd');
-            let cmdRunner = tl.tool(cmdPath)
-                .arg('arg1 arg2')
-                .arg('arg3');
-            let outStream = testutil.createStringStream();
-            let options = <trm.IExecSyncOptions>{ outStream: <stream.Writable>outStream, windowsVerbatimArguments: true };
-            let result: trm.IExecSyncResult = cmdRunner.execSync(options);
-            // validate the [command] header
-            assert.equal(
-                outStream.getContents().split(os.EOL)[0],
-                `[command]${process.env.ComSpec} /D /S /C ""${cmdPath}" arg1 arg2 arg3"`);
-            // validate stdout
-            assert.equal(
-                result.stdout.trim(),
-                'args[0]: "arg1"\r\n'
-                + 'args[1]: "arg2"\r\n'
-                + 'args[2]: "arg3"');
-            done();
-        });
-
-        it('exec sync .cmd with space AND arg with space (Windows)', function (done) {
-            this.timeout(10000);
-
-            // this test validates the command is wrapped in quotes (i.e. cmd.exe /S /C "<COMMAND>").
-            // otherwise the leading quote (around the script with space path) would be stripped
-            // and cmd.exe would not be able to resolve the script path.
-            let cmdPath = path.join(__dirname, 'scripts', 'print args cmd with spaces.cmd');
-            let cmdRunner = tl.tool(cmdPath)
-                .arg('my arg 1')
-                .arg('my arg 2');
-            let outStream = testutil.createStringStream();
-            let options = <trm.IExecSyncOptions>{ outStream: <stream.Writable>outStream };
-            let result: trm.IExecSyncResult = cmdRunner.execSync(options);
-            // validate the [command] header
-            assert.equal(
-                outStream.getContents().split(os.EOL)[0],
-                `[command]${process.env.ComSpec} /D /S /C ""${cmdPath}" "my arg 1" "my arg 2""`);
-            // validate stdout
-            assert.equal(
-                result.stdout.trim(),
-                'args[0]: "<quote>my arg 1<quote>"\r\n'
-                + 'args[1]: "<quote>my arg 2<quote>"');
-            done();
-        });
-
-        it('exec sync .cmd AND arg quoting (Windows)', function (done) {
-            this.timeout(10000);
-
-            // this test validates .cmd quoting rules are applied, not the default libuv rules
-            let cmdPath = path.join(__dirname, 'scripts', 'print args cmd with spaces.cmd');
-            let cmdRunner = tl.tool(cmdPath)
-                .arg('helloworld')
-                .arg('hello world')
-                .arg('hello\tworld')
-                .arg('hello&world')
-                .arg('hello(world')
-                .arg('hello)world')
-                .arg('hello[world')
-                .arg('hello]world')
-                .arg('hello{world')
-                .arg('hello}world')
-                .arg('hello^world')
-                .arg('hello=world')
-                .arg('hello;world')
-                .arg('hello!world')
-                .arg('hello\'world')
-                .arg('hello+world')
-                .arg('hello,world')
-                .arg('hello`world')
-                .arg('hello~world')
-                .arg('hello|world')
-                .arg('hello<world')
-                .arg('hello>world')
-                .arg('hello:"world again"')
-                .arg('hello world\\');
-            let outStream = testutil.createStringStream();
-            let options = <trm.IExecSyncOptions>{ outStream: <stream.Writable>outStream };
-            let result: trm.IExecSyncResult = cmdRunner.execSync(options);
-            // validate the [command] header
-            assert.equal(
-                outStream.getContents().split(os.EOL)[0],
-                '[command]' + process.env.ComSpec + ' /D /S /C ""' + cmdPath + '"'
-                + ' helloworld'
-                + ' "hello world"'
-                + ' "hello\tworld"'
-                + ' "hello&world"'
-                + ' "hello(world"'
-                + ' "hello)world"'
-                + ' "hello[world"'
-                + ' "hello]world"'
-                + ' "hello{world"'
-                + ' "hello}world"'
-                + ' "hello^world"'
-                + ' "hello=world"'
-                + ' "hello;world"'
-                + ' "hello!world"'
-                + ' "hello\'world"'
-                + ' "hello+world"'
-                + ' "hello,world"'
-                + ' "hello`world"'
-                + ' "hello~world"'
-                + ' "hello|world"'
-                + ' "hello<world"'
-                + ' "hello>world"'
-                + ' "hello:""world again"""'
-                + ' "hello world\\\\"'
-                + '"');
-            // validate stdout
-            assert.equal(
-                result.stdout.trim(),
-                'args[0]: "helloworld"\r\n'
-                + 'args[1]: "<quote>hello world<quote>"\r\n'
-                + 'args[2]: "<quote>hello\tworld<quote>"\r\n'
-                + 'args[3]: "<quote>hello&world<quote>"\r\n'
-                + 'args[4]: "<quote>hello(world<quote>"\r\n'
-                + 'args[5]: "<quote>hello)world<quote>"\r\n'
-                + 'args[6]: "<quote>hello[world<quote>"\r\n'
-                + 'args[7]: "<quote>hello]world<quote>"\r\n'
-                + 'args[8]: "<quote>hello{world<quote>"\r\n'
-                + 'args[9]: "<quote>hello}world<quote>"\r\n'
-                + 'args[10]: "<quote>hello^world<quote>"\r\n'
-                + 'args[11]: "<quote>hello=world<quote>"\r\n'
-                + 'args[12]: "<quote>hello;world<quote>"\r\n'
-                + 'args[13]: "<quote>hello!world<quote>"\r\n'
-                + 'args[14]: "<quote>hello\'world<quote>"\r\n'
-                + 'args[15]: "<quote>hello+world<quote>"\r\n'
-                + 'args[16]: "<quote>hello,world<quote>"\r\n'
-                + 'args[17]: "<quote>hello`world<quote>"\r\n'
-                + 'args[18]: "<quote>hello~world<quote>"\r\n'
-                + 'args[19]: "<quote>hello|world<quote>"\r\n'
-                + 'args[20]: "<quote>hello<world<quote>"\r\n'
-                + 'args[21]: "<quote>hello>world<quote>"\r\n'
-                + 'args[22]: "<quote>hello:<quote><quote>world again<quote><quote><quote>"\r\n'
-                + 'args[23]: "<quote>hello world\\\\<quote>"');
-            done();
-        });
-
-        // -------------------------------
         // exec pipe arg tests (Windows)
         // -------------------------------
 
@@ -1819,7 +1372,7 @@ describe('Toolrunner Tests', function () {
                 output += data.toString();
             });
             cmdRunner.pipeExecOutputToTool(exeRunner);
-            cmdRunner.exec(options)
+            cmdRunner.execAsync(options)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code should be 0');
                     // validate the [command] header
@@ -1856,7 +1409,7 @@ describe('Toolrunner Tests', function () {
                 output += data.toString();
             });
             cmdRunner.pipeExecOutputToTool(exeRunner);
-            cmdRunner.exec(options)
+            cmdRunner.execAsync(options)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code should be 0');
                     // validate the [command] header
@@ -1873,176 +1426,6 @@ describe('Toolrunner Tests', function () {
                 .catch(function (err) {
                     done(err);
                 })
-        });
-
-        // --------------------------------------
-        // arg quoting function tests (Windows)
-        // --------------------------------------
-
-        it('_windowsQuoteCmdArg quotes .exe args (Windows)', function (done) {
-            this.timeout(10000);
-
-            // create a .exe file
-            let testPath = path.join(testutil.getTestTemp(), 'which-finds-file-name');
-            tl.mkdirP(testPath);
-            let filePath = path.join(testPath, 'some.exe');
-            fs.writeFileSync(filePath, '');
-
-            let tr: any = tl.tool(filePath);
-
-            // ---------------------------------------------
-            // libuv quoting rules should applied for .exe
-            // ---------------------------------------------
-
-            // need double quotation for empty argument
-            assert.equal(tr._windowsQuoteCmdArg(''), '""');
-
-            // no quotation needed
-            assert.equal(tr._windowsQuoteCmdArg('hello'), 'hello');
-
-            // space and tab should be quoted
-            assert.equal(tr._windowsQuoteCmdArg('hello world'), '"hello world"');
-            assert.equal(tr._windowsQuoteCmdArg('hello\tworld'), '"hello\tworld"');
-
-            // slash not preceeding a quote should not be doubled
-            assert.equal(tr._windowsQuoteCmdArg('hello \\world'), '"hello \\world"');
-
-            // --------------------------------------------------------------------------
-            // the following test cases are based on the comments in the UV source code
-            // --------------------------------------------------------------------------
-
-            // input : hello"world
-            // output: "hello\"world"
-            assert.equal(tr._windowsQuoteCmdArg('hello"world'), '"hello\\"world"');
-
-            // input : hello""world
-            // output: "hello\"\"world"
-            assert.equal(tr._windowsQuoteCmdArg('hello""world'), '"hello\\"\\"world"');
-
-            // input : hello\world
-            // output: hello\world
-            assert.equal(tr._windowsQuoteCmdArg('hello\\world'), 'hello\\world');
-
-            // input : hello\\world
-            // output: hello\\world
-            assert.equal(tr._windowsQuoteCmdArg('hello\\\\world'), 'hello\\\\world');
-
-            // input : hello\"world
-            // output: "hello\\\"world"
-            assert.equal(tr._windowsQuoteCmdArg('hello\\"world'), '"hello\\\\\\"world"');
-
-            // input : hello\\"world
-            // output: "hello\\\\\"world"
-            assert.equal(tr._windowsQuoteCmdArg('hello\\\\"world'), '"hello\\\\\\\\\\"world"');
-
-            // input : hello world\
-            // output: "hello world\\" - note the comment actually reads: "hello world\"
-            //                           so it is either a bug in UV or the comment is wrong.
-            assert.equal(tr._windowsQuoteCmdArg('hello world\\'), '"hello world\\\\"');
-
-            // --------------------------------------------------
-            // cmd.exe special character rules should not apply
-            // --------------------------------------------------
-
-            // rules for cmd.exe special characters rules should not apply since the
-            // supplied tool path is not a .cmd
-            assert.equal(tr._windowsQuoteCmdArg('hello&world'), 'hello&world');
-            assert.equal(tr._windowsQuoteCmdArg('hello(world'), 'hello(world');
-            assert.equal(tr._windowsQuoteCmdArg('hello)world'), 'hello)world');
-            assert.equal(tr._windowsQuoteCmdArg('hello[world'), 'hello[world');
-            assert.equal(tr._windowsQuoteCmdArg('hello]world'), 'hello]world');
-            assert.equal(tr._windowsQuoteCmdArg('hello{world'), 'hello{world');
-            assert.equal(tr._windowsQuoteCmdArg('hello}world'), 'hello}world');
-            assert.equal(tr._windowsQuoteCmdArg('hello^world'), 'hello^world');
-            assert.equal(tr._windowsQuoteCmdArg('hello=world'), 'hello=world');
-            assert.equal(tr._windowsQuoteCmdArg('hello;world'), 'hello;world');
-            assert.equal(tr._windowsQuoteCmdArg('hello!world'), 'hello!world');
-            assert.equal(tr._windowsQuoteCmdArg('hello\'world'), 'hello\'world');
-            assert.equal(tr._windowsQuoteCmdArg('hello+world'), 'hello+world');
-            assert.equal(tr._windowsQuoteCmdArg('hello,world'), 'hello,world');
-            assert.equal(tr._windowsQuoteCmdArg('hello`world'), 'hello`world');
-            assert.equal(tr._windowsQuoteCmdArg('hello~world'), 'hello~world');
-            assert.equal(tr._windowsQuoteCmdArg('hello|world'), 'hello|world');
-            assert.equal(tr._windowsQuoteCmdArg('hello<world'), 'hello<world');
-            assert.equal(tr._windowsQuoteCmdArg('hello>world'), 'hello>world');
-
-            done();
-        });
-
-        it('_windowsQuoteCmdArg quotes .cmd args (Windows)', function (done) {
-            this.timeout(10000);
-
-            // create a .cmd file
-            let testPath = path.join(testutil.getTestTemp(), 'which-finds-file-name');
-            tl.mkdirP(testPath);
-            let filePath = path.join(testPath, 'some.cmd');
-            fs.writeFileSync(filePath, '');
-
-            let tr: any = tl.tool(filePath);
-
-            // ---------------------------------------------------------------
-            // cmd.exe command line quoting rules should be applied for .cmd
-            // ---------------------------------------------------------------
-
-            // need double quotation for empty argument
-            assert.equal(tr._windowsQuoteCmdArg(''), '""');
-
-            // no quotation needed
-            assert.equal(tr._windowsQuoteCmdArg('hello'), 'hello');
-
-            // quotes should be doubled
-            assert.equal(tr._windowsQuoteCmdArg('hello"world'), '"hello""world"');
-            assert.equal(tr._windowsQuoteCmdArg('hello:"world again"'), '"hello:""world again"""');
-
-            // slashes preceeding a quote should be doubled, otherwise not doubled
-            assert.equal(tr._windowsQuoteCmdArg('helloworld\\'), 'helloworld\\');
-            assert.equal(tr._windowsQuoteCmdArg('hello \\world'), '"hello \\world"');
-            assert.equal(tr._windowsQuoteCmdArg('hello world\\'), '"hello world\\\\"');
-            assert.equal(tr._windowsQuoteCmdArg('hello\\"world'), '"hello\\\\""world"');
-            assert.equal(tr._windowsQuoteCmdArg('h\\ello\\\\"worl\\d'), '"h\\ello\\\\\\\\""worl\\d"');
-
-            // cmd.exe special characters should be quoted
-            assert.equal(tr._windowsQuoteCmdArg('hello world'), '"hello world"');
-            assert.equal(tr._windowsQuoteCmdArg('hello\tworld'), '"hello\tworld"');
-            assert.equal(tr._windowsQuoteCmdArg('hello&world'), '"hello&world"');
-            assert.equal(tr._windowsQuoteCmdArg('hello(world'), '"hello(world"');
-            assert.equal(tr._windowsQuoteCmdArg('hello)world'), '"hello)world"');
-            assert.equal(tr._windowsQuoteCmdArg('hello[world'), '"hello[world"');
-            assert.equal(tr._windowsQuoteCmdArg('hello]world'), '"hello]world"');
-            assert.equal(tr._windowsQuoteCmdArg('hello{world'), '"hello{world"');
-            assert.equal(tr._windowsQuoteCmdArg('hello}world'), '"hello}world"');
-            assert.equal(tr._windowsQuoteCmdArg('hello^world'), '"hello^world"');
-            assert.equal(tr._windowsQuoteCmdArg('hello=world'), '"hello=world"');
-            assert.equal(tr._windowsQuoteCmdArg('hello;world'), '"hello;world"');
-            assert.equal(tr._windowsQuoteCmdArg('hello!world'), '"hello!world"');
-            assert.equal(tr._windowsQuoteCmdArg('hello\'world'), '"hello\'world"');
-            assert.equal(tr._windowsQuoteCmdArg('hello+world'), '"hello+world"');
-            assert.equal(tr._windowsQuoteCmdArg('hello,world'), '"hello,world"');
-            assert.equal(tr._windowsQuoteCmdArg('hello`world'), '"hello`world"');
-            assert.equal(tr._windowsQuoteCmdArg('hello~world'), '"hello~world"');
-            assert.equal(tr._windowsQuoteCmdArg('hello|world'), '"hello|world"');
-            assert.equal(tr._windowsQuoteCmdArg('hello<world'), '"hello<world"');
-            assert.equal(tr._windowsQuoteCmdArg('hello>world'), '"hello>world"');
-            assert.equal(tr._windowsQuoteCmdArg('hello"world'), '"hello""world"');
-
-            done();
-        });
-
-        it('_windowsQuoteCmdArg quotes .bat args (Windows)', function (done) {
-            this.timeout(10000);
-
-            // create a .bat file
-            let testPath = path.join(testutil.getTestTemp(), 'which-finds-file-name');
-            tl.mkdirP(testPath);
-            let filePath = path.join(testPath, 'some.bat');
-            fs.writeFileSync(filePath, '');
-
-            // cmd.exe command line quoting rules should be applied for .bat
-            let tr: any = tl.tool(filePath);
-            assert.equal(tr._windowsQuoteCmdArg('hello:"world again"'), '"hello:""world again"""');
-            assert.equal(tr._windowsQuoteCmdArg('hello|world'), '"hello|world"');
-
-            done();
         });
     }
 
@@ -2100,26 +1483,6 @@ describe('Toolrunner Tests', function () {
 
         })
 
-        it('Exec sync inside shell', function (done) {
-            this.timeout(10000);
-
-            if (os.platform() === 'win32') {
-                let exePath = compileArgsExe('print args with spaces.exe');
-                let exeRunner = tl.tool(exePath);
-                exeRunner.line('%WIN_TEST%')
-                var ret = exeRunner.execSync(_testExecOptions);
-                assert.equal(ret.code, 0, 'return code of cmd should be 0');
-                assert.equal(ret.stdout.trim(), 'args[0]: \'test value\'', 'Command should return \"args[0]: \'test value\'\"');
-            }
-            else {
-                var ret = tl.execSync('stat', '$TESTPATH', _testExecOptions);
-                assert.equal(ret.code, 0, 'return code of stat should be 0');
-                assert(ret.stdout.includes(tempPath), `Result should include \'${tempPath}\'`);
-            }
-
-            assert(ret.stdout && ret.stdout.length > 0, 'should have emitted stdout');
-            done();
-        });
         it('Exec inside shell', function (done) {
             this.timeout(10000);
 
@@ -2131,7 +1494,7 @@ describe('Toolrunner Tests', function () {
                 exeRunner.on('stdout', (data) => {
                     output = data.toString();
                 });
-                exeRunner.exec(_testExecOptions).then(function (code) {
+                exeRunner.execAsync(_testExecOptions).then(function (code) {
                     assert.equal(code, 0, 'return code of cmd should be 0');
                     assert.equal(output.trim(), 'args[0]: \'test value\'', 'Command should return \"args[0]: \'test value\'\"');
                     done();
@@ -2146,7 +1509,7 @@ describe('Toolrunner Tests', function () {
                 statRunner.on('stdout', (data) => {
                     output = data.toString();
                 });
-                statRunner.exec(_testExecOptions).then(function (code) {
+                statRunner.execAsync(_testExecOptions).then(function (code) {
                     assert.equal(code, 0, 'return code of stat should be 0');
                     assert(output.includes(tempPath), `Result should include \'${tempPath}\'`);
                     done();
@@ -2175,7 +1538,7 @@ describe('Toolrunner Tests', function () {
                     output += data.toString();
                 });
 
-                outputExe.exec(_testExecOptions)
+                outputExe.execAsync(_testExecOptions)
                     .then(function (code) {
                         assert.equal(code, 0, 'return code of exec should be 0');
                         assert(output && output.length > 0 && output.indexOf('test value') >= 0, 'should have emitted stdout ' + output);
@@ -2198,7 +1561,7 @@ describe('Toolrunner Tests', function () {
                     output += data.toString();
                 });
 
-                ps.exec(_testExecOptions)
+                ps.execAsync(_testExecOptions)
                     .then(function (code) {
                         assert.equal(code, 0, 'return code of exec should be 0');
                         assert(output && output.length > 0 && output.indexOf('node') >= 0, 'should have emitted stdout ' + output);
@@ -2220,7 +1583,7 @@ describe('Toolrunner Tests', function () {
                 exeRunner.on('stdout', (data) => {
                     output += data.toString();
                 });
-                exeRunner.exec(_testExecOptions).then(function (code) {
+                exeRunner.execAsync(_testExecOptions).then(function (code) {
                     assert.equal(code, 0, 'return code of cmd should be 0');
                     assert.equal(output.trim(), 'args[0]: \'-TEST1=space test\'\r\n'
                         + 'args[1]: \'-TEST2=test value\'\r\n'
@@ -2237,7 +1600,7 @@ describe('Toolrunner Tests', function () {
                 statRunner.on('stdout', (data) => {
                     output = data.toString();
                 });
-                statRunner.exec(_testExecOptions).then(function (code) {
+                statRunner.execAsync(_testExecOptions).then(function (code) {
                     assert.equal(code, 0, 'return code of stat should be 0');
                     assert.equal(output, '-TEST1=test value;test -TEST2=/one/two/three -TEST3=out:$TEST\n');
                     done();
