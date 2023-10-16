@@ -32,6 +32,7 @@
     "LIB_UseFirstGlobMatch": "Multiple workspace matches. using first.",
     "LIB_MergeTestResultNotSupported": "Merging test results from multiple files to one test run is not supported on this version of build agent for OSX/Linux, each test result file will be published as a separate test run in VSO/TFS.",
     "LIB_PlatformNotSupported": "Platform not supported: %s",
-    "LIB_CopyFileFailed": "Error while copying the file. Attempts left: %s"
+    "LIB_CopyFileFailed": "Error while copying the file. Attempts left: %s",
+    "LIB_UndefinedNodeVersion": "Node version is undefined."
   } 
 }
