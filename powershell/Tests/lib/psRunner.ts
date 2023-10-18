@@ -125,3 +125,5 @@ export function run(psPath: string, done: (err?: any) => void): void {
 export function ensureStopped(): void {
     engineRunner.ensureKill();
 }
+
+export default { run, ensureStopped };
