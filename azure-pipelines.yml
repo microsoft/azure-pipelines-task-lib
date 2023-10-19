@@ -44,7 +44,7 @@ jobs:
 
   # For CI runs on master, automatically publish packages
   - bash: |
-        echo //registry.npmjs.org/:_authToken=\${NPM_TOKEN} > .npmrc
+        echo //registry.npmjs.org/:_authToken=\${NPM_TOKEN}
         npm publish || true # Ignore publish failures, usually will happen because package already exists
     displayName: npm publish
     workingDirectory: node/_build
