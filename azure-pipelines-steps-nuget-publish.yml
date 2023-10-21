@@ -34,7 +34,8 @@ steps:
     msbuildArguments: '/p:OutDir=../VstsTaskSdk'
     clean: true
     msbuildVersion: '15.0'
-    
+    msbuildArchitecture: 'x86'
+
 - task: NuGetCommand@2
   inputs:
     command: 'pack'
