@@ -83,6 +83,7 @@ Export-ModuleMember -Function @(
         'Assert-Agent'
         'Assert-Path'
         'Invoke-Tool'
+        'Invoke-Process'
         # Trace functions.
         'Trace-EnteringInvocation'
         'Trace-LeavingInvocation'
