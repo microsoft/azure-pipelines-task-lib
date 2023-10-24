@@ -1,4 +1,4 @@
-# Commands (v0.11.0)
+# Commands (v0.16.0)
 ## <a name="toc" />Table of Contents
 * [Find](#find)
   * [Find-VstsMatch](#find-vstsmatch)
@@ -23,6 +23,7 @@
   * [Write-VstsAddBuildTag](#write-vstsaddbuildtag)
   * [Write-VstsAssociateArtifact](#write-vstsassociateartifact)
   * [Write-VstsLogDetail](#write-vstslogdetail)
+  * [Write-VstsLoggingCommand](#write-vstsloggingcommand)
   * [Write-VstsPrependPath](#write-vstsprependpath)
   * [Write-VstsSetEndpoint](#write-vstssetendpoint)
   * [Write-VstsSetProgress](#write-vstssetprogress)
@@ -50,6 +51,7 @@
 * [Tool](#tool)
   * [Assert-VstsAgent](#assert-vstsagent)
   * [Assert-VstsPath](#assert-vstspath)
+  * [Invoke-VstsProcess](#invoke-vstsprocess)
   * [Invoke-VstsTool](#invoke-vststool)
 * [Trace](#trace)
   * [Trace-VstsEnteringInvocation](#trace-vstsenteringinvocation)
@@ -297,13 +299,13 @@ NAME
     Import-VstsLocStrings
 
 SYNOPSIS
-    Imports resource strings for use with Get-VstsLocString.
+    Imports resource strings for use with GetVstsLocString.
 
 SYNTAX
     Import-VstsLocStrings [-LiteralPath] <String> [<CommonParameters>]
 
 DESCRIPTION
-    Imports resource strings for use with Get-VstsLocString. The imported strings are stored in an internal
+    Imports resource strings for use with GetVstsLocString. The imported strings are stored in an internal
     resource string dictionary. Optionally, if a separate resource file for the current culture exists, then
     the localized strings from that file then imported (overlaid) into the same internal resource string
     dictionary.
@@ -363,6 +365,21 @@ SYNTAX
     Write-VstsLogDetail [-Id] <Guid> [[-ParentId] <Object>] [[-Type] <String>] [[-Name] <String>] [[-Order]
     <Object>] [[-StartTime] <Object>] [[-FinishTime] <Object>] [[-Progress] <Object>] [[-State] <Object>]
     [[-Result] <Object>] [[-Message] <String>] [-AsOutput] [<CommonParameters>]
+```
+### <a name="write-vstsloggingcommand" />Write-VstsLoggingCommand
+[table of contents](#toc) | [full](FullHelp/Write-VstsLoggingCommand.md)
+```
+NAME
+    Write-VstsLoggingCommand
+
+SYNOPSIS
+    See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
+
+SYNTAX
+    Write-VstsLoggingCommand -Area <String> -Event <String> [-Data <String>] [-Properties <Hashtable>]
+    [-AsOutput] [<CommonParameters>]
+
+    Write-VstsLoggingCommand -Command <Object> [-AsOutput] [<CommonParameters>]
 ```
 ### <a name="write-vstsprependpath" />Write-VstsPrependPath
 [table of contents](#toc) | [full](FullHelp/Write-VstsPrependPath.md)
@@ -587,8 +604,8 @@ DESCRIPTION
     dependencies, and so on until all nested dependencies have been traversed. Dependencies are searched for
     in the directory of the specified assembly. NET Framework assemblies are omitted.
 
-    See https://github.com/Microsoft/azure-pipelines-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage
-    when working with the TFS extended client SDK from a task.
+    See https://github.com/Microsoft/azure-pipelines-task-lib/tree/master/powershell/Docs/UsingOM.md for
+    reliable usage when working with the TFS extended client SDK from a task.
 ```
 ### <a name="get-vstsclientcertificate" />Get-VstsClientCertificate
 [table of contents](#toc) | [full](FullHelp/Get-VstsClientCertificate.md)
@@ -625,8 +642,8 @@ DESCRIPTION
     Refer to Get-VstsTfsService for a more simple to get a TFS service object.
 
     *** DO NOT USE Agent.ServerOMDirectory *** See
-    https://github.com/Microsoft/azure-pipelines-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
-    working with the TFS extended client SDK from a task.
+    https://github.com/Microsoft/azure-pipelines-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable
+    usage when working with the TFS extended client SDK from a task.
 ```
 ### <a name="get-vststfsservice" />Get-VstsTfsService
 [table of contents](#toc) | [full](FullHelp/Get-VstsTfsService.md)
@@ -645,8 +662,8 @@ DESCRIPTION
     Gets an instance of an ITfsTeamProjectCollectionObject.
 
     *** DO NOT USE Agent.ServerOMDirectory *** See
-    https://github.com/Microsoft/azure-pipelines-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
-    working with the TFS extended client SDK from a task.
+    https://github.com/Microsoft/azure-pipelines-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable
+    usage when working with the TFS extended client SDK from a task.
 ```
 ### <a name="get-vstsvsscredentials" />Get-VstsVssCredentials
 [table of contents](#toc) | [full](FullHelp/Get-VstsVssCredentials.md)
@@ -668,8 +685,8 @@ DESCRIPTION
     Refer to Get-VstsVssHttpClient for a more simple to get a VSS HTTP client.
 
     *** DO NOT USE Agent.ServerOMDirectory *** See
-    https://github.com/Microsoft/azure-pipelines-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
-    working with the VSTS REST SDK from a task.
+    https://github.com/Microsoft/azure-pipelines-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable
+    usage when working with the VSTS REST SDK from a task.
 ```
 ### <a name="get-vstsvsshttpclient" />Get-VstsVssHttpClient
 [table of contents](#toc) | [full](FullHelp/Get-VstsVssHttpClient.md)
@@ -688,8 +705,8 @@ DESCRIPTION
     Gets an instance of an VSS HTTP client.
 
     *** DO NOT USE Agent.ServerOMDirectory *** See
-    https://github.com/Microsoft/azure-pipelines-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable usage when
-    working with the VSTS REST SDK from a task.
+    https://github.com/Microsoft/azure-pipelines-task-lib/tree/master/powershell/Docs/UsingOM.md for reliable
+    usage when working with the VSTS REST SDK from a task.
 ```
 ### <a name="get-vstswebproxy" />Get-VstsWebProxy
 [table of contents](#toc) | [full](FullHelp/Get-VstsWebProxy.md)
@@ -734,6 +751,25 @@ SYNTAX
     Assert-VstsPath [-LiteralPath] <String> [[-PathType] {Any | Container | Leaf}] [-PassThru]
     [<CommonParameters>]
 ```
+### <a name="invoke-vstsprocess" />Invoke-VstsProcess
+[table of contents](#toc) | [full](FullHelp/Invoke-VstsProcess.md)
+```
+NAME
+    Invoke-VstsProcess
+
+SYNOPSIS
+    Executes an external program as a child process.
+
+SYNTAX
+    Invoke-VstsProcess [-FileName] <String> [[-Arguments] <String>] [[-WorkingDirectory] <String>]
+    [[-StdOutPath] <String>] [[-StdErrPath] <String>] [-RequireExitCodeZero] [<CommonParameters>]
+
+DESCRIPTION
+    Executes an external program and waits for the process to exit.
+
+    After calling this command, the exit code of the process can be retrieved from the variable $LASTEXITCODE
+    or from the pipe.
+```
 ### <a name="invoke-vststool" />Invoke-VstsTool
 [table of contents](#toc) | [full](FullHelp/Invoke-VstsTool.md)
 ```
@@ -745,7 +781,7 @@ SYNOPSIS
 
 SYNTAX
     Invoke-VstsTool [-FileName] <String> [[-Arguments] <String>] [[-WorkingDirectory] <String>] [[-Encoding]
-    <Encoding>] [-RequireExitCodeZero] [<CommonParameters>]
+    <Encoding>] [-RequireExitCodeZero] [[-IgnoreHostException] <Boolean>] [<CommonParameters>]
 
 DESCRIPTION
     Executes an external program and waits for the process to exit.
