@@ -1,0 +1,20 @@
+jobs:
+  - job: Publish
+    displayName: Publish SDK to nuget feed
+    pool:
+      vmImage: windows-2022
+    steps:
+      - task: NuGetCommand@2
+        inputs:
+          command: "pack"
+          packagesToPack: "powershell/VstsTaskSdk"
+          versioningScheme: "off"
+
+      ## TODO: Add vststasksdk-feed nuget service connection
+      - task: NuGetCommand@2
+        inputs:
+          command: "push"
+          packagesToPush: "$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg"
+          nuGetFeedType: "external"
+          publishFeedCredentials: "vststasksdk-feed"
+          allowPackageConflicts: true
