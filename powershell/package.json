@@ -1,27 +1,12 @@
 {
-  "name": "vsts-task-sdk",
-  "version": "0.16.0",
-  "description": "VSTS Task SDK",
+  "version": "0.17.0",
+  "private": true,
   "scripts": {
     "build": "node make.js build",
     "test": "node make.js test"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Microsoft/azure-pipelines-task-lib"
-  },
-  "keywords": [
-    "vsts",
-    "xplat",
-    "agent",
-    "build"
-  ],
   "author": "Microsoft",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/Microsoft/azure-pipelines-task-lib/issues"
-  },
-  "homepage": "https://github.com/Microsoft/azure-pipelines-task-lib#readme",
   "devDependencies": {
     "adm-zip": "^0.5.9",
     "mocha": "5.2.0",

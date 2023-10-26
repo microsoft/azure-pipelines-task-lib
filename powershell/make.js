@@ -33,7 +33,7 @@ target.build = async function () {
 
     // stamp the version number from the package.json onto the PowerShell module definition
     var targetPsd1 = path.join(buildPath, 'VstsTaskSdk', 'VstsTaskSdk.psd1');
-    var psd1Contents = fs.readFileSync(targetPsd1, 'ucs2'); // UCS-2 is a subset of UTF-16. UTF-16 is not supported by node.
+    var psd1Contents = fs.readFileSync(targetPsd1, 'utf-8'); // UCS-2 is a subset of UTF-16. UTF-16 is not supported by node.
     var token = "ModuleVersion = '0.1'";
     var tokenStart = psd1Contents.indexOf(token);
     if (tokenStart < 0) {
@@ -57,7 +57,7 @@ target.build = async function () {
     psd1Contents = psd1Contents.substring(0, tokenStart) + commitHash + psd1Contents.substring(tokenStart + token.length);
 
     // save the updated psd1 file
-    fs.writeFileSync(targetPsd1, psd1Contents, 'ucs2');
+    fs.writeFileSync(targetPsd1, psd1Contents, 'utf-8');
 }
 
 target.test = async function () {
@@ -72,12 +72,12 @@ target.test = async function () {
     util.run('mocha "' + path.join(testPath, 'L0', '_suite.js') + '"');
 }
 
-target.loc = function() {
+target.loc = function () {
     // build the content for the en-US resjson file
     var lib = require('./VstsTaskSdk/lib.json');
     var strPath = path.join('VstsTaskSdk', 'Strings', 'resources.resjson', 'en-US');
     util.mkdir('-p', strPath);
-    var strings = { };
+    var strings = {};
     if (lib.messages) {
         for (var key in lib.messages) {
             var messageKey = 'loc.messages.' + key;
