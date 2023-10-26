@@ -56,8 +56,6 @@ target.build = function () {
     }
     psd1Contents = psd1Contents.substring(0, tokenStart) + commitHash + psd1Contents.substring(tokenStart + token.length);
 
-    updateNuspecVersion();
-
     // save the updated psd1 file
     fs.writeFileSync(targetPsd1, psd1Contents, 'utf-8');
 }
@@ -91,19 +89,4 @@ target.loc = function () {
     var enPath = path.join(strPath, 'resources.resjson');
     var enContents = JSON.stringify(strings, null, 2);
     fs.writeFileSync(enPath, enContents);
-}
-
-function updateNuspecVersion(){
-    const nuspecPath = path.join(buildPath, 'VstsTaskSdk', 'VstsTaskSdk.nuspec');
-    let nuspecContents = fs.readFileSync(nuspecPath, 'utf-8');
-    const token = "<version>[version]</version>";
-    var tokenStart = nuspecContents.indexOf(token);
-    if (tokenStart < 0) {
-        throw new Error('Version token not found in nuspec.');
-    }
-
-    const packageJson = require(`./package.json`);
-    nuspecContents = nuspecContents.substring(0, tokenStart) + `<version>${packageJson.version}</version>` + nuspecContents.substring(tokenStart + token.length);
-
-    fs.writeFileSync(nuspecPath, nuspecContents, 'utf-8');
 }
