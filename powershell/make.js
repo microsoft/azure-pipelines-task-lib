@@ -96,7 +96,6 @@ target.loc = function () {
 function updateNuspecVersion(){
     const nuspecPath = path.join(buildPath, 'VstsTaskSdk', 'VstsTaskSdk.nuspec');
     let nuspecContents = fs.readFileSync(nuspecPath, 'utf-8');
-    console.log(nuspecContents)
     const token = "<version>[version]</version>";
     var tokenStart = nuspecContents.indexOf(token);
     if (tokenStart < 0) {
@@ -106,6 +105,5 @@ function updateNuspecVersion(){
     const packageJson = require(`./package.json`);
     nuspecContents = nuspecContents.substring(0, tokenStart) + `<version>${packageJson.version}</version>` + nuspecContents.substring(tokenStart + token.length);
 
-    // save the updated psd1 file
     fs.writeFileSync(nuspecPath, nuspecContents, 'utf-8');
 }
