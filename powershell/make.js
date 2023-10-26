@@ -16,7 +16,7 @@ target.clean = function () {
 // TODO: target.buildCompiledHelper
 // This will only build the C# compiled helper csproj.
 
-target.build = function() {
+target.build = function () {
     target.clean();
     target.loc();
 
@@ -33,7 +33,7 @@ target.build = function() {
 
     // stamp the version number from the package.json onto the PowerShell module definition
     var targetPsd1 = path.join(buildPath, 'VstsTaskSdk', 'VstsTaskSdk.psd1');
-    var psd1Contents = fs.readFileSync(targetPsd1, 'ucs2'); // UCS-2 is a subset of UTF-16. UTF-16 is not supported by node.
+    var psd1Contents = fs.readFileSync(targetPsd1, 'utf-8'); // UCS-2 is a subset of UTF-16. UTF-16 is not supported by node.
     var token = "ModuleVersion = '0.1'";
     var tokenStart = psd1Contents.indexOf(token);
     if (tokenStart < 0) {
@@ -56,11 +56,13 @@ target.build = function() {
     }
     psd1Contents = psd1Contents.substring(0, tokenStart) + commitHash + psd1Contents.substring(tokenStart + token.length);
 
+    updateNuspecVersion();
+
     // save the updated psd1 file
-    fs.writeFileSync(targetPsd1, psd1Contents, 'ucs2');
+    fs.writeFileSync(targetPsd1, psd1Contents, 'utf-8');
 }
 
-target.test = function() {
+target.test = function () {
     util.ensureTool('tsc', '--version', 'Version 1.8.7');
     util.ensureTool('mocha', '--version', '5.2.0');
     target.build();
@@ -72,12 +74,12 @@ target.test = function() {
     util.run('mocha "' + path.join(testPath, 'L0', '_suite.js') + '"');
 }
 
-target.loc = function() {
+target.loc = function () {
     // build the content for the en-US resjson file
     var lib = require('./VstsTaskSdk/lib.json');
     var strPath = path.join('VstsTaskSdk', 'Strings', 'resources.resjson', 'en-US');
     util.mkdir('-p', strPath);
-    var strings = { };
+    var strings = {};
     if (lib.messages) {
         for (var key in lib.messages) {
             var messageKey = 'loc.messages.' + key;
@@ -89,4 +91,21 @@ target.loc = function() {
     var enPath = path.join(strPath, 'resources.resjson');
     var enContents = JSON.stringify(strings, null, 2);
     fs.writeFileSync(enPath, enContents);
+}
+
+function updateNuspecVersion(){
+    const nuspecPath = path.join(buildPath, 'VstsTaskSdk', 'VstsTaskSdk.nuspec');
+    let nuspecContents = fs.readFileSync(nuspecPath, 'utf-8');
+    console.log(nuspecContents)
+    const token = "<version>[version]</version>";
+    var tokenStart = nuspecContents.indexOf(token);
+    if (tokenStart < 0) {
+        throw new Error('Version token not found in nuspec.');
+    }
+
+    const packageJson = require(`./package.json`);
+    nuspecContents = nuspecContents.substring(0, tokenStart) + `<version>${packageJson.version}</version>` + nuspecContents.substring(tokenStart + token.length);
+
+    // save the updated psd1 file
+    fs.writeFileSync(nuspecPath, nuspecContents, 'utf-8');
 }

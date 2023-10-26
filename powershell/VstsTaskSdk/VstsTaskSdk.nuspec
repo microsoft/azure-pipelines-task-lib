@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>VstsTaskSdk</id>
-    <version>0.17.0</version>
+    <version>[version]</version>  <!--Do not modify. Generates from package.json version -->
     <authors>Microsoft</authors>
     <owners>Microsoft</owners>
     <projectUrl>https://github.com/Microsoft/azure-pipelines-task-lib</projectUrl>
