@@ -31,5 +31,6 @@
   "loc.messages.LIB_UseFirstGlobMatch": "出现多个工作区匹配时，使用第一个。",
   "loc.messages.LIB_MergeTestResultNotSupported": "此版本的 OSX/Linux 生成代理不支持来自某个测试运行的多文件合并测试结果，在 VSO/TFS 中，每个测试结果文件都将作为单独的测试运行进行发布。",
   "loc.messages.LIB_PlatformNotSupported": "平台不受支持: %s",
-  "loc.messages.LIB_CopyFileFailed": "复制文件时出错。剩余尝试次数: %s"
+  "loc.messages.LIB_CopyFileFailed": "复制文件时出错。剩余尝试次数: %s",
+  "loc.messages.LIB_UndefinedNodeVersion": "节点版本未定义。"
 }
