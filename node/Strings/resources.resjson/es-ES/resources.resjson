@@ -31,5 +31,6 @@
   "loc.messages.LIB_UseFirstGlobMatch": "Hay varias coincidencias en el área de trabajo. Se usará la primera.",
   "loc.messages.LIB_MergeTestResultNotSupported": "Esta versión del agente de compilación para OSX/Linux no admite la fusión mediante combinación de resultados de pruebas de varios archivos en una serie de pruebas. Cada archivo de resultados de pruebas se publicará como una serie de pruebas diferente en VSO/TFS.",
   "loc.messages.LIB_PlatformNotSupported": "No se admite la plataforma: %s",
-  "loc.messages.LIB_CopyFileFailed": "Error while copying the file. Attempts left: %s"
+  "loc.messages.LIB_CopyFileFailed": "Error al copiar el archivo. Intentos restantes: %s",
+  "loc.messages.LIB_UndefinedNodeVersion": "La versión del nodo no está definida."
 }

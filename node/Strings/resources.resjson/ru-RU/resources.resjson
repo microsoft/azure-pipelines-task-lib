@@ -31,5 +31,6 @@
   "loc.messages.LIB_UseFirstGlobMatch": "Несколько рабочих областей совпадает, использована первая рабочая область.",
   "loc.messages.LIB_MergeTestResultNotSupported": "Объединение результатов тестов из нескольких файлов в один тестовый запуск не поддерживается в этой версии агента сборки для OSX/Linux. Каждый файл результатов теста будет опубликован в качестве отдельного тестового запуска в VSO/TFS.",
   "loc.messages.LIB_PlatformNotSupported": "Платформа не поддерживается: %s",
-  "loc.messages.LIB_CopyFileFailed": "Ошибка при копировании файла. Оставшееся число попыток: %s."
+  "loc.messages.LIB_CopyFileFailed": "Ошибка при копировании файла. Оставшееся число попыток: %s.",
+  "loc.messages.LIB_UndefinedNodeVersion": "Версия узла не определена."
 }
