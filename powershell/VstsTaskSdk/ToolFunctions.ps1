@@ -39,7 +39,8 @@ function Assert-Path {
 
     if ($PathType -eq [Microsoft.PowerShell.Commands.TestPathType]::Any) {
         Write-Verbose "Asserting path exists: '$LiteralPath'"
-    } else {
+    }
+    else {
         Write-Verbose "Asserting $("$PathType".ToLowerInvariant()) path exists: '$LiteralPath'"
     }
 
@@ -75,7 +76,7 @@ This parameter not required for most scenarios. Indicates how to interpret the e
 .PARAMETER RequireExitCodeZero
 Indicates whether to write an error to the error pipeline if the exit code is not zero.
 #>
-function Invoke-Tool { # TODO: RENAME TO INVOKE-PROCESS?
+function Invoke-Tool {
     [CmdletBinding()]
     param(
         [ValidatePattern('^[^\r\n]*$')]
@@ -107,7 +108,8 @@ function Invoke-Tool { # TODO: RENAME TO INVOKE-PROCESS?
         Write-Host "##[command]""$FileName"" $Arguments"
         try {
             Invoke-Expression "& '$FileName' --% $Arguments"
-        } catch [System.Management.Automation.Host.HostException] {
+        }
+        catch [System.Management.Automation.Host.HostException] {
             if ($IgnoreHostException -eq $False) {
                 throw
             }
@@ -118,7 +120,8 @@ function Invoke-Tool { # TODO: RENAME TO INVOKE-PROCESS?
         if ($RequireExitCodeZero -and $LASTEXITCODE -ne 0) {
             Write-Error (Get-LocString -Key PSLIB_Process0ExitedWithCode1 -ArgumentList ([System.IO.Path]::GetFileName($FileName)), $LASTEXITCODE)
         }
-    } finally {
+    }
+    finally {
         if ($originalEncoding) {
             [System.Console]::OutputEncoding = $originalEncoding
         }
@@ -127,6 +130,98 @@ function Invoke-Tool { # TODO: RENAME TO INVOKE-PROCESS?
             Pop-Location
         }
 
+        Trace-LeavingInvocation $MyInvocation
+    }
+}
+
+<#
+.SYNOPSIS
+Executes an external program as a child process.
+
+.DESCRIPTION
+Executes an external program and waits for the process to exit.
+
+After calling this command, the exit code of the process can be retrieved from the variable $LASTEXITCODE or from the pipe.
+
+.PARAMETER FileName
+File name (path) of the program to execute.
+
+.PARAMETER Arguments
+Arguments to pass to the program.
+
+.PARAMETER StdOutPath
+Path to a file to write the stdout of the process to.
+
+.PARAMETER StdErrPath
+Path to a file to write the stderr of the process to.
+
+.PARAMETER RequireExitCodeZero
+Indicates whether to write an error to the error pipeline if the exit code is not zero.
+
+.OUTPUTS
+Exit code of the invoked process. Also available through the $LASTEXITCODE.
+
+.NOTES
+To change output encoding, redirect stdout to file and then read the file with the desired encoding.
+#>
+function Invoke-Process {
+    [CmdletBinding()]
+    param(
+        [ValidatePattern('^[^\r\n]*$')]
+        [Parameter(Mandatory = $true)]
+        [string]$FileName,
+        [ValidatePattern('^[^\r\n]*$')]
+        [Parameter()]
+        [string]$Arguments,
+        [string]$WorkingDirectory,
+        [string]$StdOutPath,
+        [string]$StdErrPath,
+        [switch]$RequireExitCodeZero
+    )
+
+    Trace-EnteringInvocation $MyInvocation
+    try {
+        $FileName = $FileName.Replace('"', '').Replace("'", "''")
+        Write-Host "##[command]""$FileName"" $Arguments"
+
+        $processOptions = @{
+            FilePath     = $FileName
+            NoNewWindow  = $true
+            PassThru     = $true
+        }
+        if ($Arguments) {
+            $processOptions.Add("ArgumentList", $Arguments)
+        }
+        if ($WorkingDirectory) {
+            $processOptions.Add("WorkingDirectory", $WorkingDirectory)
+        }
+        if ($StdOutPath) {
+            $processOptions.Add("RedirectStandardOutput", $StdOutPath)
+        }
+        if ($StdErrPath) {
+            $processOptions.Add("RedirectStandardError", $StdErrPath)
+        }
+
+        # TODO: For some reason, -Wait is not working on agent.
+        # Agent starts executing the System usage metrics and hangs the step forever.
+        $proc = Start-Process @processOptions
+
+        # https://stackoverflow.com/a/23797762
+        $null = $($proc.Handle)
+        $proc.WaitForExit()
+
+        $procExitCode = $proc.ExitCode
+        Write-Verbose "Exit code: $procExitCode"
+
+        if ($RequireExitCodeZero -and $procExitCode -ne 0) {
+            Write-Error (Get-LocString -Key PSLIB_Process0ExitedWithCode1 -ArgumentList ([System.IO.Path]::GetFileName($FileName)), $procExitCode)
+        }
+
+        $global:LASTEXITCODE = $procExitCode
+
+        return $procExitCode
+    }
+    finally {
         Trace-LeavingInvocation $MyInvocation
     }
 }
