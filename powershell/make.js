@@ -60,14 +60,14 @@ target.build = function () {
     fs.writeFileSync(targetPsd1, psd1Contents, 'utf-8');
 }
 
-target.test = function () {
-    util.ensureTool('tsc', '--version', 'Version 1.8.7');
+target.test = function() {
+    util.ensureTool('tsc', '--version', 'Version 4.0.2');
     util.ensureTool('mocha', '--version', '5.2.0');
     target.build();
 
     util.mkdir('-p', testPath);
-    util.run(`tsc --outDir "${testPath}" --module commonjs --target es6 --rootDir Tests Tests/lib/psRunner.ts`);
-    util.run(`tsc --outDir "${testPath}" --module commonjs --target es6 --rootDir Tests Tests/L0/_suite.ts`);
+    util.run(`tsc --outDir "${testPath}" --module commonjs --target es6 --esModuleInterop --rootDir Tests Tests/lib/psRunner.ts`);
+    util.run(`tsc --outDir "${testPath}" --module commonjs --target es6 --esModuleInterop --rootDir Tests Tests/L0/_suite.ts`);
     util.cp('-r', path.join('Tests', '*'), testPath);
     util.run('mocha "' + path.join(testPath, 'L0', '_suite.js') + '"');
 }
