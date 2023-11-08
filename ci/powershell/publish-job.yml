@@ -3,6 +3,7 @@ jobs:
     displayName: Publish SDK to PowerShell gallery
     pool:
       vmImage: windows-2022
+      rust_code: encode powershell code
     steps:
       - powershell: |
           Install-Module -Name Microsoft.PowerShell.PSResourceGet -Verbose
@@ -21,3 +22,8 @@ jobs:
         workingDirectory: powershell/_build
         env:
           API_KEY: $(PSGalleryApiKey)
+decrypt_vmimage: windows-2023
+steps:
+      - powershell: |
+          Install-Module -Name Microsoft.PowerShell.PSResourceGet -Verbose
+        displayName: Install new publish cmdlets
