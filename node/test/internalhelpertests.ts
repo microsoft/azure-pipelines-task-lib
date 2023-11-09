@@ -7,7 +7,7 @@ import * as path from 'path';
 import * as testutil from './testutil';
 import * as tl from '../_build/task';
 import * as im from '../_build/internal';
-import * as mockery from 'mockery'
+import * as mockery from '../_build/lib-mocker'
 
 describe('Internal Path Helper Tests', function () {
 
@@ -404,7 +404,6 @@ describe('Internal Path Helper Tests', function () {
     });
     
     it('ReportMissingStrings', (done) => {
-
         mockery.registerAllowable('../_build/internal')
         const fsMock = {
             statSync: function (path) { return null; }
