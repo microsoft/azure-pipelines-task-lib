@@ -1,6 +1,6 @@
 import ma = require('./mock-answer');
-import mockery = require('mockery');
 import im = require('./internal');
+import mocker = require('./lib-mocker');
 
 export class TaskMockRunner {
     constructor(taskPath: string) {
@@ -46,7 +46,7 @@ export class TaskMockRunner {
     */
     public registerMock(modName: string, mod: any): void {
         this._moduleCount++;
-        mockery.registerMock(modName, mod);
+        mocker.registerMock(modName, mod);
     }
 
     /**
@@ -69,9 +69,9 @@ export class TaskMockRunner {
     * @returns              void
     */
     public run(noMockTask?: boolean): void {
-        // determine whether to enable mockery
+        // determine whether to enable mocker
         if (!noMockTask || this._moduleCount) {
-            mockery.enable({warnOnUnregistered: false});
+            mocker.enable({warnOnUnregistered: false});
         }
 
         // answers and exports not compatible with "noMockTask" mode
@@ -92,7 +92,7 @@ export class TaskMockRunner {
                     tlm[key] = this._exports[key];
                 });
 
-            mockery.registerMock('azure-pipelines-task-lib/task', tlm);
+            mocker.registerMock('azure-pipelines-task-lib/task', tlm);
         }
 
         // run it
