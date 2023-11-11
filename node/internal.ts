@@ -4,6 +4,7 @@ import os = require('os');
 import minimatch = require('minimatch');
 import util = require('util');
 import tcm = require('./taskcommand');
+import lcm = require('./logcommand');
 import vm = require('./vault');
 import semver = require('semver');
 import crypto = require('crypto');
@@ -292,6 +293,23 @@ export function _error(message: string): void {
 
 export function _debug(message: string): void {
     _command('task.debug', null, message);
+}
+
+//-----------------------------------------------------
+// Log Helpers
+//-----------------------------------------------------
+
+export function _logCommand(command: string, name: string) {
+    var logCmd = new lcm.LogCommand(command, name);
+    _writeLine(logCmd.toString());
+}
+
+export function _group(name: string): void {
+    _logCommand('group', name)
+}
+
+export function _endGroup(): void {
+    _logCommand('endgroup', null)
 }
 
 // //-----------------------------------------------------

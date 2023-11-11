@@ -7,6 +7,7 @@ import os = require('os');
 import minimatch = require('minimatch');
 import im = require('./internal');
 import tcm = require('./taskcommand');
+import lcm = require('./logcommand');
 import trm = require('./toolrunner');
 import semver = require('semver');
 
@@ -631,7 +632,14 @@ export function setTaskVariable(name: string, val: string, secret: boolean = fal
 export const command = im._command;
 export const warning = im._warning;
 export const error = im._error;
-export const debug = im._debug;
+
+//-----------------------------------------------------
+// Log Helpers
+//-----------------------------------------------------
+
+export const logCommand = im._logCommand;
+export const group = im._group;
+export const endGroup = im._endGroup;
 
 //-----------------------------------------------------
 // Disk Functions
@@ -2378,6 +2386,7 @@ export function updateReleaseName(name: string) {
 exports.TaskCommand = tcm.TaskCommand;
 exports.commandFromString = tcm.commandFromString;
 exports.ToolRunner = trm.ToolRunner;
+exports.LogCommand = lcm.LogCommand;
 
 //-----------------------------------------------------
 // Validation Checks
