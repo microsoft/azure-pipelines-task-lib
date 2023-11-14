@@ -31,5 +31,6 @@
   "loc.messages.LIB_UseFirstGlobMatch": "여러 작업 영역이 일치합니다. 첫 번째 작업 영역을 사용하세요.",
   "loc.messages.LIB_MergeTestResultNotSupported": "이 OSX/Linux용 빌드 에이전트 버전에서 여러 파일의 테스트 결과를 하나의 테스트 실행으로 병합하는 것을 지원하지 않습니다. 각 테스트 결과 파일은 VSO/TFS에서 별도의 테스트 실행으로 게시됩니다.",
   "loc.messages.LIB_PlatformNotSupported": "지원되지 않는 플랫폼: %s",
-  "loc.messages.LIB_CopyFileFailed": "파일을 복사하는 동안 오류가 발생했습니다. 남은 시도 횟수: %s"
+  "loc.messages.LIB_CopyFileFailed": "파일을 복사하는 동안 오류가 발생했습니다. 남은 시도 횟수: %s",
+  "loc.messages.LIB_UndefinedNodeVersion": "노드 버전이 정의되지 않았습니다."
 }
