@@ -1,4 +1,3 @@
-
 import Q = require('q');
 import path = require('path');
 import fs = require('fs');
@@ -60,7 +59,9 @@ module.exports.setSecret = task.setSecret;
 module.exports.getTaskVariable = task.getTaskVariable;
 module.exports.setTaskVariable = task.setTaskVariable;
 module.exports.getInput = task.getInput;
+module.exports.getInputRequired = task.getInputRequired;
 module.exports.getBoolInput = task.getBoolInput;
+module.exports.getBoolFeatureFlag = task.getBoolFeatureFlag;
 module.exports.getDelimitedInput = task.getDelimitedInput;
 module.exports.filePathSupplied = task.filePathSupplied;
 
@@ -75,13 +76,22 @@ function getPathInput(name: string, required?: boolean, check?: boolean): string
 }
 module.exports.getPathInput = getPathInput;
 
+function getPathInputRequired(name: string, check?: boolean): string {
+    return getPathInput(name, true, check)!;
+}
+module.exports.getPathInputRequired = getPathInputRequired;
+
 //-----------------------------------------------------
 // Endpoint Helpers
 //-----------------------------------------------------
 module.exports.getEndpointUrl = task.getEndpointUrl;
+module.exports.getEndpointUrlRequired = task.getEndpointUrlRequired;
 module.exports.getEndpointDataParameter = task.getEndpointDataParameter;
+module.exports.getEndpointDataParameterRequired = task.getEndpointDataParameterRequired;
 module.exports.getEndpointAuthorizationScheme = task.getEndpointAuthorizationScheme;
+module.exports.getEndpointAuthorizationSchemeRequired = task.getEndpointAuthorizationSchemeRequired;
 module.exports.getEndpointAuthorizationParameter = task.getEndpointAuthorizationParameter;
+module.exports.getEndpointAuthorizationParameterRequired = task.getEndpointAuthorizationParameterRequired;
 module.exports.getEndpointAuthorization = task.getEndpointAuthorization;
 
 // TODO: should go away when task lib
@@ -212,6 +222,14 @@ export function getPlatform(): task.Platform {
     return mock.getResponse('getPlatform', 'getPlatform', module.exports.debug);
 }
 
+export function getNodeMajorVersion(): Number {
+    return mock.getResponse('getNodeMajorVersion', 'getNodeMajorVersion', module.exports.debug);
+}
+
+export function getAgentMode(): task.AgentHostedMode {
+    return mock.getResponse('getAgentMode', 'getAgentMode', module.exports.debug);
+}
+
 export function cwd(): string {
     return mock.getResponse('cwd', 'cwd', module.exports.debug);
 }
@@ -318,6 +336,18 @@ export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Pro
         tr.arg(args);
     }
     return tr.exec(options);
+}
+
+//-----------------------------------------------------
+// Exec convenience wrapper
+//-----------------------------------------------------
+export function execAsync(tool: string, args: any, options?: trm.IExecOptions): Promise<number> {
+    var toolPath = which(tool, true);
+    var tr: trm.ToolRunner = this.tool(toolPath);
+    if (args) {
+        tr.arg(args);
+    }
+    return tr.execAsync(options);
 }
 
 export function execSync(tool: string, args: any, options?: trm.IExecSyncOptions): trm.IExecSyncResult {

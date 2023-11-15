@@ -27,11 +27,11 @@ describe('Dir Operation Tests', function () {
 
     // this test verifies the expected version of node is being used to run the tests.
     // 5.10.1 is what ships in the 1.x and 2.x agent.
-    it('is expected version', (done: MochaDone) => {
+    it('is expected version', (done) => {
         this.timeout(1000);
 
         console.log('node version: ' + process.version);
-        const supportedNodeVersions = ['v5.10.1', 'v6.10.3', 'v6.17.1', 'v8.9.1', 'v10.17.0', 'v10.18.0', 'v10.23.0', 'v14.11.0'];
+        const supportedNodeVersions = ['v16.13.0'];
         if (supportedNodeVersions.indexOf(process.version) === -1) {
             assert.fail(`expected node node version to be one of ${supportedNodeVersions.map(o => o).join(', ')}. actual: ` + process.version);
         }
@@ -562,7 +562,7 @@ describe('Dir Operation Tests', function () {
     }
 
     // find tests
-    it('returns hidden files with find', (done: MochaDone) => {
+    it('returns hidden files with find', (done) => {
         this.timeout(3000);
 
         // create the following layout:
@@ -588,7 +588,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('returns depth first find', (done: MochaDone) => {
+    it('returns depth first find', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -621,7 +621,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('returns empty when not exists', (done: MochaDone) => {
+    it('returns empty when not exists', (done) => {
         this.timeout(1000);
 
         let itemPaths: string[] = tl.find(path.join(testutil.getTestTemp(), 'nosuch'));
@@ -630,7 +630,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('does not follow specified symlink', (done: MochaDone) => {
+    it('does not follow specified symlink', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -649,7 +649,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('follows specified symlink when -H', (done: MochaDone) => {
+    it('follows specified symlink when -H', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -671,7 +671,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('follows specified symlink when -L', (done: MochaDone) => {
+    it('follows specified symlink when -L', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -693,7 +693,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('does not follow symlink', (done: MochaDone) => {
+    it('does not follow symlink', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -716,7 +716,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('does not follow symlink when -H', (done: MochaDone) => {
+    it('does not follow symlink when -H', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -741,7 +741,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('follows symlink when -L', (done: MochaDone) => {
+    it('follows symlink when -L', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -767,7 +767,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('allows broken symlink', (done: MochaDone) => {
+    it('allows broken symlink', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -794,7 +794,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('allows specified broken symlink', (done: MochaDone) => {
+    it('allows specified broken symlink', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -812,7 +812,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('allows nested broken symlink when -H', (done: MochaDone) => {
+    it('allows nested broken symlink when -H', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -841,7 +841,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('allows specified broken symlink with -H', (done: MochaDone) => {
+    it('allows specified broken symlink with -H', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -862,7 +862,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('does not allow specified broken symlink when only -H', (done: MochaDone) => {
+    it('does not allow specified broken symlink when only -H', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -887,7 +887,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('does not allow broken symlink when only -L', (done: MochaDone) => {
+    it('does not allow broken symlink when only -L', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -910,7 +910,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('does not allow specied broken symlink when only -L', (done: MochaDone) => {
+    it('does not allow specied broken symlink when only -L', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -935,7 +935,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('allow broken symlink with -L', (done: MochaDone) => {
+    it('allow broken symlink with -L', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -966,7 +966,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('allow specified broken symlink with -L', (done: MochaDone) => {
+    it('allow specified broken symlink with -L', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -988,7 +988,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('detects cycle', (done: MochaDone) => {
+    it('detects cycle', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -1009,7 +1009,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('detects cycle starting from symlink', (done: MochaDone) => {
+    it('detects cycle starting from symlink', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -1030,7 +1030,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('detects deep cycle starting from middle', (done: MochaDone) => {
+    it('detects deep cycle starting from middle', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -1069,7 +1069,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('default options', (done: MochaDone) => {
+    it('default options', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -1099,7 +1099,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('default options do not allow broken symlinks', (done: MochaDone) => {
+    it('default options do not allow broken symlinks', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -1121,7 +1121,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('empty find path returns empty array', (done: MochaDone) => {
+    it('empty find path returns empty array', (done) => {
         this.timeout(1000);
 
         let actual: string[] = tl.find('');
@@ -1131,7 +1131,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('normalizes find path', (done: MochaDone) => {
+    it('normalizes find path', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -1220,7 +1220,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('fails if mkdirP with conflicting file path', (done: MochaDone) => {
+    it('fails if mkdirP with conflicting file path', (done) => {
         this.timeout(1000);
 
         let testPath = path.join(testutil.getTestTemp(), 'mkdirP_conflicting_file_path');
@@ -1238,7 +1238,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('fails if mkdirP with conflicting parent file path', (done: MochaDone) => {
+    it('fails if mkdirP with conflicting parent file path', (done) => {
         this.timeout(1000);
 
         let testPath = path.join(testutil.getTestTemp(), 'mkdirP_conflicting_parent_file_path', 'dir');
@@ -1256,7 +1256,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('no-ops if mkdirP directory exists', (done: MochaDone) => {
+    it('no-ops if mkdirP directory exists', (done) => {
         this.timeout(1000);
 
         let testPath = path.join(testutil.getTestTemp(), 'mkdirP_dir_exists');
@@ -1268,7 +1268,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('no-ops if mkdirP with symlink directory', (done: MochaDone) => {
+    it('no-ops if mkdirP with symlink directory', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -1294,7 +1294,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('no-ops if mkdirP with parent symlink directory', (done: MochaDone) => {
+    it('no-ops if mkdirP with parent symlink directory', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -1320,7 +1320,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('breaks if mkdirP loop out of control', (done: MochaDone) => {
+    it('breaks if mkdirP loop out of control', (done) => {
         this.timeout(1000);
 
         let testPath = path.join(testutil.getTestTemp(), 'mkdirP_failsafe', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10');
@@ -1381,32 +1381,19 @@ describe('Dir Operation Tests', function () {
         tl.mkdirP(testPath);
         assert(shell.test('-d', testPath), 'directory created');
 
-        // can't remove folder with locked file on windows
+        // starting from windows-2022,
+        // can remove folder with locked file on windows as well,
+        // using the command `rd /s /q <path>`
         var filePath = path.join(testPath, 'file.txt');
         fs.appendFileSync(filePath, 'some data');
         assert(shell.test('-e', filePath), 'file exists');
 
         var fd = fs.openSync(filePath, 'r');
 
-        var worked = false;
-        try {
-            tl.rmRF(testPath);
-            worked = true;
-        }
-        catch (err) { }
-
-        if (os.platform() === 'win32') {
-            assert(!worked, 'should not work on windows');
-            assert(shell.test('-e', testPath), 'directory still exists');
-        }
-        else {
-            assert(worked, 'should work on nix');
-            assert(!shell.test('-e', testPath), 'directory removed');
-        }
-
-        fs.closeSync(fd);
         tl.rmRF(testPath);
         assert(!shell.test('-e', testPath), 'directory removed');
+
+        fs.closeSync(fd);
 
         done();
     });
@@ -1432,7 +1419,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('removes file with rmRF', (done: MochaDone) => {
+    it('removes file with rmRF', (done) => {
         this.timeout(1000);
 
         let file: string = path.join(testutil.getTestTemp(), 'rmRF_file');
@@ -1444,7 +1431,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('removes hidden folder with rmRF', (done: MochaDone) => {
+    it('removes hidden folder with rmRF', (done) => {
         this.timeout(1000);
 
         let directory: string = path.join(testutil.getTestTemp(), '.rmRF_directory');
@@ -1456,7 +1443,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('removes hidden file with rmRF', (done: MochaDone) => {
+    it('removes hidden file with rmRF', (done) => {
         this.timeout(1000);
 
         let file: string = path.join(testutil.getTestTemp(), '.rmRF_file');
@@ -1468,7 +1455,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('removes symlink folder with rmRF', (done: MochaDone) => {
+    it('removes symlink folder with rmRF', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -1494,7 +1481,7 @@ describe('Dir Operation Tests', function () {
 
     // creating a symlink to a file on Windows requires elevated
     if (os.platform() != 'win32') {
-        it('removes symlink file with rmRF', (done: MochaDone) => {
+        it('removes symlink file with rmRF', (done) => {
             this.timeout(1000);
 
             // create the following layout:
@@ -1515,7 +1502,7 @@ describe('Dir Operation Tests', function () {
             done();
         });
 
-        it('removes symlink file with missing source using rmRF', (done: MochaDone) => {
+        it('removes symlink file with missing source using rmRF', (done) => {
             this.timeout(1000);
 
             // create the following layout:
@@ -1548,7 +1535,7 @@ describe('Dir Operation Tests', function () {
             done();
         });
 
-        it('removes symlink level 2 file with rmRF', (done: MochaDone) => {
+        it('removes symlink level 2 file with rmRF', (done) => {
             this.timeout(1000);
 
             // create the following layout:
@@ -1573,7 +1560,7 @@ describe('Dir Operation Tests', function () {
             done();
         });
 
-        it('removes nested symlink file with rmRF', (done: MochaDone) => {
+        it('removes nested symlink file with rmRF', (done) => {
             this.timeout(1000);
 
             // create the following layout:
@@ -1601,7 +1588,7 @@ describe('Dir Operation Tests', function () {
             done();
         });
 
-        it('removes deeply nested symlink file with rmRF', (done: MochaDone) => {
+        it('removes deeply nested symlink file with rmRF', (done) => {
             this.timeout(1000);
 
             // create the following layout:
@@ -1632,7 +1619,7 @@ describe('Dir Operation Tests', function () {
         });
     }
 
-    it('removes symlink folder with missing source using rmRF', (done: MochaDone) => {
+    it('removes symlink folder with missing source using rmRF', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -1651,7 +1638,7 @@ describe('Dir Operation Tests', function () {
         // remove the real directory
         fs.unlinkSync(realFile);
         fs.rmdirSync(realDirectory);
-        assert.throws(() => { fs.statSync(symlinkDirectory) }, (err) => err.code == 'ENOENT', 'stat should throw');
+        assert.throws(() => { fs.statSync(symlinkDirectory) }, (err: NodeJS.ErrnoException) => err.code == 'ENOENT', 'stat should throw');
 
         // remove the symlink directory
         tl.rmRF(symlinkDirectory);
@@ -1668,7 +1655,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('removes symlink level 2 folder with rmRF', (done: MochaDone) => {
+    it('removes symlink level 2 folder with rmRF', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -1700,7 +1687,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('removes nested symlink folder with rmRF', (done: MochaDone) => {
+    it('removes nested symlink folder with rmRF', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -1728,7 +1715,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('removes deeply nested symlink folder with rmRF', (done: MochaDone) => {
+    it('removes deeply nested symlink folder with rmRF', (done) => {
         this.timeout(1000);
 
         // create the following layout:
@@ -1758,7 +1745,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    it('removes hidden file with rmRF', (done: MochaDone) => {
+    it('removes hidden file with rmRF', (done) => {
         this.timeout(1000);
 
         let file: string = path.join(testutil.getTestTemp(), '.rmRF_file');
@@ -1845,7 +1832,7 @@ describe('Dir Operation Tests', function () {
     });
 
     // cp tests
-    it('copies file using -f', (done: MochaDone) => {
+    it('copies file using -f', (done) => {
         this.timeout(1000);
 
         let root: string = path.join(testutil.getTestTemp(), 'cp_with_-f');

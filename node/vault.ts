@@ -1,5 +1,4 @@
 
-import Q = require('q');
 import fs = require('fs');
 import path = require('path');
 import crypto = require('crypto');
@@ -67,7 +66,7 @@ export class Vault {
             var encryptedText = ivDataBuffer.slice(16);
 
             var decipher = crypto.createDecipheriv(algorithm, key, iv);
-            var dec = decipher.update(encryptedText,encryptEncoding,unencryptedEncoding);
+            var dec = decipher.update(encryptedText);
             var decFinal = decipher.final(unencryptedEncoding);
 
             secret = dec + decFinal;

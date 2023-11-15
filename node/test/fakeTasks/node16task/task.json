@@ -1,8 +1,8 @@
 {
     "id": "id",
-    "name": "Node14Task",
+    "name": "Node16Task",
     "execution": {
-        "Node14": {
+        "Node16": {
             "target": "usedotnet.js"
         }
     }

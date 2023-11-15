@@ -31,5 +31,6 @@
   "loc.messages.LIB_UseFirstGlobMatch": "多個工作區相符。請先使用。",
   "loc.messages.LIB_MergeTestResultNotSupported": "OSX/Linux 的此版本組建代理程式不支援將多個檔案的測試結果合併至單一測試回合，每個測試結果檔案將作為個別測試回合在 VSO/TFS 中發行。",
   "loc.messages.LIB_PlatformNotSupported": "不支援的平台: %s",
-  "loc.messages.LIB_CopyFileFailed": "複製檔案時發生錯誤。剩餘嘗試次數: %s"
+  "loc.messages.LIB_CopyFileFailed": "複製檔案時發生錯誤。剩餘嘗試次數: %s",
+  "loc.messages.LIB_UndefinedNodeVersion": "未定義節點版本。"
 }

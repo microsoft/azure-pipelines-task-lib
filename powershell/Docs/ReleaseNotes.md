@@ -1,5 +1,26 @@
 # Release Notes
 
+## 0.17.0
+
+* Added `Invoke-VstsProcess` cmdlet (<https://github.com/microsoft/azure-pipelines-task-lib/pull/978>)
+
+## 0.16.0
+* Replaced deprecated "sync-request" libraryr and Added new async methods for DownloadArchive
+
+## 0.15.0
+* Removed the `Q` library
+
+## 0.14.0
+* Improved error handling in function `Find-Files`
+
+## 0.13.0
+* Added parameter `IgnoreHostException` for function `Invoke-Tool` to suppress `System.Management.Automation.Host.HostException`
+
+## 0.12.0
+* Fixed issue when Find-Match in powershell does not support searching a pattern in a path that does not exist (#365)
+* Resolved issue with loading `Newtonsoft.Json.dll`
+* Made `Write-LoggingCommand` exported
+
 ## 0.11.0
 * Added input functions `Get-SecureFileTicket` and `Get-SecureFileName`.
 * Added missing agent commands.

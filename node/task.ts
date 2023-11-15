@@ -51,6 +51,12 @@ export enum Platform {
     Linux
 }
 
+export enum AgentHostedMode {
+    Unknown,
+    SelfHosted,
+    MsHosted
+}
+
 //-----------------------------------------------------
 // General Helpers
 //-----------------------------------------------------
@@ -74,6 +80,8 @@ export const setErrStream = im._setErrStream;
  *                  from agent version 2.142.0 or higher (otherwise will no-op).
  * @returns         void
  */
+export function setResult(result: TaskResult.Succeeded, message?: string, done?: boolean): void;
+export function setResult(result: Exclude<TaskResult, 'Succeeded'>, message: string, done?: boolean): void;
 export function setResult(result: TaskResult, message: string, done?: boolean): void {
     debug('task result: ' + TaskResult[result]);
 
@@ -99,6 +107,21 @@ export function setResult(result: TaskResult, message: string, done?: boolean): 
 //
 process.on('uncaughtException', (err: Error) => {
     setResult(TaskResult.Failed, loc('LIB_UnhandledEx', err.message));
+    error(String(err.stack));
+});
+
+//
+// Catching unhandled rejections from promises and rethrowing them as exceptions
+// For example, a promise that is rejected but not handled by a .catch() handler in node 10 
+// doesn't cause an uncaughtException but causes in Node 16.
+// For types definitions(Error | Any) see https://nodejs.org/docs/latest-v16.x/api/process.html#event-unhandledrejection
+//
+process.on('unhandledRejection', (reason: Error | any) => {
+    if (reason instanceof Error) {
+        throw reason;
+    } else {
+        throw new Error(reason);
+    }
 });
 
 //-----------------------------------------------------
@@ -153,7 +176,7 @@ export function getVariables(): VariableInfo[] {
 
 /**
  * Sets a variable which will be available to subsequent tasks as well.
- * 
+ *
  * @param     name     name of the variable to set
  * @param     val      value to set
  * @param     secret   whether variable is secret.  Multi-line secrets are not allowed.  Optional, defaults to false
@@ -229,6 +252,17 @@ export function getInput(name: string, required?: boolean): string | undefined {
 }
 
 /**
+ * Gets the value of an input.
+ * If the value is not set, it will throw.
+ *
+ * @param     name     name of the input to get
+ * @returns   string
+ */
+export function getInputRequired(name: string): string {
+    return getInput(name, true)!;
+}
+
+/**
  * Gets the value of an input and converts to a bool.  Convenience.
  * If required is true and the value is not set, it will throw.
  * If required is false and the value is not set, returns false.
@@ -239,6 +273,26 @@ export function getInput(name: string, required?: boolean): string | undefined {
  */
 export function getBoolInput(name: string, required?: boolean): boolean {
     return (getInput(name, required) || '').toUpperCase() == "TRUE";
+}
+
+/**
+ * Gets the value of an feature flag and converts to a bool.
+ *
+ * @param     name     name of the feature flag to get.
+ * @param     defaultValue default value of the feature flag in case it's not found in env. (optional. Default value = false)
+ * @returns   boolean
+ */
+export function getBoolFeatureFlag(ffName: string, defaultValue: boolean = false): boolean {
+    const ffValue = process.env[ffName];
+
+    if (!ffValue) {
+        debug(`Feature flag ${ffName} not found. Returning ${defaultValue} as default.`);
+        return defaultValue;
+    }
+
+    debug(`Feature flag ${ffName} = ${ffValue}`);
+
+    return ffValue.toLowerCase() === "true";
 }
 
 /**
@@ -310,6 +364,20 @@ export function getPathInput(name: string, required?: boolean, check?: boolean):
     return inval;
 }
 
+/**
+ * Gets the value of a path input
+ * It will be quoted for you if it isn't already and contains spaces
+ * If the value is not set, it will throw.
+ * If check is true and the path does not exist, it will throw.
+ *
+ * @param     name      name of the input to get
+ * @param     check     whether path is checked.  optional, defaults to false
+ * @returns   string
+ */
+export function getPathInputRequired(name: string, check?: boolean): string {
+    return getPathInput(name, true, check)!;
+}
+
 //-----------------------------------------------------
 // Endpoint Helpers
 //-----------------------------------------------------
@@ -333,6 +401,17 @@ export function getEndpointUrl(id: string, optional: boolean): string | undefine
     return urlval;
 }
 
+/**
+ * Gets the url for a service endpoint
+ * If the url was not set, it will throw.
+ *
+ * @param     id        name of the service endpoint
+ * @returns   string
+ */
+export function getEndpointUrlRequired(id: string): string {
+    return getEndpointUrl(id, false)!;
+}
+
 /*
  * Gets the endpoint data parameter value with specified key for a service endpoint
  * If the endpoint data parameter was not set and is not optional, it will throw.
@@ -351,6 +430,18 @@ export function getEndpointDataParameter(id: string, key: string, optional: bool
 
     debug(id + ' data ' + key + ' = ' + dataParamVal);
     return dataParamVal;
+}
+
+/*
+ * Gets the endpoint data parameter value with specified key for a service endpoint
+ * If the endpoint data parameter was not set, it will throw.
+ *
+ * @param id name of the service endpoint
+ * @param key of the parameter
+ * @returns {string} value of the endpoint data parameter
+ */
+export function getEndpointDataParameterRequired(id: string, key: string): string {
+    return getEndpointDataParameter(id, key, false)!;
 }
 
 /**
@@ -373,6 +464,17 @@ export function getEndpointAuthorizationScheme(id: string, optional: boolean): s
 }
 
 /**
+ * Gets the endpoint authorization scheme for a service endpoint
+ * If the endpoint authorization scheme is not set, it will throw.
+ *
+ * @param id name of the service endpoint
+ * @returns {string} value of the endpoint authorization scheme
+ */
+export function getEndpointAuthorizationSchemeRequired(id: string): string {
+    return getEndpointAuthorizationScheme(id, false)!;
+}
+
+/**
  * Gets the endpoint authorization parameter value for a service endpoint with specified key
  * If the endpoint authorization parameter is not set and is not optional, it will throw.
  *
@@ -391,6 +493,19 @@ export function getEndpointAuthorizationParameter(id: string, key: string, optio
     debug(id + ' auth param ' + key + ' = ' + authParam);
     return authParam;
 }
+
+/**
+ * Gets the endpoint authorization parameter value for a service endpoint with specified key
+ * If the endpoint authorization parameter is not set, it will throw.
+ *
+ * @param id name of the service endpoint
+ * @param key key to find the endpoint authorization parameter
+ * @returns {string} value of the endpoint authorization parameter value
+ */
+export function getEndpointAuthorizationParameterRequired(id: string, key: string): string {
+    return getEndpointAuthorizationParameter(id, key, false)!;
+}
+
 /**
  * Interface for EndpointAuthorization
  * Contains a schema and a string/string dictionary of auth data
@@ -554,8 +669,8 @@ export function stats(path: string): FsStats {
 export const exist = im._exist;
 
 export function writeFile(file: string, data: string | Buffer, options?: BufferEncoding | fs.WriteFileOptions) {
-    if (typeof(options) === 'string'){
-        fs.writeFileSync(file, data, {encoding: options as BufferEncoding});
+    if (typeof (options) === 'string') {
+        fs.writeFileSync(file, data, { encoding: options as BufferEncoding });
     }
     else {
         fs.writeFileSync(file, data, options);
@@ -585,6 +700,40 @@ export function getPlatform(): Platform {
         case 'linux': return Platform.Linux;
         default: throw Error(loc('LIB_PlatformNotSupported', process.platform));
     }
+}
+
+/**
+ * Resolves major version of Node.js engine used by the agent.
+ * @returns {Number} Node's major version.
+ */
+export function getNodeMajorVersion(): Number {
+    const version = process?.versions?.node;
+    if (!version) {
+        throw new Error(loc('LIB_UndefinedNodeVersion'));
+    }
+
+    const parts = version.split('.').map(Number);
+    if (parts.length < 1) {
+        return NaN;
+    }
+
+    return parts[0];
+}
+
+/**
+ * Return hosted type of Agent
+ * @returns {AgentHostedMode}
+ */
+export function getAgentMode(): AgentHostedMode {
+    let agentCloudId = getVariable('Agent.CloudId');
+
+    if (agentCloudId === undefined)
+        return AgentHostedMode.Unknown;
+
+    if (agentCloudId)
+        return AgentHostedMode.MsHosted;
+
+    return AgentHostedMode.SelfHosted;
 }
 
 /**
@@ -871,7 +1020,7 @@ export function retry(func: Function, args: any[], retryOptions: RetryOptions = 
  * @param allowBrokenSymbolicLinks  when true, broken symbolic link will not cause an error.
  * @returns fs.Stats
  */
-function _getStats (path: string, followSymbolicLink: boolean, allowBrokenSymbolicLinks: boolean): fs.Stats {
+function _getStats(path: string, followSymbolicLink: boolean, allowBrokenSymbolicLinks: boolean): fs.Stats {
     // stat returns info about the target of a symlink (or symlink chain),
     // lstat returns info about a symlink itself
     let stats: fs.Stats;
@@ -1311,6 +1460,34 @@ export function rmRF(inputPath: string): void {
  * Output will be streamed to the live console.
  * Returns promise with return code
  *
+ * @param     tool     path to tool to exec
+ * @param     args     an arg string or array of args
+ * @param     options  optional exec options.  See IExecOptions
+ * @returns   number
+ */
+export function execAsync(tool: string, args: any, options?: trm.IExecOptions): Promise<number> {
+    let tr: trm.ToolRunner = this.tool(tool);
+    tr.on('debug', (data: string) => {
+        debug(data);
+    });
+
+    if (args) {
+        if (args instanceof Array) {
+            tr.arg(args);
+        }
+        else if (typeof (args) === 'string') {
+            tr.line(args)
+        }
+    }
+    return tr.execAsync(options);
+}
+
+/**
+ * Exec a tool.  Convenience wrapper over ToolRunner to exec with args in one call.
+ * Output will be streamed to the live console.
+ * Returns promise with return code
+ *
+ * @deprecated Use the {@link execAsync} method that returns a native Javascript Promise instead
  * @param     tool     path to tool to exec
  * @param     args     an arg string or array of args
  * @param     options  optional exec options.  See IExecOptions
@@ -1767,9 +1944,31 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
 
 export interface ProxyConfiguration {
     proxyUrl: string;
+    /**
+     * Proxy URI formated as: protocol://username:password@hostname:port
+     * 
+     * For tools that require setting proxy configuration in the single environment variable
+     */
+    proxyFormattedUrl: string;
     proxyUsername?: string;
     proxyPassword?: string;
     proxyBypassHosts?: string[];
+}
+
+/**
+ * Build Proxy URL in the following format: protocol://username:password@hostname:port
+ * @param proxyUrl Url address of the proxy server (eg: http://example.com)
+ * @param proxyUsername Proxy username (optional)
+ * @param proxyPassword Proxy password (optional)
+ * @returns string
+ */
+function getProxyFormattedUrl(proxyUrl: string, proxyUsername: string | undefined, proxyPassword: string | undefined): string {
+    const parsedUrl: URL = new URL(proxyUrl);
+    let proxyAddress: string = `${parsedUrl.protocol}//${parsedUrl.host}`;
+    if (proxyUsername) {
+        proxyAddress = `${parsedUrl.protocol}//${proxyUsername}:${proxyPassword}@${parsedUrl.host}`;
+    }
+    return proxyAddress;
 }
 
 /**
@@ -1797,11 +1996,13 @@ export function getHttpProxyConfiguration(requestUrl?: string): ProxyConfigurati
             return null;
         }
         else {
+            const proxyAddress = getProxyFormattedUrl(proxyUrl, proxyUsername, proxyPassword)
             return {
                 proxyUrl: proxyUrl,
                 proxyUsername: proxyUsername,
                 proxyPassword: proxyPassword,
-                proxyBypassHosts: proxyBypassHosts
+                proxyBypassHosts: proxyBypassHosts,
+                proxyFormattedUrl: proxyAddress
             };
         }
     }

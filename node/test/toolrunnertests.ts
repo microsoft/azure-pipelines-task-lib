@@ -135,7 +135,7 @@ describe('Toolrunner Tests', function () {
                     assert.equal(code, 0, 'return code of cmd should be 0');
                     done();
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
         }
@@ -145,7 +145,7 @@ describe('Toolrunner Tests', function () {
                     assert.equal(code, 0, 'return code of ls should be 0');
                     done();
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
         }
@@ -178,7 +178,7 @@ describe('Toolrunner Tests', function () {
                     assert.equal(code, 0, 'return code of cmd should be 0');
                     done();
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
         }
@@ -190,11 +190,12 @@ describe('Toolrunner Tests', function () {
             ls.exec(_testExecOptions)
                 .then(function (code) {
                     var contents = stdStream.getContents();
-                    assert(contents.indexOf('exec tool: /bin/ls') >= 0, 'should exec ls');
+                    const usr = os.platform() === 'linux' ? '/usr' : '';
+                    assert(contents.indexOf(`exec tool: ${usr}/bin/ls`) >= 0, 'should exec ls');
                     assert.equal(code, 0, 'return code of ls should be 0');
                     done();
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
         }
@@ -228,7 +229,7 @@ describe('Toolrunner Tests', function () {
                     assert(output && output.length > 0, 'should have emitted stdout');
                     done();
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
         }
@@ -247,7 +248,7 @@ describe('Toolrunner Tests', function () {
                     assert(output && output.length > 0, 'should have emitted stdout');
                     done();
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
         }
@@ -280,7 +281,7 @@ describe('Toolrunner Tests', function () {
                     succeeded = true;
                     assert.fail('should not have succeeded');
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     if (succeeded) {
                         done(err);
                     }
@@ -290,7 +291,7 @@ describe('Toolrunner Tests', function () {
                         done();
                     }
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
         }
@@ -311,7 +312,7 @@ describe('Toolrunner Tests', function () {
                     succeeded = true;
                     assert.fail('should not have succeeded');
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     if (succeeded) {
                         done(err);
                     }
@@ -321,7 +322,7 @@ describe('Toolrunner Tests', function () {
                         done();
                     }
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
         }
@@ -347,7 +348,7 @@ describe('Toolrunner Tests', function () {
                 assert.equal(code, 0, 'should have succeeded on stderr');
                 done();
             })
-            .fail(function (err) {
+            .catch(function (err) {
                 done(new Error('did not succeed on stderr'))
             })
     })
@@ -379,7 +380,7 @@ describe('Toolrunner Tests', function () {
                 succeeded = true;
                 assert.fail('should not have succeeded');
             })
-            .fail(function (err) {
+            .catch(function (err) {
                 if (succeeded) {
                     done(err);
                 }
@@ -389,7 +390,7 @@ describe('Toolrunner Tests', function () {
                     done();
                 }
             })
-            .fail(function (err) {
+            .catch(function (err) {
                 done(err);
             });
     })
@@ -418,7 +419,7 @@ describe('Toolrunner Tests', function () {
                 succeeded = true;
                 assert.fail('should not have succeeded');
             })
-            .fail(function (err) {
+            .catch(function (err) {
                 if (succeeded) {
                     done(err);
                 }
@@ -427,7 +428,7 @@ describe('Toolrunner Tests', function () {
                     done();
                 }
             })
-            .fail(function (err) {
+            .catch(function (err) {
                 done(err);
             });
     })
@@ -478,7 +479,7 @@ describe('Toolrunner Tests', function () {
                 assert(toolRunnerDebug.filter((x) => x.indexOf('STDIO streams did not close') >= 0).length == 1, 'Did not find expected debug message');
                 done();
             })
-            .fail(function (err) {
+            .catch(function (err) {
                 done(err);
             })
             .finally(function () {
@@ -533,12 +534,12 @@ describe('Toolrunner Tests', function () {
                 done(new Error('should not have been successful'));
                 done();
             })
-            .fail(function (err) {
+            .catch(function (err) {
                 assert(toolRunnerDebug.filter((x) => x.indexOf('STDIO streams did not close') >= 0).length == 1, 'Did not find expected debug message');
                 assert(err.message.indexOf('failed with exit code 123') >= 0);
                 done();
             })
-            .fail(function (err) {
+            .catch(function (err) {
                 done(err);
             })
             .finally(function () {
@@ -593,12 +594,12 @@ describe('Toolrunner Tests', function () {
                 done(new Error('should not have been successful'));
                 done();
             })
-            .fail(function (err) {
+            .catch(function (err) {
                 assert(toolRunnerDebug.filter((x) => x.indexOf('STDIO streams did not close') >= 0).length == 1, 'Did not find expected debug message');
                 assert(err.message.indexOf('failed because one or more lines were written to the STDERR stream') >= 0);
                 done();
             })
-            .fail(function (err) {
+            .catch(function (err) {
                 done(err);
             })
             .finally(function () {
@@ -641,7 +642,7 @@ describe('Toolrunner Tests', function () {
                     assert(output && output.length > 0 && output.indexOf('line 2') >= 0, 'should have emitted stdout ' + output);
                     done();
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
         }
@@ -664,7 +665,7 @@ describe('Toolrunner Tests', function () {
                     assert(output && output.length > 0 && output.indexOf('node') >= 0, 'should have emitted stdout ' + output);
                     done();
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
         }
@@ -704,7 +705,7 @@ describe('Toolrunner Tests', function () {
                     succeeded = true;
                     assert.fail('print-output.exe | findstr "line 2" was a bad command and it did not fail');
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     if (succeeded) {
                         done(err);
                     }
@@ -713,7 +714,7 @@ describe('Toolrunner Tests', function () {
                         done();
                     }
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
         }
@@ -736,7 +737,7 @@ describe('Toolrunner Tests', function () {
                     succeeded = true;
                     assert.fail('ps bad | grep ssh was a bad command and it did not fail');
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     if (succeeded) {
                         done(err);
                     }
@@ -746,7 +747,7 @@ describe('Toolrunner Tests', function () {
                         done();
                     }
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 })
         }
@@ -792,7 +793,7 @@ describe('Toolrunner Tests', function () {
                     succeeded = true;
                     assert.fail('print-output.exe 0 "line 1" "line 2" "line 3" | match-input.exe 1 "line 2" "some error message" was a bad command and it did not fail');
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     if (succeeded) {
                         done(err);
                     }
@@ -802,7 +803,7 @@ describe('Toolrunner Tests', function () {
                         done();
                     }
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
         }
@@ -831,7 +832,7 @@ describe('Toolrunner Tests', function () {
                     succeeded = true;
                     assert.fail('node [...] | grep --? was a bad command and it did not fail');
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     if (succeeded) {
                         done(err);
                     }
@@ -842,7 +843,7 @@ describe('Toolrunner Tests', function () {
                         done();
                     }
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
         }
@@ -887,7 +888,7 @@ describe('Toolrunner Tests', function () {
                     assert(fileContents.indexOf('line 2') >= 0, 'Log file of first tool should have stdout from first tool: ' + fileContents);
                     done();
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
         }
@@ -913,7 +914,7 @@ describe('Toolrunner Tests', function () {
                     assert(fileContents.indexOf('PID') >= 0, 'Log of first tool should have stdout from first tool: ' + fileContents);
                     done();
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
         }
@@ -955,7 +956,7 @@ describe('Toolrunner Tests', function () {
                     succeeded = true;
                     assert.fail('print-output.exe | findstr "line 2" was a bad command and it did not fail');
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     if (succeeded) {
                         done(err);
                     }
@@ -967,7 +968,7 @@ describe('Toolrunner Tests', function () {
                         done();
                     }
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
         }
@@ -990,7 +991,7 @@ describe('Toolrunner Tests', function () {
                     succeeded = true;
                     assert.fail('ps bad | grep ssh was a bad command and it did not fail');
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     if (succeeded) {
                         done(err);
                     }
@@ -1003,7 +1004,7 @@ describe('Toolrunner Tests', function () {
                         done();
                     }
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 })
         }
@@ -1051,7 +1052,7 @@ describe('Toolrunner Tests', function () {
                     succeeded = true;
                     assert.fail('print-output.exe 0 "line 1" "line 2" "line 3" | match-input.exe 1 "line 2" "some error message" was a bad command and it did not fail');
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     if (succeeded) {
                         done(err);
                     }
@@ -1064,7 +1065,7 @@ describe('Toolrunner Tests', function () {
                         done();
                     }
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
         }
@@ -1092,7 +1093,7 @@ describe('Toolrunner Tests', function () {
                     succeeded = true;
                     assert.fail('ps ax | grep --? was a bad command and it did not fail');
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     if (succeeded) {
                         done(err);
                     }
@@ -1106,7 +1107,7 @@ describe('Toolrunner Tests', function () {
                         done();
                     }
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
         }
@@ -1265,7 +1266,7 @@ describe('Toolrunner Tests', function () {
                         'hello world');
                     done();
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
         });
@@ -1305,7 +1306,7 @@ describe('Toolrunner Tests', function () {
                         'helloworld hello:"world again"');
                     done();
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
         });
@@ -1348,7 +1349,7 @@ describe('Toolrunner Tests', function () {
                         + ' hello,world');
                     done();
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
         });
@@ -1378,11 +1379,15 @@ describe('Toolrunner Tests', function () {
                     // validate stdout
                     assert.equal(
                         output.trim(),
-                        "args[0]: 'myarg1'\r\n"
-                        + "args[1]: 'myarg2'");
+                        "args[0]: 'args'\r\n"
+                        + "args[1]: 'exe'\r\n"
+                        + "args[2]: 'with'\r\n"
+                        + "args[3]: 'spaces.exe'\r\n"
+                        + "args[4]: 'myarg1'\r\n"
+                        + "args[5]: 'myarg2'");
                     done();
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
         });
@@ -1417,7 +1422,7 @@ describe('Toolrunner Tests', function () {
                         + 'args[2]: "arg3"');
                     done();
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
         });
@@ -1452,7 +1457,7 @@ describe('Toolrunner Tests', function () {
                         + 'args[1]: "<quote>my arg 2<quote>"');
                     done();
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 })
         });
@@ -1554,7 +1559,7 @@ describe('Toolrunner Tests', function () {
                         + 'args[23]: "<quote>hello world\\\\<quote>"');
                     done();
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 })
         });
@@ -1641,8 +1646,12 @@ describe('Toolrunner Tests', function () {
             // validate stdout
             assert.equal(
                 result.stdout.trim(),
-                "args[0]: 'myarg1'\r\n"
-                + "args[1]: 'myarg2'");
+                "args[0]: 'args'\r\n"
+                + "args[1]: 'exe'\r\n"
+                + "args[2]: 'with'\r\n"
+                + "args[3]: 'spaces.exe'\r\n"
+                + "args[4]: 'myarg1'\r\n"
+                + "args[5]: 'myarg2'")
             done();
         });
 
@@ -1824,7 +1833,7 @@ describe('Toolrunner Tests', function () {
                         'args[0]: "<quote><quote><quote>hello world<quote><quote><quote>"');
                     done();
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 })
         });
@@ -1861,7 +1870,7 @@ describe('Toolrunner Tests', function () {
                         'args[1]: "world"');
                     done();
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 })
         });
@@ -2127,7 +2136,7 @@ describe('Toolrunner Tests', function () {
                     assert.equal(output.trim(), 'args[0]: \'test value\'', 'Command should return \"args[0]: \'test value\'\"');
                     done();
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
             }
@@ -2142,7 +2151,7 @@ describe('Toolrunner Tests', function () {
                     assert(output.includes(tempPath), `Result should include \'${tempPath}\'`);
                     done();
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
             }
@@ -2172,7 +2181,7 @@ describe('Toolrunner Tests', function () {
                         assert(output && output.length > 0 && output.indexOf('test value') >= 0, 'should have emitted stdout ' + output);
                         done();
                     })
-                    .fail(function (err) {
+                    .catch(function (err) {
                         done(err);
                     });
             }
@@ -2195,7 +2204,7 @@ describe('Toolrunner Tests', function () {
                         assert(output && output.length > 0 && output.indexOf('node') >= 0, 'should have emitted stdout ' + output);
                         done();
                     })
-                    .fail(function (err) {
+                    .catch(function (err) {
                         done(err);
                     });
             }
@@ -2218,7 +2227,7 @@ describe('Toolrunner Tests', function () {
                         + 'args[2]: \'\'-TEST3=value\'\'');
                     done();
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
             }
@@ -2233,7 +2242,7 @@ describe('Toolrunner Tests', function () {
                     assert.equal(output, '-TEST1=test value;test -TEST2=/one/two/three -TEST3=out:$TEST\n');
                     done();
                 })
-                .fail(function (err) {
+                .catch(function (err) {
                     done(err);
                 });
             }

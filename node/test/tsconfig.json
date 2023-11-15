@@ -16,6 +16,7 @@
         "legacyfindfilestests.ts",
         "vaulttests.ts",
         "toolrunnertests.ts",
+        "toolrunnerTestsWithExecAsync.ts",
         "cctests.ts",
         "loctests.ts",
         "matchtests.ts",
@@ -23,6 +24,10 @@
         "findmatchtests.ts",
         "mocktests.ts",
         "retrytests.ts",
-        "isuncpathtests.ts"
+        "isuncpathtests.ts",
+        "gethttpproxytests.ts",
+        "mockertests.ts",
+        "fakeModules/fakemodule1.ts",
+        "fakeModules/fakemodule2.ts"
     ]
 }

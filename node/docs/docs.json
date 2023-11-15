@@ -12,8 +12,10 @@
             "Summary": "Functions for retrieving inputs for the task",
             "Document": [
                 "task.getInput",
+                "task.getInputRequired",
                 "task.getBoolInput",
                 "task.getPathInput",
+                "task.getPathInputRequired",
                 "task.filePathSupplied",
                 "task.getDelimitedInput",
                 "task.getVariable",
@@ -21,7 +23,8 @@
                 "task.getVariables",
                 "task.setVariable",
                 "task.getTaskVariable",
-                "task.setTaskVariable"
+                "task.setTaskVariable",
+                "task.getAgentMode"
             ]
         },
         "Execution": {
@@ -46,9 +49,13 @@
             "Summary": "Retrieve service connections (previously called \"service endpoints\") and authorization details",
             "Document": [
                 "task.getEndpointUrl",
+                "task.getEndpointUrlRequired",
                 "task.getEndpointDataParameter",
+                "task.getEndpointDataParameterRequired",
                 "task.getEndpointAuthorizationScheme",
+                "task.getEndpointAuthorizationSchemeRequired",
                 "task.getEndpointAuthorizationParameter",
+                "task.getEndpointAuthorizationParameterRequired",
                 "task.EndpointAuthorization",
                 "task.getEndpointAuthorization"
             ]

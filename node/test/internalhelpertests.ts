@@ -7,7 +7,7 @@ import * as path from 'path';
 import * as testutil from './testutil';
 import * as tl from '../_build/task';
 import * as im from '../_build/internal';
-import * as mockery from 'mockery'
+import * as mockery from '../_build/lib-mocker'
 
 describe('Internal Path Helper Tests', function () {
 
@@ -32,7 +32,7 @@ describe('Internal Path Helper Tests', function () {
             `expected ensureRooted for input <${path}> to yield <${expected}>`);
     }
 
-    it('ensureRooted roots paths', (done: MochaDone) => {
+    it('ensureRooted roots paths', (done) => {
         this.timeout(1000);
 
         if (process.platform == 'win32') {
@@ -120,7 +120,7 @@ describe('Internal Path Helper Tests', function () {
             `expected getDirectoryName for input <${path}> to yield <${expected}>`);
     }
 
-    it('getDirectoryName interprets directory name from paths', (done: MochaDone) => {
+    it('getDirectoryName interprets directory name from paths', (done) => {
         this.timeout(1000);
 
         assertDirectoryName(null, '');
@@ -244,7 +244,7 @@ describe('Internal Path Helper Tests', function () {
             `expected isRooted for input <${path}> to yield <${expected}>`);
     }
 
-    it('isRooted detects root', (done: MochaDone) => {
+    it('isRooted detects root', (done) => {
         this.timeout(1000);
 
         if (process.platform == 'win32') {
@@ -335,7 +335,7 @@ describe('Internal Path Helper Tests', function () {
             `expected normalizeSeparators for input <${path}> to yield <${expected}>`);
     }
 
-    it('normalizeSeparators', (done: MochaDone) => {
+    it('normalizeSeparators', (done) => {
         this.timeout(1000);
 
         if (process.platform == 'win32') {
@@ -403,8 +403,7 @@ describe('Internal Path Helper Tests', function () {
         done();
     });
     
-    it('ReportMissingStrings', (done: MochaDone) => {
-
+    it('ReportMissingStrings', (done) => {
         mockery.registerAllowable('../_build/internal')
         const fsMock = {
             statSync: function (path) { return null; }
@@ -425,7 +424,7 @@ describe('Internal Path Helper Tests', function () {
         done();
     });
 
-    it('ReportMissingLocalization', (done: MochaDone) => {
+    it('ReportMissingLocalization', (done) => {
         const localizedMessage : string = im._loc("gizmo", "whatever", "music");
         assert.strictEqual(localizedMessage, "gizmo whatever music");
         done();

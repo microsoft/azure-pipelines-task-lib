@@ -31,5 +31,6 @@
   "loc.messages.LIB_UseFirstGlobMatch": "Plusieurs espaces de travail correspondants. Utilisation du premier d'entre eux.",
   "loc.messages.LIB_MergeTestResultNotSupported": "La fusion des résultats des tests de plusieurs fichiers en une seule série de tests n'est pas prise en charge dans cette version de l'agent de build pour OSX/Linux. Chaque fichier de résultats des tests est publié en tant que série de tests distincte dans VSO/TFS.",
   "loc.messages.LIB_PlatformNotSupported": "Plateforme non prise en charge : %s",
-  "loc.messages.LIB_CopyFileFailed": "Error while copying the file. Attempts left: %s"
+  "loc.messages.LIB_CopyFileFailed": "Erreur durant la copie du fichier. Tentatives restantes : %s",
+  "loc.messages.LIB_UndefinedNodeVersion": "La version du nœud n’est pas définie."
 }

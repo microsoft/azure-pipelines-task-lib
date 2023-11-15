@@ -1,0 +1,16 @@
+parameters:
+- name: nodeVersion 
+  type: string
+
+steps:
+  # npm install
+- task: Npm@1
+  displayName: npm install
+  inputs:
+    command: install
+    workingDir: node
+
+- task: NodeTool@0
+  displayName: use node ${{parameters.nodeVersion}}
+  inputs:
+    versionSpec: ${{parameters.nodeVersion}}

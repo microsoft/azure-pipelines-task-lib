@@ -1,18 +1,20 @@
-/// <reference path="../../definitions/mocha.d.ts"/>
-/// <reference path="../../definitions/node.d.ts"/>
-/// <reference path="../../definitions/Q.d.ts"/>
+import psRunner from '../lib/psRunner';
+import path from 'path';
+import fs from 'fs';
+import shell from 'shelljs';
 
-import Q = require('q');
-import assert = require('assert');
-import psRunner = require('../lib/psRunner');
-import path = require('path');
-import fs = require('fs');
-let shell = require('shelljs');
-let ps: string = shell.which('powershell.exe');
+const ps = shell.which('powershell.exe')?.stdout;
+if (!ps) {
+    throw new Error('powershell.exe not found');
+}
+
+// Clean PSModulePath to prevent failure due to already loaded modules.
+delete process.env['PSModulePath'];
+
 describe('VstsTaskSdk Suite', function () {
     this.timeout(20000);
 
-    before((done: MochaDone): void => {
+    before((done: Mocha.Done): void => {
         done();
     });
 
@@ -25,7 +27,7 @@ describe('VstsTaskSdk Suite', function () {
             let fullPath: string = path.join(__dirname, file);
             if (file.match(/\.ps1$/)) {
                 let description: string = path.basename(file, '.ps1');
-                it(description, (done: MochaDone) => {
+                it(description, (done: Mocha.Done) => {
                     psRunner.run(fullPath, done);
                 });
             }

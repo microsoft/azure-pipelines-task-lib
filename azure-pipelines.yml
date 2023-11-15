@@ -3,139 +3,65 @@ trigger:
 - features/*
 - releases/*
 
+variables:
+  - group: npm-tokens
+  - name: nodeVersion
+    value: '16.13.0'
+
 jobs:
 #################################################
 - job: windows
 #################################################
   displayName: windows
   pool:
-    vmImage: vs2017-win2016
+    vmImage: windows-2022
 
   steps:
-  ################################################################################
-  # azure-pipelines-task-lib
-  ################################################################################
-  
-  # npm install
-  - task: Npm@1
-    displayName: (azure-pipelines-task-lib) npm install
-    inputs:
-      command: install
-      workingDir: node
+    - template: azure-pipelines-steps-node.yml
+      parameters:
+        nodeVersion: $(nodeVersion)
 
-  # use node 10
-  - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 10.23.0
-    inputs:
-      versionSpec: "10.23.0"
-
-  # build/test
-  - script: |
-      chcp 437
-      node make.js test
-    workingDirectory: node
-    displayName: (azure-pipelines-task-lib) node make.js test  
-
-  # build/test
-  - script: |
-      chcp 437
-      node make.js test
-    displayName: (azure-pipelines-task-lib) node make.js test
-    workingDirectory: node
-
-  ################################################################################
-  # VstsTaskSdk
-  ################################################################################
-
-  # npm install
-  - task: Npm@1
-    displayName: (VstsTaskSdk) npm install
-    inputs:
-      command: install
-      workingDir: powershell
-
-  # npm test
-  - script: npm test
-    displayName: (VstsTaskSdk) npm test
-    workingDirectory: powershell
+    - template: azure-pipelines-steps-test-build.yml
 
 #################################################
 - job: linux
 #################################################
   displayName: Linux
   pool:
-    vmImage: ubuntu-18.04
+    vmImage: ubuntu-22.04
 
   steps:
-  ################################################################################
-  # azure-pipelines-task-lib
-  ################################################################################
-  
-  # npm install
-  - task: Npm@1
-    displayName: (azure-pipelines-task-lib) npm install
-    inputs:
-      command: install
-      workingDir: node
+  - template: azure-pipelines-steps-node.yml
+    parameters:
+      nodeVersion: $(nodeVersion)
+  - template: azure-pipelines-steps-test-build.yml
 
-  # use node 10
-  - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 10.23.0
+  - task: PublishPipelineArtifact@1
     inputs:
-      versionSpec: "10.23.0"
-      
-  # build/test
-  - script: node make.js test
-    workingDirectory: node
-    displayName: (azure-pipelines-task-lib) node make.js test  
-
-  # build/test
-  - script: node make.js test
-    displayName: (azure-pipelines-task-lib) node make.js test
-    workingDirectory: node
+      targetPath: 'node/_build'
+      artifactType: 'pipeline'
+      artifactName: 'npm-package'
 
   # For CI runs on master, automatically publish packages
   - bash: |
-        echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
-        cd _build
+        echo //registry.npmjs.org/:_authToken=\${NPM_TOKEN} > .npmrc
         npm publish || true # Ignore publish failures, usually will happen because package already exists
-    displayName: (azure-pipelines-task-lib) npm publish
-    workingDirectory: node
-    condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranchname'], 'master', 'releases/3.x'))
+    displayName: npm publish
+    workingDirectory: node/_build
+    condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master'))
     env:
-      NPM_TOKEN: $(npmPublishToken)
+      NPM_TOKEN: $(npm-automation.token)
 
 #################################################
 - job: macOS
 #################################################
   displayName: macOS
   pool:
-    vmImage: macOS-10.15
+    vmImage: macOS-12
 
   steps:
-  ################################################################################
-  # azure-pipelines-task-lib
-  ################################################################################
-  
-  # npm install
-  - task: Npm@1
-    displayName: (azure-pipelines-task-lib) npm install
-    inputs:
-      command: install
-      workingDir: node
+    - template: azure-pipelines-steps-node.yml
+      parameters:
+        nodeVersion: $(nodeVersion)
 
-  # use node 10
-  - task: NodeTool@0
-    displayName: (azure-pipelines-task-lib) use node 10.23.0
-    inputs:
-      versionSpec: "10.23.0"
-      
-  # build/test
-  - script: node make.js test
-    workingDirectory: node
-    displayName: (azure-pipelines-task-lib) node make.js test  
-
-  # build/test
-  - script: node make.js test
-    displayName: (azure-pipelines-task-lib) node make.js test
-    workingDirectory: node
+    - template: azure-pipelines-steps-test-build.yml
