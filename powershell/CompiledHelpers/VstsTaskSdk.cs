@@ -223,7 +223,6 @@ namespace VstsTaskSdk.FS
         OpenReparsePoint = 0x00200000,
         OpenNoRecall = 0x00100000,
         FirstPipeInstance = 0x00080000,
-        // Refer https://docs.microsoft.com/en-us/windows/win32/fileio/file-attribute-constants?redirectedfrom=MSDN&WT.mc_id=DOP-MVP-5001511
         RecallOnDataAccess = 0x00400000,
         RecallOnOpen = 0x00040000
     }
