@@ -222,7 +222,9 @@ namespace VstsTaskSdk.FS
         PosixSemantics = 0x01000000,
         OpenReparsePoint = 0x00200000,
         OpenNoRecall = 0x00100000,
-        FirstPipeInstance = 0x00080000
+        FirstPipeInstance = 0x00080000,
+        RecallOnDataAccess = 0x00400000,
+        RecallOnOpen = 0x00040000
     }
     [Flags]
     public enum FindFlags
