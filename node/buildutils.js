@@ -5,13 +5,12 @@ var os = require('os');
 var path = require('path');
 var process = require('process');
 var admZip = require('adm-zip');
-var deasync = require('deasync')
 const Downloader = require("nodejs-file-downloader");
 
 var downloadPath = path.join(__dirname, '_download');
 var testPath = path.join(__dirname, '_test');
 
-exports.run = function (cl) {
+var run = function (cl) {
     console.log('> ' + cl);
     var rc = exec(cl).code;
     if (rc !== 0) {
@@ -19,9 +18,7 @@ exports.run = function (cl) {
         exit(rc);
     }
 }
-var run = exports.run;
-
-
+exports.run = run;
 
 const getExternalsAsync = async () => {
     if (process.env['TF_BUILD']) {
@@ -50,8 +47,11 @@ const getExternalsAsync = async () => {
             addPath(path.join(nodeArchivePath, 'node-' + nodeVersion + '-linux-x64', 'bin'));
             break;
         case 'win32':
-            var nodeExePath = await downloadFileAsync(nodeUrl + '/' + nodeVersion + '/win-x64/node.exe');
-            var nodeLibPath = await downloadFileAsync(nodeUrl + '/' + nodeVersion + '/win-x64/node.lib');
+            var [nodeExePath, nodeLibPath] = await Promise.all([
+                downloadFileAsync(nodeUrl + '/' + nodeVersion + '/win-x64/node.exe'),
+                downloadFileAsync(nodeUrl + '/' + nodeVersion + '/win-x64/node.lib')
+            ]);
+            
             var nodeDirectory = path.join(testPath, 'node');
             mkdir('-p', nodeDirectory);
             cp(nodeExePath, path.join(nodeDirectory, 'node.exe'));
@@ -62,18 +62,6 @@ const getExternalsAsync = async () => {
 }
 
 exports.getExternalsAsync = getExternalsAsync
-
-
-
-/**
-* @deprecated This method uses library which is not prefered to use on production
- */
-exports.getExternals = function () {
-    var result = false;
-    getExternalsAsync().then(t => result = true);
-    deasync.loopWhile(function () { return !result });
-    return result;
-}
 
 
 var downloadFileAsync = async function (url, fileName) {
@@ -109,10 +97,9 @@ var downloadFileAsync = async function (url, fileName) {
         fileName: fileName
     });
 
-    const { fileName: downloadedFileName } = await downloader.download(); // Downloader.download() resolves with some useful properties.
+    const { filePath } = await downloader.download(); // Downloader.download() resolves with some useful properties.
     fs.writeFileSync(marker, '');
-    return downloadedFileName;
-
+    return filePath;
 };
 
 
