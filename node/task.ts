@@ -703,6 +703,24 @@ export function getPlatform(): Platform {
 }
 
 /**
+ * Resolves major version of Node.js engine used by the agent.
+ * @returns {Number} Node's major version.
+ */
+export function getNodeMajorVersion(): Number {
+    const version = process?.versions?.node;
+    if (!version) {
+        throw new Error(loc('LIB_UndefinedNodeVersion'));
+    }
+
+    const parts = version.split('.').map(Number);
+    if (parts.length < 1) {
+        return NaN;
+    }
+
+    return parts[0];
+}
+
+/**
  * Return hosted type of Agent
  * @returns {AgentHostedMode}
  */
@@ -1442,6 +1460,34 @@ export function rmRF(inputPath: string): void {
  * Output will be streamed to the live console.
  * Returns promise with return code
  *
+ * @param     tool     path to tool to exec
+ * @param     args     an arg string or array of args
+ * @param     options  optional exec options.  See IExecOptions
+ * @returns   number
+ */
+export function execAsync(tool: string, args: any, options?: trm.IExecOptions): Promise<number> {
+    let tr: trm.ToolRunner = this.tool(tool);
+    tr.on('debug', (data: string) => {
+        debug(data);
+    });
+
+    if (args) {
+        if (args instanceof Array) {
+            tr.arg(args);
+        }
+        else if (typeof (args) === 'string') {
+            tr.line(args)
+        }
+    }
+    return tr.execAsync(options);
+}
+
+/**
+ * Exec a tool.  Convenience wrapper over ToolRunner to exec with args in one call.
+ * Output will be streamed to the live console.
+ * Returns promise with return code
+ *
+ * @deprecated Use the {@link execAsync} method that returns a native Javascript Promise instead
  * @param     tool     path to tool to exec
  * @param     args     an arg string or array of args
  * @param     options  optional exec options.  See IExecOptions

@@ -1,11 +1,11 @@
-
 var admZip = require('adm-zip');
 var child_process = require('child_process');
 var fs = require('fs');
 var path = require('path');
 var process = require('process');
 var shell = require('shelljs');
-var syncRequest = require('sync-request');
+var deasync = require("deasync")
+const Downloader = require("nodejs-file-downloader");
 
 // global paths
 var downloadPath = path.join(__dirname, '_download');
@@ -112,65 +112,106 @@ var ensureTool = function (name, versionArgs, validate) {
 }
 exports.ensureTool = ensureTool;
 
-var downloadFile = function (url) {
+const downloadFileAsync = async function (url, fileName) {
     // validate parameters
     if (!url) {
         throw new Error('Parameter "url" must be set.');
     }
 
     // skip if already downloaded
-    var scrubbedUrl = url.replace(/[/\:?]/g, '_');
-    var targetPath = path.join(downloadPath, 'file', scrubbedUrl);
-    var marker = targetPath + '.completed';
-    if (!test('-f', marker)) {
-        console.log('Downloading file: ' + url);
-
-        // delete any previous partial attempt
-        if (test('-f', targetPath)) {
-            rm('-f', targetPath);
-        }
-
-        // download the file
-        mkdir('-p', path.join(downloadPath, 'file'));
-        var result = syncRequest('GET', url);
-        fs.writeFileSync(targetPath, result.getBody());
-
-        // write the completed marker
-        fs.writeFileSync(marker, '');
+    const scrubbedUrl = url.replace(/[/\:?]/g, '_');
+    if (fileName == undefined)
+        fileName = scrubbedUrl;
+    const targetPath = path.join(downloadPath, 'file', fileName);
+    const marker = targetPath + '.completed';
+    if (test('-f', marker)) {
+        console.log('File already exists: ' + targetPath);
+        return targetPath;
     }
 
-    return targetPath;
-}
-exports.downloadFile = downloadFile;
+    console.log('Downloading file: ' + url);
+    // delete any previous partial attempt
+    if (test('-f', targetPath)) {
+        rm('-f', targetPath);
+    }
 
-var downloadArchive = function (url) {
+    // download the file
+    mkdir('-p', path.join(downloadPath, 'file'));
+
+    const downloader = new Downloader({
+        url: url,
+        directory: path.join(downloadPath, 'file'),
+        fileName: fileName
+    });
+
+
+    const { filePath } = await downloader.download(); // Downloader.download() resolves with some useful properties.
+    fs.writeFileSync(marker, '');
+
+    return filePath;
+};
+
+exports.downloadFileAsync = downloadFileAsync;
+
+
+var downloadFile = function (url, fileName) {
+    var result;
+    downloadFileAsync(url, fileName).then(t => result = t);
+    deasync.loopWhile(function () { return result == undefined; });
+    return result;
+}
+
+/**
+ * @deprecated This method uses library which is not prefered to use on production
+ */
+exports.downloadFile = downloadFile
+var downloadArchiveAsync = async function (url, fileName) {
     if (!url) {
         throw new Error('Parameter "url" must be set.');
     }
 
     // skip if already downloaded and extracted
     var scrubbedUrl = url.replace(/[\/\\:?]/g, '_');
+    if (fileName != undefined) {
+        scrubbedUrl = fileName;
+    }
     var targetPath = path.join(downloadPath, 'archive', scrubbedUrl);
     var marker = targetPath + '.completed';
-    if (!test('-f', marker)) {
-        // download the archive
-        var archivePath = downloadFile(url);
-        console.log('Extracting archive: ' + url);
-
-        // delete any previously attempted extraction directory
-        if (test('-d', targetPath)) {
-            rm('-rf', targetPath);
-        }
-
-        // extract
-        mkdir('-p', targetPath);
-        var zip = new admZip(archivePath);
-        zip.extractAllTo(targetPath);
-
-        // write the completed marker
-        fs.writeFileSync(marker, '');
+    if (test('-f', marker)) {
+        return targetPath;
     }
 
+    // download the archive
+    var archivePath = await downloadFileAsync(url, scrubbedUrl);
+    console.log('Extracting archive: ' + url);
+
+    // delete any previously attempted extraction directory
+    if (test('-d', targetPath)) {
+        rm('-rf', targetPath);
+    }
+
+    // extract
+    mkdir('-p', targetPath);
+    var zip = new admZip(archivePath);
+    zip.extractAllTo(targetPath);
+
+    // write the completed marker
+    fs.writeFileSync(marker, '');
+
     return targetPath;
+};
+
+
+exports.downloadArchiveAsync = downloadArchiveAsync;
+
+var downloadArchive = function (url, fileName) {
+    var result;
+    downloadArchiveAsync(url, fileName).then(t => result = t);
+    deasync.loopWhile(function () { return result == undefined; });
+    return result;
 }
+
+/**
+ * @deprecated This method uses library which is not prefered to use on production
+ */
 exports.downloadArchive = downloadArchive;

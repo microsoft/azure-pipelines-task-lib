@@ -31,5 +31,6 @@
   "loc.messages.LIB_UseFirstGlobMatch": "Mehrere Arbeitsbereichübereinstimmungen. Die erste Übereinstimmung wird verwendet.",
   "loc.messages.LIB_MergeTestResultNotSupported": "Das Mergen von Testergebnissen aus mehreren Dateien in einen Testlauf wird von dieser Version des Build-Agents für OSX/Linux nicht unterstützt. Jede Testergebnisdatei wird als separater Testlauf in VSO/TFS veröffentlicht.",
   "loc.messages.LIB_PlatformNotSupported": "Plattform wird nicht unterstützt: %s",
-  "loc.messages.LIB_CopyFileFailed": "Error while copying the file. Attempts left: %s"
+  "loc.messages.LIB_CopyFileFailed": "Fehler beim Kopieren der Datei. Verbleibende Versuche: %s",
+  "loc.messages.LIB_UndefinedNodeVersion": "Die Knotenversion ist nicht definiert."
 }

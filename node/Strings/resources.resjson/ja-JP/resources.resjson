@@ -31,5 +31,6 @@
   "loc.messages.LIB_UseFirstGlobMatch": "複数のワークスペースが一致します。最初のワークスペースが使用されます。",
   "loc.messages.LIB_MergeTestResultNotSupported": "複数のファイルからのテスト結果を 1 つのテスト実行にマージする処理は、OSX/Linux 用のビルド エージェントのこのバージョンではサポートされていません。各テスト結果ファイルが VSO/TFS で別個のテスト実行として発行されます。",
   "loc.messages.LIB_PlatformNotSupported": "プラットフォームがサポートされていません: %s",
-  "loc.messages.LIB_CopyFileFailed": "Error while copying the file. Attempts left: %s"
+  "loc.messages.LIB_CopyFileFailed": "ファイルのコピー中にエラーが発生しました。残りの試行回数: %s",
+  "loc.messages.LIB_UndefinedNodeVersion": "ノードのバージョンが定義されていません。"
 }

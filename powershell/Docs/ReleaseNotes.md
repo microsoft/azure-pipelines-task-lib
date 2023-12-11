@@ -1,5 +1,15 @@
 # Release Notes
 
+## 0.17.0
+
+* Added `Invoke-VstsProcess` cmdlet (<https://github.com/microsoft/azure-pipelines-task-lib/pull/978>)
+
+## 0.16.0
+* Replaced deprecated "sync-request" libraryr and Added new async methods for DownloadArchive
+
+## 0.15.0
+* Removed the `Q` library
+
 ## 0.14.0
 * Improved error handling in function `Find-Files`
 

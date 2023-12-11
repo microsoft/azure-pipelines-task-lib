@@ -1,4 +1,3 @@
-
 import Q = require('q');
 import path = require('path');
 import fs = require('fs');
@@ -223,6 +222,10 @@ export function getPlatform(): task.Platform {
     return mock.getResponse('getPlatform', 'getPlatform', module.exports.debug);
 }
 
+export function getNodeMajorVersion(): Number {
+    return mock.getResponse('getNodeMajorVersion', 'getNodeMajorVersion', module.exports.debug);
+}
+
 export function getAgentMode(): task.AgentHostedMode {
     return mock.getResponse('getAgentMode', 'getAgentMode', module.exports.debug);
 }
@@ -333,6 +336,18 @@ export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Pro
         tr.arg(args);
     }
     return tr.exec(options);
+}
+
+//-----------------------------------------------------
+// Exec convenience wrapper
+//-----------------------------------------------------
+export function execAsync(tool: string, args: any, options?: trm.IExecOptions): Promise<number> {
+    var toolPath = which(tool, true);
+    var tr: trm.ToolRunner = this.tool(toolPath);
+    if (args) {
+        tr.arg(args);
+    }
+    return tr.execAsync(options);
 }
 
 export function execSync(tool: string, args: any, options?: trm.IExecSyncOptions): trm.IExecSyncResult {
