@@ -72,7 +72,7 @@ var downloadFileAsync = async function (url, fileName) {
 
     // skip if already downloaded
     var scrubbedUrl = url.replace(/[/\:?]/g, '_');
-    if (fileName == undefined) {
+    if (fileName === undefined) {
         fileName = scrubbedUrl;
     }
     var targetPath = path.join(downloadPath, 'file', fileName);
@@ -110,7 +110,7 @@ var downloadArchiveAsync = async function (url, fileName) {
 
     // skip if already downloaded and extracted
     var scrubbedUrl = url.replace(/[\/\\:?]/g, '_');
-    if (fileName != undefined) {
+    if (fileName !== undefined) {
         scrubbedUrl = fileName;
     }
     var targetPath = path.join(downloadPath, 'archive', scrubbedUrl);

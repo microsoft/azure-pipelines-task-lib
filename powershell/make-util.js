@@ -113,8 +113,9 @@ const downloadFileAsync = async function (url, fileName) {
 
     // skip if already downloaded
     const scrubbedUrl = url.replace(/[/\:?]/g, '_');
-    if (fileName == undefined)
+    if (fileName === undefined) {
         fileName = scrubbedUrl;
+    }
     const targetPath = path.join(downloadPath, 'file', fileName);
     const marker = targetPath + '.completed';
     if (test('-f', marker)) {
@@ -153,7 +154,7 @@ var downloadArchiveAsync = async function (url, fileName) {
 
     // skip if already downloaded and extracted
     var scrubbedUrl = url.replace(/[\/\\:?]/g, '_');
-    if (fileName != undefined) {
+    if (fileName !== undefined) {
         scrubbedUrl = fileName;
     }
     var targetPath = path.join(downloadPath, 'archive', scrubbedUrl);
