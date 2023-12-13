@@ -298,33 +298,43 @@ describe('Mock Tests', function () {
         assert.equal(numStdErrCalls, 1);
     })
 
-    it('MockTest handles node 6 tasks correctly', function (done) {
+    it('MockTest handles node 6 tasks correctly', async function () {
         this.timeout(30000);
         const runner = new mtm.MockTestRunner(path.join(__dirname, 'fakeTasks', 'node6task', 'entry.js'));
+        await runner.LoadAsync();
         const nodePath = runner.nodePath;
         assert(nodePath, 'node path should have been correctly set');
         const version = ncp.execSync(nodePath + ' -v').toString().trim();
         assert(semver.satisfies(version, '6.x'), 'Downloaded node version should be Node 6 instead of ' + version);
-        done();
     })
 
-    it('MockTest handles node 10 tasks correctly', function (done) {
+    it('MockTest handles node 10 tasks correctly', async function () {
         this.timeout(30000);
-        const runner = new mtm.MockTestRunner(path.join(__dirname, 'fakeTasks', 'node10task', 'entry.js'));
+        const runner = new mtm.MockTestRunner();
+        await runner.LoadAsync(path.join(__dirname, 'fakeTasks', 'node10task', 'entry.js'));
         const nodePath = runner.nodePath;
         assert(nodePath, 'node path should have been correctly set');
         const version = ncp.execSync(nodePath + ' -v').toString().trim();
         assert(semver.satisfies(version, '10.x'), 'Downloaded node version should be Node 10 instead of ' + version);
-        done();
     })
 
-    it('MockTest handles node 16 tasks correctly', function (done) {
+    it('MockTest handles node 16 tasks correctly', async function () {
         this.timeout(30000);
         const runner = new mtm.MockTestRunner(path.join(__dirname, 'fakeTasks', 'node16task', 'entry.js'));
+        await runner.LoadAsync();
         const nodePath = runner.nodePath;
         assert(nodePath, 'node path should have been correctly set');
         const version = ncp.execSync(nodePath + ' -v').toString().trim();
         assert(semver.satisfies(version, '16.x'), 'Downloaded node version should be Node 16 instead of ' + version);
-        done();
+    })
+
+    it('MockTest handles node tasks correctly by async call', async function() {
+        this.timeout(30000);
+        const runner = await (new mtm.MockTestRunner).LoadAsync(path.join(__dirname, 'fakeTasks', 'node16task', 'entry.js'));
+        const nodePath = runner.nodePath;
+        assert(nodePath, 'node path should have been correctly set');
+        const version = ncp.execSync(nodePath + ' -v').toString().trim();
+        assert(semver.satisfies(version, '16.x'), 'Downloaded node version should be Node 16 instead of ' + version);
+        await Promise.resolve()
     })
 });

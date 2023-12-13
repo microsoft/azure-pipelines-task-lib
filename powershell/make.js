@@ -1,6 +1,6 @@
 
-var shellMake = require('shelljs/make');
-var child_process = require('child_process');
+require('shelljs/make');
+
 var fs = require('fs');
 var path = require('path');
 var util = require('./make-util.js');
@@ -16,7 +16,7 @@ target.clean = function () {
 // TODO: target.buildCompiledHelper
 // This will only build the C# compiled helper csproj.
 
-target.build = function() {
+target.build = async function () {
     target.clean();
     target.loc();
 
@@ -25,15 +25,15 @@ target.build = function() {
     util.cp('-r', path.join('VstsTaskSdk', '*'), path.join(buildPath, 'VstsTaskSdk'));
 
     // download externals
-    var minimatchPackage = util.downloadArchive('https://www.nuget.org/api/v2/package/minimatch/1.1.0');
+    var minimatchPackage = await util.downloadArchiveAsync('https://www.nuget.org/api/v2/package/minimatch/1.1.0');
     util.cp(path.join(minimatchPackage, 'lib', 'portable-net40%2Bsl50%2Bwin%2Bwp80', 'Minimatch.dll'), path.join(buildPath, 'VstsTaskSdk'));
 
-    var compiledHelperPackage = util.downloadArchive('https://vstsagenttools.blob.core.windows.net/tools/VstsTaskSdkCompiledHelpers/3/VstsTaskSdk.zip');
+    var compiledHelperPackage = await util.downloadArchiveAsync('https://vstsagenttools.blob.core.windows.net/tools/VstsTaskSdkCompiledHelpers/3/VstsTaskSdk.zip');
     util.cp(path.join(compiledHelperPackage, 'VstsTaskSdk.dll'), path.join(buildPath, 'VstsTaskSdk'));
 
     // stamp the version number from the package.json onto the PowerShell module definition
     var targetPsd1 = path.join(buildPath, 'VstsTaskSdk', 'VstsTaskSdk.psd1');
-    var psd1Contents = fs.readFileSync(targetPsd1, 'ucs2'); // UCS-2 is a subset of UTF-16. UTF-16 is not supported by node.
+    var psd1Contents = fs.readFileSync(targetPsd1, 'utf-8'); // UCS-2 is a subset of UTF-16. UTF-16 is not supported by node.
     var token = "ModuleVersion = '0.1'";
     var tokenStart = psd1Contents.indexOf(token);
     if (tokenStart < 0) {
@@ -57,13 +57,13 @@ target.build = function() {
     psd1Contents = psd1Contents.substring(0, tokenStart) + commitHash + psd1Contents.substring(tokenStart + token.length);
 
     // save the updated psd1 file
-    fs.writeFileSync(targetPsd1, psd1Contents, 'ucs2');
+    fs.writeFileSync(targetPsd1, psd1Contents, 'utf-8');
 }
 
-target.test = function() {
+target.test = async function () {
     util.ensureTool('tsc', '--version', 'Version 1.8.7');
     util.ensureTool('mocha', '--version', '5.2.0');
-    target.build();
+    await target.build();
 
     util.mkdir('-p', testPath);
     util.run(`tsc --outDir "${testPath}" --module commonjs --target es6 --rootDir Tests Tests/lib/psRunner.ts`);
@@ -72,12 +72,12 @@ target.test = function() {
     util.run('mocha "' + path.join(testPath, 'L0', '_suite.js') + '"');
 }
 
-target.loc = function() {
+target.loc = function () {
     // build the content for the en-US resjson file
     var lib = require('./VstsTaskSdk/lib.json');
     var strPath = path.join('VstsTaskSdk', 'Strings', 'resources.resjson', 'en-US');
     util.mkdir('-p', strPath);
-    var strings = { };
+    var strings = {};
     if (lib.messages) {
         for (var key in lib.messages) {
             var messageKey = 'loc.messages.' + key;
@@ -90,3 +90,13 @@ target.loc = function() {
     var enContents = JSON.stringify(strings, null, 2);
     fs.writeFileSync(enPath, enContents);
 }
+
+process.on('uncaughtException', err => {
+    console.error(`Uncaught exception: ${err.message}`);
+    console.debug(err.stack);
+});
+
+process.on('unhandledRejection', err => {
+    console.error(`Unhandled rejection: ${err.message}`);
+    console.debug(err.stack);
+});
