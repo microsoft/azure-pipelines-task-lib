@@ -10,7 +10,7 @@ const Downloader = require("nodejs-file-downloader");
 
 const COMMAND_TAG = '[command]';
 const COMMAND_LENGTH = COMMAND_TAG.length;
-const downloadDirectory = path.join(process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE as string, 'azure-pipelines-task-lib', '_download');
+const downloadDirectory = path.join(process.env.HOME || process.env.USERPROFILE || process.env.HOMEPATH as string, 'azure-pipelines-task-lib', '_download');
 
 export class MockTestRunner {
 
