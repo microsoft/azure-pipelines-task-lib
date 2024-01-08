@@ -286,10 +286,10 @@ export function _warning(message: string): void {
     _command('task.issue', { 'type': 'warning' }, message);
 }
 
-export function _error(message: string, userIssue: boolean = false): void {
+export function _error(message: string, customerIssue: boolean = false): void {
     let props = { 'type': 'error' };
-    if (userIssue) {
-        props['userissue'] = true;
+    if (customerIssue) {
+        props['customerissue'] = true;
     }
 
     _command('task.issue', props, message);

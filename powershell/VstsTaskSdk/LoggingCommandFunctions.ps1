@@ -287,7 +287,7 @@ function Write-TaskError {
         [string]$LineNumber,
         [string]$ColumnNumber,
         [switch]$AsOutput,
-        [bool]$UserIssue = $false)
+        [bool]$CustomerIssue = $false)
 
     Write-LogIssue -Type error @PSBoundParameters
 }
@@ -546,7 +546,7 @@ function Write-LogIssue {
         [string]$LineNumber,
         [string]$ColumnNumber,
         [switch]$AsOutput,
-        [bool]$UserIssue = $false)
+        [bool]$CustomerIssue = $false)
 
     $command = Format-LoggingCommand -Area 'task' -Event 'logissue' -Data $Message -Properties @{
             'type' = $Type
@@ -554,7 +554,7 @@ function Write-LogIssue {
             'sourcepath' = $SourcePath
             'linenumber' = $LineNumber
             'columnnumber' = $ColumnNumber
-            'userissue' = $UserIssue
+            'customerissue' = $CustomerIssue
         }
     if ($AsOutput) {
         return $command
