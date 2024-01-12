@@ -287,7 +287,7 @@ function Write-TaskError {
         [string]$LineNumber,
         [string]$ColumnNumber,
         [switch]$AsOutput,
-        [bool]$CustomerIssue = $false)
+        [string]$IssueSource)
 
     Write-LogIssue -Type error @PSBoundParameters
 }
@@ -323,7 +323,8 @@ function Write-TaskWarning {
         [string]$SourcePath,
         [string]$LineNumber,
         [string]$ColumnNumber,
-        [switch]$AsOutput)
+        [switch]$AsOutput,
+        [string]$IssueSource)
 
     Write-LogIssue -Type warning @PSBoundParameters
 }
@@ -546,7 +547,7 @@ function Write-LogIssue {
         [string]$LineNumber,
         [string]$ColumnNumber,
         [switch]$AsOutput,
-        [bool]$CustomerIssue = $false)
+        [string]$IssueSource)
 
     $command = Format-LoggingCommand -Area 'task' -Event 'logissue' -Data $Message -Properties @{
             'type' = $Type
@@ -554,7 +555,7 @@ function Write-LogIssue {
             'sourcepath' = $SourcePath
             'linenumber' = $LineNumber
             'columnnumber' = $ColumnNumber
-            'customerissue' = $CustomerIssue
+            'source' = $IssueSource
         }
     if ($AsOutput) {
         return $command

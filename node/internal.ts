@@ -282,17 +282,12 @@ export function _command(command: string, properties: any, message: string) {
     _writeLine(taskCmd.toString());
 }
 
-export function _warning(message: string): void {
-    _command('task.issue', { 'type': 'warning' }, message);
+export function _warning(message: string, source?: string): void {
+    _command('task.issue', { 'type': 'warning', 'source': source }, message);
 }
 
-export function _error(message: string, customerIssue: boolean = false): void {
-    let props = { 'type': 'error' };
-    if (customerIssue) {
-        props['customerissue'] = true;
-    }
-
-    _command('task.issue', props, message);
+export function _error(message: string, source?: string): void {
+    _command('task.issue', { 'type': 'error', 'source': source }, message);
 }
 
 export function _debug(message: string): void {
