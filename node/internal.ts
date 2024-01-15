@@ -20,6 +20,13 @@ import crypto = require('crypto');
 export var _knownVariableMap: { [key: string]: _KnownVariableInfo; } = {};
 
 export var _vault: vm.Vault;
+//-----------------------------------------------------
+// Enums
+//-----------------------------------------------------
+export enum IssueSource {
+    CustomerScript = 'CustomerScript',
+    TaskInternal = 'TaskInternal'
+}
 
 //-----------------------------------------------------
 // Validation Checks
@@ -282,11 +289,11 @@ export function _command(command: string, properties: any, message: string) {
     _writeLine(taskCmd.toString());
 }
 
-export function _warning(message: string, source?: string): void {
+export function _warning(message: string, source?: IssueSource): void {
     _command('task.issue', { 'type': 'warning', 'source': source }, message);
 }
 
-export function _error(message: string, source?: string): void {
+export function _error(message: string, source?: IssueSource): void {
     _command('task.issue', { 'type': 'error', 'source': source }, message);
 }
 
