@@ -8,6 +8,11 @@ $script:loggingCommandEscapeMappings = @( # TODO: WHAT ABOUT "="? WHAT ABOUT "%"
 # TODO: BUG: Escape % ???
 # TODO: Add test to verify don't need to escape "=".
 
+$IssueSources = @{
+    CustomerScript = "CustomerScript"
+    TaskInternal = "TaskInternal"
+}
+
 <#
 .SYNOPSIS
 See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
@@ -547,6 +552,8 @@ function Write-LogIssue {
         [string]$LineNumber,
         [string]$ColumnNumber,
         [switch]$AsOutput,
+        [AllowNull()]
+        [ValidateSet('CustomerScript', 'TaskInternal')]
         [string]$IssueSource)
 
     $command = Format-LoggingCommand -Area 'task' -Event 'logissue' -Data $Message -Properties @{
