@@ -820,7 +820,7 @@ export function mkdirP(p: string): void {
     let testDir: string = p;
     while (true) {
         // validate the loop is not out of control
-        if (stack.length >= (process.env['TASKLIB_TEST_MKDIRP_FAILSAFE'] || 1000)) {
+        if (stack.length >= Number(process.env['TASKLIB_TEST_MKDIRP_FAILSAFE'] || 1000)) {
             // let the framework throw
             debug('loop is out of control');
             fs.mkdirSync(p);
