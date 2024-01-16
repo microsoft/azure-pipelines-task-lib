@@ -277,10 +277,11 @@ export function getBoolInput(name: string, required?: boolean): boolean {
 
 /**
  * Gets the value of an feature flag and converts to a bool.
- *
+ * @IMPORTANT This method is only for internal Microsoft development. Do not use it for external tasks.
  * @param     name     name of the feature flag to get.
  * @param     defaultValue default value of the feature flag in case it's not found in env. (optional. Default value = false)
  * @returns   boolean
+ * @deprecated Don't use this for new development. Use getPipelineFeature instead.
  */
 export function getBoolFeatureFlag(ffName: string, defaultValue: boolean = false): boolean {
     const ffValue = process.env[ffName];
@@ -291,6 +292,26 @@ export function getBoolFeatureFlag(ffName: string, defaultValue: boolean = false
     }
 
     debug(`Feature flag ${ffName} = ${ffValue}`);
+
+    return ffValue.toLowerCase() === "true";
+}
+
+/**
+ * Gets the value of an task feature and converts to a bool.
+ * @IMPORTANT This method is only for internal Microsoft development. Do not use it for external tasks.
+ * @param     name     name of the feature to get.
+ * @returns   boolean
+ */
+export function getPipelineFeature(featureName: string): boolean {
+    const variableName = im._getVariableKey(`DistributedTask.Tasks.${featureName}`);
+    const ffValue = process.env[variableName];
+
+    if (!ffValue) {
+        debug(`Feature '${featureName}' not found. Returning false as default.`);
+        return false;
+    }
+
+    debug(`Feature '${featureName}' = '${ffValue}'`);
 
     return ffValue.toLowerCase() === "true";
 }
