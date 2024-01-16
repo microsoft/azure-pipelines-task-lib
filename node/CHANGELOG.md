@@ -2,6 +2,14 @@
 
 ## 4.x
 
+### 4.9.0
+
+- Added internal feature helpers [#1010](https://github.com/microsoft/azure-pipelines-task-lib/pull/1010)
+
+### 4.8.0
+
+- Added `source` property for error/warning [#1009](https://github.com/microsoft/azure-pipelines-task-lib/pull/1009)
+
 ### 4.7.0
 
 Replaced mockery - [#989](https://github.com/microsoft/azure-pipelines-task-lib/pull/989)
