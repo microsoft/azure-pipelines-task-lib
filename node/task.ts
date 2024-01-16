@@ -44,6 +44,8 @@ export enum FieldType {
     Url
 }
 
+export const IssueSource = im.IssueSource;
+
 /** Platforms supported by our build agent */
 export enum Platform {
     Windows,

@@ -44,6 +44,10 @@
       "description": "The date included in the depreciation warning after which the task may no longer be available. Format: YYYY-MM-DD",
       "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
     },
+    "deprecationMessage": {
+      "type": "string",
+      "description": "A tailored deprecation message containing detailed information about the task deprecation (besides the removal date and the URL leading to the task documentation) in addition to the common deprecation message."
+    },
     "showEnvironmentVariables": {
       "type": "boolean",
       "description": "Toggles showing the environment variable editor in the task editor UI. Allows passing environment variables to script based tasks."
