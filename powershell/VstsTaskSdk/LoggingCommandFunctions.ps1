@@ -8,6 +8,11 @@ $script:loggingCommandEscapeMappings = @( # TODO: WHAT ABOUT "="? WHAT ABOUT "%"
 # TODO: BUG: Escape % ???
 # TODO: Add test to verify don't need to escape "=".
 
+$IssueSources = @{
+    CustomerScript = "CustomerScript"
+    TaskInternal = "TaskInternal"
+}
+
 <#
 .SYNOPSIS
 See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
@@ -286,7 +291,8 @@ function Write-TaskError {
         [string]$SourcePath,
         [string]$LineNumber,
         [string]$ColumnNumber,
-        [switch]$AsOutput)
+        [switch]$AsOutput,
+        [string]$IssueSource)
 
     Write-LogIssue -Type error @PSBoundParameters
 }
@@ -322,7 +328,8 @@ function Write-TaskWarning {
         [string]$SourcePath,
         [string]$LineNumber,
         [string]$ColumnNumber,
-        [switch]$AsOutput)
+        [switch]$AsOutput,
+        [string]$IssueSource)
 
     Write-LogIssue -Type warning @PSBoundParameters
 }
@@ -544,7 +551,10 @@ function Write-LogIssue {
         [string]$SourcePath,
         [string]$LineNumber,
         [string]$ColumnNumber,
-        [switch]$AsOutput)
+        [switch]$AsOutput,
+        [AllowNull()]
+        [ValidateSet('CustomerScript', 'TaskInternal')]
+        [string]$IssueSource)
 
     $command = Format-LoggingCommand -Area 'task' -Event 'logissue' -Data $Message -Properties @{
             'type' = $Type
@@ -552,6 +562,7 @@ function Write-LogIssue {
             'sourcepath' = $SourcePath
             'linenumber' = $LineNumber
             'columnnumber' = $ColumnNumber
+            'source' = $IssueSource
         }
     if ($AsOutput) {
         return $command
