@@ -306,16 +306,18 @@ export function getBoolFeatureFlag(ffName: string, defaultValue: boolean = false
  */
 export function getPipelineFeature(featureName: string): boolean {
     const variableName = im._getVariableKey(`DistributedTask.Tasks.${featureName}`);
-    const ffValue = process.env[variableName];
+    const featureValue = process.env[variableName];
 
-    if (!ffValue) {
+    if (!featureValue) {
         debug(`Feature '${featureName}' not found. Returning false as default.`);
         return false;
     }
 
-    debug(`Feature '${featureName}' = '${ffValue}'`);
+    const boolValue = featureValue.toLowerCase() === "true";
 
-    return ffValue.toLowerCase() === "true";
+    debug(`Feature '${featureName}' = '${featureValue}'. Processed as '${boolValue}'.`);
+
+    return boolValue;
 }
 
 /**
