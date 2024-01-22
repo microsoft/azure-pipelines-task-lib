@@ -44,6 +44,8 @@ export enum FieldType {
     Url
 }
 
+export const IssueSource = im.IssueSource;
+
 /** Platforms supported by our build agent */
 export enum Platform {
     Windows,
@@ -107,7 +109,7 @@ export function setResult(result: TaskResult, message: string, done?: boolean): 
 //
 process.on('uncaughtException', (err: Error) => {
     setResult(TaskResult.Failed, loc('LIB_UnhandledEx', err.message));
-    error(String(err.stack));
+    error(String(err.stack), im.IssueSource.TaskInternal);
 });
 
 //
