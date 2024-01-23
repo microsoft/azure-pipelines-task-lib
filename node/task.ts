@@ -89,10 +89,10 @@ export function setResult(result: TaskResult, message: string, done?: boolean): 
 
     // add an error issue
     if (result == TaskResult.Failed && message) {
-        error(message);
+        error(message, IssueSource.TaskInternal);
     }
     else if (result == TaskResult.SucceededWithIssues && message) {
-        warning(message);
+        warning(message, IssueSource.TaskInternal);
     }
 
     // task.complete
@@ -929,7 +929,7 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
         } catch (e) {
             if (retryCount <= 0) {
                 if (continueOnError) {
-                    warning(e);
+                    warning(e, IssueSource.TaskInternal);
                     break;
                 } else {
                     throw e;
@@ -1024,7 +1024,7 @@ export function retry(func: Function, args: any[], retryOptions: RetryOptions = 
         } catch (e) {
             if (retryOptions.retryCount <= 0) {
                 if (retryOptions.continueOnError) {
-                    warning(e);
+                    warning(e, IssueSource.TaskInternal);
                     break;
                 } else {
                     throw e;
@@ -1132,7 +1132,7 @@ export function find(findPath: string, options?: FindOptions): string[] {
                 stats = _getStats(item.path, followSymbolicLink, options.allowBrokenSymbolicLinks);
             } catch (err) {
                 if (err.code == 'ENOENT' && options.skipMissingFiles) {
-                    warning(`No such file or directory: "${item.path}" - skipping.`);
+                    warning(`No such file or directory: "${item.path}" - skipping.`, IssueSource.TaskInternal);
                     continue;
                 }
                 throw err;
@@ -2410,7 +2410,7 @@ exports.ToolRunner = trm.ToolRunner;
 
 // async await needs generators in node 4.x+
 if (semver.lt(process.versions.node, '4.2.0')) {
-    warning('Tasks require a new agent.  Upgrade your agent or node to 4.2.0 or later');
+    warning('Tasks require a new agent.  Upgrade your agent or node to 4.2.0 or later', IssueSource.TaskInternal);
 }
 
 //-------------------------------------------------------------------
