@@ -94,6 +94,10 @@ Export-ModuleMember -Function @(
         'Get-ClientCertificate'
     )
 
+Export-ModuleMember -Variable @(
+    'IssueSources'
+)
+
 # Override Out-Default globally.
 $null = New-Item -Force -Path "function:\global:Out-Default" -Value (Get-Command -CommandType Function -Name Out-Default -ListImported)
 New-Alias -Name Out-Default -Value "global:Out-Default" -Scope global
