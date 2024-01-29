@@ -34,7 +34,7 @@ export enum IssueSource {
 
 // async await needs generators in node 4.x+
 if (semver.lt(process.versions.node, '4.2.0')) {
-    _warning('Tasks require a new agent.  Upgrade your agent or node to 4.2.0 or later');
+    _warning('Tasks require a new agent.  Upgrade your agent or node to 4.2.0 or later', IssueSource.TaskInternal);
 }
 
 //-----------------------------------------------------
@@ -138,7 +138,7 @@ function _loadLocStrings(resourceFile: string, culture: string): { [key: string]
         }
     }
     else {
-        _warning('LIB_ResourceFile does not exist');
+        _warning('LIB_ResourceFile does not exist', IssueSource.TaskInternal);
     }
 
     return locStrings;
@@ -176,7 +176,7 @@ export function _setResourcePath(path: string, ignoreWarnings: boolean = false):
         if (ignoreWarnings) {
             _debug(_loc('LIB_ResourceFileAlreadySet', path));
         } else {
-            _warning(_loc('LIB_ResourceFileAlreadySet', path));
+            _warning(_loc('LIB_ResourceFileAlreadySet', path), IssueSource.TaskInternal);
         }
     }
 }
@@ -207,7 +207,7 @@ export function _loc(key: string, ...param: any[]): string {
     }
     else {
         if (Object.keys(_resourceFiles).length <= 0) {
-            _warning(`Resource file haven't been set, can't find loc string for key: ${key}`);
+            _warning(`Resource file haven't been set, can't find loc string for key: ${key}`, IssueSource.TaskInternal);
         }
         else {
             _warning(`Can't find loc string for key: ${key}`);
