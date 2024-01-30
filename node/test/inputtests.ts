@@ -1200,4 +1200,38 @@ describe('Input Tests', function () {
             assert.equal(ffValue, true);
         })
     });
+
+    describe('Pipeline features tests', () => {
+        it(`Should return if no feature variable present.`, () => {
+            const featureName = "TestFeature"
+            delete process.env[im._getVariableKey(`DistributedTask.Tasks.${featureName}`)];
+
+            const ffValue = tl.getPipelineFeature(featureName);
+
+            assert.deepStrictEqual(ffValue, false);
+        })
+
+        const testInputs = ([
+            ["true", true],
+            ["TRUE", true],
+            ["TruE", true],
+            ["false", false],
+            ["treu", false],
+            ["fasle", false],
+            ["On", false],
+            ["", false],
+            [undefined, false]
+        ] as [string, boolean][])
+        for (const [input, expected] of testInputs) {
+            it(`Should return '${expected}' if feature is '${input}'`, () => {
+                const featureVariable = "DISTRIBUTEDTASK_TASKS_TESTFEATURE";
+                const featureName = "TestFeature";
+                process.env[featureVariable] = input;
+
+                const result = tl.getPipelineFeature(featureName);
+
+                assert.deepStrictEqual(result, expected);
+            })
+        }
+    })
 });
