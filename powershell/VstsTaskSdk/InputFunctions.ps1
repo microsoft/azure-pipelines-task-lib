@@ -320,6 +320,37 @@ function Set-TaskVariable {
     Write-SetVariable -Name $Name -Value $Value -Secret:$Secret
 }
 
+<#
+.SYNOPSIS
+Gets the value of an task feature and converts to a bool.
+
+.PARAMETER $FeatureName
+Name of the feature to get.
+
+.NOTES
+This method is only for internal Microsoft development. Do not use it for external tasks.
+#>
+function Get-PipelineFeature {
+    [CmdletBinding(DefaultParameterSetName = 'Require')]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$FeatureName
+    )
+
+    $featureValue = Get-TaskVariable -Name "DistributedTask.Tasks.$FeatureName"
+
+    if (!$featureValue) {
+        Write-Debug "Feature '$FeatureName' is not set. Defaulting to 'false'"
+        return $false
+    }
+
+    $boolValue = $featureValue.ToLowerInvariant() -eq 'true'
+
+    Write-Debug "Feature '$FeatureName' = '$featureValue'. Processed as '$boolValue'"
+
+    return $boolValue
+}
+
 ########################################
 # Private functions.
 ########################################

@@ -279,10 +279,11 @@ export function getBoolInput(name: string, required?: boolean): boolean {
 
 /**
  * Gets the value of an feature flag and converts to a bool.
- *
+ * @IMPORTANT This method is only for internal Microsoft development. Do not use it for external tasks.
  * @param     name     name of the feature flag to get.
  * @param     defaultValue default value of the feature flag in case it's not found in env. (optional. Default value = false)
  * @returns   boolean
+ * @deprecated Don't use this for new development. Use getPipelineFeature instead.
  */
 export function getBoolFeatureFlag(ffName: string, defaultValue: boolean = false): boolean {
     const ffValue = process.env[ffName];
@@ -295,6 +296,28 @@ export function getBoolFeatureFlag(ffName: string, defaultValue: boolean = false
     debug(`Feature flag ${ffName} = ${ffValue}`);
 
     return ffValue.toLowerCase() === "true";
+}
+
+/**
+ * Gets the value of an task feature and converts to a bool.
+ * @IMPORTANT This method is only for internal Microsoft development. Do not use it for external tasks.
+ * @param     name     name of the feature to get.
+ * @returns   boolean
+ */
+export function getPipelineFeature(featureName: string): boolean {
+    const variableName = im._getVariableKey(`DistributedTask.Tasks.${featureName}`);
+    const featureValue = process.env[variableName];
+
+    if (!featureValue) {
+        debug(`Feature '${featureName}' not found. Returning false as default.`);
+        return false;
+    }
+
+    const boolValue = featureValue.toLowerCase() === "true";
+
+    debug(`Feature '${featureName}' = '${featureValue}'. Processed as '${boolValue}'.`);
+
+    return boolValue;
 }
 
 /**
@@ -801,7 +824,7 @@ export function mkdirP(p: string): void {
     let testDir: string = p;
     while (true) {
         // validate the loop is not out of control
-        if (stack.length >= (process.env['TASKLIB_TEST_MKDIRP_FAILSAFE'] || 1000)) {
+        if (stack.length >= Number(process.env['TASKLIB_TEST_MKDIRP_FAILSAFE'] || 1000)) {
             // let the framework throw
             debug('loop is out of control');
             fs.mkdirSync(p);
