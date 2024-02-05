@@ -23,6 +23,11 @@ jobs:
 
     - template: azure-pipelines-steps-test-build.yml
 
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: build
+        projects: 
+
 #################################################
 - job: linux
 #################################################
