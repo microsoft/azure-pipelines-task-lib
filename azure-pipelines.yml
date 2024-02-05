@@ -26,7 +26,7 @@ jobs:
     - task: DotNetCoreCLI@2
       inputs:
         command: build
-        projects: 
+        projects: '**/*.csproj'
 
 #################################################
 - job: linux
