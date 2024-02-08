@@ -1,0 +1,19 @@
+steps:
+- ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+  # npm install
+  - task: Npm@1
+    displayName: npm install for powershell
+    inputs:
+      command: install
+      workingDir: powershell
+
+  - script: node make.js build
+    displayName: node make.js build
+    workingDirectory: powershell
+  - task: PowerShell@2
+    inputs:
+      workingDirectory: powershell
+      filePath: './powershell/publish.ps1'
+      arguments: '-ApiKey $(PSGalleryApiKey)'
+      pwsh: true
+

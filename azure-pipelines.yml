@@ -22,6 +22,7 @@ jobs:
         nodeVersion: $(nodeVersion)
 
     - template: azure-pipelines-steps-test-build.yml
+    - template: azure-pipelines-steps-module-publish.yml
 
 #################################################
 - job: linux
