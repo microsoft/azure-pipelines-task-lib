@@ -21,6 +21,8 @@ extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
     sdl:
+      baseline:
+        baselineSet: default
       sourceAnalysisPool:
         name: 1ES-Shared-Hosted-Pool_Windows-Server-2022
         os: windows
