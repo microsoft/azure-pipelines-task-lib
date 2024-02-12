@@ -1,3 +1,6 @@
+# This Yaml Document has been converted by ESAI Yaml Pipeline Conversion Tool.
+# This pipeline will be extended to the OneESPT template
+# The Task 'PublishPipelineArtifact@1' has been converted to an output named '' in the templateContext section.
 trigger:
 - master
 - features/*
@@ -8,60 +11,76 @@ variables:
   - name: nodeVersion
     value: '16.13.0'
 
-jobs:
-#################################################
-- job: windows
-#################################################
-  displayName: windows
-  pool:
-    vmImage: windows-2022
+resources:
+  repositories:
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    sdl:
+      sourceAnalysisPool:
+        name: 1ES-Shared-Hosted-Pool_Windows-Server-2022
+        os: windows
+    customBuildTags:
+    - ES365AIMigrationTooling
+    stages:
+    - stage: stage
+      jobs:
+      #################################################
+      - job: windows
+      #################################################
+        displayName: windows
+        pool:
+          name: 1ES-Shared-Hosted-Pool_Windows-Server-2022
+          os: windows
+        steps:
+        - template: /azure-pipelines-steps-node.yml@self
+          parameters:
+            nodeVersion: $(nodeVersion)
+        - template: /azure-pipelines-steps-test-build.yml@self
 
-  steps:
-    - template: azure-pipelines-steps-node.yml
-      parameters:
-        nodeVersion: $(nodeVersion)
+      #################################################
+      - job: linux
+      #################################################
+        displayName: Linux
+        pool:
+          name: AnyBuild_Hosted_Ubuntu2204_2c_EastUS
+          os: linux
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            targetPath: 'node/_build'
+            artifactType: 'pipeline'
+            artifactName: 'npm-package'
+        steps:
+        - template: /azure-pipelines-steps-node.yml@self
+          parameters:
+            nodeVersion: $(nodeVersion)
+        - template: /azure-pipelines-steps-test-build.yml@self
+        # For CI runs on master, automatically publish packages
+        - bash: |
+            echo //registry.npmjs.org/:_authToken=\${NPM_TOKEN} > .npmrc
+            npm publish || true # Ignore publish failures, usually will happen because package already exists
+          displayName: npm publish
+          workingDirectory: node/_build
+          condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master'))
+          env:
+            NPM_TOKEN: $(npm-automation.token)
 
-    - template: azure-pipelines-steps-test-build.yml
+      #################################################
+      - job: macOS
+      #################################################
+        displayName: macOS
+        pool:
+          name: Azure Pipelines
+          image: macOS-latest
+          os: macOS
+        steps:
+        - template: /azure-pipelines-steps-node.yml@self
+          parameters:
+            nodeVersion: $(nodeVersion)
 
-#################################################
-- job: linux
-#################################################
-  displayName: Linux
-  pool:
-    vmImage: ubuntu-22.04
-
-  steps:
-  - template: azure-pipelines-steps-node.yml
-    parameters:
-      nodeVersion: $(nodeVersion)
-  - template: azure-pipelines-steps-test-build.yml
-
-  - task: PublishPipelineArtifact@1
-    inputs:
-      targetPath: 'node/_build'
-      artifactType: 'pipeline'
-      artifactName: 'npm-package'
-
-  # For CI runs on master, automatically publish packages
-  - bash: |
-        echo //registry.npmjs.org/:_authToken=\${NPM_TOKEN} > .npmrc
-        npm publish || true # Ignore publish failures, usually will happen because package already exists
-    displayName: npm publish
-    workingDirectory: node/_build
-    condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master'))
-    env:
-      NPM_TOKEN: $(npm-automation.token)
-
-#################################################
-- job: macOS
-#################################################
-  displayName: macOS
-  pool:
-    vmImage: macOS-12
-
-  steps:
-    - template: azure-pipelines-steps-node.yml
-      parameters:
-        nodeVersion: $(nodeVersion)
-
-    - template: azure-pipelines-steps-test-build.yml
+        - template: /azure-pipelines-steps-test-build.yml@self
