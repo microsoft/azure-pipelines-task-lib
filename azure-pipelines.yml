@@ -23,6 +23,7 @@ extends:
     sdl:
       baseline:
         baselineSet: default
+        baselineFile: $(Build.SourcesDirectory)/.gdn/.gdnbaselines
       sourceAnalysisPool:
         name: 1ES-Shared-Hosted-Pool_Windows-Server-2022
         os: windows
