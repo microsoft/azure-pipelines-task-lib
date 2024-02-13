@@ -20,6 +20,16 @@ import crypto = require('crypto');
 export var _knownVariableMap: { [key: string]: _KnownVariableInfo; } = {};
 
 export var _vault: vm.Vault;
+
+const TaskSDKCommandTokenEnv: string = "TASK_SDK_COMMAND_TOKEN";
+
+let _taskSdkToken: string;
+if (process.env[TaskSDKCommandTokenEnv])
+{
+    _taskSdkToken = process.env[TaskSDKCommandTokenEnv];
+    delete process.env[TaskSDKCommandTokenEnv];
+}
+
 //-----------------------------------------------------
 // Enums
 //-----------------------------------------------------
@@ -289,12 +299,12 @@ export function _command(command: string, properties: any, message: string) {
     _writeLine(taskCmd.toString());
 }
 
-export function _warning(message: string, source?: IssueSource): void {
-    _command('task.issue', { 'type': 'warning', 'source': source }, message);
+export function _warning(message: string, source: IssueSource = IssueSource.TaskInternal): void {
+    _command('task.issue', { 'type': 'warning', 'source': source, 'token': _taskSdkToken }, message);
 }
 
-export function _error(message: string, source?: IssueSource): void {
-    _command('task.issue', { 'type': 'error', 'source': source }, message);
+export function _error(message: string, source: IssueSource = IssueSource.TaskInternal): void {
+    _command('task.issue', { 'type': 'error', 'source': source, 'token': _taskSdkToken }, message);
 }
 
 export function _debug(message: string): void {
