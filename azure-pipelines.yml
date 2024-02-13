@@ -27,7 +27,7 @@ extends:
         baselineSet: default
         baselineFile: $(Build.SourcesDirectory)/.gdn/.gdnbaselines
       sourceAnalysisPool:
-        name: 1ESPtTfsAgentBuildPool1
+        name: 1ES-ABTT-Shared-Pool
         os: windows
     customBuildTags:
     - ES365AIMigrationTooling
@@ -39,7 +39,7 @@ extends:
       #################################################
         displayName: windows
         pool:
-          name: 1ESPtTfsAgentBuildPool1
+          name: 1ES-ABTT-Shared-Pool
           os: windows
         steps:
         - template: /azure-pipelines-steps-node.yml@self
@@ -52,7 +52,7 @@ extends:
       #################################################
         displayName: Linux
         pool:
-          name: 1ESPtTfsAgentBuildPool1
+          name: 1ES-ABTT-Shared-Pool
           os: linux
         templateContext:
           outputs:
