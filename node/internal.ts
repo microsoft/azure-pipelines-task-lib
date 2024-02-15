@@ -21,9 +21,10 @@ export var _knownVariableMap: { [key: string]: _KnownVariableInfo; } = {};
 
 export var _vault: vm.Vault;
 
-let _taskSdkToken: string = String(process.env["TASK_SDK_COMMAND_TOKEN"]);
-if (_taskSdkToken)
+let _taskSdkToken: string;
+if (process.env["TASK_SDK_COMMAND_TOKEN"])
 {
+    _taskSdkToken = String(process.env["TASK_SDK_COMMAND_TOKEN"]);
     delete process.env["TASK_SDK_COMMAND_TOKEN"];
 }
 
