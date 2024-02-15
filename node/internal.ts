@@ -20,13 +20,7 @@ import crypto = require('crypto');
 export var _knownVariableMap: { [key: string]: _KnownVariableInfo; } = {};
 
 export var _vault: vm.Vault;
-
-let _taskSdkToken: string;
-if (process.env["TASK_SDK_COMMAND_TOKEN"])
-{
-    _taskSdkToken = String(process.env["TASK_SDK_COMMAND_TOKEN"]);
-    delete process.env["TASK_SDK_COMMAND_TOKEN"];
-}
+var _taskSdkToken: string;
 
 //-----------------------------------------------------
 // Enums
@@ -747,6 +741,10 @@ export function _loadData(): void {
         }
     }
     _debug('loaded ' + loaded);
+
+    let token = process.env["TASK_SDK_COMMAND_TOKEN"];
+    delete process.env["TASK_SDK_COMMAND_TOKEN"];
+    _taskSdkToken = token ? String(token) : "";
 
     // store public variable metadata
     let names: string[];
