@@ -51,6 +51,20 @@ export function _endsWith(str: string, end: string): boolean {
     return str.slice(-end.length) == end;
 }
 
+export function _truncateBeforeSensitiveKeyword(str: string, sensitiveKeywordsPattern: RegExp): string {
+    if(!str) {
+        return str;
+    }
+
+    const index = str.search(sensitiveKeywordsPattern); 
+
+    if (index <= 0) {
+        return str;
+    }
+
+    return `${str.substring(0, index)}...`;
+}
+
 //-----------------------------------------------------
 // General Helpers
 //-----------------------------------------------------
