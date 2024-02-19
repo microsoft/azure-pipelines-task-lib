@@ -9,6 +9,33 @@ import * as tl from '../_build/task';
 import * as im from '../_build/internal';
 import * as mockery from '../_build/lib-mocker'
 
+describe('Internal String Helper Tests: _truncateBeforeSensitiveKeyword', function () {
+    
+    it('truncates before known sensitive keywords', () => {
+        const input = "this is a secret password";
+
+        const result = im._truncateBeforeSensitiveKeyword(input, /secret/i);
+
+        assert.strictEqual(result, "this is a ...");
+    });
+
+    it('does not truncate without sensitive keyword', () => {
+        const input = "this is a secret password";
+
+        const result = im._truncateBeforeSensitiveKeyword(input, /key/i);
+
+        assert.strictEqual(result, input);
+    });
+
+    it('process undefined gracefully', () => {
+        const input: string = undefined;
+
+        const result = im._truncateBeforeSensitiveKeyword(input, /key/i);
+
+        assert.strictEqual(result, input);
+    });
+});
+
 describe('Internal Path Helper Tests', function () {
 
     before(function (done) {

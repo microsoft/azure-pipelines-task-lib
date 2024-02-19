@@ -108,4 +108,21 @@ describe('Result Tests', function () {
 
         done();
     })
+    it('setSanitizedResult success outputs', function (done) {
+        this.timeout(1000);
+
+        var stdStream = testutil.createStringStream();
+        tl.setStdStream(stdStream);
+        tl.setSanitizedResult(tl.TaskResult.Succeeded, 'success msg with secret data');
+
+        var expected = testutil.buildOutput(
+            ['##vso[task.debug]task result: Succeeded',
+                '##vso[task.complete result=Succeeded;]success msg with ...']);
+
+        var output = stdStream.getContents();
+
+        assert.equal(output, expected);
+
+        done();
+    })
 });
