@@ -35,6 +35,18 @@ describe('Task Issue command test', function () {
         done();
     })
 
+    it('doesn\'t provide the token using task variables', function (done) {
+        this.timeout(1000);
+
+        process.env['AGENT_VERSION'] = '2.115.0'
+        let variable = tl.getVariable('TASK_SDK_COMMAND_TOKEN');
+        let taskVariable = tl.getTaskVariable('TASK_SDK_COMMAND_TOKEN');
+        assert.equal(variable, undefined);
+        assert.equal(taskVariable, undefined);
+        
+        done();
+    })
+
     it('adds the token for task.issue messages', function (done) {
         this.timeout(1000);
 
