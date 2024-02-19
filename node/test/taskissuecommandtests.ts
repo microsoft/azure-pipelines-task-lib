@@ -7,7 +7,7 @@ import * as tl from '../_build/task';
 import { IssueSource, _loadData } from '../_build/internal';
 
 
-describe('Issue source test', function () {
+describe('Task Issue command test', function () {
 
     before(function (done) {
         try {
