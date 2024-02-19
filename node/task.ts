@@ -104,6 +104,24 @@ export function setResult(result: TaskResult, message: string, done?: boolean): 
     command('task.complete', properties, message);
 }
 
+/**
+ * Sets the result of the task with sanitized message.
+ *
+ * @param result    TaskResult enum of Succeeded, SucceededWithIssues, Failed, Cancelled or Skipped.
+ * @param message   A message which will be logged as an error issue if the result is Failed. Message will be truncated 
+ *                  before first occurence of wellknown sensitive keyword.
+ * @param done      Optional. Instructs the agent the task is done. This is helpful when child processes
+ *                  may still be running and prevent node from fully exiting. This argument is supported
+ *                  from agent version 2.142.0 or higher (otherwise will no-op).
+ * @returns         void
+ */
+
+export function setSanitizedResult(result: TaskResult, message: string, done?: boolean): void {
+    const pattern = /password|key|secret|bearer|authorization|token|pat/i;
+    const sanitizedMessage = im._truncateBeforeSensitiveKeyword(message, pattern);
+    setResult(result, sanitizedMessage, done);
+}
+
 //
 // Catching all exceptions
 //
