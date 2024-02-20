@@ -96,7 +96,7 @@ export function setResult(result: TaskResult, message: string, done?: boolean): 
     }
 
     // task.complete
-    var properties = { 'result': TaskResult[result] };
+    var properties: {[key:string]: string} = { 'result': TaskResult[result] };
     if (done) {
         properties['done'] = 'true';
     }
@@ -2028,7 +2028,7 @@ export function getHttpProxyConfiguration(requestUrl?: string): ProxyConfigurati
 
         let bypass: boolean = false;
         if (requestUrl) {
-            proxyBypassHosts.forEach(bypassHost => {
+            proxyBypassHosts.forEach( (bypassHost: string) => {
                 if (new RegExp(bypassHost, 'i').test(requestUrl)) {
                     bypass = true;
                 }

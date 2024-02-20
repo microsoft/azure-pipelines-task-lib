@@ -28,7 +28,7 @@ export class MockTestRunner {
     public nodePath = '';
     public stdout = '';
     public stderr = '';
-    public cmdlines = {};
+    public cmdlines: {[key:string]: boolean} = {};
     public invokedToolCount = 0;
     public succeeded = false;
     public errorIssues: string[] = [];
@@ -210,10 +210,10 @@ export class MockTestRunner {
             return 16;
         }
         const taskJsonContents = fs.readFileSync(taskJsonPath, { encoding: 'utf-8' });
-        const taskJson: object = JSON.parse(taskJsonContents);
+        const taskJson: {[key:string]: string} = JSON.parse(taskJsonContents);
 
         let nodeVersionFound = false;
-        const execution: object = (
+        const execution = (
             taskJson['execution']
             || taskJson['prejobexecution']
             || taskJson['postjobexecution']
