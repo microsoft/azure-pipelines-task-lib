@@ -86,7 +86,7 @@ class PSEngineRunner extends EventEmitter {
                         this.dp.resolve();
                     }
                 } else if (data != '\n') {
-                    if (('' + data).match(/^##vso\[task.logissue .*type=error/)) {
+                    if (('' + data).match(/##vso\[task.logissue .*type=error/)) {
                         // The VstsTaskSdk converts error records to error issue commands.
                         debug('stdout: ' + data);
                         this.errors.push(data);
