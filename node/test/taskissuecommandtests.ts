@@ -7,7 +7,81 @@ import * as tl from '../_build/task';
 import { IssueSource, _loadData } from '../_build/internal';
 
 
-describe('Task Issue command test', function () {
+describe('Task Issue command test without token', function () {
+
+    before(function (done) {
+        try {
+            testutil.initialize();
+        } catch (err) {
+            assert.fail('Failed to load task lib: ' + err.message);
+        }
+
+        done();
+    });
+
+    after(function (done) {
+        done();
+    });
+
+    it('adds issue sources for task.issue messages', function (done) {
+        this.timeout(1000);
+
+        var stdStream = testutil.createStringStream();
+        tl.setStdStream(stdStream);
+        tl.error("Test error", IssueSource.CustomerScript)
+        tl.warning("Test warning", IssueSource.TaskInternal)
+
+        var expected = testutil.buildOutput(
+            ['##vso[task.issue type=error;source=CustomerScript;]Test error',
+             '##vso[task.issue type=warning;source=TaskInternal;]Test warning']);
+
+        var output = stdStream.getContents();
+
+        assert.equal(output, expected);
+
+        done();
+    })
+
+    it('adds the default "TaskInternal" source for task.issue command', function (done) {
+        this.timeout(1000);
+
+        var stdStream = testutil.createStringStream();
+        tl.setStdStream(stdStream);
+        tl.error("Test error");
+        tl.warning("Test warning");
+
+        var expected = testutil.buildOutput(
+            ['##vso[task.issue type=error;source=TaskInternal;]Test error',
+             '##vso[task.issue type=warning;source=TaskInternal;]Test warning']);
+
+        var output = stdStream.getContents();
+
+        assert.equal(output, expected);
+
+        done();
+    })
+
+    it('adds the default "TaskInternal" source for the setResult', function (done) {
+        this.timeout(1000);
+
+        var stdStream = testutil.createStringStream();
+        tl.setStdStream(stdStream);
+        tl.setResult(tl.TaskResult.Failed, 'failed msg');
+
+        var expected = testutil.buildOutput(
+            ['##vso[task.debug]task result: Failed',
+             '##vso[task.issue type=error;source=TaskInternal;]failed msg',
+             '##vso[task.complete result=Failed;]failed msg']);
+
+        var output = stdStream.getContents();
+
+        assert.equal(output, expected);
+
+        done();
+    })
+});
+
+describe('Task Issue command test with token', function () {
 
     before(function (done) {
         try {
