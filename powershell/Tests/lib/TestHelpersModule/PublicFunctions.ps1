@@ -18,6 +18,15 @@ function Assert-AreNotEqual {
     }
 }
 
+function Assert-TaskIssueMessagesAreEqual {
+    [CmdletBinding()]
+    param([string]$Expected, [string]$Actual, [string]$Message)
+
+    if ($Expected -ne $Actual) {
+        throw ("Assert are equal failed. Expected: '$Expected' ; Actual: '$Actual'. $Message".Trim())
+    }
+}
+
 function Assert-IsGreaterThan {
     [CmdletBinding()]
     param([object]$Expected, [object]$Actual, [string]$Message)
