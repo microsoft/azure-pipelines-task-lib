@@ -28,6 +28,7 @@
         "gethttpproxytests.ts",
         "mockertests.ts",
         "fakeModules/fakemodule1.ts",
-        "fakeModules/fakemodule2.ts"
+        "fakeModules/fakemodule2.ts",
+        "taskissuecommandtests.ts"
     ]
 }
