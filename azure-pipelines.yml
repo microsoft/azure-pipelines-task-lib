@@ -49,11 +49,12 @@ extends:
             nodeVersion: $(nodeVersion)
         - template: /azure-pipelines-steps-test-build.yml@self
 
-        - task: VSBuild@1
-          displayName: 'Build solution'
+        - task: DotNetCoreCLI@2
+          displayName: 'Build .NET project(s)'
           inputs:
-            solution: '**/powershell/CompiledHelpers/VstsTaskSdk.csproj'
-            restoreNugetPackages: true
+            command: build
+            projects: '**/*.csproj'
+            arguments: '--configuration Release'
 
       #################################################
       - job: linux
