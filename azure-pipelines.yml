@@ -49,6 +49,13 @@ extends:
             nodeVersion: $(nodeVersion)
         - template: /azure-pipelines-steps-test-build.yml@self
 
+        - task: DotNetCoreCLI@2
+          displayName: 'Build .NET project(s)'
+          inputs:
+            command: build
+            projects: '**/*.csproj'
+            arguments: '--configuration Release'
+
       #################################################
       - job: linux
       #################################################
