@@ -9,7 +9,7 @@
     PowerShellVersion = '3.0'
     FunctionsToExport = '*'
     CmdletsToExport = ''
-    VariablesToExport = 'IssueSources'
+    VariablesToExport = '*'
     AliasesToExport = ''
     PrivateData = @{
         PSData = @{
