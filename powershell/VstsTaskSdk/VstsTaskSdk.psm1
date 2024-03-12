@@ -44,6 +44,7 @@ Export-ModuleMember -Function @(
         'Get-TaskVariable'
         'Get-TaskVariableInfo'
         'Set-TaskVariable'
+        'Get-PipelineFeature'
         # Legacy find functions.
         'Find-Files'
         # Localization functions.

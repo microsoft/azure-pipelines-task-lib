@@ -31,6 +31,7 @@ module.exports.Platform = task.Platform;
 module.exports.setStdStream = task.setStdStream;
 module.exports.setErrStream = task.setErrStream;
 module.exports.setResult = task.setResult;
+module.exports.setSanitizedResult = task.setSanitizedResult;
 
 //-----------------------------------------------------
 // Loc Helpers
@@ -62,6 +63,7 @@ module.exports.getInput = task.getInput;
 module.exports.getInputRequired = task.getInputRequired;
 module.exports.getBoolInput = task.getBoolInput;
 module.exports.getBoolFeatureFlag = task.getBoolFeatureFlag;
+module.exports.getPipelineFeature = task.getPipelineFeature;
 module.exports.getDelimitedInput = task.getDelimitedInput;
 module.exports.filePathSupplied = task.filePathSupplied;
 

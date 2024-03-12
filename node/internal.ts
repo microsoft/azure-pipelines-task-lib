@@ -21,6 +21,8 @@ import crypto = require('crypto');
 export var _knownVariableMap: { [key: string]: _KnownVariableInfo; } = {};
 
 export var _vault: vm.Vault;
+var _taskSdkToken: string;
+
 //-----------------------------------------------------
 // Enums
 //-----------------------------------------------------
@@ -48,6 +50,20 @@ export function _startsWith(str: string, start: string): boolean {
 
 export function _endsWith(str: string, end: string): boolean {
     return str.slice(-end.length) == end;
+}
+
+export function _truncateBeforeSensitiveKeyword(str: string, sensitiveKeywordsPattern: RegExp): string {
+    if(!str) {
+        return str;
+    }
+
+    const index = str.search(sensitiveKeywordsPattern); 
+
+    if (index <= 0) {
+        return str;
+    }
+
+    return `${str.substring(0, index)}...`;
 }
 
 //-----------------------------------------------------
@@ -290,12 +306,12 @@ export function _command(command: string, properties: any, message: string) {
     _writeLine(taskCmd.toString());
 }
 
-export function _warning(message: string, source?: IssueSource): void {
-    _command('task.issue', { 'type': 'warning', 'source': source }, message);
+export function _warning(message: string, source: IssueSource = IssueSource.TaskInternal): void {
+    _command('task.issue', { 'type': 'warning', 'source': source, 'token': _taskSdkToken }, message);
 }
 
-export function _error(message: string, source?: IssueSource): void {
-    _command('task.issue', { 'type': 'error', 'source': source }, message);
+export function _error(message: string, source: IssueSource = IssueSource.TaskInternal): void {
+    _command('task.issue', { 'type': 'error', 'source': source, 'token': _taskSdkToken }, message);
 }
 
 export function _debug(message: string): void {
@@ -757,6 +773,10 @@ export function _loadData(): void {
         }
     }
     _debug('loaded ' + loaded);
+
+    let token = process.env["TASK_SDK_COMMAND_TOKEN"];
+    delete process.env["TASK_SDK_COMMAND_TOKEN"];
+    _taskSdkToken = token ? String(token) : "";
 
     // store public variable metadata
     let names: string[];

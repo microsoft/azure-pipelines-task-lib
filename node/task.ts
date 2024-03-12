@@ -105,6 +105,24 @@ export function setResult(result: TaskResult, message: string, done?: boolean): 
     command('task.complete', properties, message);
 }
 
+/**
+ * Sets the result of the task with sanitized message.
+ *
+ * @param result    TaskResult enum of Succeeded, SucceededWithIssues, Failed, Cancelled or Skipped.
+ * @param message   A message which will be logged as an error issue if the result is Failed. Message will be truncated 
+ *                  before first occurence of wellknown sensitive keyword.
+ * @param done      Optional. Instructs the agent the task is done. This is helpful when child processes
+ *                  may still be running and prevent node from fully exiting. This argument is supported
+ *                  from agent version 2.142.0 or higher (otherwise will no-op).
+ * @returns         void
+ */
+
+export function setSanitizedResult(result: TaskResult, message: string, done?: boolean): void {
+    const pattern = /password|key|secret|bearer|authorization|token|pat/i;
+    const sanitizedMessage = im._truncateBeforeSensitiveKeyword(message, pattern);
+    setResult(result, sanitizedMessage, done);
+}
+
 //
 // Catching all exceptions
 //
@@ -280,10 +298,11 @@ export function getBoolInput(name: string, required?: boolean): boolean {
 
 /**
  * Gets the value of an feature flag and converts to a bool.
- *
+ * @IMPORTANT This method is only for internal Microsoft development. Do not use it for external tasks.
  * @param     name     name of the feature flag to get.
  * @param     defaultValue default value of the feature flag in case it's not found in env. (optional. Default value = false)
  * @returns   boolean
+ * @deprecated Don't use this for new development. Use getPipelineFeature instead.
  */
 export function getBoolFeatureFlag(ffName: string, defaultValue: boolean = false): boolean {
     const ffValue = process.env[ffName];
@@ -296,6 +315,28 @@ export function getBoolFeatureFlag(ffName: string, defaultValue: boolean = false
     debug(`Feature flag ${ffName} = ${ffValue}`);
 
     return ffValue.toLowerCase() === "true";
+}
+
+/**
+ * Gets the value of an task feature and converts to a bool.
+ * @IMPORTANT This method is only for internal Microsoft development. Do not use it for external tasks.
+ * @param     name     name of the feature to get.
+ * @returns   boolean
+ */
+export function getPipelineFeature(featureName: string): boolean {
+    const variableName = im._getVariableKey(`DistributedTask.Tasks.${featureName}`);
+    const featureValue = process.env[variableName];
+
+    if (!featureValue) {
+        debug(`Feature '${featureName}' not found. Returning false as default.`);
+        return false;
+    }
+
+    const boolValue = featureValue.toLowerCase() === "true";
+
+    debug(`Feature '${featureName}' = '${featureValue}'. Processed as '${boolValue}'.`);
+
+    return boolValue;
 }
 
 /**
@@ -810,7 +851,7 @@ export function mkdirP(p: string): void {
     let testDir: string = p;
     while (true) {
         // validate the loop is not out of control
-        if (stack.length >= (process.env['TASKLIB_TEST_MKDIRP_FAILSAFE'] || 1000)) {
+        if (stack.length >= Number(process.env['TASKLIB_TEST_MKDIRP_FAILSAFE'] || 1000)) {
             // let the framework throw
             debug('loop is out of control');
             fs.mkdirSync(p);
