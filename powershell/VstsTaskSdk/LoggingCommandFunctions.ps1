@@ -8,10 +8,10 @@ $script:loggingCommandEscapeMappings = @( # TODO: WHAT ABOUT "="? WHAT ABOUT "%"
 # TODO: BUG: Escape % ???
 # TODO: Add test to verify don't need to escape "=".
 
-$taskSDKToken = $env:TASK_SDK_COMMAND_TOKEN
-if ($null -ne $taskSDKToken)
+$commandCorrelationId = $env:COMMAND_CORRELATION_ID
+if ($null -ne $commandCorrelationId)
 {
-    [System.Environment]::SetEnvironmentVariable("TASK_SDK_COMMAND_TOKEN", $null)
+    [System.Environment]::SetEnvironmentVariable("COMMAND_CORRELATION_ID", $null)
 }
 
 $IssueSources = @{
@@ -569,7 +569,7 @@ function Write-LogIssue {
             'linenumber' = $LineNumber
             'columnnumber' = $ColumnNumber
             'source' = $IssueSource
-            'token' = $taskSDKToken
+            'correlationId' = $commandCorrelationId
         }
     if ($AsOutput) {
         return $command

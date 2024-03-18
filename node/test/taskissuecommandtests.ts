@@ -7,7 +7,7 @@ import * as tl from '../_build/task';
 import { IssueSource, _loadData } from '../_build/internal';
 
 
-describe('Task Issue command test without token', function () {
+describe('Task Issue command test without correlation ID', function () {
 
     before(function (done) {
         try {
@@ -81,7 +81,7 @@ describe('Task Issue command test without token', function () {
     })
 });
 
-describe('Task Issue command test with token', function () {
+describe('Task Issue command test with correlation ID', function () {
 
     before(function (done) {
         try {
@@ -90,38 +90,38 @@ describe('Task Issue command test with token', function () {
             assert.fail('Failed to load task lib: ' + err.message);
         }
 
-        process.env['TASK_SDK_COMMAND_TOKEN'] = 'test_token123';
+        process.env['COMMAND_CORRELATION_ID'] = 'test_id123';
         _loadData();
         done();
     });
 
     after(function (done) {
-        delete process.env['TASK_SDK_COMMAND_TOKEN'];
+        delete process.env['COMMAND_CORRELATION_ID'];
         _loadData();
         done();
     });
 
-    it('removes the token from env var', function (done) {
+    it('removes the correlation ID from env var', function (done) {
         this.timeout(1000);
 
-        assert.equal(process.env['TASK_SDK_COMMAND_TOKEN'], undefined);
+        assert.equal(process.env['COMMAND_CORRELATION_ID'], undefined);
 
         done();
     })
 
-    it('doesn\'t provide the token using task variables', function (done) {
+    it('doesn\'t provide the correlation ID using task variables', function (done) {
         this.timeout(1000);
 
         process.env['AGENT_VERSION'] = '2.115.0'
-        let variable = tl.getVariable('TASK_SDK_COMMAND_TOKEN');
-        let taskVariable = tl.getTaskVariable('TASK_SDK_COMMAND_TOKEN');
+        let variable = tl.getVariable('COMMAND_CORRELATION_ID');
+        let taskVariable = tl.getTaskVariable('COMMAND_CORRELATION_ID');
         assert.equal(variable, undefined);
         assert.equal(taskVariable, undefined);
         
         done();
     })
 
-    it('adds the token for task.issue messages', function (done) {
+    it('adds the correlation ID for task.issue messages', function (done) {
         this.timeout(1000);
 
         var stdStream = testutil.createStringStream();
@@ -130,8 +130,8 @@ describe('Task Issue command test with token', function () {
         tl.warning("Test warning", IssueSource.TaskInternal)
 
         var expected = testutil.buildOutput(
-            ['##vso[task.issue type=error;source=CustomerScript;token=test_token123;]Test error',
-             '##vso[task.issue type=warning;source=TaskInternal;token=test_token123;]Test warning']);
+            ['##vso[task.issue type=error;source=CustomerScript;correlationId=test_id123;]Test error',
+             '##vso[task.issue type=warning;source=TaskInternal;correlationId=test_id123;]Test warning']);
 
         var output = stdStream.getContents();
 
@@ -149,8 +149,8 @@ describe('Task Issue command test with token', function () {
         tl.warning("Test warning");
 
         var expected = testutil.buildOutput(
-            ['##vso[task.issue type=error;source=TaskInternal;token=test_token123;]Test error',
-             '##vso[task.issue type=warning;source=TaskInternal;token=test_token123;]Test warning']);
+            ['##vso[task.issue type=error;source=TaskInternal;correlationId=test_id123;]Test error',
+             '##vso[task.issue type=warning;source=TaskInternal;correlationId=test_id123;]Test warning']);
 
         var output = stdStream.getContents();
 
@@ -168,7 +168,7 @@ describe('Task Issue command test with token', function () {
 
         var expected = testutil.buildOutput(
             ['##vso[task.debug]task result: Failed',
-             '##vso[task.issue type=error;source=TaskInternal;token=test_token123;]failed msg',
+             '##vso[task.issue type=error;source=TaskInternal;correlationId=test_id123;]failed msg',
              '##vso[task.complete result=Failed;]failed msg']);
 
         var output = stdStream.getContents();
