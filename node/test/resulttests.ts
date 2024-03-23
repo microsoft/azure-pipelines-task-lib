@@ -47,7 +47,7 @@ describe('Result Tests', function () {
 
         var expected = testutil.buildOutput(
             ['##vso[task.debug]task result: SucceededWithIssues',
-                '##vso[task.issue type=warning;]warning msg',
+                '##vso[task.issue type=warning;source=TaskInternal;]warning msg',
                 '##vso[task.complete result=SucceededWithIssues;]warning msg']);
 
         var output = stdStream.getContents();
@@ -82,7 +82,7 @@ describe('Result Tests', function () {
 
         var expected = testutil.buildOutput(
             ['##vso[task.debug]task result: Failed',
-                '##vso[task.issue type=error;]failed msg',
+                '##vso[task.issue type=error;source=TaskInternal;]failed msg',
                 '##vso[task.complete result=Failed;]failed msg']);
 
         var output = stdStream.getContents();
@@ -101,6 +101,23 @@ describe('Result Tests', function () {
         var expected = testutil.buildOutput(
             ['##vso[task.debug]task result: Failed',
                 '##vso[task.complete result=Failed;]']);
+
+        var output = stdStream.getContents();
+
+        assert.equal(output, expected);
+
+        done();
+    })
+    it('setSanitizedResult success outputs', function (done) {
+        this.timeout(1000);
+
+        var stdStream = testutil.createStringStream();
+        tl.setStdStream(stdStream);
+        tl.setSanitizedResult(tl.TaskResult.Succeeded, 'success msg with secret data');
+
+        var expected = testutil.buildOutput(
+            ['##vso[task.debug]task result: Succeeded',
+                '##vso[task.complete result=Succeeded;]success msg with ...']);
 
         var output = stdStream.getContents();
 

@@ -8,6 +8,7 @@ param()
 Export-ModuleMember -Verbose:$false -Function @(
     'Assert-AreEqual'
     'Assert-AreNotEqual'
+    'Assert-TaskIssueMessagesAreEqual'
     'Assert-IsNotNullOrEmpty'
     'Assert-IsNullOrEmpty'
     'Assert-IsGreaterThan'

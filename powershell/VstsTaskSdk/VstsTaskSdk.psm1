@@ -44,6 +44,7 @@ Export-ModuleMember -Function @(
         'Get-TaskVariable'
         'Get-TaskVariableInfo'
         'Set-TaskVariable'
+        'Get-PipelineFeature'
         # Legacy find functions.
         'Find-Files'
         # Localization functions.
@@ -93,6 +94,10 @@ Export-ModuleMember -Function @(
         # Client cert functions
         'Get-ClientCertificate'
     )
+
+Export-ModuleMember -Variable @(
+    'IssueSources'
+)
 
 # Override Out-Default globally.
 $null = New-Item -Force -Path "function:\global:Out-Default" -Value (Get-Command -CommandType Function -Name Out-Default -ListImported)

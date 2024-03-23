@@ -44,6 +44,8 @@ export enum FieldType {
     Url
 }
 
+export const IssueSource = im.IssueSource;
+
 /** Platforms supported by our build agent */
 export enum Platform {
     Windows,
@@ -87,10 +89,10 @@ export function setResult(result: TaskResult, message: string, done?: boolean): 
 
     // add an error issue
     if (result == TaskResult.Failed && message) {
-        error(message);
+        error(message, IssueSource.TaskInternal);
     }
     else if (result == TaskResult.SucceededWithIssues && message) {
-        warning(message);
+        warning(message, IssueSource.TaskInternal);
     }
 
     // task.complete
@@ -102,12 +104,30 @@ export function setResult(result: TaskResult, message: string, done?: boolean): 
     command('task.complete', properties, message);
 }
 
+/**
+ * Sets the result of the task with sanitized message.
+ *
+ * @param result    TaskResult enum of Succeeded, SucceededWithIssues, Failed, Cancelled or Skipped.
+ * @param message   A message which will be logged as an error issue if the result is Failed. Message will be truncated 
+ *                  before first occurence of wellknown sensitive keyword.
+ * @param done      Optional. Instructs the agent the task is done. This is helpful when child processes
+ *                  may still be running and prevent node from fully exiting. This argument is supported
+ *                  from agent version 2.142.0 or higher (otherwise will no-op).
+ * @returns         void
+ */
+
+export function setSanitizedResult(result: TaskResult, message: string, done?: boolean): void {
+    const pattern = /password|key|secret|bearer|authorization|token|pat/i;
+    const sanitizedMessage = im._truncateBeforeSensitiveKeyword(message, pattern);
+    setResult(result, sanitizedMessage, done);
+}
+
 //
 // Catching all exceptions
 //
 process.on('uncaughtException', (err: Error) => {
     setResult(TaskResult.Failed, loc('LIB_UnhandledEx', err.message));
-    error(String(err.stack));
+    error(String(err.stack), im.IssueSource.TaskInternal);
 });
 
 //
@@ -277,10 +297,11 @@ export function getBoolInput(name: string, required?: boolean): boolean {
 
 /**
  * Gets the value of an feature flag and converts to a bool.
- *
+ * @IMPORTANT This method is only for internal Microsoft development. Do not use it for external tasks.
  * @param     name     name of the feature flag to get.
  * @param     defaultValue default value of the feature flag in case it's not found in env. (optional. Default value = false)
  * @returns   boolean
+ * @deprecated Don't use this for new development. Use getPipelineFeature instead.
  */
 export function getBoolFeatureFlag(ffName: string, defaultValue: boolean = false): boolean {
     const ffValue = process.env[ffName];
@@ -293,6 +314,28 @@ export function getBoolFeatureFlag(ffName: string, defaultValue: boolean = false
     debug(`Feature flag ${ffName} = ${ffValue}`);
 
     return ffValue.toLowerCase() === "true";
+}
+
+/**
+ * Gets the value of an task feature and converts to a bool.
+ * @IMPORTANT This method is only for internal Microsoft development. Do not use it for external tasks.
+ * @param     name     name of the feature to get.
+ * @returns   boolean
+ */
+export function getPipelineFeature(featureName: string): boolean {
+    const variableName = im._getVariableKey(`DistributedTask.Tasks.${featureName}`);
+    const featureValue = process.env[variableName];
+
+    if (!featureValue) {
+        debug(`Feature '${featureName}' not found. Returning false as default.`);
+        return false;
+    }
+
+    const boolValue = featureValue.toLowerCase() === "true";
+
+    debug(`Feature '${featureName}' = '${featureValue}'. Processed as '${boolValue}'.`);
+
+    return boolValue;
 }
 
 /**
@@ -799,7 +842,7 @@ export function mkdirP(p: string): void {
     let testDir: string = p;
     while (true) {
         // validate the loop is not out of control
-        if (stack.length >= (process.env['TASKLIB_TEST_MKDIRP_FAILSAFE'] || 1000)) {
+        if (stack.length >= Number(process.env['TASKLIB_TEST_MKDIRP_FAILSAFE'] || 1000)) {
             // let the framework throw
             debug('loop is out of control');
             fs.mkdirSync(p);
@@ -904,7 +947,7 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
         } catch (e) {
             if (retryCount <= 0) {
                 if (continueOnError) {
-                    warning(e);
+                    warning(e, IssueSource.TaskInternal);
                     break;
                 } else {
                     throw e;
@@ -999,7 +1042,7 @@ export function retry(func: Function, args: any[], retryOptions: RetryOptions = 
         } catch (e) {
             if (retryOptions.retryCount <= 0) {
                 if (retryOptions.continueOnError) {
-                    warning(e);
+                    warning(e, IssueSource.TaskInternal);
                     break;
                 } else {
                     throw e;
@@ -1107,7 +1150,7 @@ export function find(findPath: string, options?: FindOptions): string[] {
                 stats = _getStats(item.path, followSymbolicLink, options.allowBrokenSymbolicLinks);
             } catch (err) {
                 if (err.code == 'ENOENT' && options.skipMissingFiles) {
-                    warning(`No such file or directory: "${item.path}" - skipping.`);
+                    warning(`No such file or directory: "${item.path}" - skipping.`, IssueSource.TaskInternal);
                     continue;
                 }
                 throw err;
@@ -2385,7 +2428,7 @@ exports.ToolRunner = trm.ToolRunner;
 
 // async await needs generators in node 4.x+
 if (semver.lt(process.versions.node, '4.2.0')) {
-    warning('Tasks require a new agent.  Upgrade your agent or node to 4.2.0 or later');
+    warning('Tasks require a new agent.  Upgrade your agent or node to 4.2.0 or later', IssueSource.TaskInternal);
 }
 
 //-------------------------------------------------------------------

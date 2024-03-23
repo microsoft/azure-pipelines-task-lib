@@ -28,9 +28,9 @@ function Out-Default {
             Write-Verbose -Message "$($_.ScriptStackTrace)" 4>&1 | Out-Default
             Write-Verbose -Message 'Exception:' 4>&1 | Out-Default
             Write-Verbose -Message $_.Exception.ToString() 4>&1 | Out-Default
-            Write-TaskError -Message $_.Exception.Message
+            Write-TaskError -Message $_.Exception.Message -IssueSource $IssueSources.TaskInternal
         } elseif ($_ -is [System.Management.Automation.WarningRecord]) {
-            Write-TaskWarning -Message (Remove-TrailingNewLine (Out-String -InputObject $_ -Width 2147483647))
+            Write-TaskWarning -Message (Remove-TrailingNewLine (Out-String -InputObject $_ -Width 2147483647)) -IssueSource $IssueSources.TaskInternal
         } elseif ($_ -is [System.Management.Automation.VerboseRecord] -and !$global:__vstsNoOverrideVerbose) {
             foreach ($private:str in (Format-DebugMessage -Object $_)) {
                 Write-TaskVerbose -Message $private:str
