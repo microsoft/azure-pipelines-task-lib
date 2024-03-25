@@ -20,7 +20,7 @@ import crypto = require('crypto');
 export var _knownVariableMap: { [key: string]: _KnownVariableInfo; } = {};
 
 export var _vault: vm.Vault;
-var _taskSdkToken: string;
+var _commandCorrelationId: string;
 
 //-----------------------------------------------------
 // Enums
@@ -306,11 +306,11 @@ export function _command(command: string, properties: any, message: string) {
 }
 
 export function _warning(message: string, source: IssueSource = IssueSource.TaskInternal): void {
-    _command('task.issue', { 'type': 'warning', 'source': source, 'token': _taskSdkToken }, message);
+    _command('task.issue', { 'type': 'warning', 'source': source, 'correlationId': _commandCorrelationId }, message);
 }
 
 export function _error(message: string, source: IssueSource = IssueSource.TaskInternal): void {
-    _command('task.issue', { 'type': 'error', 'source': source, 'token': _taskSdkToken }, message);
+    _command('task.issue', { 'type': 'error', 'source': source, 'correlationId': _commandCorrelationId }, message);
 }
 
 export function _debug(message: string): void {
@@ -756,9 +756,9 @@ export function _loadData(): void {
     }
     _debug('loaded ' + loaded);
 
-    let token = process.env["TASK_SDK_COMMAND_TOKEN"];
-    delete process.env["TASK_SDK_COMMAND_TOKEN"];
-    _taskSdkToken = token ? String(token) : "";
+    let correlationId = process.env["COMMAND_CORRELATION_ID"];
+    delete process.env["COMMAND_CORRELATION_ID"];
+    _commandCorrelationId = correlationId ? String(correlationId) : "";
 
     // store public variable metadata
     let names: string[];
