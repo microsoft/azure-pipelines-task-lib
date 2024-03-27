@@ -1550,6 +1550,15 @@ export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Pro
             tr.line(args)
         }
     }
+
+    if (getBoolFeatureFlag('ENABLE_KILL_CHILD_PROCESS')) {
+        ['SIGINT', 'SIGTERM'].forEach((x: NodeJS.Signals) => {
+            tr.on(x, () => {
+                tr.killChildProcess(x);
+            });
+        });
+    }
+
     return tr.exec(options);
 }
 
