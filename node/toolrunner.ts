@@ -726,7 +726,7 @@ export class ToolRunner extends events.EventEmitter {
                 }
             });
     
-            var stdbuffer = { str: '' };
+            var stdbuffer: StrBuffer = { str: '' };
             cp.stdout?.on('data', (data: Buffer) => {
                 this.emit('stdout', data);
     
@@ -739,7 +739,7 @@ export class ToolRunner extends events.EventEmitter {
                 });
             });
     
-            var errbuffer = { str: '' };
+            var errbuffer: StrBuffer = { str: '' };
             cp.stderr?.on('data', (data: Buffer) => {
                 this.emit('stderr', data);
     
@@ -924,7 +924,7 @@ export class ToolRunner extends events.EventEmitter {
             }
         });
 
-        var stdbuffer = { str: '' };
+        var stdbuffer: StrBuffer = { str: '' };
         cp.stdout?.on('data', (data: Buffer) => {
             this.emit('stdout', data);
 
@@ -937,7 +937,7 @@ export class ToolRunner extends events.EventEmitter {
             });
         });
 
-        var errbuffer = { str: '' };
+        var errbuffer: StrBuffer = { str: '' };
         cp.stderr?.on('data', (data: Buffer) => {
             this.emit('stderr', data);
 
@@ -1109,7 +1109,7 @@ export class ToolRunner extends events.EventEmitter {
             }
         });
 
-        var stdbuffer = { str: '' };
+        var stdbuffer: StrBuffer = { str: '' };
         cp.stdout?.on('data', (data: Buffer) => {
             this.emit('stdout', data);
 
@@ -1123,7 +1123,7 @@ export class ToolRunner extends events.EventEmitter {
         });
 
 
-        var errbuffer = { str: '' };
+        var errbuffer: StrBuffer = { str: '' };
         cp.stderr?.on('data', (data: Buffer) => {
             state.processStderr = true;
             this.emit('stderr', data);
@@ -1226,7 +1226,7 @@ export class ToolRunner extends events.EventEmitter {
             }
         });
 
-        var stdbuffer = { str: '' };
+        var stdbuffer: StrBuffer = { str: '' };
         cp.stdout?.on('data', (data: Buffer) => {
             this.emit('stdout', data);
 
@@ -1240,7 +1240,7 @@ export class ToolRunner extends events.EventEmitter {
         });
 
 
-        var errbuffer = { str: '' };
+        var errbuffer: StrBuffer = { str: '' };
         cp.stderr?.on('data', (data: Buffer) => {
             state.processStderr = true;
             this.emit('stderr', data);
