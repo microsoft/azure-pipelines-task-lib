@@ -200,6 +200,41 @@ describe('Toolrunner Tests', function () {
                 });
         }
     })
+    it('Emits stream lines', function (done) {
+        var scriptPath = path.join(__dirname, 'scripts', 'bufferedoutput.js');
+        var node = tl.tool(tl.which('node', true));
+        node.arg(scriptPath);
+
+        let stdlines = [];
+        let errlines = [];
+
+        node.on('stdline', function (line) {
+            stdlines.push(line);
+        });
+
+        node.on('errline', function (line) {
+            errlines.push(line);
+        });
+
+        node.exec({
+            cwd: __dirname,
+            env: {},
+            silent: false,
+            failOnStdErr: false,
+            ignoreReturnCode: false,
+            outStream: testutil.getNullStream(),
+            errStream: testutil.getNullStream()
+        })
+        .then(function (code) {
+            assert.equal(code, 0, 'return code of cmd should be 0');
+            assert.deepStrictEqual(stdlines, ['stdline 1', 'stdline 2', 'stdline 3'], 'should have emitted stdlines');
+            assert.deepStrictEqual(errlines, ['errline 1', 'errline 2', 'errline 3'], 'should have emitted errlines');
+            done();
+        })
+        .catch(function (err) {
+            done(err);
+        });
+    })
     it('Execs with stdout', function (done) {
         this.timeout(10000);
 
