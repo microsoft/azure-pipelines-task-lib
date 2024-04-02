@@ -194,9 +194,9 @@ export class ToolRunner extends events.EventEmitter {
         return cmd;
     }
 
-    private _processLineBuffer(data: Buffer, strBuffer: string, onLine: (line: string) => void): void {
+    private _processLineBuffer(data: Buffer, strBuffer: StrBuffer, onLine: (line: string) => void): void {
         try {
-            var s = strBuffer + data.toString();
+            var s = strBuffer.str + data.toString();
             var n = s.indexOf(os.EOL);
 
             while (n > -1) {
@@ -208,7 +208,7 @@ export class ToolRunner extends events.EventEmitter {
                 n = s.indexOf(os.EOL);
             }
 
-            strBuffer = s;
+            strBuffer.str = s;
         }
         catch (err) {
             // streaming lines to console is best effort.  Don't fail a build.
@@ -726,7 +726,7 @@ export class ToolRunner extends events.EventEmitter {
                 }
             });
     
-            var stdbuffer: string = '';
+            var stdbuffer = { str: '' };
             cp.stdout?.on('data', (data: Buffer) => {
                 this.emit('stdout', data);
     
@@ -739,7 +739,7 @@ export class ToolRunner extends events.EventEmitter {
                 });
             });
     
-            var errbuffer: string = '';
+            var errbuffer = { str: '' };
             cp.stderr?.on('data', (data: Buffer) => {
                 this.emit('stderr', data);
     
@@ -767,12 +767,12 @@ export class ToolRunner extends events.EventEmitter {
                 this._debug('rc:' + code);
                 returnCode = code;
     
-                if (stdbuffer.length > 0) {
-                    this.emit('stdline', stdbuffer);
+                if (stdbuffer.str.length > 0) {
+                    this.emit('stdline', stdbuffer.str);
                 }
     
-                if (errbuffer.length > 0) {
-                    this.emit('errline', errbuffer);
+                if (errbuffer.str.length > 0) {
+                    this.emit('errline', errbuffer.str);
                 }
     
                 if (code != 0 && !optionsNonNull.ignoreReturnCode) {
@@ -924,7 +924,7 @@ export class ToolRunner extends events.EventEmitter {
             }
         });
 
-        var stdbuffer: string = '';
+        var stdbuffer = { str: '' };
         cp.stdout?.on('data', (data: Buffer) => {
             this.emit('stdout', data);
 
@@ -937,7 +937,7 @@ export class ToolRunner extends events.EventEmitter {
             });
         });
 
-        var errbuffer: string = '';
+        var errbuffer = { str: '' };
         cp.stderr?.on('data', (data: Buffer) => {
             this.emit('stderr', data);
 
@@ -965,12 +965,12 @@ export class ToolRunner extends events.EventEmitter {
             this._debug('rc:' + code);
             returnCode = code;
 
-            if (stdbuffer.length > 0) {
-                this.emit('stdline', stdbuffer);
+            if (stdbuffer.str.length > 0) {
+                this.emit('stdline', stdbuffer.str);
             }
 
-            if (errbuffer.length > 0) {
-                this.emit('errline', errbuffer);
+            if (errbuffer.str.length > 0) {
+                this.emit('errline', errbuffer.str);
             }
 
             if (code != 0 && !optionsNonNull.ignoreReturnCode) {
@@ -1109,7 +1109,7 @@ export class ToolRunner extends events.EventEmitter {
             }
         });
 
-        var stdbuffer: string = '';
+        var stdbuffer = { str: '' };
         cp.stdout?.on('data', (data: Buffer) => {
             this.emit('stdout', data);
 
@@ -1123,7 +1123,7 @@ export class ToolRunner extends events.EventEmitter {
         });
 
 
-        var errbuffer: string = '';
+        var errbuffer = { str: '' };
         cp.stderr?.on('data', (data: Buffer) => {
             state.processStderr = true;
             this.emit('stderr', data);
@@ -1162,12 +1162,12 @@ export class ToolRunner extends events.EventEmitter {
 
         return new Promise((resolve, reject) => {
             state.on('done', (error: Error, exitCode: number) => {
-                if (stdbuffer.length > 0) {
-                    this.emit('stdline', stdbuffer);
+                if (stdbuffer.str.length > 0) {
+                    this.emit('stdline', stdbuffer.str);
                 }
     
-                if (errbuffer.length > 0) {
-                    this.emit('errline', errbuffer);
+                if (errbuffer.str.length > 0) {
+                    this.emit('errline', errbuffer.str);
                 }
     
                 cp.removeAllListeners();
@@ -1226,7 +1226,7 @@ export class ToolRunner extends events.EventEmitter {
             }
         });
 
-        var stdbuffer: string = '';
+        var stdbuffer = { str: '' };
         cp.stdout?.on('data', (data: Buffer) => {
             this.emit('stdout', data);
 
@@ -1240,7 +1240,7 @@ export class ToolRunner extends events.EventEmitter {
         });
 
 
-        var errbuffer: string = '';
+        var errbuffer = { str: '' };
         cp.stderr?.on('data', (data: Buffer) => {
             state.processStderr = true;
             this.emit('stderr', data);
@@ -1278,12 +1278,12 @@ export class ToolRunner extends events.EventEmitter {
         });
 
         state.on('done', (error: Error, exitCode: number) => {
-            if (stdbuffer.length > 0) {
-                this.emit('stdline', stdbuffer);
+            if (stdbuffer.str.length > 0) {
+                this.emit('stdline', stdbuffer.str);
             }
 
-            if (errbuffer.length > 0) {
-                this.emit('errline', errbuffer);
+            if (errbuffer.str.length > 0) {
+                this.emit('errline', errbuffer.str);
             }
 
             cp.removeAllListeners();
@@ -1349,6 +1349,8 @@ export class ToolRunner extends events.EventEmitter {
         }
     }
 }
+
+type StrBuffer = { str: string };
 
 class ExecState extends events.EventEmitter {
     constructor(
