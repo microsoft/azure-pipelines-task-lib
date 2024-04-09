@@ -97,6 +97,7 @@ Export-ModuleMember -Function @(
 
 Export-ModuleMember -Variable @(
     'IssueSources'
+    'IssueAuditActions'
 )
 
 # Override Out-Default globally.

@@ -19,6 +19,11 @@ $IssueSources = @{
     TaskInternal = "TaskInternal"
 }
 
+$IssueAuditActions = @{
+    Unknown = 0
+    ShellTasksValidation = 1
+}
+
 <#
 .SYNOPSIS
 See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
@@ -298,7 +303,9 @@ function Write-TaskError {
         [string]$LineNumber,
         [string]$ColumnNumber,
         [switch]$AsOutput,
-        [string]$IssueSource)
+        [string]$IssueSource,
+        [int]$AuditAction
+    )
 
     Write-LogIssue -Type error @PSBoundParameters
 }
@@ -335,7 +342,9 @@ function Write-TaskWarning {
         [string]$LineNumber,
         [string]$ColumnNumber,
         [switch]$AsOutput,
-        [string]$IssueSource)
+        [string]$IssueSource,
+        [int]$AuditAction
+    )
 
     Write-LogIssue -Type warning @PSBoundParameters
 }
@@ -560,7 +569,10 @@ function Write-LogIssue {
         [switch]$AsOutput,
         [AllowNull()]
         [ValidateSet('CustomerScript', 'TaskInternal')]
-        [string]$IssueSource = $IssueSources.TaskInternal)
+        [string]$IssueSource = $IssueSources.TaskInternal,
+        [AllowNull()]
+        [int]$AuditAction = $IssueAuditActions.Unknown
+    )
 
     $command = Format-LoggingCommand -Area 'task' -Event 'logissue' -Data $Message -Properties @{
             'type' = $Type
@@ -570,6 +582,7 @@ function Write-LogIssue {
             'columnnumber' = $ColumnNumber
             'source' = $IssueSource
             'correlationId' = $commandCorrelationId
+            'auditAction' = $AuditAction
         }
     if ($AsOutput) {
         return $command
