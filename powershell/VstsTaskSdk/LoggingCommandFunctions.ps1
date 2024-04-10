@@ -521,7 +521,7 @@ function Format-LoggingCommand {
         [Parameter(Mandatory = $true)]
         [string]$Event,
         [string]$Data,
-        [hashtable]$Properties)
+        [System.Collections.IDictionary]$Properties)
 
     # Append the preamble.
     [System.Text.StringBuilder]$sb = New-Object -TypeName System.Text.StringBuilder
@@ -568,16 +568,17 @@ function Write-LogIssue {
         [string]$AuditAction
     )
 
-    $command = Format-LoggingCommand -Area 'task' -Event 'logissue' -Data $Message -Properties @{
-            'type' = $Type
-            'code' = $ErrCode
-            'sourcepath' = $SourcePath
-            'linenumber' = $LineNumber
-            'columnnumber' = $ColumnNumber
-            'source' = $IssueSource
-            'correlationId' = $commandCorrelationId
-            'auditAction' = $AuditAction
-        }
+    $properties = [ordered]@{
+        'type'          = $Type
+        'code'          = $ErrCode
+        'sourcepath'    = $SourcePath
+        'linenumber'    = $LineNumber
+        'columnnumber'  = $ColumnNumber
+        'source'        = $IssueSource
+        'correlationId' = $commandCorrelationId
+        'auditAction'   = $AuditAction
+    }
+    $command = Format-LoggingCommand -Area 'task' -Event 'logissue' -Data $Message -Properties $properties
     if ($AsOutput) {
         return $command
     }
