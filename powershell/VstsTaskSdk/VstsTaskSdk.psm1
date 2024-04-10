@@ -95,9 +95,14 @@ Export-ModuleMember -Function @(
         'Get-ClientCertificate'
     )
 
+$IssueAuditActions = @{
+    Unknown              = '0'
+    ShellTasksValidation = '1'
+}
+
 Export-ModuleMember -Variable @(
     'IssueSources'
-    'IssueAuditActions'
+    $IssueAuditActions
 )
 
 # Override Out-Default globally.
