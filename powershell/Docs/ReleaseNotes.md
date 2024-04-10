@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.21.0
+
+- Added audit action for task.issue [#1033](https://github.com/microsoft/azure-pipelines-task-lib/pull/1033)
+
 ## 0.17.0
 
 * Added `Invoke-VstsProcess` cmdlet (<https://github.com/microsoft/azure-pipelines-task-lib/pull/978>)

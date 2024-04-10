@@ -2,6 +2,10 @@
 
 ## 4.x
 
+### 4.11.0
+
+- Added audit action for task.issue [#1033](https://github.com/microsoft/azure-pipelines-task-lib/pull/1033)
+
 ### 4.10.0
 
 - Added `correlation ID` property for logging commands [#1021](https://github.com/microsoft/azure-pipelines-task-lib/pull/1021)
