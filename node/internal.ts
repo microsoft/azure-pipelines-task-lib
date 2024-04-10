@@ -313,7 +313,7 @@ export function _command(command: string, properties: any, message: string) {
 export function _warning(
     message: string,
     source: IssueSource = IssueSource.TaskInternal,
-    auditAction: IssueAuditAction = IssueAuditAction.Unknown
+    auditAction?: IssueAuditAction
 ): void {
     _command(
         'task.issue',
@@ -330,7 +330,7 @@ export function _warning(
 export function _error(
     message: string,
     source: IssueSource = IssueSource.TaskInternal,
-    auditAction: IssueAuditAction = IssueAuditAction.Unknown
+    auditAction?: IssueAuditAction
 ): void {
     _command(
         'task.issue',
