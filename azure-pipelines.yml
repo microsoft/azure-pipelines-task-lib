@@ -23,6 +23,8 @@ extends:
     featureFlags:
       autoBaseline: false
     sdl:
+      codeql:
+        enabledOnNonDefaultBranches: true
       baseline:
         baselineSet: default
         baselineFile: $(Build.SourcesDirectory)/.gdn/.gdnbaselines
