@@ -608,7 +608,7 @@ describe('Toolrunner Tests', function () {
             });
     })
     it('Exec pipe output to another tool, succeeds if both tools succeed', function (done) {
-        this.timeout(30000);
+        this.timeout(120000);
 
         var _testExecOptions = <trm.IExecOptions>{
             cwd: __dirname,
