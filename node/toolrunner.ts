@@ -1098,7 +1098,45 @@ export class ToolRunner extends events.EventEmitter {
             this._debug(message);
         });
 
-        let cp = child.spawn(this._getSpawnFileName(options), this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(options));
+        var stdbuffer: string = '';
+        var errbuffer: string = '';
+        const emitDoneEvent = function (resolve, reject) {
+            state.on('done', (error: Error, exitCode: number) => {
+                if (stdbuffer.length > 0) {
+                    this.emit('stdline', stdbuffer);
+                }
+    
+                if (errbuffer.length > 0) {
+                    this.emit('errline', errbuffer);
+                }
+    
+                if (cp) {
+                    cp.removeAllListeners();
+                }
+                
+                if (error) {
+                    reject(error);
+                }
+                else {
+                    resolve(exitCode);
+                }
+            });
+        }
+
+        // Edge case when the node itself cant's spawn and emit event
+        let cp;
+        try {
+            cp = child.spawn(this._getSpawnFileName(options), this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(options));
+        } catch (error) {
+            return new Promise((resolve, reject) => {
+                emitDoneEvent(resolve, reject);
+                state.processError = error.message;
+                state.processExited = true;
+                state.processClosed = true;
+                state.CheckComplete();
+            });
+        }
+
         this.childProcess = cp;
         // it is possible for the child process to end its last line without a new line.
         // because stdout is buffered, this causes the last line to not get sent to the parent
@@ -1109,7 +1147,6 @@ export class ToolRunner extends events.EventEmitter {
             }
         });
 
-        var stdbuffer: string = '';
         cp.stdout?.on('data', (data: Buffer) => {
             this.emit('stdout', data);
 
@@ -1122,8 +1159,6 @@ export class ToolRunner extends events.EventEmitter {
             });
         });
 
-
-        var errbuffer: string = '';
         cp.stderr?.on('data', (data: Buffer) => {
             state.processStderr = true;
             this.emit('stderr', data);
@@ -1160,26 +1195,7 @@ export class ToolRunner extends events.EventEmitter {
             state.CheckComplete();
         });
 
-        return new Promise((resolve, reject) => {
-            state.on('done', (error: Error, exitCode: number) => {
-                if (stdbuffer.length > 0) {
-                    this.emit('stdline', stdbuffer);
-                }
-    
-                if (errbuffer.length > 0) {
-                    this.emit('errline', errbuffer);
-                }
-    
-                cp.removeAllListeners();
-    
-                if (error) {
-                    reject(error);
-                }
-                else {
-                    resolve(exitCode);
-                }
-            });
-        });
+        return new Promise(emitDoneEvent);
     }
 
     /**
@@ -1215,7 +1231,43 @@ export class ToolRunner extends events.EventEmitter {
             this._debug(message);
         });
 
-        let cp = child.spawn(this._getSpawnFileName(options), this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(options));
+        var stdbuffer: string = '';
+        var errbuffer: string = '';
+        state.on('done', (error: Error, exitCode: number) => {
+            if (stdbuffer.length > 0) {
+                this.emit('stdline', stdbuffer);
+            }
+
+            if (errbuffer.length > 0) {
+                this.emit('errline', errbuffer);
+            }
+
+            if (cp) {
+                cp.removeAllListeners();
+            }
+
+            if (error) {
+                defer.reject(error);
+            }
+            else {
+                defer.resolve(exitCode);
+            }
+        });
+
+
+        // Edge case when the node itself cant's spawn and emit event
+        let cp;
+        try {
+            cp = child.spawn(this._getSpawnFileName(options), this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(options));
+        } catch (error) {
+            state.processError = error.message;
+            state.processExited = true;
+            state.processClosed = true;
+            state.CheckComplete();
+
+            return defer.promise;
+        }
+
         this.childProcess = cp;
         // it is possible for the child process to end its last line without a new line.
         // because stdout is buffered, this causes the last line to not get sent to the parent
@@ -1226,7 +1278,6 @@ export class ToolRunner extends events.EventEmitter {
             }
         });
 
-        var stdbuffer: string = '';
         cp.stdout?.on('data', (data: Buffer) => {
             this.emit('stdout', data);
 
@@ -1240,7 +1291,6 @@ export class ToolRunner extends events.EventEmitter {
         });
 
 
-        var errbuffer: string = '';
         cp.stderr?.on('data', (data: Buffer) => {
             state.processStderr = true;
             this.emit('stderr', data);
@@ -1275,25 +1325,6 @@ export class ToolRunner extends events.EventEmitter {
             state.processClosed = true;
             this._debug(`STDIO streams have closed for tool '${this.toolPath}'`)
             state.CheckComplete();
-        });
-
-        state.on('done', (error: Error, exitCode: number) => {
-            if (stdbuffer.length > 0) {
-                this.emit('stdline', stdbuffer);
-            }
-
-            if (errbuffer.length > 0) {
-                this.emit('errline', errbuffer);
-            }
-
-            cp.removeAllListeners();
-
-            if (error) {
-                defer.reject(error);
-            }
-            else {
-                defer.resolve(exitCode);
-            }
         });
 
         return defer.promise;
