@@ -1,5 +1,5 @@
 {
-  "version": "0.21.0",
+  "version": "0.21.1",
   "private": true,
   "scripts": {
     "build": "node make.js build",
@@ -12,7 +12,7 @@
     "@types/node": "^10.17.60",
     "@types/shelljs": "^0.8.14",
     "adm-zip": "^0.5.9",
-    "deasync": "^0.1.28",
+    "deasync": "^0.1.29",
     "mocha": "5.2.0",
     "nodejs-file-downloader": "^4.11.1",
     "shelljs": "^0.8.5",

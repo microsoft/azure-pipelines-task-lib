@@ -2,6 +2,10 @@
 
 ## 4.x
 
+### 4.11.1
+
+- Updated deasync to 0.1.29 [#1036](https://github.com/microsoft/azure-pipelines-task-lib/pull/1036)
+
 ### 4.11.0
 
 - Added audit action for task.issue [#1033](https://github.com/microsoft/azure-pipelines-task-lib/pull/1033)
