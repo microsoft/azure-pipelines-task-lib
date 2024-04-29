@@ -17,21 +17,21 @@ Invoke-VstsTaskScript -ScriptBlock {
 
     # 3
     $actual = & $vstsModule Write-TaskError -Message "test error" -AsOutput
-    $expected = "##vso[task.logissue correlationId=test_id123;source=TaskInternal;type=error]test error"
+    $expected = "##vso[task.logissue type=error;source=TaskInternal;correlationId=test_id123]test error"
     Assert-TaskIssueMessagesAreEqual $expected $actual "The default 'TastInternal' source and the correlation ID were added for errors."
 
     # 4
     $actual = & $vstsModule Write-TaskWarning -Message "test warning" -AsOutput
-    $expected = "##vso[task.logissue correlationId=test_id123;source=TaskInternal;type=warning]test warning"
+    $expected = "##vso[task.logissue type=warning;source=TaskInternal;correlationId=test_id123]test warning"
     Assert-TaskIssueMessagesAreEqual $expected $actual "The default 'TastInternal' source and the correlation ID were added for warnings."
 
     # 5
     $actual = & $vstsModule Write-TaskError -Message "test error" -IssueSource $IssueSources.CustomerScript -AsOutput
-    $expected = "##vso[task.logissue correlationId=test_id123;source=CustomerScript;type=error]test error"
+    $expected = "##vso[task.logissue type=error;source=CustomerScript;correlationId=test_id123]test error"
     Assert-TaskIssueMessagesAreEqual $expected $actual "Adds the specified issue source and the correlation ID for errors."
 
     # 6
     $actual = & $vstsModule Write-TaskWarning -Message "test warning" -IssueSource $IssueSources.CustomerScript -AsOutput
-    $expected = "##vso[task.logissue correlationId=test_id123;source=CustomerScript;type=warning]test warning"
+    $expected = "##vso[task.logissue type=warning;source=CustomerScript;correlationId=test_id123]test warning"
     Assert-TaskIssueMessagesAreEqual $expected $actual "Adds the specified issue source and the correlation ID for warnings."
 }

@@ -4,7 +4,7 @@
 import assert = require('assert');
 import * as testutil from './testutil';
 import * as tl from '../_build/task';
-import { IssueSource, _loadData } from '../_build/internal';
+import { IssueAuditAction, IssueSource, _loadData } from '../_build/internal';
 
 
 describe('Task Issue command test without correlation ID', function () {
@@ -175,6 +175,79 @@ describe('Task Issue command test with correlation ID', function () {
 
         assert.equal(output, expected);
 
+        done();
+    })
+});
+
+describe('Task Issue command, audit action tests', function () {
+    before(function (done) {
+        try {
+            testutil.initialize();
+        } catch (err) {
+            assert.fail('Failed to load task lib: ' + err.message);
+        }
+
+        done();
+    });
+
+    after(function (done) {
+        done();
+    });
+
+    it('Audit action is present in issue', function (done) {
+        this.timeout(1000);
+
+        const stdStream = testutil.createStringStream();
+        tl.setStdStream(stdStream);
+
+        const expected = testutil.buildOutput(
+            ['##vso[task.issue type=error;auditAction=1;]Test error',
+                '##vso[task.issue type=warning;auditAction=1;]Test warning']);
+
+        tl.error("Test error", null, IssueAuditAction.ShellTasksValidation);
+        tl.warning("Test warning", null, IssueAuditAction.ShellTasksValidation);
+
+        const output = stdStream.getContents();
+
+        assert.strictEqual(output, expected);
+        done();
+    })
+
+    it('Audit action not present if unspecified', function (done) {
+        this.timeout(1000);
+
+        const stdStream = testutil.createStringStream();
+        tl.setStdStream(stdStream);
+
+        const expected = testutil.buildOutput(
+            ['##vso[task.issue type=error;]Test error',
+                '##vso[task.issue type=warning;]Test warning']);
+
+        tl.error("Test error", null);
+        tl.warning("Test warning", null);
+
+        const output = stdStream.getContents();
+
+        assert.strictEqual(output, expected);
+        done();
+    })
+
+    it('Audit action is present when value is not from enum', function (done) {
+        this.timeout(1000);
+
+        const stdStream = testutil.createStringStream();
+        tl.setStdStream(stdStream);
+
+        const expected = testutil.buildOutput(
+            ['##vso[task.issue type=error;auditAction=123;]Test error',
+                '##vso[task.issue type=warning;auditAction=321;]Test warning']);
+
+        tl.error("Test error", null, 123 as IssueAuditAction);
+        tl.warning("Test warning", null, 321 as IssueAuditAction);
+
+        const output = stdStream.getContents();
+
+        assert.strictEqual(output, expected);
         done();
     })
 });

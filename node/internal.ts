@@ -30,6 +30,11 @@ export enum IssueSource {
     TaskInternal = 'TaskInternal'
 }
 
+export enum IssueAuditAction {
+    Unknown = 0,
+    ShellTasksValidation = 1,
+}
+
 //-----------------------------------------------------
 // Validation Checks
 //-----------------------------------------------------
@@ -52,11 +57,11 @@ export function _endsWith(str: string, end: string): boolean {
 }
 
 export function _truncateBeforeSensitiveKeyword(str: string, sensitiveKeywordsPattern: RegExp): string {
-    if(!str) {
+    if (!str) {
         return str;
     }
 
-    const index = str.search(sensitiveKeywordsPattern); 
+    const index = str.search(sensitiveKeywordsPattern);
 
     if (index <= 0) {
         return str;
@@ -250,7 +255,7 @@ export function _loc(key: string, ...param: any[]): string {
  * @param     name     name of the variable to get
  * @returns   string
  */
-export function _getVariable(name: string): string | undefined  {
+export function _getVariable(name: string): string | undefined {
     let varval: string | undefined;
 
     // get the metadata
@@ -305,12 +310,38 @@ export function _command(command: string, properties: any, message: string) {
     _writeLine(taskCmd.toString());
 }
 
-export function _warning(message: string, source: IssueSource = IssueSource.TaskInternal): void {
-    _command('task.issue', { 'type': 'warning', 'source': source, 'correlationId': _commandCorrelationId }, message);
+export function _warning(
+    message: string,
+    source: IssueSource = IssueSource.TaskInternal,
+    auditAction?: IssueAuditAction
+): void {
+    _command(
+        'task.issue',
+        {
+            'type': 'warning',
+            'source': source,
+            'correlationId': _commandCorrelationId,
+            'auditAction': auditAction
+        },
+        message
+    );
 }
 
-export function _error(message: string, source: IssueSource = IssueSource.TaskInternal): void {
-    _command('task.issue', { 'type': 'error', 'source': source, 'correlationId': _commandCorrelationId }, message);
+export function _error(
+    message: string,
+    source: IssueSource = IssueSource.TaskInternal,
+    auditAction?: IssueAuditAction
+): void {
+    _command(
+        'task.issue',
+        {
+            'type': 'error',
+            'source': source,
+            'correlationId': _commandCorrelationId,
+            'auditAction': auditAction
+        },
+        message
+    );
 }
 
 export function _debug(message: string): void {
@@ -801,7 +832,7 @@ export function _loadData(): void {
  * @param path  a path to a file.
  * @returns     true if path starts with double backslash, otherwise returns false.
  */
- export function _isUncPath(path: string) {
+export function _isUncPath(path: string) {
     return /^\\\\[^\\]/.test(path);
 }
 
