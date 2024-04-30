@@ -2,9 +2,13 @@
 
 ## 4.x
 
-### 4.11.0
+### 4.12.0
 
 - Added audit action for task.issue [#1033](https://github.com/microsoft/azure-pipelines-task-lib/pull/1033)
+
+### 4.11.0
+
+- Fix CodeQL fail tests [#1034](https://github.com/microsoft/azure-pipelines-task-lib/pull/1034)
 
 ### 4.10.0
 
