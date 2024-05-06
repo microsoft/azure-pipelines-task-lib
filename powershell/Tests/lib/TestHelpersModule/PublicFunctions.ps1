@@ -22,6 +22,7 @@ function Assert-TaskIssueMessagesAreEqual {
     [CmdletBinding()]
     param([string]$Expected, [string]$Actual, [string]$Message)
 
+    Write-Verbose "Asserting Task issue messages are equal. Expected: '$Expected' ; Actual: '$Actual'."
     if ($Expected -ne $Actual) {
         throw ("Assert are equal failed. Expected: '$Expected' ; Actual: '$Actual'. $Message".Trim())
     }
