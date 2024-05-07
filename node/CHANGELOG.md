@@ -2,13 +2,17 @@
 
 ## 4.x
 
-### 4.11.1
+### 4.12.1
 
 - Updated deasync to 0.1.29 [#1036](https://github.com/microsoft/azure-pipelines-task-lib/pull/1036)
 
-### 4.11.0
+### 4.12.0
 
 - Added audit action for task.issue [#1033](https://github.com/microsoft/azure-pipelines-task-lib/pull/1033)
+
+### 4.11.0
+
+- Fix CodeQL fail tests [#1034](https://github.com/microsoft/azure-pipelines-task-lib/pull/1034)
 
 ### 4.10.0
 
