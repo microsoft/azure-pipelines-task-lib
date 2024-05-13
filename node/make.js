@@ -38,10 +38,10 @@ target.build = function() {
     rm(path.join(buildPath, 'index.*'));
 }
 
-target.test = function() {
+target.test = async function() {
     target.build();
 
-    buildutils.getExternals();
+    await buildutils.getExternalsAsync();
     run('tsc -p ./test');
     cp('-Rf', rp('test/scripts'), testPath);
     cp('-Rf', rp('test/fakeTasks'), testPath);
@@ -65,3 +65,13 @@ target.loc = function() {
     var enContents = JSON.stringify(strings, null, 2);
     fs.writeFileSync(path.join(strPath, 'resources.resjson'), enContents)
 }
+
+process.on('uncaughtException', err => {
+    console.error(`Uncaught exception: ${err.message}`);
+    console.debug(err.stack);
+});
+
+process.on('unhandledRejection', err => {
+    console.error(`Unhandled rejection: ${err.message}`);
+    console.debug(err.stack);
+});
