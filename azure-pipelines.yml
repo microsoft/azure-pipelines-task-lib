@@ -47,7 +47,19 @@ extends:
         - template: /azure-pipelines-steps-node.yml@self
           parameters:
             nodeVersion: $(nodeVersion)
-        - template: /azure-pipelines-steps-test-build.yml@self
+        # - template: /azure-pipelines-steps-test-build.yml@self
+          # npm install
+        - task: Npm@1
+          displayName: (VstsTaskSdk) npm install
+          inputs:
+            command: install
+            workingDir: powershell
+
+        # npm test
+        - script: npm test
+          displayName: (VstsTaskSdk) npm test
+          workingDirectory: powershell
+
 
         - task: DotNetCoreCLI@2
           displayName: 'Build .NET project(s)'
