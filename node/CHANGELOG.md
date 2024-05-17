@@ -4,7 +4,7 @@
 
 ## 4.12.1
 
-- Replaced deprecated "sync-request" lib and Added new Async methods - [#932](https://github.com/microsoft/azure-pipelines-task-lib/pull/932)
+- Remove deasync from task-lib - [#1038](https://github.com/microsoft/azure-pipelines-task-lib/pull/1038)
 
 ### 4.12.0
 
