@@ -39,6 +39,7 @@ steps:
       command: build
       projects: '**/*.csproj'
       arguments: '--configuration Release'
+      workingDirectory: powershell
 
   - script: npm install
     displayName: (VstsTaskSdk) npm install
