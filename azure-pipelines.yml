@@ -44,6 +44,8 @@ extends:
           os: windows
         steps:
         - template: /azure-pipelines-steps-node.yml@self
+          parameters:
+            os: Windows_NT  
 
       #################################################
       - job: linux
@@ -60,6 +62,8 @@ extends:
             artifactName: 'npm-package'
         steps:
         - template: /azure-pipelines-steps-node.yml@self
+          parameters:
+            os: Linux
 
       #################################################
       - job: macOS
@@ -70,3 +74,5 @@ extends:
           os: macOS
         steps:
         - template: /azure-pipelines-steps-node.yml@self
+          parameters:
+            os: Darwin
