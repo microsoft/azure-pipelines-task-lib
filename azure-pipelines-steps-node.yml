@@ -1,3 +1,8 @@
+variables:
+- group: npm-tokens
+- name: nodeVersion
+  value: '16.13.0'
+
 steps:
 - task: NodeTool@0
   displayName: use node ${{ variables.nodeVersion }}
@@ -22,6 +27,9 @@ steps:
     condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master'))
     env:
       NPM_TOKEN: $(npm-automation.token)
+
+  # PublishPipelineArtifact step is configured in the base template.
+  # See the templateContext section in the azure-pipelines.yml file
 
 # Only on Windows. Build VstsTaskSdk for powershell 
 - ${{ if eq(parameters.os, 'Windows_NT') }}:
