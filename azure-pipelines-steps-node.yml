@@ -3,14 +3,43 @@ parameters:
   type: string
 
 steps:
-  # npm install
-- task: Npm@1
-  displayName: npm install
-  inputs:
-    command: install
-    workingDir: node
-
 - task: NodeTool@0
-  displayName: use node ${{parameters.nodeVersion}}
+  displayName: use node ${{ variables.nodeVersion }}
   inputs:
-    versionSpec: ${{parameters.nodeVersion}}
+    versionSpec: ${{ variables.nodeVersion }}
+
+- script: npm install
+  displayName: npm install
+  workingDirectory: node
+
+- script: npm test
+  workingDirectory: node
+  displayName: npm test
+
+# Only on Linux. For CI runs on master, automatically publish packages
+- ${{ if eq(parameters.os, 'Linux') }}:
+  - bash: |
+      echo //registry.npmjs.org/:_authToken=\${NPM_TOKEN} > .npmrc
+      npm publish || true # Ignore publish failures, usually will happen because package already exists
+    displayName: npm publish
+    workingDirectory: node/_build
+    condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master'))
+    env:
+      NPM_TOKEN: $(npm-automation.token)
+
+# Only on Windows. Build VstsTaskSdk for powershell 
+- ${{ if eq(parameters.os, 'Windows_NT') }}:
+  - task: DotNetCoreCLI@2
+    displayName: 'Build .NET project(s)'
+    inputs:
+      command: build
+      projects: '**/*.csproj'
+      arguments: '--configuration Release'
+
+  - script: npm install
+    displayName: (VstsTaskSdk) npm install
+    workingDirectory: powershell
+
+  - script: npm test
+    displayName: (VstsTaskSdk) npm test
+    workingDirectory: powershell
