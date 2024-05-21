@@ -1,7 +1,3 @@
-parameters:
-- name: nodeVersion 
-  type: string
-
 steps:
 - task: NodeTool@0
   displayName: use node ${{ variables.nodeVersion }}
