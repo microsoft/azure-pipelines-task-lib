@@ -6,6 +6,11 @@ trigger:
 - features/*
 - releases/*
 
+variables:
+- group: npm-tokens
+- name: nodeVersion
+  value: '16.13.0'
+
 resources:
   repositories:
   - repository: 1ESPipelineTemplates

@@ -1,13 +1,8 @@
-variables:
-- group: npm-tokens
-- name: nodeVersion
-  value: '16.13.0'
-
 steps:
 - task: NodeTool@0
-  displayName: use node ${{ variables.nodeVersion }}
+  displayName: use node $(nodeVersion)
   inputs:
-    versionSpec: ${{ variables.nodeVersion }}
+    versionSpec: $(nodeVersion)
 
 - script: npm install
   displayName: npm install
