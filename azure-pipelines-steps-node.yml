@@ -3,14 +3,14 @@ parameters:
   type: string
 
 steps:
-- script: npm install
-  displayName: (task-lib) npm install
-  workingDirectory: node
-
 - task: NodeTool@0
   displayName: use node $(nodeVersion)
   inputs:
     versionSpec: $(nodeVersion)
+
+- script: npm install
+  displayName: (task-lib) npm install
+  workingDirectory: node
 
 - script: npm test
   workingDirectory: node
@@ -32,14 +32,13 @@ steps:
 
 # Only on Windows. Build VstsTaskSdk for powershell 
 - ${{ if eq(parameters.os, 'Windows_NT') }}:
-  # Build step for .NET source code. 
+  # Build step for .NET source code. This is needed to enable CodeQL for C# code
   - task: DotNetCoreCLI@2
     displayName: 'Build .NET project(s)'
     inputs:
       command: build
-      projects: '**/*.csproj'
+      projects: 'powershell/CompiledHelpers/VstsTaskSdk.csproj'
       arguments: '--configuration Release'
-      workingDirectory: powershell
 
   - script: npm install
     displayName: (VstsTaskSdk) npm install
