@@ -42,12 +42,6 @@ extends:
           name: 1ES-ABTT-Shared-Pool
           image: abtt-windows-2022
           os: windows
-        templateContext:
-          outputs:
-          - output: pipelineArtifact
-            targetPath: 'powershell/_build'
-            artifactType: 'pipeline'
-            artifactName: 'powershell-package'
         steps:
         - template: /azure-pipelines-steps-node.yml@self
           parameters:
