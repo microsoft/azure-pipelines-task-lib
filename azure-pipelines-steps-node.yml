@@ -3,14 +3,14 @@ parameters:
   type: string
 
 steps:
+- script: npm install
+  displayName: (task-lib) npm install
+  workingDirectory: node
+
 - task: NodeTool@0
   displayName: use node $(nodeVersion)
   inputs:
     versionSpec: $(nodeVersion)
-
-- script: npm install
-  displayName: (task-lib) npm install
-  workingDirectory: node
 
 - script: npm test
   workingDirectory: node
