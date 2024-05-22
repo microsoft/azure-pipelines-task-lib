@@ -7,9 +7,9 @@ trigger:
 - releases/*
 
 variables:
-  - group: npm-tokens
-  - name: nodeVersion
-    value: '16.13.0'
+- group: npm-tokens
+- name: nodeVersion
+  value: '16.13.0'
 
 resources:
   repositories:
@@ -38,7 +38,6 @@ extends:
       #################################################
       - job: windows
       #################################################
-        displayName: windows
         pool:
           name: 1ES-ABTT-Shared-Pool
           image: abtt-windows-2022
@@ -46,20 +45,11 @@ extends:
         steps:
         - template: /azure-pipelines-steps-node.yml@self
           parameters:
-            nodeVersion: $(nodeVersion)
-        - template: /azure-pipelines-steps-test-build.yml@self
-
-        - task: DotNetCoreCLI@2
-          displayName: 'Build .NET project(s)'
-          inputs:
-            command: build
-            projects: '**/*.csproj'
-            arguments: '--configuration Release'
+            os: Windows_NT  
 
       #################################################
       - job: linux
       #################################################
-        displayName: Linux
         pool:
           name: 1ES-ABTT-Shared-Pool
           image: abtt-ubuntu-2204
@@ -73,22 +63,11 @@ extends:
         steps:
         - template: /azure-pipelines-steps-node.yml@self
           parameters:
-            nodeVersion: $(nodeVersion)
-        - template: /azure-pipelines-steps-test-build.yml@self
-        # For CI runs on master, automatically publish packages
-        - bash: |
-            echo //registry.npmjs.org/:_authToken=\${NPM_TOKEN} > .npmrc
-            npm publish || true # Ignore publish failures, usually will happen because package already exists
-          displayName: npm publish
-          workingDirectory: node/_build
-          condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master'))
-          env:
-            NPM_TOKEN: $(npm-automation.token)
+            os: Linux
 
       #################################################
       - job: macOS
       #################################################
-        displayName: macOS
         pool:
           name: Azure Pipelines
           image: macOS-latest
@@ -96,6 +75,4 @@ extends:
         steps:
         - template: /azure-pipelines-steps-node.yml@self
           parameters:
-            nodeVersion: $(nodeVersion)
-
-        - template: /azure-pipelines-steps-test-build.yml@self
+            os: Darwin
