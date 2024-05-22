@@ -4,7 +4,6 @@ var fs = require('fs');
 var path = require('path');
 var process = require('process');
 var shell = require('shelljs');
-var deasync = require("deasync")
 const Downloader = require("nodejs-file-downloader");
 
 // global paths
@@ -19,12 +18,6 @@ var shellAssert = function () {
         throw new Error(errMsg);
     }
 }
-
-var cd = function (dir) {
-    shell.cd(dir);
-    shellAssert();
-}
-exports.cd = cd;
 
 var cp = function (options, source, dest) {
     if (dest) {
@@ -120,8 +113,9 @@ const downloadFileAsync = async function (url, fileName) {
 
     // skip if already downloaded
     const scrubbedUrl = url.replace(/[/\:?]/g, '_');
-    if (fileName == undefined)
+    if (fileName === undefined) {
         fileName = scrubbedUrl;
+    }
     const targetPath = path.join(downloadPath, 'file', fileName);
     const marker = targetPath + '.completed';
     if (test('-f', marker)) {
@@ -153,18 +147,6 @@ const downloadFileAsync = async function (url, fileName) {
 
 exports.downloadFileAsync = downloadFileAsync;
 
-
-var downloadFile = function (url, fileName) {
-    var result;
-    downloadFileAsync(url, fileName).then(t => result = t);
-    deasync.loopWhile(function () { return result == undefined; });
-    return result;
-}
-
-/**
- * @deprecated This method uses library which is not prefered to use on production
- */
-exports.downloadFile = downloadFile
 var downloadArchiveAsync = async function (url, fileName) {
     if (!url) {
         throw new Error('Parameter "url" must be set.');
@@ -172,7 +154,7 @@ var downloadArchiveAsync = async function (url, fileName) {
 
     // skip if already downloaded and extracted
     var scrubbedUrl = url.replace(/[\/\\:?]/g, '_');
-    if (fileName != undefined) {
+    if (fileName !== undefined) {
         scrubbedUrl = fileName;
     }
     var targetPath = path.join(downloadPath, 'archive', scrubbedUrl);
@@ -204,14 +186,3 @@ var downloadArchiveAsync = async function (url, fileName) {
 
 exports.downloadArchiveAsync = downloadArchiveAsync;
 
-var downloadArchive = function (url, fileName) {
-    var result;
-    downloadArchiveAsync(url, fileName).then(t => result = t);
-    deasync.loopWhile(function () { return result == undefined; });
-    return result;
-}
-
-/**
- * @deprecated This method uses library which is not prefered to use on production
- */
-exports.downloadArchive = downloadArchive;
