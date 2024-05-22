@@ -1,6 +1,6 @@
 {
     "id": "id",
-    "name": "Node6Task",
+    "name": "Node20Task",
     "execution": {
         "Node": {
             "target": "usedotnet.js"
