@@ -8,8 +8,8 @@ steps:
   inputs:
     versionSpec: $(nodeVersion)
 
-- script: npm install
-  displayName: (task-lib) npm install
+- script: npm ci
+  displayName: (task-lib) npm ci
   workingDirectory: node
 
 - script: npm test
@@ -40,8 +40,8 @@ steps:
       projects: 'powershell/CompiledHelpers/VstsTaskSdk.csproj'
       arguments: '--configuration Release'
 
-  - script: npm install
-    displayName: (VstsTaskSdk) npm install
+  - script: npm ci
+    displayName: (VstsTaskSdk) npm ci
     workingDirectory: powershell
 
   - script: npm test
