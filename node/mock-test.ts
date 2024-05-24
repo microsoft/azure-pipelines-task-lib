@@ -1,11 +1,9 @@
 import cp = require('child_process');
 import fs = require('fs');
-import ncp = require('child_process');
 import os = require('os');
 import path = require('path');
 import cmdm = require('./taskcommand');
 import shelljs = require('shelljs');
-import deasync = require('deasync')
 const Downloader = require("nodejs-file-downloader");
 
 const COMMAND_TAG = '[command]';
@@ -20,7 +18,6 @@ export class MockTestRunner {
 
         this._taskJsonPath = taskJsonPath || '';
         this._testPath = testPath;
-        this.nodePath = this.getNodePathSync();
     }
 
     private _testPath = '';
@@ -34,14 +31,20 @@ export class MockTestRunner {
     public errorIssues: string[] = [];
     public warningIssues: string[] = [];
 
-    public async LoadAsync(testPath: string, taskJsonPath?: string): Promise<MockTestRunner> {
+    public async LoadAsync(testPath?: string, taskJsonPath?: string): Promise<MockTestRunner> {
         return new Promise(async (resolve, reject) => {
             if (this.nodePath != '') {
                 resolve(this);
                 return;
             }
-            this._taskJsonPath = taskJsonPath || '';
-            this._testPath = testPath;
+            if (testPath) {
+                this._testPath = testPath;
+            }
+
+            if (taskJsonPath) {
+                this._taskJsonPath = taskJsonPath;
+            }
+            
             this.nodePath = await this.getNodePath();
             resolve(this)
         })
@@ -82,7 +85,11 @@ export class MockTestRunner {
         let nodePath = this.nodePath;
         if (nodeVersion) {
             nodePath = await this.getNodePath(nodeVersion);
+        } else if (!nodePath) {
+            nodePath = await this.getNodePath();
+            this.nodePath = nodePath;
         }
+        
         let spawn = cp.spawnSync(nodePath, [this._testPath]);
 
         // Clean environment
@@ -155,15 +162,6 @@ export class MockTestRunner {
         }
     }
 
-    /**
-    * @deprecated This method uses library which is not prefered to use on production
-    */
-    public run(nodeVersion?: number): void {
-        let completeExecution = false;
-        this.runAsync(nodeVersion).then(t => completeExecution = true)
-        deasync.loopWhile(function () { return !completeExecution })
-    }
-
     // Returns a path to node.exe with the correct version for this task (based on if its node10 or node)
     private async getNodePath(nodeVersion?: number): Promise<string> {
         const version: number = nodeVersion || this.getNodeVersion();
@@ -189,13 +187,6 @@ export class MockTestRunner {
             const result = await this.downloadNode(downloadVersion, downloadDestination);
             return result;
         }
-    }
-
-    private getNodePathSync(nodeVersion?: number): string {
-        let nodePath = ''
-        this.getNodePath(nodeVersion).then(t => nodePath = t);
-        deasync.loopWhile(function () { return nodePath == ''; });
-        return nodePath
     }
 
     // Determines the correct version of node to use based on the contents of the task's task.json. Defaults to Node 16.
@@ -312,7 +303,7 @@ export class MockTestRunner {
         const originalCwd: string = process.cwd();
         process.chdir(downloadDestination);
         try {
-            ncp.execSync(`tar -xzf "${path.join(downloadDestination, tarGzName)}"`);
+            cp.execSync(`tar -xzf "${path.join(downloadDestination, tarGzName)}"`);
         }
         catch {
             throw new Error('Failed to unzip node tar.gz from ' + url);
