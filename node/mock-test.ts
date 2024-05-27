@@ -165,21 +165,17 @@ export class MockTestRunner {
     // Returns a path to node.exe with the correct version for this task (based on if its node10 or node)
     private async getNodePath(nodeVersion?: number): Promise<string> {
         const version: number = nodeVersion || this.getNodeVersion();
+        const versions = {
+            20: 'v20.13.1',
+            16: 'v16.20.2',
+            10: 'v10.24.1',
+            6: 'v6.17.1',
+        };
 
-        let downloadVersion: string;
-        switch (version) {
-            case 6:
-                downloadVersion = 'v6.17.1';
-                break;
-            case 10:
-                downloadVersion = 'v10.21.0';
-                break;
-            case 16:
-                downloadVersion = 'v16.13.0';
-                break;
-            default:
-                throw new Error('Invalid node version, must be 6, 10, or 16 (received ' + version + ')');
-        }
+        const downloadVersion: string = versions[version]; 
+        if (!downloadVersion) {
+            throw new Error('Invalid node version, must be 6, 10, 16 or 20 (received ' + version + ')');
+        }       
 
         // Install node in home directory if it isn't already there.
         const downloadDestination: string = path.join(downloadDirectory, 'node' + version);
@@ -203,31 +199,26 @@ export class MockTestRunner {
         const taskJsonContents = fs.readFileSync(taskJsonPath, { encoding: 'utf-8' });
         const taskJson: object = JSON.parse(taskJsonContents);
 
-        let nodeVersionFound = false;
-        const execution: object = (
-            taskJson['execution']
-            || taskJson['prejobexecution']
-            || taskJson['postjobexecution']
-        );
-        const keys = Object.keys(execution);
-        for (let i = 0; i < keys.length; i++) {
-            if (keys[i].toLowerCase() == 'node16') {
-                // Prefer node 16 and return immediately.
-                return 16;
-            } else if (keys[i].toLowerCase() == 'node10') {
-                // Prefer node 10 and return immediately.
-                return 10;
-            } else if (keys[i].toLowerCase() == 'node') {
-                nodeVersionFound = true;
+        let nodeVersion = 0;
+        const executors = ['execution', 'prejobexecution', 'postjobexecution'];
+        for (const executor of executors) {
+            if (!taskJson[executor]) continue;
+
+            for (const key of Object.keys(taskJson[executor])) {
+                const currExecutor = key.toLocaleLowerCase();
+                if (!currExecutor.startsWith('node')) continue;
+                const version = currExecutor.replace('node', '');
+                const intVersion = parseInt(version) || 6; // node handler is node v6 by default
+                nodeVersion = Math.max(intVersion, nodeVersion);
             }
         }
 
-        if (!nodeVersionFound) {
+        if (nodeVersion === 0) {
             console.warn('Unable to determine execution type from task.json, defaulting to use Node 16');
             return 16;
         }
 
-        return 6;
+        return nodeVersion;
     }
 
     // Returns the path to the task.json for the task being tested. Returns null if unable to find it.
