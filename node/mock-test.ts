@@ -213,7 +213,7 @@ export class MockTestRunner {
             }
         }
 
-        if (nodeVersion == 0) {
+        if (nodeVersion === 0) {
             console.warn('Unable to determine execution type from task.json, defaulting to use Node 16');
             return 16;
         }
