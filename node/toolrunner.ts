@@ -1326,8 +1326,7 @@ export class ToolRunner extends events.EventEmitter {
             state.processExitCode = code;
             state.processExited = true;
             state.processClosed = true;
-            this._debug(`STDIO streams have closed for tool '${this.toolPath}'`);
-            this._debug(`Signal ${signal} received from tool '${this.toolPath}'`);
+            this._debug(`STDIO streams have closed and received signal ${signal} for tool '${this.toolPath}'`);
             state.CheckComplete();
         });
 
