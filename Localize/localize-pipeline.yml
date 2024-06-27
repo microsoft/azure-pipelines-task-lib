@@ -45,11 +45,13 @@ stages:
       condition: and(succeeded(), in(variables['build.reason'], 'Schedule', 'Manual'))
 
     - task: OneLocBuild@2
+      condition: and(succeeded(), in(variables['build.reason'], 'Schedule', 'Manual'))
       inputs:
         locProj: 'Localize/LocProject.json'
         outDir: '$(Build.ArtifactStagingDirectory)'
+        dependencyPackageSource: 'https://mseng.pkgs.visualstudio.com/PipelinesLocalization/_packaging/LocTools/nuget/v3/index.json'
         packageSourceAuth: 'patAuth'
-        patVariable: '$(OneLocBuildPAT)'
+        patVariable: ''
         isCreatePrSelected: $(shouldCreatePR)
         repoType: 'gitHub'
         prSourceBranchPrefix: 'Localize'
@@ -58,7 +60,6 @@ stages:
         gitHubPrMergeMethod: 'squash'
       env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-      condition: and(succeeded(), in(variables['build.reason'], 'Schedule', 'Manual'))
 
     - task: PublishBuildArtifacts@1
       condition: and(succeeded(), in(variables['build.reason'], 'Schedule', 'Manual'))
