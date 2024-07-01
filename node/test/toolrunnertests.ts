@@ -539,11 +539,9 @@ describe('Toolrunner Tests', function () {
                 })
                 .catch(function (err) {
                     if (typeof signal === 'number') {
-                        const convertedSignal = Object.keys(os.constants.signals).find(x => os.constants.signals[x] == signal);
-                        assert(toolRunnerDebug.filter(x => x.indexOf(`Signal ${convertedSignal} received from tool`) >= 0).length > 0);
-                    } else {
-                        assert(toolRunnerDebug.filter(x => x.indexOf(`Signal ${signal} received from tool`) >= 0).length > 0);
+                        signal = Object.keys(os.constants.signals).find(x => os.constants.signals[x] == signal);
                     }
+                    assert(toolRunnerDebug.filter(x => x.indexOf(`STDIO streams have closed and received exit code ${err} and signal ${signal} for tool 'node'`) >= 0).length > 0);
                     done();
                 })
                 .catch(function (err) {
