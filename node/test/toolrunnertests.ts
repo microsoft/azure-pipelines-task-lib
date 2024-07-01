@@ -12,7 +12,7 @@ import * as trm from '../_build/toolrunner';
 
 import testutil = require('./testutil');
 
-const signals: (number | NodeJS.Signals)[] = ['SIGTERM', 'SIGINT', 15, 2];
+const signals: (number | NodeJS.Signals)[] = ['SIGTERM', 'SIGINT', 'SIGKILL', 15, 2, 9];
 
 describe('Toolrunner Tests', function () {
 
@@ -539,7 +539,7 @@ describe('Toolrunner Tests', function () {
                 })
                 .catch(function (err) {
                     if (typeof signal === 'number') {
-                        signal = Object.keys(os.constants.signals).find(x => os.constants.signals[x] == signal);
+                        signal = Object.keys(os.constants.signals).find(x => os.constants.signals[x] == signal) as NodeJS.Signals;
                     }
                     assert(toolRunnerDebug.filter(x => x.indexOf(`STDIO streams have closed and received exit code ${err} and signal ${signal} for tool 'node'`) >= 0).length > 0);
                     done();
