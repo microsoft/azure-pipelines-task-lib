@@ -499,8 +499,10 @@ describe('Toolrunner Tests', function () {
             let nodePath = tl.which('node', true);
             let scriptPath = path.join(__dirname, 'scripts', 'wait-for-file.js');
             let shell: trm.ToolRunner;
+            let tool;
             if (os.platform() == 'win32') {
-                shell = tl.tool(tl.which('cmd.exe', true))
+                tool = tl.which('cmd.exe', true);
+                shell = tl.tool(tool)
                     .arg('/D') // Disable execution of AutoRun commands from registry.
                     .arg('/E:ON') // Enable command extensions. Note, command extensions are enabled by default, unless disabled via registry.
                     .arg('/V:OFF') // Disable delayed environment expansion. Note, delayed environment expansion is disabled by default, unless enabled via registry.
@@ -509,7 +511,8 @@ describe('Toolrunner Tests', function () {
                     .arg(`"start "" /B "${nodePath}" "${scriptPath}" "file=${semaphorePath}""`);
             }
             else {
-                shell = tl.tool(tl.which('bash', true))
+                tool = tl.which('bash', true);
+                shell = tl.tool(tool)
                     .arg('-c')
                     .arg(`node '${scriptPath}' 'file=${semaphorePath}' &`);
             }
@@ -542,7 +545,7 @@ describe('Toolrunner Tests', function () {
                         signal = Object.keys(os.constants.signals).find(x => os.constants.signals[x] == signal) as NodeJS.Signals;
                     }
                     console.log("toolRunnerDebug", toolRunnerDebug);
-                    assert(toolRunnerDebug.filter(x => x.indexOf(`STDIO streams have closed and received exit code ${err} and signal ${signal} for tool 'node'`) >= 0).length > 0);
+                    assert(toolRunnerDebug.filter(x => x.indexOf(`STDIO streams have closed and received exit code ${err} and signal ${signal} for tool '${tool}'`) >= 0).length > 0);
                     done();
                 })
                 .catch(function (err) {
