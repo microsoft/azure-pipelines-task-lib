@@ -541,6 +541,7 @@ describe('Toolrunner Tests', function () {
                     if (typeof signal === 'number') {
                         signal = Object.keys(os.constants.signals).find(x => os.constants.signals[x] == signal) as NodeJS.Signals;
                     }
+                    console.log("toolRunnerDebug", toolRunnerDebug);
                     assert(toolRunnerDebug.filter(x => x.indexOf(`STDIO streams have closed and received exit code ${err} and signal ${signal} for tool 'node'`) >= 0).length > 0);
                     done();
                 })
