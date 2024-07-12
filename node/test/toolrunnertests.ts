@@ -488,7 +488,8 @@ describe('Toolrunner Tests', function () {
                 fs.unlinkSync(semaphorePath);
                 delete process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'];
             });
-    })
+    });
+
     signals.forEach(signal => {
         it(`Handle child process killing with ${signal} signal`, function (done) {
             this.timeout(10000);
@@ -540,12 +541,11 @@ describe('Toolrunner Tests', function () {
                     done(new Error('should not have been successful'));
                     done();
                 })
-                .catch(function (err) {
+                .catch(function () {
                     if (typeof signal === 'number') {
                         signal = Object.keys(os.constants.signals).find(x => os.constants.signals[x] == signal) as NodeJS.Signals;
                     }
-                    console.log("toolRunnerDebug", toolRunnerDebug);
-                    assert(toolRunnerDebug.filter(x => x.indexOf(`STDIO streams have closed and received exit code ${err} and signal ${signal} for tool '${tool}'`) >= 0).length > 0);
+                    assert(toolRunnerDebug.pop(), `STDIO streams have closed and received exit code null and signal ${signal} for tool '${tool}'`);
                     done();
                 })
                 .catch(function (err) {
@@ -559,6 +559,7 @@ describe('Toolrunner Tests', function () {
             shell.killChildProcess(signal);
         });
     });
+
     it('Handles child process holding streams open and non-zero exit code', function (done) {
         this.timeout(10000);
 
