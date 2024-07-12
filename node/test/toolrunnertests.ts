@@ -494,11 +494,6 @@ describe('Toolrunner Tests', function () {
         it(`Handle child process killing with ${signal} signal`, function (done) {
             this.timeout(10000);
 
-            let semaphorePath = path.join(testutil.getTestTemp(), 'child-process-semaphore.txt');
-            fs.writeFileSync(semaphorePath, '');
-
-            let nodePath = tl.which('node', true);
-            let scriptPath = path.join(__dirname, 'scripts', 'wait-for-file.js');
             let shell: trm.ToolRunner;
             let tool;
             if (os.platform() == 'win32') {
@@ -509,21 +504,19 @@ describe('Toolrunner Tests', function () {
                     .arg('/V:OFF') // Disable delayed environment expansion. Note, delayed environment expansion is disabled by default, unless enabled via registry.
                     .arg('/S') // Will cause first and last quote after /C to be stripped.
                     .arg('/C')
-                    .arg(`"start "" /B "${nodePath}" "${scriptPath}" "file=${semaphorePath}""`);
+                    .arg("waitfor 3");
             }
             else {
                 tool = tl.which('bash', true);
                 shell = tl.tool(tool)
                     .arg('-c')
-                    .arg(`node '${scriptPath}' 'file=${semaphorePath}' &`);
+                    .arg("sleep 3");
             }
 
             let toolRunnerDebug = [];
             shell.on('debug', function (data) {
                 toolRunnerDebug.push(data);
             });
-
-            process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'] = "500"; // 0.5 seconds
 
             let options = <trm.IExecOptions>{
                 cwd: __dirname,
@@ -551,10 +544,6 @@ describe('Toolrunner Tests', function () {
                 .catch(function (err) {
                     done(err);
                 })
-                .finally(function () {
-                    fs.unlinkSync(semaphorePath);
-                    delete process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'];
-                });
 
             shell.killChildProcess(signal);
         });
