@@ -9,7 +9,9 @@ trigger:
 variables:
 - group: npm-tokens
 - name: nodeVersion
-  value: '16.20.2'
+  value: '16.13.0'
+- name: ONEES_ENFORCED_CODEQL_ENABLED # Disable CodeQL
+  value: false
 
 resources:
   repositories:
