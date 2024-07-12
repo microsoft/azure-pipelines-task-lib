@@ -9,7 +9,7 @@ trigger:
 variables:
 - group: npm-tokens
 - name: nodeVersion
-  value: '16.13.0'
+  value: '16.20.2'
 
 resources:
   repositories:
