@@ -678,7 +678,9 @@ export class ToolRunner extends events.EventEmitter {
                     if (fileStream) {
                         fileStream.write(data);
                     }
-                    (cp.stdin?.write(data));
+                    if (!cp.stdin?.destroyed) {
+                        cp.stdin?.write(data);
+                    }
                 } catch (err) {
                     this._debug('Failed to pipe output of ' + toolPathFirst + ' to ' + toolPath);
                     this._debug(toolPath + ' might have exited due to errors prematurely. Verify the arguments passed are valid.');
