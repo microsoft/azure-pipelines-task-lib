@@ -673,8 +673,8 @@ export class ToolRunner extends events.EventEmitter {
             }
 
             cp.stdin?.on("error", (err: Error) => {
-                if (!im.isSigPipeError(error)) {
-                    throw error;
+                if (!im.isSigPipeError(err)) {
+                    throw err;
                 }
             });
 
@@ -877,8 +877,8 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         cp.stdin?.on("error", (err: Error) => {
-            if (!im.isSigPipeError(error)) {
-                throw error;
+            if (!im.isSigPipeError(err)) {
+                throw err;
             }
         });
 
