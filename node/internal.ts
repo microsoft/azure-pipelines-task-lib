@@ -1061,11 +1061,10 @@ function _exposeTaskLibSecret(keyFile: string, secret: string): string | undefin
     }
 }
 
-export function isSigPipeError(e: unknown): e is Error {
+export function isSigPipeError(e: NodeJS.ErrnoException): e is NodeJS.ErrnoException {
     if (!e || typeof e !== 'object') {
         return false;
     }
 
-    const cast = e as Record<string, string | undefined>;
-    return cast.code === 'EPIPE' && cast.syscall?.toUpperCase() === 'WRITE';
+    return e.code === 'EPIPE' && e.syscall?.toUpperCase() === 'WRITE';
 }
