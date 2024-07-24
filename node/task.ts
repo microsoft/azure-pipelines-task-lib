@@ -126,8 +126,10 @@ export function setSanitizedResult(result: TaskResult, message: string, done?: b
 // Catching all exceptions
 //
 process.on('uncaughtException', (err: Error) => {
-    setResult(TaskResult.Failed, loc('LIB_UnhandledEx', err.message));
-    error(String(err.stack), im.IssueSource.TaskInternal);
+    if (!im.isSigPipeError(error)) {
+        setResult(TaskResult.Failed, loc('LIB_UnhandledEx', err.message));
+        error(String(err.stack), im.IssueSource.TaskInternal);
+    }
 });
 
 //

@@ -1060,3 +1060,12 @@ function _exposeTaskLibSecret(keyFile: string, secret: string): string | undefin
         return new Buffer(storageFile).toString('base64') + ':' + new Buffer(encryptedContent).toString('base64');
     }
 }
+
+export function isSigPipeError(e: unknown): e is Error {
+    if (!e || typeof e !== 'object') {
+        return false;
+    }
+
+    const cast = e as Record<string, string | undefined>;
+    return cast.code === 'EPIPE' && cast.syscall?.toUpperCase() === 'WRITE';
+}
