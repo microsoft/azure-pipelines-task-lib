@@ -671,13 +671,7 @@ export class ToolRunner extends events.EventEmitter {
                     }
                 });
             }
-
-            cp.stdin?.on("error", (err: Error) => {
-                if (!im.isSigPipeError(err)) {
-                    throw err;
-                }
-            });
-
+    
             //pipe stdout of first tool to stdin of second tool
             cpFirst.stdout?.on('data', (data: Buffer) => {
                 try {
@@ -875,12 +869,6 @@ export class ToolRunner extends events.EventEmitter {
                 }
             });
         }
-
-        cp.stdin?.on("error", (err: Error) => {
-            if (!im.isSigPipeError(err)) {
-                throw err;
-            }
-        });
 
         //pipe stdout of first tool to stdin of second tool
         cpFirst.stdout?.on('data', (data: Buffer) => {
