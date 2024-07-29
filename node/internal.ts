@@ -348,7 +348,10 @@ const debugMode = _getVariable('system.debug')?.toLowerCase() === 'true';
 const shouldCheckDebugMode = _getVariable('DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff')?.toLowerCase() === 'true';
 
 export function _debug(message: string): void {
-    if (!shouldCheckDebugMode || debugMode) {
+    if (
+        !shouldCheckDebugMode
+        || (shouldCheckDebugMode && debugMode)
+    ) {
         _command('task.debug', null, message);
     }
 }
