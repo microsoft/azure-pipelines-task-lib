@@ -345,7 +345,7 @@ export function _error(
 }
 
 const debugMode = _getVariable('system.debug')?.toLowerCase() === 'true';
-const shouldCheckDebugMode = _getVariable('AZP_TASKS_LOGS_CHECK_DEBUG_MODE')?.toLowerCase() === 'true';
+const shouldCheckDebugMode = _getVariable('DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff')?.toLowerCase() === 'true';
 
 export function _debug(message: string): void {
     if (!shouldCheckDebugMode || debugMode) {
