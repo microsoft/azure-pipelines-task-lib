@@ -344,8 +344,16 @@ export function _error(
     );
 }
 
+const debugMode = _getVariable('system.debug')?.toLowerCase() === 'true';
+const shouldCheckDebugMode = _getVariable('DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff')?.toLowerCase() === 'true';
+
 export function _debug(message: string): void {
-    _command('task.debug', null, message);
+    if (
+        !shouldCheckDebugMode
+        || (shouldCheckDebugMode && debugMode)
+    ) {
+        _command('task.debug', null, message);
+    }
 }
 
 // //-----------------------------------------------------
