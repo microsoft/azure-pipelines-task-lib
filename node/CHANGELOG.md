@@ -2,7 +2,7 @@
 
 ## 4.x
 
-## 4.14.0
+## 4.15.0
 
 - Disabled debug logs when debug mode is not enabled - [#1046](https://github.com/microsoft/azure-pipelines-task-lib/pull/1046)
 
