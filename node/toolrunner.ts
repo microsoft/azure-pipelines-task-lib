@@ -1100,7 +1100,7 @@ export class ToolRunner extends events.EventEmitter {
 
         var stdbuffer = { str: '' };
         var errbuffer = { str: '' };
-        const emitDoneEvent = function (resolve, reject) {
+        const emitDoneEvent = (resolve, reject) => {
             state.on('done', (error: Error, exitCode: number) => {
                 if (stdbuffer.str.length > 0) {
                     this.emit('stdline', stdbuffer.str);
