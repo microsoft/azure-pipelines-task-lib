@@ -2,7 +2,6 @@ import Q = require('q');
 import os = require('os');
 import events = require('events');
 import child = require('child_process');
-import stream = require('stream');
 import im = require('./internal');
 import fs = require('fs');
 
