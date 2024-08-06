@@ -1097,9 +1097,12 @@ export class ToolRunner extends events.EventEmitter {
             this._debug(message);
         });
 
-        var stdbuffer = '';
-        var errbuffer = '';
-        const emitDoneEvent = (resolve, reject) => {
+        let stdbuffer = '';
+        let errbuffer = '';
+        const emitDoneEvent = (
+            resolve: (code: number) => void,
+            reject: (error: Error) => void
+        ) => {
             state.on('done', (error: Error, exitCode: number) => {
                 if (stdbuffer.length > 0) {
                     this.emit('stdline', stdbuffer);
@@ -1123,7 +1126,7 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         // Edge case when the node itself cant's spawn and emit event
-        let cp;
+        let cp: child.ChildProcess;
         try {
             cp = child.spawn(this._getSpawnFileName(options), this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(options));
         } catch (error) {
@@ -1255,7 +1258,7 @@ export class ToolRunner extends events.EventEmitter {
 
 
         // Edge case when the node itself cant's spawn and emit event
-        let cp;
+        let cp: child.ChildProcess;
         try {
             cp = child.spawn(this._getSpawnFileName(options), this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(options));
         } catch (error) {
