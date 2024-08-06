@@ -2,6 +2,10 @@
 
 ## 4.x
 
+## 4.15.1
+
+- Fix ToolRunner stdline/errline events buffering - [#1055](https://github.com/microsoft/azure-pipelines-task-lib/pull/1055)
+
 ## 4.15.0
 
 - Disabled debug logs when debug mode is not enabled - [#1046](https://github.com/microsoft/azure-pipelines-task-lib/pull/1046)

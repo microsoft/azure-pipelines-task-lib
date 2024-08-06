@@ -2,7 +2,6 @@ import Q = require('q');
 import os = require('os');
 import events = require('events');
 import child = require('child_process');
-import stream = require('stream');
 import im = require('./internal');
 import fs = require('fs');
 
@@ -98,7 +97,7 @@ export class ToolRunner extends events.EventEmitter {
                 if (c !== '"') {
                     arg += '\\';
                 } else {
-                    arg.slice(0, -1);         
+                    arg.slice(0, -1);
                 }
             }
             arg += c;
@@ -174,7 +173,7 @@ export class ToolRunner extends events.EventEmitter {
             // Windows (regular)
             else {
                 commandParts.push(this._windowsQuoteCmdArg(toolPath));
-                commandParts = commandParts.concat(args.map(arg =>this._windowsQuoteCmdArg(arg)));
+                commandParts = commandParts.concat(args.map(arg => this._windowsQuoteCmdArg(arg)));
             }
         }
         else {
@@ -194,27 +193,27 @@ export class ToolRunner extends events.EventEmitter {
         return cmd;
     }
 
-    private _processLineBuffer(data: Buffer, strBuffer: string, onLine: (line: string) => void): void {
-        try {
-            var s = strBuffer + data.toString();
-            var n = s.indexOf(os.EOL);
+    private _processLineBuffer(data: Buffer, buffer: string, onLine: (line: string) => void): string {
+        let newBuffer = buffer + data.toString();
 
-            while (n > -1) {
-                var line = s.substring(0, n);
+        try {
+            let eolIndex = newBuffer.indexOf(os.EOL);
+
+            while (eolIndex > -1) {
+                const line = newBuffer.substring(0, eolIndex);
                 onLine(line);
 
                 // the rest of the string ...
-                s = s.substring(n + os.EOL.length);
-                n = s.indexOf(os.EOL);
+                newBuffer = newBuffer.substring(eolIndex + os.EOL.length);
+                eolIndex = newBuffer.indexOf(os.EOL);
             }
-
-            strBuffer = s;
         }
         catch (err) {
             // streaming lines to console is best effort.  Don't fail a build.
             this._debug('error processing line');
         }
 
+        return newBuffer;
     }
 
     /**
@@ -333,7 +332,7 @@ export class ToolRunner extends events.EventEmitter {
                 return args;
             }
         } else if (options.shell) {
-            return this.args.map(arg =>  {
+            return this.args.map(arg => {
                 if (this._isWrapped(arg, "'")) {
                     return arg;
                 }
@@ -636,7 +635,7 @@ export class ToolRunner extends events.EventEmitter {
             this._getSpawnArgs(optionsNonNull),
             this._getSpawnOptions(optionsNonNull));
 
-        waitingEvents ++;
+        waitingEvents++;
         cp = child.spawn(
             pipeOutputToTool._getSpawnFileName(optionsNonNull),
             pipeOutputToTool._getSpawnArgs(optionsNonNull),
@@ -650,7 +649,7 @@ export class ToolRunner extends events.EventEmitter {
                 fileStream.on('finish', () => {
                     waitingEvents--; //file write is complete
                     fileStream = null;
-                    if(waitingEvents == 0) {
+                    if (waitingEvents == 0) {
                         if (error) {
                             reject(error);
                         } else {
@@ -662,7 +661,7 @@ export class ToolRunner extends events.EventEmitter {
                     waitingEvents--; //there were errors writing to the file, write is done
                     this._debug(`Failed to pipe output of ${toolPathFirst} to file ${this.pipeOutputToFile}. Error = ${err}`);
                     fileStream = null;
-                    if(waitingEvents == 0) {
+                    if (waitingEvents == 0) {
                         if (error) {
                             reject(error);
                         } else {
@@ -671,7 +670,7 @@ export class ToolRunner extends events.EventEmitter {
                     }
                 });
             }
-    
+
             //pipe stdout of first tool to stdin of second tool
             cpFirst.stdout?.on('data', (data: Buffer) => {
                 try {
@@ -701,7 +700,7 @@ export class ToolRunner extends events.EventEmitter {
                 }
                 cp.stdin?.end();
                 error = new Error(toolPathFirst + ' failed. ' + err.message);
-                if(waitingEvents == 0) {
+                if (waitingEvents == 0) {
                     reject(error);
                 }
             });
@@ -717,7 +716,7 @@ export class ToolRunner extends events.EventEmitter {
                     fileStream.end();
                 }
                 cp.stdin?.end();
-                if(waitingEvents == 0) {
+                if (waitingEvents == 0) {
                     if (error) {
                         reject(error);
                     } else {
@@ -725,69 +724,69 @@ export class ToolRunner extends events.EventEmitter {
                     }
                 }
             });
-    
-            var stdbuffer: string = '';
+
+            let stdbuffer = '';
             cp.stdout?.on('data', (data: Buffer) => {
                 this.emit('stdout', data);
-    
+
                 if (!optionsNonNull.silent) {
                     optionsNonNull.outStream!.write(data);
                 }
-    
-                this._processLineBuffer(data, stdbuffer, (line: string) => {
+
+                stdbuffer = this._processLineBuffer(data, stdbuffer, (line: string) => {
                     this.emit('stdline', line);
                 });
             });
-    
-            var errbuffer: string = '';
+
+            let errbuffer = '';
             cp.stderr?.on('data', (data: Buffer) => {
                 this.emit('stderr', data);
-    
+
                 success = !optionsNonNull.failOnStdErr;
                 if (!optionsNonNull.silent) {
                     var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream! : optionsNonNull.outStream!;
                     s.write(data);
                 }
-    
-                this._processLineBuffer(data, errbuffer, (line: string) => {
+
+                errbuffer = this._processLineBuffer(data, errbuffer, (line: string) => {
                     this.emit('errline', line);
                 });
             });
-    
+
             cp.on('error', (err: Error) => {
                 waitingEvents--; //process is done with errors
                 error = new Error(toolPath + ' failed. ' + err.message);
-                if(waitingEvents == 0) {
+                if (waitingEvents == 0) {
                     reject(error);
                 }
             });
-    
+
             cp.on('close', (code: number, signal: any) => {
                 waitingEvents--; //process is complete
                 this._debug('rc:' + code);
                 returnCode = code;
-    
+
                 if (stdbuffer.length > 0) {
                     this.emit('stdline', stdbuffer);
                 }
-    
+
                 if (errbuffer.length > 0) {
                     this.emit('errline', errbuffer);
                 }
-    
+
                 if (code != 0 && !optionsNonNull.ignoreReturnCode) {
                     success = false;
                 }
-    
+
                 this._debug('success:' + success);
-    
+
                 if (!successFirst) { //in the case output is piped to another tool, check exit code of both tools
                     error = new Error(toolPathFirst + ' failed with return code: ' + returnCodeFirst);
                 } else if (!success) {
                     error = new Error(toolPath + ' failed with return code: ' + code);
                 }
-    
-                if(waitingEvents == 0) {
+
+                if (waitingEvents == 0) {
                     if (error) {
                         reject(error);
                     } else {
@@ -836,7 +835,7 @@ export class ToolRunner extends events.EventEmitter {
             this._getSpawnArgs(optionsNonNull),
             this._getSpawnOptions(optionsNonNull));
 
-        waitingEvents ++;
+        waitingEvents++;
         cp = child.spawn(
             pipeOutputToTool._getSpawnFileName(optionsNonNull),
             pipeOutputToTool._getSpawnArgs(optionsNonNull),
@@ -848,7 +847,7 @@ export class ToolRunner extends events.EventEmitter {
             fileStream.on('finish', () => {
                 waitingEvents--; //file write is complete
                 fileStream = null;
-                if(waitingEvents == 0) {
+                if (waitingEvents == 0) {
                     if (error) {
                         defer.reject(error);
                     } else {
@@ -860,7 +859,7 @@ export class ToolRunner extends events.EventEmitter {
                 waitingEvents--; //there were errors writing to the file, write is done
                 this._debug(`Failed to pipe output of ${toolPathFirst} to file ${this.pipeOutputToFile}. Error = ${err}`);
                 fileStream = null;
-                if(waitingEvents == 0) {
+                if (waitingEvents == 0) {
                     if (error) {
                         defer.reject(error);
                     } else {
@@ -899,7 +898,7 @@ export class ToolRunner extends events.EventEmitter {
             }
             cp.stdin?.end();
             error = new Error(toolPathFirst + ' failed. ' + err.message);
-            if(waitingEvents == 0) {
+            if (waitingEvents == 0) {
                 defer.reject(error);
             }
         });
@@ -915,7 +914,7 @@ export class ToolRunner extends events.EventEmitter {
                 fileStream.end();
             }
             cp.stdin?.end();
-            if(waitingEvents == 0) {
+            if (waitingEvents == 0) {
                 if (error) {
                     defer.reject(error);
                 } else {
@@ -924,7 +923,7 @@ export class ToolRunner extends events.EventEmitter {
             }
         });
 
-        var stdbuffer: string = '';
+        let stdbuffer = '';
         cp.stdout?.on('data', (data: Buffer) => {
             this.emit('stdout', data);
 
@@ -932,12 +931,12 @@ export class ToolRunner extends events.EventEmitter {
                 optionsNonNull.outStream!.write(data);
             }
 
-            this._processLineBuffer(data, stdbuffer, (line: string) => {
+            stdbuffer = this._processLineBuffer(data, stdbuffer, (line: string) => {
                 this.emit('stdline', line);
             });
         });
 
-        var errbuffer: string = '';
+        let errbuffer = '';
         cp.stderr?.on('data', (data: Buffer) => {
             this.emit('stderr', data);
 
@@ -947,7 +946,7 @@ export class ToolRunner extends events.EventEmitter {
                 s.write(data);
             }
 
-            this._processLineBuffer(data, errbuffer, (line: string) => {
+            errbuffer = this._processLineBuffer(data, errbuffer, (line: string) => {
                 this.emit('errline', line);
             });
         });
@@ -955,7 +954,7 @@ export class ToolRunner extends events.EventEmitter {
         cp.on('error', (err: Error) => {
             waitingEvents--; //process is done with errors
             error = new Error(toolPath + ' failed. ' + err.message);
-            if(waitingEvents == 0) {
+            if (waitingEvents == 0) {
                 defer.reject(error);
             }
         });
@@ -985,7 +984,7 @@ export class ToolRunner extends events.EventEmitter {
                 error = new Error(toolPath + ' failed with return code: ' + code);
             }
 
-            if(waitingEvents == 0) {
+            if (waitingEvents == 0) {
                 if (error) {
                     defer.reject(error);
                 } else {
@@ -1098,22 +1097,25 @@ export class ToolRunner extends events.EventEmitter {
             this._debug(message);
         });
 
-        var stdbuffer: string = '';
-        var errbuffer: string = '';
-        const emitDoneEvent = function (resolve, reject) {
+        let stdbuffer = '';
+        let errbuffer = '';
+        const emitDoneEvent = (
+            resolve: (code: number) => void,
+            reject: (error: Error) => void
+        ) => {
             state.on('done', (error: Error, exitCode: number) => {
                 if (stdbuffer.length > 0) {
                     this.emit('stdline', stdbuffer);
                 }
-    
+
                 if (errbuffer.length > 0) {
                     this.emit('errline', errbuffer);
                 }
-    
+
                 if (cp) {
                     cp.removeAllListeners();
                 }
-                
+
                 if (error) {
                     reject(error);
                 }
@@ -1124,7 +1126,7 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         // Edge case when the node itself cant's spawn and emit event
-        let cp;
+        let cp: child.ChildProcess;
         try {
             cp = child.spawn(this._getSpawnFileName(options), this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(options));
         } catch (error) {
@@ -1154,7 +1156,7 @@ export class ToolRunner extends events.EventEmitter {
                 optionsNonNull.outStream!.write(data);
             }
 
-            this._processLineBuffer(data, stdbuffer, (line: string) => {
+            stdbuffer = this._processLineBuffer(data, stdbuffer, (line: string) => {
                 this.emit('stdline', line);
             });
         });
@@ -1168,7 +1170,7 @@ export class ToolRunner extends events.EventEmitter {
                 s.write(data);
             }
 
-            this._processLineBuffer(data, errbuffer, (line: string) => {
+            errbuffer = this._processLineBuffer(data, errbuffer, (line: string) => {
                 this.emit('errline', line);
             });
         });
@@ -1231,8 +1233,8 @@ export class ToolRunner extends events.EventEmitter {
             this._debug(message);
         });
 
-        var stdbuffer: string = '';
-        var errbuffer: string = '';
+        let stdbuffer = '';
+        let errbuffer = '';
         state.on('done', (error: Error, exitCode: number) => {
             if (stdbuffer.length > 0) {
                 this.emit('stdline', stdbuffer);
@@ -1256,7 +1258,7 @@ export class ToolRunner extends events.EventEmitter {
 
 
         // Edge case when the node itself cant's spawn and emit event
-        let cp;
+        let cp: child.ChildProcess;
         try {
             cp = child.spawn(this._getSpawnFileName(options), this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(options));
         } catch (error) {
@@ -1285,7 +1287,7 @@ export class ToolRunner extends events.EventEmitter {
                 optionsNonNull.outStream!.write(data);
             }
 
-            this._processLineBuffer(data, stdbuffer, (line: string) => {
+            stdbuffer = this._processLineBuffer(data, stdbuffer, (line: string) => {
                 this.emit('stdline', line);
             });
         });
@@ -1300,7 +1302,7 @@ export class ToolRunner extends events.EventEmitter {
                 s.write(data);
             }
 
-            this._processLineBuffer(data, errbuffer, (line: string) => {
+            errbuffer = this._processLineBuffer(data, errbuffer, (line: string) => {
                 this.emit('errline', line);
             });
         });
