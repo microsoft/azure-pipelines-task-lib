@@ -1,15 +1,12 @@
-var os = require('os');
-var stdout = process.stdout;
-var stderr = process.stderr;
+const os = require('os');
 
-stdout.write('stdline 1' + os.EOL, function () {
-    stdout.write('stdline 2', function () {
-        stdout.write(os.EOL + 'stdline 3');
-    });
-});
+const stdout = process.stdout;
+const stderr = process.stderr;
 
-stderr.write('errline 1' + os.EOL, function () {
-    stderr.write('errline 2', function () {
-        stderr.write(os.EOL + 'errline 3');
-    });
-});
+stdout.write('stdline 1' + os.EOL,
+    () => stdout.write('stdline 2',
+        () => stdout.write(os.EOL + 'stdline 3')));
+
+stderr.write('errline 1' + os.EOL,
+    () => stderr.write('errline 2',
+        () => stderr.write(os.EOL + 'errline 3')));
