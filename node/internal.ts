@@ -195,7 +195,7 @@ export function _setResourcePath(path: string, ignoreWarnings: boolean = false):
     }
     else {
         if (ignoreWarnings) {
-            _debug(_loc('LIB_ResourceFileAlreadySet', path));
+           // _debug(_loc('LIB_ResourceFileAlreadySet', path));
         } else {
             _warning(_loc('LIB_ResourceFileAlreadySet', path), IssueSource.TaskInternal);
         }
