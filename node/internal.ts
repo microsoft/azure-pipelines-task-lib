@@ -195,7 +195,7 @@ export function _setResourcePath(path: string, ignoreWarnings: boolean = false):
     }
     else {
         if (ignoreWarnings) {
-            _debug(_loc('LIB_ResourceFileAlreadySet', path));
+           
         } else {
             _warning(_loc('LIB_ResourceFileAlreadySet', path), IssueSource.TaskInternal);
         }
@@ -344,8 +344,16 @@ export function _error(
     );
 }
 
+const debugMode = _getVariable('system.debug')?.toLowerCase() === 'true';
+const shouldCheckDebugMode = _getVariable('DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff')?.toLowerCase() === 'true';
+
 export function _debug(message: string): void {
-    _command('task.debug', null, message);
+    if (
+        !shouldCheckDebugMode
+        || (shouldCheckDebugMode && debugMode)
+    ) {
+        _command('task.debug', null, message);
+    }
 }
 
 // //-----------------------------------------------------
@@ -1059,4 +1067,12 @@ function _exposeTaskLibSecret(keyFile: string, secret: string): string | undefin
 
         return new Buffer(storageFile).toString('base64') + ':' + new Buffer(encryptedContent).toString('base64');
     }
+}
+
+export function isSigPipeError(e: NodeJS.ErrnoException): e is NodeJS.ErrnoException {
+    if (!e || typeof e !== 'object') {
+        return false;
+    }
+
+    return e.code === 'EPIPE' && e.syscall?.toUpperCase() === 'WRITE';
 }

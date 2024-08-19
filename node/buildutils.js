@@ -51,7 +51,7 @@ const getExternalsAsync = async () => {
                 downloadFileAsync(nodeUrl + '/' + nodeVersion + '/win-x64/node.exe'),
                 downloadFileAsync(nodeUrl + '/' + nodeVersion + '/win-x64/node.lib')
             ]);
-            
+
             var nodeDirectory = path.join(testPath, 'node');
             mkdir('-p', nodeDirectory);
             cp(nodeExePath, path.join(nodeDirectory, 'node.exe'));
@@ -118,7 +118,7 @@ var downloadArchiveAsync = async function (url, fileName) {
     if (test('-f', marker)) {
         return targetPath;
     }
-    
+
     // download the archive
     var archivePath = await downloadFileAsync(url, scrubbedUrl);
     console.log('Extracting archive: ' + url);
@@ -130,8 +130,16 @@ var downloadArchiveAsync = async function (url, fileName) {
 
     // extract
     mkdir('-p', targetPath);
-    var zip = new admZip(archivePath);
-    zip.extractAllTo(targetPath);
+
+    if (targetPath.endsWith('.zip')) {
+        var zip = new admZip(archivePath);
+        zip.extractAllTo(targetPath);
+    }
+    else if (targetPath.endsWith('.tar.gz')) {
+        run(`tar --extract --gzip --file="${archivePath}" --directory="${targetPath}"`);
+    } else {
+        throw new Error('Unsupported archive type: ' + targetPath);
+    }
 
     // write the completed marker
     fs.writeFileSync(marker, '');

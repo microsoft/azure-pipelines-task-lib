@@ -2,6 +2,10 @@
 
 ## 4.x
 
+## 4.15.0
+
+- Disabled debug logs when debug mode is not enabled - [#1046](https://github.com/microsoft/azure-pipelines-task-lib/pull/1046)
+
 ## 4.12.1
 
 - Remove deasync from task-lib - [#1038](https://github.com/microsoft/azure-pipelines-task-lib/pull/1038)
