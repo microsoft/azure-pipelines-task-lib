@@ -17,7 +17,6 @@ const signals: (number | NodeJS.Signals)[] = ['SIGTERM', 'SIGINT', 'SIGKILL', 15
 describe('Toolrunner Tests', function () {
 
     before(function (done) {
-        process.env['SYSTEM_DEBUG'] = 'true';
         try {
             testutil.initialize();
         }
