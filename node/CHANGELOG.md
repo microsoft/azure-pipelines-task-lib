@@ -2,9 +2,17 @@
 
 ## 4.x
 
+## 4.17.0
+
+- Added signal handler for process execution to kill process with proper signa - [#1008](https://github.com/microsoft/azure-pipelines-task-lib/pull/1008)
+
 ## 4.15.0
 
 - Disabled debug logs when debug mode is not enabled - [#1046](https://github.com/microsoft/azure-pipelines-task-lib/pull/1046)
+
+## 4.14.0
+
+- Added `isSigPipeError` function to handle Error: write EPIPE errors without causing an infinite loop on Node16+ - [#1051](https://github.com/microsoft/azure-pipelines-task-lib/pull/1051)
 
 ## 4.12.1
 
