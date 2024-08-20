@@ -10,6 +10,7 @@ import { IssueAuditAction, IssueSource, _loadData } from '../_build/internal';
 describe('Task Issue command test without correlation ID', function () {
 
     before(function (done) {
+        process.env['SYSTEM_DEBUG'] = 'true';
         try {
             testutil.initialize();
         } catch (err) {

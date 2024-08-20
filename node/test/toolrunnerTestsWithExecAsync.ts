@@ -15,6 +15,7 @@ import testutil = require('./testutil');
 describe('Toolrunner Tests With ExecAsync', function () {
 
     before(function (done) {
+        process.env['SYSTEM_DEBUG'] = 'true';
         try {
             testutil.initialize();
         }

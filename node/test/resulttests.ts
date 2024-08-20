@@ -8,6 +8,7 @@ import testutil = require('./testutil');
 describe('Result Tests', function () {
 
     before(function (done) {
+        process.env['SYSTEM_DEBUG'] = 'true';
         try {
             testutil.initialize();
         }
