@@ -4,7 +4,7 @@
 
 ## 4.17.0
 
-- Added signal handler for process execution to kill process with proper signa - [#1008](https://github.com/microsoft/azure-pipelines-task-lib/pull/1008)
+- Added signal handler for process execution to kill process with proper signal - [#1008](https://github.com/microsoft/azure-pipelines-task-lib/pull/1008)
 
 ## 4.15.0
 
