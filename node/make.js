@@ -41,6 +41,8 @@ target.build = function() {
 target.test = async function() {
     target.build();
 
+    process.env['SYSTEM_DEBUG'] = 'true';
+
     await buildutils.getExternalsAsync();
     run('tsc -p ./test');
     cp('-Rf', rp('test/scripts'), testPath);
