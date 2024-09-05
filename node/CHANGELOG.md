@@ -2,6 +2,10 @@
 
 ## 4.x
 
+## 4.17.1
+
+- Corrected node tool exit event debug log - [#1063](https://github.com/microsoft/azure-pipelines-task-lib/pull/1063)
+
 ## 4.17.0
 
 - Added signal handler for process execution to kill process with proper signal - [#1008](https://github.com/microsoft/azure-pipelines-task-lib/pull/1008)
