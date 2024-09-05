@@ -1185,7 +1185,7 @@ export class ToolRunner extends events.EventEmitter {
         cp.on('exit', (code: number, signal: number | NodeJS.Signals) => {
             state.processExitCode = code;
             state.processExited = true;
-            this._debug(`STDIO streams have closed and received exit code ${code} and signal ${signal} for tool '${this.toolPath}'`);
+            this._debug(`STDIO streams have exited and received exit code ${code} and signal ${signal} for tool '${this.toolPath}'`);
             state.CheckComplete()
         });
 
@@ -1317,7 +1317,7 @@ export class ToolRunner extends events.EventEmitter {
         cp.on('exit', (code: number, signal: number | NodeJS.Signals) => {
             state.processExitCode = code;
             state.processExited = true;
-            this._debug(`STDIO streams have closed and received exit code ${code} and signal ${signal} for tool '${this.toolPath}'`);
+            this._debug(`STDIO streams have exited and received exit code ${code} and signal ${signal} for tool '${this.toolPath}'`);
             state.CheckComplete()
         });
 
