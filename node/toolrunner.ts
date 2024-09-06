@@ -1182,6 +1182,7 @@ export class ToolRunner extends events.EventEmitter {
             state.CheckComplete();
         });
 
+        // Do not write debug logs here. Sometimes stdio not closed yet and you can damage user output commands.
         cp.on('exit', (code: number | null, signal: NodeJS.Signals | null) => {
             state.processExitCode = code;
             state.processExitSignal = signal;
@@ -1314,6 +1315,7 @@ export class ToolRunner extends events.EventEmitter {
             state.CheckComplete();
         });
 
+        // Do not write debug logs here. Sometimes stdio not closed yet and you can damage user output commands.
         cp.on('exit', (code: number | null, signal: NodeJS.Signals | null) => {
             state.processExitCode = code;
             state.processExitSignal = signal;
