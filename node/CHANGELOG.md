@@ -2,6 +2,10 @@
 
 ## 4.x
 
+## 4.17.2
+
+- Fix ToolRunner stdline/errline events buffering - [#1055](https://github.com/microsoft/azure-pipelines-task-lib/pull/1055)
+
 ## 4.17.1
 
 - Fix debug logs inside user commands - [#1064](https://github.com/microsoft/azure-pipelines-task-lib/pull/1064)
