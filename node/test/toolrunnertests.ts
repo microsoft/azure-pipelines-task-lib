@@ -202,8 +202,8 @@ describe('Toolrunner Tests', function () {
                 });
         }
     })
-    it('Emits stream lines', async function () {
-        const scriptPath = path.join(__dirname, 'scripts', 'bufferedoutput.js');
+    it('Writes correct output line events', async function () {
+        const scriptPath = path.join(__dirname, 'scripts', 'write-bufferedoutput.js');
         const node = tl.tool(tl.which('node', true));
         node.arg(scriptPath);
 
