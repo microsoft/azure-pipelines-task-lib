@@ -727,7 +727,7 @@ export class ToolRunner extends events.EventEmitter {
                 }
             });
 
-            let stdbuffer = '';
+            let stdLineBuffer = '';
             cp.stdout?.on('data', (data: Buffer) => {
                 this.emit('stdout', data);
 
@@ -735,12 +735,12 @@ export class ToolRunner extends events.EventEmitter {
                     optionsNonNull.outStream!.write(data);
                 }
 
-                stdbuffer = this._processLineBuffer(data, stdbuffer, (line: string) => {
+                stdLineBuffer = this._processLineBuffer(data, stdLineBuffer, (line: string) => {
                     this.emit('stdline', line);
                 });
             });
 
-            let errbuffer = '';
+            let errLineBuffer = '';
             cp.stderr?.on('data', (data: Buffer) => {
                 this.emit('stderr', data);
 
@@ -750,7 +750,7 @@ export class ToolRunner extends events.EventEmitter {
                     s.write(data);
                 }
 
-                errbuffer = this._processLineBuffer(data, errbuffer, (line: string) => {
+                errLineBuffer = this._processLineBuffer(data, errLineBuffer, (line: string) => {
                     this.emit('errline', line);
                 });
             });
@@ -768,12 +768,12 @@ export class ToolRunner extends events.EventEmitter {
                 this._debug('rc:' + code);
                 returnCode = code;
 
-                if (stdbuffer.length > 0) {
-                    this.emit('stdline', stdbuffer);
+                if (stdLineBuffer.length > 0) {
+                    this.emit('stdline', stdLineBuffer);
                 }
 
-                if (errbuffer.length > 0) {
-                    this.emit('errline', errbuffer);
+                if (errLineBuffer.length > 0) {
+                    this.emit('errline', errLineBuffer);
                 }
 
                 if (code != 0 && !optionsNonNull.ignoreReturnCode) {
@@ -925,7 +925,7 @@ export class ToolRunner extends events.EventEmitter {
             }
         });
 
-        let stdbuffer = '';
+        let stdLineBuffer = '';
         cp.stdout?.on('data', (data: Buffer) => {
             this.emit('stdout', data);
 
@@ -933,12 +933,12 @@ export class ToolRunner extends events.EventEmitter {
                 optionsNonNull.outStream!.write(data);
             }
 
-            stdbuffer = this._processLineBuffer(data, stdbuffer, (line: string) => {
+            stdLineBuffer = this._processLineBuffer(data, stdLineBuffer, (line: string) => {
                 this.emit('stdline', line);
             });
         });
 
-        let errbuffer = '';
+        let errLineBuffer = '';
         cp.stderr?.on('data', (data: Buffer) => {
             this.emit('stderr', data);
 
@@ -948,7 +948,7 @@ export class ToolRunner extends events.EventEmitter {
                 s.write(data);
             }
 
-            errbuffer = this._processLineBuffer(data, errbuffer, (line: string) => {
+            errLineBuffer = this._processLineBuffer(data, errLineBuffer, (line: string) => {
                 this.emit('errline', line);
             });
         });
@@ -966,12 +966,12 @@ export class ToolRunner extends events.EventEmitter {
             this._debug('rc:' + code);
             returnCode = code;
 
-            if (stdbuffer.length > 0) {
-                this.emit('stdline', stdbuffer);
+            if (stdLineBuffer.length > 0) {
+                this.emit('stdline', stdLineBuffer);
             }
 
-            if (errbuffer.length > 0) {
-                this.emit('errline', errbuffer);
+            if (errLineBuffer.length > 0) {
+                this.emit('errline', errLineBuffer);
             }
 
             if (code != 0 && !optionsNonNull.ignoreReturnCode) {
@@ -1099,19 +1099,19 @@ export class ToolRunner extends events.EventEmitter {
             this._debug(message);
         });
 
-        let stdbuffer = '';
-        let errbuffer = '';
+        let stdLineBuffer = '';
+        let errLineBuffer = '';
         const emitDoneEvent = (
             resolve: (code: number) => void,
             reject: (error: Error) => void
         ) => {
             state.on('done', (error: Error, exitCode: number) => {
-                if (stdbuffer.length > 0) {
-                    this.emit('stdline', stdbuffer);
+                if (stdLineBuffer.length > 0) {
+                    this.emit('stdline', stdLineBuffer);
                 }
 
-                if (errbuffer.length > 0) {
-                    this.emit('errline', errbuffer);
+                if (errLineBuffer.length > 0) {
+                    this.emit('errline', errLineBuffer);
                 }
 
                 if (cp) {
@@ -1158,7 +1158,7 @@ export class ToolRunner extends events.EventEmitter {
                 optionsNonNull.outStream!.write(data);
             }
 
-            stdbuffer = this._processLineBuffer(data, stdbuffer, (line: string) => {
+            stdLineBuffer = this._processLineBuffer(data, stdLineBuffer, (line: string) => {
                 this.emit('stdline', line);
             });
         });
@@ -1172,7 +1172,7 @@ export class ToolRunner extends events.EventEmitter {
                 s.write(data);
             }
 
-            errbuffer = this._processLineBuffer(data, errbuffer, (line: string) => {
+            errLineBuffer = this._processLineBuffer(data, errLineBuffer, (line: string) => {
                 this.emit('errline', line);
             });
         });
@@ -1236,15 +1236,15 @@ export class ToolRunner extends events.EventEmitter {
             this._debug(message);
         });
 
-        let stdbuffer = '';
-        let errbuffer = '';
+        let stdLineBuffer = '';
+        let errLineBuffer = '';
         state.on('done', (error: Error, exitCode: number) => {
-            if (stdbuffer.length > 0) {
-                this.emit('stdline', stdbuffer);
+            if (stdLineBuffer.length > 0) {
+                this.emit('stdline', stdLineBuffer);
             }
 
-            if (errbuffer.length > 0) {
-                this.emit('errline', errbuffer);
+            if (errLineBuffer.length > 0) {
+                this.emit('errline', errLineBuffer);
             }
 
             if (cp) {
@@ -1290,7 +1290,7 @@ export class ToolRunner extends events.EventEmitter {
                 optionsNonNull.outStream!.write(data);
             }
 
-            stdbuffer = this._processLineBuffer(data, stdbuffer, (line: string) => {
+            stdLineBuffer = this._processLineBuffer(data, stdLineBuffer, (line: string) => {
                 this.emit('stdline', line);
             });
         });
@@ -1305,7 +1305,7 @@ export class ToolRunner extends events.EventEmitter {
                 s.write(data);
             }
 
-            errbuffer = this._processLineBuffer(data, errbuffer, (line: string) => {
+            errLineBuffer = this._processLineBuffer(data, errLineBuffer, (line: string) => {
                 this.emit('errline', line);
             });
         });
