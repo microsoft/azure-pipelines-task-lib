@@ -677,7 +677,9 @@ export class ToolRunner extends events.EventEmitter {
                     if (fileStream) {
                         fileStream.write(data);
                     }
-                    cp.stdin?.write(data);
+                    if (!cp.stdin?.destroyed) {
+                        cp.stdin?.write(data);
+                    }
                 } catch (err) {
                     this._debug('Failed to pipe output of ' + toolPathFirst + ' to ' + toolPath);
                     this._debug(toolPath + ' might have exited due to errors prematurely. Verify the arguments passed are valid.');
@@ -1182,18 +1184,19 @@ export class ToolRunner extends events.EventEmitter {
             state.CheckComplete();
         });
 
-        cp.on('exit', (code: number, signal: any) => {
+        // Do not write debug logs here. Sometimes stdio not closed yet and you can damage user output commands.
+        cp.on('exit', (code: number | null, signal: NodeJS.Signals | null) => {
             state.processExitCode = code;
+            state.processExitSignal = signal;
             state.processExited = true;
-            this._debug(`Exit code ${code} received from tool '${this.toolPath}'`);
             state.CheckComplete()
         });
 
-        cp.on('close', (code: number, signal: any) => {
-            state.processExitCode = code;
-            state.processExited = true;
+        cp.on('close', (code: number | null, signal: NodeJS.Signals | null) => {
+            state.processCloseCode = code;
+            state.processCloseSignal = signal;
             state.processClosed = true;
-            this._debug(`STDIO streams have closed for tool '${this.toolPath}'`)
+            state.processExited = true;
             state.CheckComplete();
         });
 
@@ -1314,18 +1317,19 @@ export class ToolRunner extends events.EventEmitter {
             state.CheckComplete();
         });
 
-        cp.on('exit', (code: number, signal: any) => {
+        // Do not write debug logs here. Sometimes stdio not closed yet and you can damage user output commands.
+        cp.on('exit', (code: number | null, signal: NodeJS.Signals | null) => {
             state.processExitCode = code;
+            state.processExitSignal = signal;
             state.processExited = true;
-            this._debug(`Exit code ${code} received from tool '${this.toolPath}'`);
             state.CheckComplete()
         });
 
-        cp.on('close', (code: number, signal: any) => {
-            state.processExitCode = code;
-            state.processExited = true;
+        cp.on('close', (code: number | null, signal: NodeJS.Signals | null) => {
+            state.processCloseCode = code;
+            state.processCloseSignal = signal;
             state.processClosed = true;
-            this._debug(`STDIO streams have closed for tool '${this.toolPath}'`)
+            state.processExited = true;
             state.CheckComplete();
         });
 
@@ -1376,9 +1380,10 @@ export class ToolRunner extends events.EventEmitter {
      * Used to close child process by sending SIGNINT signal.
      * It allows executed script to have some additional logic on SIGINT, before exiting.
      */
-    public killChildProcess(): void {
+    public killChildProcess(signal: number | NodeJS.Signals = "SIGTERM"): void {
         if (this.childProcess) {
-            this.childProcess.kill();
+            this._debug(`[killChildProcess] Signal ${signal} received`);
+            this.childProcess.kill(signal);
         }
     }
 }
@@ -1403,15 +1408,22 @@ class ExecState extends events.EventEmitter {
     }
 
     processClosed: boolean; // tracks whether the process has exited and stdio is closed
-    processError: string;
-    processExitCode: number;
+    processCloseCode: number | null;
+    processCloseSignal: NodeJS.Signals | null;
+
     processExited: boolean; // tracks whether the process has exited
+    processExitCode: number | null;
+    processExitSignal: NodeJS.Signals | null;
+
+    processError: string;
     processStderr: boolean; // tracks whether stderr was written to
-    private delay = 10000; // 10 seconds
-    private done: boolean;
-    private options: IExecOptions;
+
+    private readonly delay: number = 10000; // 10 seconds
+    private readonly options: IExecOptions;
+    private readonly toolPath: string;
+
     private timeout: NodeJS.Timer | null = null;
-    private toolPath: string;
+    private done: boolean;
 
     public CheckComplete(): void {
         if (this.done) {
@@ -1434,6 +1446,8 @@ class ExecState extends events.EventEmitter {
         // determine whether there is an error
         let error: Error | undefined;
         if (this.processExited) {
+            this._debug(`Process exited with code ${this.processExitCode} and signal ${this.processExitSignal} for tool '${this.toolPath}'`);
+
             if (this.processError) {
                 error = new Error(im._loc('LIB_ProcessError', this.toolPath, this.processError));
             }
@@ -1443,6 +1457,10 @@ class ExecState extends events.EventEmitter {
             else if (this.processStderr && this.options.failOnStdErr) {
                 error = new Error(im._loc('LIB_ProcessStderr', this.toolPath));
             }
+        }
+
+        if (this.processClosed) {
+            this._debug(`STDIO streams have closed and received exit code ${this.processCloseCode} and signal ${this.processCloseSignal} for tool '${this.toolPath}'`);
         }
 
         // clear the timeout

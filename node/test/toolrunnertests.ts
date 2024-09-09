@@ -12,6 +12,8 @@ import * as trm from '../_build/toolrunner';
 
 import testutil = require('./testutil');
 
+const signals: (number | NodeJS.Signals)[] = ['SIGTERM', 'SIGINT', 'SIGKILL', 15, 2, 9];
+
 describe('Toolrunner Tests', function () {
 
     before(function (done) {
@@ -516,7 +518,67 @@ describe('Toolrunner Tests', function () {
                 fs.unlinkSync(semaphorePath);
                 delete process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'];
             });
-    })
+    });
+
+    signals.forEach(signal => {
+        it(`Handle child process killing with ${signal} signal`, function (done) {
+            this.timeout(10000);
+
+            let shell: trm.ToolRunner;
+            let tool;
+            if (os.platform() == 'win32') {
+                tool = tl.which('cmd.exe', true);
+                shell = tl.tool(tool)
+                    .arg('/D') // Disable execution of AutoRun commands from registry.
+                    .arg('/E:ON') // Enable command extensions. Note, command extensions are enabled by default, unless disabled via registry.
+                    .arg('/V:OFF') // Disable delayed environment expansion. Note, delayed environment expansion is disabled by default, unless enabled via registry.
+                    .arg('/S') // Will cause first and last quote after /C to be stripped.
+                    .arg('/C')
+                    .arg("waitfor 3");
+            }
+            else {
+                tool = tl.which('bash', true);
+                shell = tl.tool(tool)
+                    .arg('-c')
+                    .arg("sleep 3");
+            }
+
+            let toolRunnerDebug = [];
+            shell.on('debug', function (data) {
+                toolRunnerDebug.push(data);
+            });
+
+            let options = <trm.IExecOptions>{
+                cwd: __dirname,
+                env: process.env,
+                silent: false,
+                failOnStdErr: true,
+                ignoreReturnCode: false,
+                outStream: process.stdout,
+                errStream: process.stdout,
+                windowsVerbatimArguments: true
+            };
+
+            shell.exec(options)
+                .then(function () {
+                    done(new Error('should not have been successful'));
+                    done();
+                })
+                .catch(function () {
+                    if (typeof signal === 'number') {
+                        signal = Object.keys(os.constants.signals).find(x => os.constants.signals[x] == signal) as NodeJS.Signals;
+                    }
+                    assert(toolRunnerDebug.pop(), `STDIO streams have closed and received exit code null and signal ${signal} for tool '${tool}'`);
+                    done();
+                })
+                .catch(function (err) {
+                    done(err);
+                })
+
+            shell.killChildProcess(signal);
+        });
+    });
+
     it('Handles child process holding streams open and non-zero exit code', function (done) {
         this.timeout(10000);
 
