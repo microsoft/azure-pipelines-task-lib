@@ -1094,7 +1094,7 @@ export class ToolRunner extends events.EventEmitter {
             optionsNonNull.outStream!.write(this._getCommandString(optionsNonNull) + os.EOL);
         }
 
-        let state = new ExecState(optionsNonNull, this.toolPath);
+        const state = new ExecState(optionsNonNull, this.toolPath, getTestToolRunnerExitDelayInMs());
         state.on('debug', (message: string) => {
             this._debug(message);
         });
@@ -1231,7 +1231,7 @@ export class ToolRunner extends events.EventEmitter {
             optionsNonNull.outStream!.write(this._getCommandString(optionsNonNull) + os.EOL);
         }
 
-        let state = new ExecState(optionsNonNull, this.toolPath);
+        const state = new ExecState(optionsNonNull, this.toolPath, getTestToolRunnerExitDelayInMs());
         state.on('debug', (message: string) => {
             this._debug(message);
         });
@@ -1391,8 +1391,9 @@ export class ToolRunner extends events.EventEmitter {
 class ExecState extends events.EventEmitter {
     constructor(
         options: IExecOptions,
-        toolPath: string) {
-
+        toolPath: string,
+        delayInMs?: number
+    ) {
         super();
 
         if (!toolPath) {
@@ -1401,9 +1402,8 @@ class ExecState extends events.EventEmitter {
 
         this.options = options;
         this.toolPath = toolPath;
-        let delay = process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'];
-        if (delay) {
-            this.delay = parseInt(delay);
+        if (delayInMs && isValidNumber(delayInMs)) {
+            this.delay = delayInMs;
         }
     }
 
@@ -1485,4 +1485,25 @@ class ExecState extends events.EventEmitter {
 
         state._setResult();
     }
+}
+
+function getTestToolRunnerExitDelayInMs(): number | undefined {
+    const debugDelayEnv = process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'];
+    if (!debugDelayEnv) {
+        return;
+    }
+
+    return parseInt(debugDelayEnv);
+}
+
+function isValidNumber(input: any) {
+    if (typeof input !== 'number') {
+        return false;
+    }
+
+    if (isNaN(input)) {
+        return false;
+    }
+
+    return true;
 }
