@@ -1428,6 +1428,20 @@ class ExecState extends events.EventEmitter {
     private timeout: NodeJS.Timer | null = null;
     private done: boolean;
 
+    public get isExecutionSuccessful(): boolean {
+        if (this.processError) {
+            return false;
+        }
+        if (this.processExitCode !== 0 && !this.options.ignoreReturnCode) {
+            return false;
+        }
+        if (this.processStderr && this.options.failOnStdErr) {
+            return false;
+        }
+
+        return true;
+    }
+
     public CheckComplete(): void {
         if (this.done) {
             return;
