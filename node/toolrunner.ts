@@ -1104,7 +1104,7 @@ export class ToolRunner extends events.EventEmitter {
 
         let stdLineBuffer = '';
         let errLineBuffer = '';
-        const emitDoneEvent = (
+        const handleDoneEvent = (
             resolve: (code: number) => void,
             reject: (error: Error) => void
         ) => {
@@ -1136,7 +1136,7 @@ export class ToolRunner extends events.EventEmitter {
             cp = child.spawn(this._getSpawnFileName(options), this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(options));
         } catch (error) {
             return new Promise((resolve, reject) => {
-                emitDoneEvent(resolve, reject);
+                handleDoneEvent(resolve, reject);
                 state.processError = error.message;
                 state.processExited = true;
                 state.processClosed = true;
@@ -1203,7 +1203,7 @@ export class ToolRunner extends events.EventEmitter {
             state.CheckComplete();
         });
 
-        return new Promise(emitDoneEvent);
+        return new Promise(handleDoneEvent);
     }
 
     /**
