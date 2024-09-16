@@ -1137,7 +1137,7 @@ export class ToolRunner extends events.EventEmitter {
         } catch (error) {
             return new Promise((resolve, reject) => {
                 handleDoneEvent(resolve, reject);
-                state.processError = error.message;
+                state.processError = error;
                 state.processExited = true;
                 state.processClosed = true;
                 state.CheckComplete();
@@ -1181,7 +1181,7 @@ export class ToolRunner extends events.EventEmitter {
         });
 
         cp.on('error', (err: Error) => {
-            state.processError = err.message;
+            state.processError = err;
             state.processExited = true;
             state.processClosed = true;
             state.CheckComplete();
@@ -1268,7 +1268,7 @@ export class ToolRunner extends events.EventEmitter {
         try {
             cp = child.spawn(this._getSpawnFileName(options), this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(options));
         } catch (error) {
-            state.processError = error.message;
+            state.processError = error;
             state.processExited = true;
             state.processClosed = true;
             state.CheckComplete();
@@ -1314,7 +1314,7 @@ export class ToolRunner extends events.EventEmitter {
         });
 
         cp.on('error', (err: Error) => {
-            state.processError = err.message;
+            state.processError = err;
             state.processExited = true;
             state.processClosed = true;
             state.CheckComplete();
@@ -1418,7 +1418,7 @@ class ExecState extends events.EventEmitter {
     processExitCode: number | null;
     processExitSignal: NodeJS.Signals | null;
 
-    processError: string;
+    processError?: Error;
     processStderr: boolean; // tracks whether stderr was written to
 
     private readonly delay: number = 10000; // 10 seconds
@@ -1452,7 +1452,7 @@ class ExecState extends events.EventEmitter {
             this._debug(`Process exited with code ${this.processExitCode} and signal ${this.processExitSignal} for tool '${this.toolPath}'`);
 
             if (this.processError) {
-                error = new Error(im._loc('LIB_ProcessError', this.toolPath, this.processError));
+                error = new Error(im._loc('LIB_ProcessError', this.toolPath, this.processError.message));
             }
             else if (this.processExitCode != 0 && !this.options.ignoreReturnCode) {
                 error = new Error(im._loc('LIB_ProcessExitCode', this.toolPath, this.processExitCode));
