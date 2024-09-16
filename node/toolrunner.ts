@@ -59,6 +59,8 @@ export interface IExecSyncResult {
     error: Error;
 }
 
+type ExecOptionsInternal = Required<IExecOptions>;
+
 export class ToolRunner extends events.EventEmitter {
     constructor(toolPath: string) {
         super();
@@ -563,19 +565,20 @@ export class ToolRunner extends events.EventEmitter {
         return reverse.split('').reverse().join('');
     }
 
-    private _cloneExecOptions(options?: IExecOptions): IExecOptions {
+    private _cloneExecOptions(options?: IExecOptions): ExecOptionsInternal {
         options = options || <IExecOptions>{};
-        let result: IExecOptions = <IExecOptions>{
+        const result: ExecOptionsInternal = {
             cwd: options.cwd || process.cwd(),
             env: options.env || process.env,
             silent: options.silent || false,
             failOnStdErr: options.failOnStdErr || false,
             ignoreReturnCode: options.ignoreReturnCode || false,
             windowsVerbatimArguments: options.windowsVerbatimArguments || false,
-            shell: options.shell || false
+            shell: options.shell || false,
+            outStream: options.outStream || process.stdout,
+            errStream: options.errStream || process.stderr
         };
-        result.outStream = options.outStream || process.stdout;
-        result.errStream = options.errStream || process.stderr;
+
         return result;
     }
 
