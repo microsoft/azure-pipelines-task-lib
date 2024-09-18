@@ -1138,8 +1138,7 @@ export class ToolRunner extends events.EventEmitter {
             return new Promise((resolve, reject) => {
                 handleDoneEvent(resolve, reject);
                 state.processError = error;
-                state.processExited = true;
-                state.processClosed = true;
+                state.processExitState = ToolProcessExitState.Closed;
                 state.CheckComplete();
             });
         }
@@ -1182,8 +1181,7 @@ export class ToolRunner extends events.EventEmitter {
 
         cp.on('error', (err: Error) => {
             state.processError = err;
-            state.processExited = true;
-            state.processClosed = true;
+            state.processExitState = ToolProcessExitState.Exited;
             state.CheckComplete();
         });
 
@@ -1191,15 +1189,14 @@ export class ToolRunner extends events.EventEmitter {
         cp.on('exit', (code: number | null, signal: NodeJS.Signals | null) => {
             state.processExitCode = code;
             state.processExitSignal = signal;
-            state.processExited = true;
+            state.processExitState = ToolProcessExitState.Exited;
             state.CheckComplete()
         });
 
         cp.on('close', (code: number | null, signal: NodeJS.Signals | null) => {
-            state.processCloseCode = code;
-            state.processCloseSignal = signal;
-            state.processClosed = true;
-            state.processExited = true;
+            state.processExitCode = code;
+            state.processExitSignal = signal;
+            state.processExitState = ToolProcessExitState.Closed;
             state.CheckComplete();
         });
 
@@ -1269,8 +1266,7 @@ export class ToolRunner extends events.EventEmitter {
             cp = child.spawn(this._getSpawnFileName(options), this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(options));
         } catch (error) {
             state.processError = error;
-            state.processExited = true;
-            state.processClosed = true;
+            state.processExitState = ToolProcessExitState.Closed;
             state.CheckComplete();
 
             return defer.promise;
@@ -1315,8 +1311,7 @@ export class ToolRunner extends events.EventEmitter {
 
         cp.on('error', (err: Error) => {
             state.processError = err;
-            state.processExited = true;
-            state.processClosed = true;
+            state.processExitState = ToolProcessExitState.Exited;
             state.CheckComplete();
         });
 
@@ -1324,15 +1319,14 @@ export class ToolRunner extends events.EventEmitter {
         cp.on('exit', (code: number | null, signal: NodeJS.Signals | null) => {
             state.processExitCode = code;
             state.processExitSignal = signal;
-            state.processExited = true;
+            state.processExitState = ToolProcessExitState.Exited;
             state.CheckComplete()
         });
 
         cp.on('close', (code: number | null, signal: NodeJS.Signals | null) => {
-            state.processCloseCode = code;
-            state.processCloseSignal = signal;
-            state.processClosed = true;
-            state.processExited = true;
+            state.processExitCode = code;
+            state.processExitSignal = signal;
+            state.processExitState = ToolProcessExitState.Closed;
             state.CheckComplete();
         });
 
@@ -1391,6 +1385,14 @@ export class ToolRunner extends events.EventEmitter {
     }
 }
 
+enum ToolProcessExitState {
+    None = 0,
+    // The process has exited. 'exit' or 'error' events raised
+    Exited = 1,
+    // The process has exited and stdio is closed
+    Closed = 2
+}
+
 class ExecState extends events.EventEmitter {
     constructor(
         options: IExecOptions,
@@ -1410,14 +1412,10 @@ class ExecState extends events.EventEmitter {
         }
     }
 
-    processClosed: boolean; // tracks whether the process has exited and stdio is closed
-    processCloseCode: number | null;
-    processCloseSignal: NodeJS.Signals | null;
-
-    processExited: boolean; // tracks whether the process has exited
+    processExitState: ToolProcessExitState = ToolProcessExitState.None;
+    // 'exit' and 'close' events sends the same code and signal
     processExitCode: number | null;
     processExitSignal: NodeJS.Signals | null;
-
     processError?: Error;
     processStderr: boolean; // tracks whether stderr was written to
 
@@ -1447,10 +1445,10 @@ class ExecState extends events.EventEmitter {
             return;
         }
 
-        if (this.processClosed) {
+        if (this.processExitState === ToolProcessExitState.Closed) {
             this._setResult();
         }
-        else if (this.processExited) {
+        else if (this.processExitState === ToolProcessExitState.Exited) {
             this.timeout = setTimeout(ExecState.HandleTimeout, this.delay, this);
         }
     }
@@ -1460,24 +1458,25 @@ class ExecState extends events.EventEmitter {
     }
 
     private _setResult(): void {
-        // determine whether there is an error
-        let error: Error | undefined;
-        if (this.processExited) {
+        if (this.processExitCode || this.processExitSignal) {
             this._debug(`Process exited with code ${this.processExitCode} and signal ${this.processExitSignal} for tool '${this.toolPath}'`);
-
-            if (this.processError) {
-                error = new Error(im._loc('LIB_ProcessError', this.toolPath, this.processError.message));
-            }
-            else if (this.processExitCode != 0 && !this.options.ignoreReturnCode) {
-                error = new Error(im._loc('LIB_ProcessExitCode', this.toolPath, this.processExitCode));
-            }
-            else if (this.processStderr && this.options.failOnStdErr) {
-                error = new Error(im._loc('LIB_ProcessStderr', this.toolPath));
-            }
         }
 
-        if (this.processClosed) {
-            this._debug(`STDIO streams have closed and received exit code ${this.processCloseCode} and signal ${this.processCloseSignal} for tool '${this.toolPath}'`);
+        // determine whether there is an error
+        let error: Error | undefined;
+        if (this.processError) {
+            error = new Error(im._loc('LIB_ProcessError', this.toolPath, this.processError.message));
+        }
+        else if (this.processExitCode != 0 && !this.options.ignoreReturnCode) {
+            error = new Error(im._loc('LIB_ProcessExitCode', this.toolPath, this.processExitCode));
+        }
+        else if (this.processStderr && this.options.failOnStdErr) {
+            error = new Error(im._loc('LIB_ProcessStderr', this.toolPath));
+        }
+
+        if (this.processExitState === ToolProcessExitState.Closed
+            && (this.processExitCode || this.processExitSignal)) {
+            this._debug(`STDIO streams have closed and received exit code ${this.processExitCode} and signal ${this.processExitSignal} for tool '${this.toolPath}'`);
         }
 
         // clear the timeout
@@ -1495,7 +1494,7 @@ class ExecState extends events.EventEmitter {
             return;
         }
 
-        if (!state.processClosed && state.processExited) {
+        if (state.processExitState === ToolProcessExitState.Exited) {
             console.log(im._loc('LIB_StdioNotClosed', state.delay / 1000, state.toolPath));
             state._debug(im._loc('LIB_StdioNotClosed', state.delay / 1000, state.toolPath));
         }
