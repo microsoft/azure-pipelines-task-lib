@@ -20,9 +20,9 @@ target.build = function() {
     target.clean();
     target.loc();
 
-    run('npm tsc -v');
+    run('npx tsc -v');
 
-    run('npm tsc --outDir ' + buildPath);
+    run('npx tsc --outDir ' + buildPath);
     cp(rp('package.json'), buildPath);
     cp(rp('package-lock.json'), buildPath);
     cp(rp('README.md'), buildPath);
