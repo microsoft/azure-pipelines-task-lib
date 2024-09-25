@@ -26,6 +26,8 @@ target.build = function() {
     target.clean();
     target.loc();
 
+    run('tsc -v');
+
     run('tsc --outDir ' + buildPath);
     cp(rp('package.json'), buildPath);
     cp(rp('package-lock.json'), buildPath);
