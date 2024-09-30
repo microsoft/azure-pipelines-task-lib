@@ -2,6 +2,10 @@
 
 ## 4.x
 
+## 4.17.3
+
+- Remove duplicate debug logs when using task.exec* wrappers - [#1071](https://github.com/microsoft/azure-pipelines-task-lib/pull/1071)
+
 ## 4.17.2
 
 - Fix ToolRunner stdline/errline events buffering - [#1055](https://github.com/microsoft/azure-pipelines-task-lib/pull/1055)
