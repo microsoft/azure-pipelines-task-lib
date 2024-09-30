@@ -11,12 +11,6 @@ var rp = function (relPath) {
 var buildPath = path.join(__dirname, '_build');
 var testPath = path.join(__dirname, '_test');
 
-if (process.env['TF_BUILD']) {
-    // the CI controls the version of node, so it runs using "node make.js test" instead of "npm test"
-    // update the PATH when running during CI
-    buildutils.addPath(path.join(__dirname, 'node_modules', '.bin'));
-}
-
 target.clean = function () {
     rm('-Rf', buildPath);
     rm('-Rf', testPath);
@@ -26,7 +20,8 @@ target.build = function() {
     target.clean();
     target.loc();
 
-    run('tsc --outDir ' + buildPath);
+    run('npx tsc -v');
+    run('npx tsc --outDir ' + buildPath);
     cp(rp('package.json'), buildPath);
     cp(rp('package-lock.json'), buildPath);
     cp(rp('README.md'), buildPath);
@@ -71,9 +66,11 @@ target.loc = function() {
 process.on('uncaughtException', err => {
     console.error(`Uncaught exception: ${err.message}`);
     console.debug(err.stack);
+    exit(1);
 });
 
 process.on('unhandledRejection', err => {
     console.error(`Unhandled rejection: ${err.message}`);
     console.debug(err.stack);
+    exit(1);
 });
