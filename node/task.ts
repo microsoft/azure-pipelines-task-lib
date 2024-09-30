@@ -1512,10 +1512,6 @@ export function rmRF(inputPath: string): void {
  */
 export function execAsync(tool: string, args: any, options?: trm.IExecOptions): Promise<number> {
     let tr: trm.ToolRunner = this.tool(tool);
-    tr.on('debug', (data: string) => {
-        debug(data);
-    });
-
     if (args) {
         if (args instanceof Array) {
             tr.arg(args);
@@ -1540,10 +1536,6 @@ export function execAsync(tool: string, args: any, options?: trm.IExecOptions): 
  */
 export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Promise<number> {
     let tr: trm.ToolRunner = this.tool(tool);
-    tr.on('debug', (data: string) => {
-        debug(data);
-    });
-
     if (args) {
         if (args instanceof Array) {
             tr.arg(args);
@@ -1568,10 +1560,6 @@ export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Pro
  */
 export function execSync(tool: string, args: string | string[], options?: trm.IExecSyncOptions): trm.IExecSyncResult {
     let tr: trm.ToolRunner = this.tool(tool);
-    tr.on('debug', (data: string) => {
-        debug(data);
-    });
-
     if (args) {
         if (args instanceof Array) {
             tr.arg(args);
