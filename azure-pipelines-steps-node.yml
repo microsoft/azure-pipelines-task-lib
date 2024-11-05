@@ -23,9 +23,17 @@ steps:
 # Only on Linux. For CI runs on master, automatically publish packages
 - ${{ if eq(parameters.os, 'Linux') }}:
   - bash: |
+      cp -f ../.npmrc .npmrc
+      npm publish || true # Ignore publish failures, usually will happen because package already exists
+      rm -f .npmrc
+    displayName: (task-lib) Publish the package to Azure DevOps Feed
+    workingDirectory: node/_build
+    condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master'))
+
+  - bash: |
       echo //registry.npmjs.org/:_authToken=\${NPM_TOKEN} > .npmrc
       npm publish || true # Ignore publish failures, usually will happen because package already exists
-    displayName: (task-lib) npm publish
+    displayName: (task-lib) Publish the package to npm
     workingDirectory: node/_build
     condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master'))
     env:
