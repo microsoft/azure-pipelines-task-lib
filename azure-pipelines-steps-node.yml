@@ -12,23 +12,32 @@ steps:
   inputs:
     workingFile: .npmrc
 
-- script: npm ci
+- task: Npm@1
+  inputs:
+    command: ci
+    customRegistry: useNpmrc
+    workingDir: node
   displayName: (task-lib) npm ci
-  workingDirectory: node
 
-- script: npm test
-  workingDirectory: node
+- task: Npm@1
+  inputs:
+    command: custom
+    customCommand: test
+    customRegistry: useNpmrc
+    workingDir: node
   displayName: (task-lib) npm test
 
 # Only on Linux. For CI runs on master, automatically publish packages
 - ${{ if eq(parameters.os, 'Linux') }}:
-  - bash: |
-      cp -f ../.npmrc .npmrc
-      npm publish || true # Ignore publish failures, usually will happen because package already exists
-      rm -f .npmrc
+  - task: Npm@1
+    inputs:
+      command: publish
+      verbose: true
+      customRegistry: useNpmrc
+      workingDir: node/_build
+      publishRegistry: 'useFeed'
+      publishFeed: 'c86767d8-af79-4303-a7e6-21da0ba435e2/2442ccb9-e127-4ec5-99e5-28dd29f92057'
     displayName: (task-lib) Publish the package to Azure DevOps Feed
-    workingDirectory: node/_build
-    condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master'))
 
   - bash: |
       echo //registry.npmjs.org/:_authToken=\${NPM_TOKEN} > .npmrc
