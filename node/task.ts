@@ -1027,10 +1027,8 @@ export function mv(source: string, dest: string, options?: string, continueOnErr
             throw new Error(loc('LIB_DestinationNotExist', dest));
         }
 
-        if (fs.existsSync(dest)) {
-            if (isNoClobber && fs.statSync(dest).isFile()) {
-                return;
-            }
+        if (fs.existsSync(dest) && isNoClobber) {
+            throw new Error(`dest file already exists: ${dest}`);
         }
 
         fs.renameSync(source, dest);
