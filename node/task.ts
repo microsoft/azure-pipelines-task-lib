@@ -1021,14 +1021,15 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
  */
 export function mv(source: string, dest: string, options?: string, continueOnError?: boolean): void {
     try {
-        const isNoClobber = options?.toLowerCase()?.includes('-n');
+        const isForce = !options?.toLowerCase()?.includes('-n') && options?.toLowerCase()?.includes('-f');
+        const destExists = fs.existsSync(dest);
 
-        if ((!fs.existsSync(dest))) {
-            throw new Error(loc('LIB_DestinationNotExist', dest));
+        if (!fs.existsSync(source)) {
+            throw new Error(loc('LIB_PathNotFound', source));
         }
 
-        if (fs.existsSync(dest) && isNoClobber) {
-            throw new Error(`dest file already exists: ${dest}`);
+        if (destExists && isForce) {
+            throw new Error(loc('LIB_PathNotFound', dest));
         }
 
         fs.renameSync(source, dest);
