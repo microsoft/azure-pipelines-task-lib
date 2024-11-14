@@ -1,5 +1,4 @@
 import Q = require('q');
-import shell = require('shelljs');
 import childProcess = require('child_process');
 import fs = require('fs');
 import path = require('path');
@@ -681,24 +680,6 @@ export const debug = im._debug;
 //-----------------------------------------------------
 // Disk Functions
 //-----------------------------------------------------
-function _checkShell(cmd: string, continueOnError?: boolean) {
-    var se = shell.error();
-
-    if (se) {
-        debug(cmd + ' failed');
-        var errMsg = loc('LIB_OperationFailed', cmd, se);
-        debug(errMsg);
-
-        if (!continueOnError) {
-            throw new Error(errMsg);
-        }
-    }
-}
-
-export interface FsStats extends fs.Stats {
-
-}
-
 /**
  * Get's stat on a path.
  * Useful for checking whether a file or directory.  Also getting created, modified and accessed time.
@@ -707,7 +688,7 @@ export interface FsStats extends fs.Stats {
  * @param     path      path to check
  * @returns   fsStat
  */
-export function stats(path: string): FsStats {
+export function stats(path: string): fs.Stats {
     return fs.statSync(path);
 }
 
@@ -801,10 +782,18 @@ export const checkPath = im._checkPath;
  */
 export function cd(path: string): void {
     if (path) {
-        shell.cd(path);
-        _checkShell('cd');
+        try {
+            process.chdir(path);
+        } catch (error) {
+            debug('cd failed');
+            var errMsg = loc('LIB_OperationFailed', 'cd', error);
+            debug(errMsg);
+            throw new Error(errMsg);
+        }
     }
 }
+
+const _dirStack: string[] = [];
 
 /**
  * Change working directory and push it on the stack
@@ -813,8 +802,20 @@ export function cd(path: string): void {
  * @returns   void
  */
 export function pushd(path: string): void {
-    shell.pushd(path);
-    _checkShell('pushd');
+    try {
+        if (!fs.existsSync(path)) {
+            throw new Error(`Not found path: ${path}`);
+        }
+
+        const currentDir = process.cwd();
+        _dirStack.push(currentDir);
+        process.chdir(path);
+    } catch (error) {
+        debug('pushd failed');
+        var errMsg = loc('LIB_OperationFailed', 'pushd', error);
+        debug(errMsg);
+        throw new Error(errMsg);
+    }
 }
 
 /**
@@ -823,8 +824,20 @@ export function pushd(path: string): void {
  * @returns   void
  */
 export function popd(): void {
-    shell.popd();
-    _checkShell('popd');
+    try {
+        const previousDir = _dirStack.pop();
+
+        if (previousDir === undefined) {
+            throw new Error('popd failed. Directory stack is empty');
+        }
+
+        process.chdir(previousDir);
+    } catch (error) {
+        debug('popd failed');
+        var errMsg = loc('LIB_OperationFailed', 'popd', error);
+        debug(errMsg);
+        throw new Error(errMsg);
+    }
 }
 
 /**
@@ -911,6 +924,27 @@ export function resolve(...pathSegments: any[]): string {
 
 export const which = im._which;
 
+function _readDirectory(dir: string, { includeHidden, isRecursive }, files: string[]) {
+    const entries = fs.readdirSync(dir);
+
+    entries.forEach(entry => {
+        const fullPath = path.join(dir, entry);
+        const stat = fs.statSync(fullPath);
+
+        if (!includeHidden && entry.startsWith('.') && entry !== '.' && entry !== '..') {
+            return;
+        }
+
+        if (stat.isDirectory() && isRecursive) {
+            return _readDirectory(fullPath, { includeHidden, isRecursive }, files);
+        }
+
+        return files.push(fullPath);
+    });
+
+    return files;
+}
+
 /**
  * Returns array of files in the given path, or in current directory if no path provided.  See shelljs.ls
  * @param  {string}   options  Available options: -R (recursive), -A (all files, include files beginning with ., except for . and ..)
@@ -918,10 +952,23 @@ export const which = im._which;
  * @return {string[]}          An array of files in the given path(s).
  */
 export function ls(options: string, paths: string[]): string[] {
-    if (options) {
-        return shell.ls(options, paths);
-    } else {
-        return shell.ls(paths);
+    try {
+        if (paths.length === 0) {
+            paths.push('.');
+        }
+
+        const isRecursive = options.includes('-R');
+        const includeHidden = options.includes('-A');
+
+        const files: string[] = [];
+
+        paths.forEach(x => _readDirectory(x, { includeHidden, isRecursive }, files));
+        return files;
+    } catch (error) {
+        debug('ls failed');
+        var errMsg = loc('LIB_OperationFailed', 'ls', error);
+        debug(errMsg);
+        throw new Error(errMsg);
     }
 }
 
@@ -937,14 +984,16 @@ export function ls(options: string, paths: string[]): string[] {
 export function cp(source: string, dest: string, options?: string, continueOnError?: boolean, retryCount: number = 0): void {
     while (retryCount >= 0) {
         try {
-            if (options) {
-                shell.cp(options, source, dest);
+            try {
+                let isRecursive = options?.toLowerCase()?.includes('-r');
+                let isForce = options?.toLowerCase()?.includes('-f');
+                fs.cpSync(source, dest, { recursive: isRecursive, force: isForce });
+            } catch (error) {
+                debug('cp failed');
+                var errMsg = loc('LIB_OperationFailed', 'cp', error);
+                debug(errMsg);
+                throw new Error(errMsg);
             }
-            else {
-                shell.cp(source, dest);
-            }
-
-            _checkShell('cp', false);
             break;
         } catch (e) {
             if (retryCount <= 0) {
@@ -971,14 +1020,26 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
  * @param     continueOnError optional. whether to continue on error
  */
 export function mv(source: string, dest: string, options?: string, continueOnError?: boolean): void {
-    if (options) {
-        shell.mv(options, source, dest);
-    }
-    else {
-        shell.mv(source, dest);
-    }
+    try {
+        const isNoClobber = options?.toLowerCase()?.includes('-n');
 
-    _checkShell('mv', continueOnError);
+        if ((!fs.existsSync(dest))) {
+            throw new Error(loc('LIB_DestinationNotExist', dest));
+        }
+
+        if (fs.existsSync(dest)) {
+            if (isNoClobber && fs.statSync(dest).isFile()) {
+                return;
+            }
+        }
+
+        fs.renameSync(source, dest);
+    } catch (error) {
+        debug('mv failed');
+        var errMsg = loc('LIB_OperationFailed', 'mv', error);
+        debug(errMsg);
+        throw new Error(errMsg);
+    }
 }
 
 /**
@@ -1481,9 +1542,9 @@ export function rmRF(inputPath: string): void {
 
         if (lstats.isDirectory()) {
             debug('removing directory');
-            shell.rm('-rf', inputPath);
-            let errMsg: string = shell.error();
-            if (errMsg) {
+            try {
+                fs.rmSync(inputPath, { recursive: true, force: true });
+            } catch (errMsg) {
                 throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
             }
 
