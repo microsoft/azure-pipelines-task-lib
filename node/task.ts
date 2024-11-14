@@ -1033,7 +1033,7 @@ export function mv(source: string, dest: string, options?: string, continueOnErr
             throw new Error(loc('LIB_PathNotFound', source));
         }
 
-        if (destExists && isForce) {
+        if (destExists && !isForce) {
             throw new Error(loc('LIB_PathNotFound', dest));
         }
 
