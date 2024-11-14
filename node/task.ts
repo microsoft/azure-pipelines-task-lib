@@ -987,6 +987,11 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
             try {
                 let isRecursive = options?.toLowerCase()?.includes('-r');
                 let isForce = options?.toLowerCase()?.includes('-f');
+
+                if (fs.lstatSync(source).isDirectory()) {
+                    dest = path.join(dest, path.basename(source));
+                }
+
                 fs.cpSync(source, dest, { recursive: isRecursive, force: isForce });
             } catch (error) {
                 debug('cp failed');
