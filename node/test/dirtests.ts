@@ -1859,8 +1859,7 @@ describe('Dir Operation Tests', function () {
         done();
     });
 
-    // Test pushd method
-    it('pushd', function (done) {
+    it('Test pushd method', function (done) {
         var start = __dirname;
         var testPath = path.join(__dirname, 'testDir');
         tl.mkdirP(testPath);
@@ -1868,11 +1867,11 @@ describe('Dir Operation Tests', function () {
         assert(process.cwd() == start, 'starting in right directory');
         tl.pushd(testPath);
         assert(process.cwd() == testPath, 'not in test directory');
+        tl.rmRF(testPath);
         done();
     });
 
-    // Test popd method
-    it('popd', function (done) {
+    it('Test popd method', function (done) {
         var start = __dirname;
         var testPath = path.join(__dirname, 'testDir');
         tl.mkdirP(testPath);
@@ -1882,6 +1881,56 @@ describe('Dir Operation Tests', function () {
         assert(process.cwd() == testPath, 'in test directory');
         tl.popd();
         assert(process.cwd() == start, 'finishing in original directory');
+        tl.rmRF(testPath);
+        done();
+    });
+    
+    it('Test ls method', function (done) {
+        var start = __dirname;
+        var testPath = path.join(__dirname, 'testDir');
+        tl.mkdirP(testPath);
+        tl.cd(start);
+        var items = tl.ls(testPath);
+        assert(items.length == 0, 'no items in directory');
+        fs.writeFileSync(path.join(testPath, 'file1.txt'), 'test file');
+        fs.writeFileSync(path.join(testPath, 'file2.txt'), 'test file');
+        fs.mkdirSync(path.join(testPath, 'dir'));
+        items = tl.ls(testPath);
+        assert(items.length == 3, '3 items in directory');
+        tl.rmRF(testPath);
+        done();
+    });
+
+    it('Test ls method with -R option', function (done) {
+        var start = __dirname;
+        var testPath = path.join(__dirname, 'testDir');
+        tl.mkdirP(testPath);
+        tl.cd(start);
+        var items = tl.ls('-R', [testPath]);
+        assert(items.length == 0, 'no items in directory');
+        fs.writeFileSync(path.join(testPath, 'file1.txt'), 'test file');
+        fs.writeFileSync(path.join(testPath, 'file2.txt'), 'test file');
+        fs.mkdirSync(path.join(testPath, 'dir'));
+        items = tl.ls('-R', [testPath]);
+        assert(items.length == 3, '3 items in directory');
+        tl.rmRF(testPath);
+        done();
+    });
+
+    it('Test ls method with -A option', function (done) {
+        var start = __dirname;
+        var testPath = path.join(__dirname, 'testDir');
+        tl.mkdirP(testPath);
+        tl.cd(start);
+        var items = tl.ls('-R', [testPath]);
+        assert(items.length == 0, 'no items in directory');
+        fs.writeFileSync(path.join(testPath, 'file1.txt'), 'test file');
+        fs.writeFileSync(path.join(testPath, 'file2.txt'), 'test file');
+        fs.writeFileSync(path.join(testPath, '.file2.txt'), 'test file');
+        fs.mkdirSync(path.join(testPath, 'dir'));
+        items = tl.ls('-R', [testPath]);
+        assert(items.length == 3, '4 items in directory');
+        tl.rmRF(testPath);
         done();
     });
 });
