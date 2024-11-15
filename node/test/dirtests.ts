@@ -114,6 +114,7 @@ describe('Dir Operation Tests', function () {
 
         done();
     });
+
     it('which() searches path in order', function (done) {
         this.timeout(1000);
 
@@ -152,6 +153,7 @@ describe('Dir Operation Tests', function () {
 
         done();
     });
+
     it('which() requires executable', function (done) {
         this.timeout(1000);
 
@@ -236,6 +238,7 @@ describe('Dir Operation Tests', function () {
 
         done();
     });
+
     it('which() allows rooted path', function (done) {
         this.timeout(1000);
 
@@ -259,6 +262,7 @@ describe('Dir Operation Tests', function () {
 
         done();
     });
+
     it('which() requires rooted path to be executable', function (done) {
         this.timeout(1000);
 
@@ -323,6 +327,7 @@ describe('Dir Operation Tests', function () {
 
         done();
     });
+
     it('which() requires rooted path to exist', function (done) {
         this.timeout(1000);
 
@@ -343,6 +348,7 @@ describe('Dir Operation Tests', function () {
 
         done();
     });
+
     it('which() does not allow separators', function (done) {
         this.timeout(1000);
 
@@ -390,6 +396,7 @@ describe('Dir Operation Tests', function () {
 
             done();
         });
+
         it('which() appends ext on windows', function (done) {
             this.timeout(2000);
 
@@ -424,6 +431,7 @@ describe('Dir Operation Tests', function () {
 
             done();
         });
+
         it('which() appends ext on windows when rooted', function (done) {
             this.timeout(2000);
 
@@ -448,6 +456,7 @@ describe('Dir Operation Tests', function () {
 
             done();
         });
+
         it('which() prefer exact match on windows', function (done) {
             this.timeout(1000);
 
@@ -477,6 +486,7 @@ describe('Dir Operation Tests', function () {
 
             done();
         });
+
         it('which() prefer exact match on windows when rooted', function (done) {
             this.timeout(1000);
 
@@ -499,6 +509,7 @@ describe('Dir Operation Tests', function () {
 
             done();
         });
+
         it('which() searches ext in order', function (done) {
             this.timeout(1000);
 
