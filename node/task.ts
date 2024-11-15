@@ -951,17 +951,24 @@ function _readDirectory(dir: string, { includeHidden, isRecursive }, files: stri
  * @param  {string[]} paths    Paths to search.
  * @return {string[]}          An array of files in the given path(s).
  */
-export function ls(options: string, paths: string[]): string[] {
+export function ls(optionsOrPaths: string | string[], paths?: string[]): string[] {
     try {
+        if (paths === undefined) {
+            if (Array.isArray(optionsOrPaths)) {
+                paths = optionsOrPaths as string[];
+            } else {
+                paths = [optionsOrPaths];
+            }
+        }
+
         if (paths.length === 0) {
             paths.push('.');
         }
 
-        const isRecursive = options.includes('-R');
-        const includeHidden = options.includes('-A');
-
+        const canParseOptions = paths !== undefined && typeof optionsOrPaths == 'string';;
+        const isRecursive = canParseOptions && optionsOrPaths.includes('-R');
+        const includeHidden = canParseOptions && optionsOrPaths.includes('-A');
         const files: string[] = [];
-
         paths.forEach(x => _readDirectory(x, { includeHidden, isRecursive }, files));
         return files;
     } catch (error) {
