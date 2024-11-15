@@ -1858,6 +1858,32 @@ describe('Dir Operation Tests', function () {
 
         done();
     });
+
+    // Test pushd method
+    it('pushd', function (done) {
+        var start = __dirname;
+        var testPath = path.join(__dirname, 'testDir');
+        tl.mkdirP(testPath);
+        tl.cd(start);
+        assert(process.cwd() == start, 'starting in right directory');
+        tl.pushd(testPath);
+        assert(process.cwd() == testPath, 'not in test directory');
+        done();
+    });
+
+    // Test popd method
+    it('popd', function (done) {
+        var start = __dirname;
+        var testPath = path.join(__dirname, 'testDir');
+        tl.mkdirP(testPath);
+        tl.cd(start);
+        assert(process.cwd() == start, 'starting in original directory');
+        tl.pushd(testPath);
+        assert(process.cwd() == testPath, 'in test directory');
+        tl.popd();
+        assert(process.cwd() == start, 'finishing in original directory');
+        done();
+    });
 });
 
 function findsExecutableWithScopedPermissions(chmodOptions) {
