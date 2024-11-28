@@ -203,7 +203,8 @@ function Invoke-Process {
         }
 
         # We can't use -Wait in this case as it waits for the whole process tree, it can lead to unexprected hangs
-        $proc = Start-Process @processOptions | Wait-Process
+        $proc = Start-Process @processOptions
+        Wait-Process -InputObject $proc
 
         $procExitCode = $proc.ExitCode
         Write-Verbose "Exit code: $procExitCode"
