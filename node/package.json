@@ -32,7 +32,7 @@
     "nodejs-file-downloader": "^4.11.1",
     "q": "^1.5.1",
     "semver": "^5.7.2",
-    "shelljs": "^0.8.5",
+    "shelljs": "git+https://github.com/ivanduplenskikh/shelljs.git#7da614724dc738528d1e3c2b7c370ed0dabfd493",
     "uuid": "^3.0.1"
   },
   "devDependencies": {
