@@ -817,17 +817,17 @@ function getActualStack() {
 /**
  * Change working directory and push it on the stack
  *
- * @param     path      new working directory path
+ * @param     dir      new working directory path
  * @returns   void
  */
-export function pushd(path: string = ''): string[] {
+export function pushd(dir: string = ''): string[] {
     const dirs = getActualStack();
 
-    let maybeIndex = parseInt(path);
+    let maybeIndex = parseInt(dir);
 
-    if (path === '+0') {
+    if (dir === '+0') {
         return dirs;
-    } else if (path.length === 0) {
+    } else if (dir.length === 0) {
         if (dirs.length > 1) {
             dirs.splice(0, 0, ...dirs.splice(1, 1));
         } else {
@@ -835,11 +835,11 @@ export function pushd(path: string = ''): string[] {
         }
     } else if (!isNaN(maybeIndex)) {
         if (maybeIndex < dirStack.length + 1) {
-            maybeIndex = path.charAt(0) === '-' ? maybeIndex - 1 : maybeIndex;
+            maybeIndex = dir.charAt(0) === '-' ? maybeIndex - 1 : maybeIndex;
         }
         dirs.splice(0, dirs.length, ...dirs.slice(maybeIndex).concat(dirs.slice(0, maybeIndex)));
     } else {
-        dirs.unshift(path);
+        dirs.unshift(dir);
     }
 
     const _path = path.resolve(dirs.shift()!);
@@ -860,19 +860,20 @@ export function pushd(path: string = ''): string[] {
 /**
  * Change working directory back to previously pushed directory
  *
+ * @param     index      index to remove from the stack
  * @returns   void
  */
-export function popd(path: string = ''): string[] {
+export function popd(index: string = ''): string[] {
     if (dirStack.length === 0) {
         throw new Error(`Failed popd: directory stack empty`);
     }
 
-    let maybeIndex = parseInt(path);
+    let maybeIndex = parseInt(index);
 
     if (isNaN(maybeIndex)) {
         maybeIndex = 0;
     } else if (maybeIndex < dirStack.length + 1) {
-        maybeIndex = path.charAt(0) === '-' ? maybeIndex - 1 : maybeIndex;
+        maybeIndex = index.charAt(0) === '-' ? maybeIndex - 1 : maybeIndex;
     }
 
     if (maybeIndex > 0 || dirStack.length + maybeIndex === 0) {
