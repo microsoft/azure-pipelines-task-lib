@@ -7,6 +7,9 @@
         "moduleResolution": "node"
     },
     "files": [
+        "cd.ts",
+        "popd.ts",
+        "pushd.ts",
         "dirtests.ts",
         "inputtests.ts",
         "internalhelpertests.ts",
