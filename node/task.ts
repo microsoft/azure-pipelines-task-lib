@@ -780,20 +780,39 @@ export const checkPath = im._checkPath;
  * @param     path      new working directory path
  * @returns   void
  */
-export function cd(path: string): void {
+export function cd(path?: string): void {
     if (path) {
-        try {
-            process.chdir(path);
-        } catch (error) {
-            debug('cd failed');
-            var errMsg = loc('LIB_OperationFailed', 'cd', error);
-            debug(errMsg);
-            throw new Error(errMsg);
+        if (path === '-') {
+            if (!process.env.OLDPWD) {
+                throw new Error(`Failed cd: could not find previous directory`);
+            } else {
+                path = process.env.OLDPWD;
+            }
         }
+
+        if (path === '~') {
+            path = os.homedir();
+        }
+
+        if (!fs.existsSync(path)) {
+            throw new Error(`Failed cd: no such file or directory: ${path}`)
+        }
+
+        if (!fs.statSync(path).isDirectory()) {
+            throw new Error(`Failed cd: not a directory: ${path}`);
+        }
+
+        const currentPath = process.cwd();
+        process.chdir(path);
+        process.env.OLDPWD = currentPath;
     }
 }
 
-const _dirStack: string[] = [];
+const dirStack: string[] = [];
+
+function getActualStack() {
+    return [process.cwd()].concat(dirStack);
+}
 
 /**
  * Change working directory and push it on the stack
@@ -801,21 +820,41 @@ const _dirStack: string[] = [];
  * @param     path      new working directory path
  * @returns   void
  */
-export function pushd(path: string): void {
+export function pushd(path: string = ''): string[] {
+    const dirs = getActualStack();
+
+    let maybeIndex = parseInt(path);
+
+    if (path === '+0') {
+        return dirs;
+    } else if (path.length === 0) {
+        if (dirs.length > 1) {
+            dirs.splice(0, 0, ...dirs.splice(1, 1));
+        } else {
+            throw new Error(`Failed pushd: no other directory`);
+        }
+    } else if (!isNaN(maybeIndex)) {
+        if (maybeIndex < dirStack.length + 1) {
+            maybeIndex = path.charAt(0) === '-' ? maybeIndex - 1 : maybeIndex;
+        }
+        dirs.splice(0, dirs.length, ...dirs.slice(maybeIndex).concat(dirs.slice(0, maybeIndex)));
+    } else {
+        dirs.unshift(path);
+    }
+
+    const _path = path.resolve(dirs.shift()!);
+
     try {
-        if (!fs.existsSync(path)) {
-            throw new Error(`Not found path: ${path}`);
+        cd(_path);
+    } catch (error) {
+        if (!fs.existsSync(_path)) {
+            throw new Error(`Failed pushd: no such file or directory: ${_path}`);
         }
 
-        const currentDir = process.cwd();
-        _dirStack.push(currentDir);
-        process.chdir(path);
-    } catch (error) {
-        debug('pushd failed');
-        var errMsg = loc('LIB_OperationFailed', 'pushd', error);
-        debug(errMsg);
-        throw new Error(errMsg);
+        throw error;
     }
+    dirStack.splice(0, dirStack.length, ...dirs);
+    return getActualStack();
 }
 
 /**
@@ -823,21 +862,28 @@ export function pushd(path: string): void {
  *
  * @returns   void
  */
-export function popd(): void {
-    try {
-        const previousDir = _dirStack.pop();
-
-        if (previousDir === undefined) {
-            throw new Error('popd failed. Directory stack is empty');
-        }
-
-        process.chdir(previousDir);
-    } catch (error) {
-        debug('popd failed');
-        var errMsg = loc('LIB_OperationFailed', 'popd', error);
-        debug(errMsg);
-        throw new Error(errMsg);
+export function popd(path: string = ''): string[] {
+    if (dirStack.length === 0) {
+        throw new Error(`Failed popd: directory stack empty`);
     }
+
+    let maybeIndex = parseInt(path);
+
+    if (isNaN(maybeIndex)) {
+        maybeIndex = 0;
+    } else if (maybeIndex < dirStack.length + 1) {
+        maybeIndex = path.charAt(0) === '-' ? maybeIndex - 1 : maybeIndex;
+    }
+
+    if (maybeIndex > 0 || dirStack.length + maybeIndex === 0) {
+        maybeIndex = maybeIndex > 0 ? maybeIndex - 1 : maybeIndex;
+        dirStack.splice(maybeIndex, 1);
+    } else {
+        const _path = path.resolve(dirStack.shift()!);
+        cd(_path);
+    }
+    
+    return getActualStack();
 }
 
 /**
