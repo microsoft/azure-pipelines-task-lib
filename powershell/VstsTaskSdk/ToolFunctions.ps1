@@ -202,13 +202,9 @@ function Invoke-Process {
             $processOptions.Add("RedirectStandardError", $StdErrPath)
         }
 
-        # TODO: For some reason, -Wait is not working on agent.
-        # Agent starts executing the System usage metrics and hangs the step forever.
+        # We can't use -Wait in this case as it waits for the whole process tree, it can lead to unexprected hangs
         $proc = Start-Process @processOptions
-
-        # https://stackoverflow.com/a/23797762
-        $null = $($proc.Handle)
-        $proc.WaitForExit()
+        Wait-Process -InputObject $proc
 
         $procExitCode = $proc.ExitCode
         Write-Verbose "Exit code: $procExitCode"
