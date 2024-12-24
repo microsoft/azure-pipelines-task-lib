@@ -1,5 +1,4 @@
 import Q = require('q');
-import shell = require('shelljs');
 import childProcess = require('child_process');
 import fs = require('fs');
 import path = require('path');
@@ -681,24 +680,6 @@ export const debug = im._debug;
 //-----------------------------------------------------
 // Disk Functions
 //-----------------------------------------------------
-function _checkShell(cmd: string, continueOnError?: boolean) {
-    var se = shell.error();
-
-    if (se) {
-        debug(cmd + ' failed');
-        var errMsg = loc('LIB_OperationFailed', cmd, se);
-        debug(errMsg);
-
-        if (!continueOnError) {
-            throw new Error(errMsg);
-        }
-    }
-}
-
-export interface FsStats extends fs.Stats {
-
-}
-
 /**
  * Get's stat on a path.
  * Useful for checking whether a file or directory.  Also getting created, modified and accessed time.
@@ -707,7 +688,7 @@ export interface FsStats extends fs.Stats {
  * @param     path      path to check
  * @returns   fsStat
  */
-export function stats(path: string): FsStats {
+export function stats(path: string): fs.Stats {
     return fs.statSync(path);
 }
 
@@ -800,31 +781,112 @@ export const checkPath = im._checkPath;
  * @returns   void
  */
 export function cd(path: string): void {
-    if (path) {
-        shell.cd(path);
-        _checkShell('cd');
+    if (path === '-') {
+        if (!process.env.OLDPWD) {
+            throw new Error(`Failed cd: could not find previous directory`);
+        } else {
+            path = process.env.OLDPWD;
+        }
     }
+
+    if (path === '~') {
+        path = os.homedir();
+    }
+
+    if (!fs.existsSync(path)) {
+        throw new Error(`Failed cd: no such file or directory: ${path}`)
+    }
+
+    if (!fs.statSync(path).isDirectory()) {
+        throw new Error(`Failed cd: not a directory: ${path}`);
+    }
+
+    try {
+        const currentPath = process.cwd();
+        process.chdir(path);
+        process.env.OLDPWD = currentPath;
+    } catch (error) {
+        debug(loc('LIB_OperationFailed', 'cd', error));
+    }
+}
+
+const dirStack: string[] = [];
+
+function getActualStack() {
+    return [process.cwd()].concat(dirStack);
 }
 
 /**
  * Change working directory and push it on the stack
  *
- * @param     path      new working directory path
+ * @param     dir      new working directory path
  * @returns   void
  */
-export function pushd(path: string): void {
-    shell.pushd(path);
-    _checkShell('pushd');
+export function pushd(dir: string = ''): string[] {
+    const dirs = getActualStack();
+
+    let maybeIndex = parseInt(dir);
+
+    if (dir === '+0') {
+        return dirs;
+    } else if (dir.length === 0) {
+        if (dirs.length > 1) {
+            dirs.splice(0, 0, ...dirs.splice(1, 1));
+        } else {
+            throw new Error(`Failed pushd: no other directory`);
+        }
+    } else if (!isNaN(maybeIndex)) {
+        if (maybeIndex < dirStack.length + 1) {
+            maybeIndex = dir.charAt(0) === '-' ? maybeIndex - 1 : maybeIndex;
+        }
+        dirs.splice(0, dirs.length, ...dirs.slice(maybeIndex).concat(dirs.slice(0, maybeIndex)));
+    } else {
+        dirs.unshift(dir);
+    }
+
+    const _path = path.resolve(dirs.shift()!);
+
+    try {
+        cd(_path);
+    } catch (error) {
+        if (!fs.existsSync(_path)) {
+            throw new Error(`Failed pushd: no such file or directory: ${_path}`);
+        }
+
+        throw error;
+    }
+    dirStack.splice(0, dirStack.length, ...dirs);
+    return getActualStack();
 }
 
 /**
  * Change working directory back to previously pushed directory
  *
+ * @param     index      index to remove from the stack
  * @returns   void
  */
-export function popd(): void {
-    shell.popd();
-    _checkShell('popd');
+export function popd(index: string = ''): string[] {
+    if (dirStack.length === 0) {
+        throw new Error(`Failed popd: directory stack empty`);
+    }
+
+    let maybeIndex = parseInt(index);
+
+    if (isNaN(maybeIndex)) {
+        maybeIndex = 0;
+    } else if (maybeIndex < dirStack.length + 1) {
+        maybeIndex = index.charAt(0) === '-' ? maybeIndex - 1 : maybeIndex;
+    }
+
+    if (maybeIndex > 0 || dirStack.length + maybeIndex === 0) {
+        maybeIndex = maybeIndex > 0 ? maybeIndex - 1 : maybeIndex;
+        dirStack.splice(maybeIndex, 1);
+    } else {
+        const _path = path.resolve(dirStack.shift()!);
+        cd(_path);
+    }
+    
+    return getActualStack();
 }
 
 /**
@@ -917,49 +979,158 @@ export const which = im._which;
  * @param  {string[]} paths    Paths to search.
  * @return {string[]}          An array of files in the given path(s).
  */
-export function ls(options: string, paths: string[]): string[] {
-    if (options) {
-        return shell.ls(options, paths);
-    } else {
-        return shell.ls(paths);
+export function ls(optionsOrPaths?: string | string[], ...paths: string[]): string[] {
+    try {
+        let isRecursive = false;
+        let includeHidden = false;
+        let handleAsOptions = false;
+
+        if (typeof optionsOrPaths == 'string' && optionsOrPaths.includes('-')) {
+            isRecursive = optionsOrPaths.includes('R');
+            includeHidden = optionsOrPaths.includes('A');
+            handleAsOptions = isRecursive || includeHidden;
+        }
+
+        if (paths === undefined || paths.length === 0) {
+            if (Array.isArray(optionsOrPaths)) {
+                paths = optionsOrPaths as string[];
+            } else if (optionsOrPaths && !handleAsOptions) {
+                paths = [optionsOrPaths];
+            } else {
+                paths = [];
+            }
+        }
+
+        if (paths.length === 0) {
+            paths.push(path.resolve('.'));
+        }
+
+        const preparedPaths: string[] = [];
+
+        while (paths.length > 0) {
+            const pathEntry = resolve(paths.shift());
+
+            if (pathEntry?.includes('*')) {
+                paths.push(...findMatch(path.dirname(pathEntry), [path.basename(pathEntry)]));
+                continue;
+            }
+
+            if (fs.lstatSync(pathEntry).isDirectory()) {
+                preparedPaths.push(...fs.readdirSync(pathEntry).map(file => path.join(pathEntry, file)));
+            } else {
+                preparedPaths.push(pathEntry);
+            }
+        }
+
+        const entries: string[] = [];
+
+        while (preparedPaths.length > 0) {
+            const entry = preparedPaths.shift()!;
+            const entrybasename = path.basename(entry);
+
+            if (entry?.includes('*')) {
+                preparedPaths.push(...findMatch(path.dirname(entry), [entrybasename]));
+                continue;
+            }
+
+            if (!includeHidden && entrybasename.startsWith('.') && entrybasename !== '.' && entrybasename !== '..') {
+                continue;
+            }
+
+            if (fs.lstatSync(entry).isDirectory() && isRecursive) {
+                preparedPaths.push(...fs.readdirSync(entry).map(x => path.join(entry, x)));
+            } else {
+                entries.push(entry);
+            }
+        }
+
+        return entries;
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            throw new Error(`Failed ls: ${error}`);
+        } else {
+            throw new Error(loc('LIB_OperationFailed', 'ls', error));
+        }
+    }
+}
+
+function retryer(func: Function, retryCount: number = 0, continueOnError: boolean = false) {
+    while (retryCount >= 0) {
+        try {
+            return func();
+        } catch (error) {
+            if (!continueOnError || error.code === "ENOENT") {
+                throw error;
+            }
+
+            console.log(loc('LIB_CopyFileFailed', retryCount));
+            retryCount--;
+
+            if (retryCount < 0) {
+                warning(error, IssueSource.TaskInternal);
+                break;
+            }
+        }
     }
 }
 
 /**
  * Copies a file or folder.
  *
- * @param     source     source path
- * @param     dest       destination path
- * @param     options    string -r, -f or -rf for recursive and force
- * @param     continueOnError optional. whether to continue on error
- * @param     retryCount optional. Retry count to copy the file. It might help to resolve intermittent issues e.g. with UNC target paths on a remote host.
+ * @param {string} sourceOrOptions - Either the source path or an option string '-r', '-f' or '-rf' for recursive and force.
+ * @param {string} destinationOrSource - The destination path or the source path.
+ * @param {string} [optionsOrDestination] - Options string or the destination path.
+ * @param {boolean} [continueOnError] - Optional. whether to continue on error.
+ * @param {number} [retryCount=0] - Optional. Retry count to copy the file. It might help to resolve intermittent issues e.g. with UNC target paths on a remote host.
  */
-export function cp(source: string, dest: string, options?: string, continueOnError?: boolean, retryCount: number = 0): void {
-    while (retryCount >= 0) {
-        try {
-            if (options) {
-                shell.cp(options, source, dest);
-            }
-            else {
-                shell.cp(source, dest);
-            }
+export function cp(sourceOrOptions: string, destinationOrSource: string, optionsOrDestination?: string, continueOnError?: boolean, retryCount: number = 0): void {
+    retryer(() => {
+        const isOptions = sourceOrOptions.startsWith('-') && sourceOrOptions.length > 1;
+        let recursive = false;
+        let force = true;
+        let source = sourceOrOptions;
+        let destination = destinationOrSource;
 
-            _checkShell('cp', false);
-            break;
-        } catch (e) {
-            if (retryCount <= 0) {
-                if (continueOnError) {
-                    warning(e, IssueSource.TaskInternal);
-                    break;
+        if (isOptions) {
+            sourceOrOptions = sourceOrOptions.toLowerCase();
+            recursive = sourceOrOptions.includes('r');
+            force = !sourceOrOptions.includes('n');
+            source = destinationOrSource;
+            destination = optionsOrDestination!;
+        }
+
+        if (!fs.existsSync(destination) && !force) {
+            throw new Error(`ENOENT: no such file or directory: ${destination}`);
+        }
+
+        const lstatSource = fs.lstatSync(source);
+
+        if (!force && fs.existsSync(destination)) {
+            return;
+        }
+
+        try {
+            if (lstatSource.isFile()) {
+                if (fs.existsSync(destination) && fs.lstatSync(destination).isDirectory()) {
+                    destination = path.join(destination, path.basename(source));
+                }
+
+                if (force) {
+                    fs.copyFileSync(source, destination);
                 } else {
-                    throw e;
+                    fs.copyFileSync(source, destination, fs.constants.COPYFILE_EXCL);
                 }
             } else {
-                console.log(loc('LIB_CopyFileFailed', retryCount));
-                retryCount--;
+                fs.cpSync(source, path.join(destination, path.basename(source)), { recursive, force });
+            }
+        } catch (error) {
+            if (error.code === 'ENOENT') {
+                throw new Error(error);
+            } else {
+                throw new Error(loc('LIB_OperationFailed', 'cp', error));
             }
         }
-    }
+    }, retryCount, continueOnError);
 }
 
 /**
@@ -971,14 +1142,24 @@ export function cp(source: string, dest: string, options?: string, continueOnErr
  * @param     continueOnError optional. whether to continue on error
  */
 export function mv(source: string, dest: string, options?: string, continueOnError?: boolean): void {
-    if (options) {
-        shell.mv(options, source, dest);
-    }
-    else {
-        shell.mv(source, dest);
-    }
+    try {
+        const isForce = !options?.toLowerCase()?.includes('-n') && options?.toLowerCase()?.includes('-f');
+        const destExists = fs.existsSync(dest);
 
-    _checkShell('mv', continueOnError);
+        if (!fs.existsSync(source)) {
+            throw new Error(loc('LIB_PathNotFound', source));
+        }
+
+        if (destExists && !isForce) {
+            throw new Error(loc('LIB_PathNotFound', dest));
+        }
+
+        fs.renameSync(source, dest);
+    } catch (error) {
+        debug('mv failed');
+        var errMsg = loc('LIB_OperationFailed', 'mv', error);
+        debug(errMsg);
+    }
 }
 
 /**
@@ -1441,8 +1622,7 @@ export function rmRF(inputPath: string): void {
                 debug('removing file ' + inputPath);
                 childProcess.execFileSync("cmd.exe", ["/c", "del", "/f", "/a", inputPath]);
             }
-        }
-        catch (err) {
+        } catch (err) {
             // if you try to delete a file that doesn't exist, desired result is achieved
             // other errors are valid
             if (err.code != 'ENOENT') {
@@ -1453,23 +1633,31 @@ export function rmRF(inputPath: string): void {
         // Shelling out fails to remove a symlink folder with missing source, this unlink catches that
         try {
             fs.unlinkSync(inputPath);
-        }
-        catch (err) {
+        } catch (err) {
             // if you try to delete a file that doesn't exist, desired result is achieved
             // other errors are valid
             if (err.code != 'ENOENT') {
                 throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
             }
         }
-    }
-    else {
+    } else {
         // get the lstats in order to workaround a bug in shelljs@0.3.0 where symlinks
         // with missing targets are not handled correctly by "rm('-rf', path)"
         let lstats: fs.Stats;
+
         try {
-            lstats = fs.lstatSync(inputPath);
-        }
-        catch (err) {
+            if (inputPath.includes('*')) {
+                const entries = findMatch(path.dirname(inputPath), [path.basename(inputPath)]);
+
+                for (const entry of entries) {
+                    fs.rmSync(entry, { recursive: true, force: true });
+                }
+
+                return;
+            } else {
+                lstats = fs.lstatSync(inputPath);
+            }
+        } catch (err) {
             // if you try to delete a file that doesn't exist, desired result is achieved
             // other errors are valid
             if (err.code == 'ENOENT') {
@@ -1481,9 +1669,9 @@ export function rmRF(inputPath: string): void {
 
         if (lstats.isDirectory()) {
             debug('removing directory');
-            shell.rm('-rf', inputPath);
-            let errMsg: string = shell.error();
-            if (errMsg) {
+            try {
+                fs.rmSync(inputPath, { recursive: true, force: true });
+            } catch (errMsg) {
                 throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
             }
 
@@ -1492,7 +1680,11 @@ export function rmRF(inputPath: string): void {
 
         debug('removing file');
         try {
-            fs.unlinkSync(inputPath);
+            const entries = findMatch(path.dirname(inputPath), [path.basename(inputPath)]);
+
+            for (const entry of entries) {
+                fs.rmSync(entry, { recursive: true, force: true });
+            }
         }
         catch (err) {
             throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
@@ -1794,7 +1986,6 @@ function _getDefaultMatchOptions(): MatchOptions {
  * @param  matchOptions  defaults to { dot: true, nobrace: true, nocase: process.platform == 'win32' }
  */
 export function findMatch(defaultRoot: string, patterns: string[] | string, findOptions?: FindOptions, matchOptions?: MatchOptions): string[] {
-
     // apply defaults for parameters and trace
     defaultRoot = defaultRoot || this.getVariable('system.defaultWorkingDirectory') || process.cwd();
     debug(`defaultRoot: '${defaultRoot}'`);
