@@ -70,7 +70,7 @@ describe('cd cases', () => {
     assert.equal(process.cwd(), TEMP_DIR_2_SUBDIR_1);
 
     tl.cd(TEMP_DIR_2_SUBDIR_1_SYMLINK_DIR_1);
-    assert.equal(process.cwd(), TEMP_DIR_2_SUBDIR_1_SYMLINK_DIR_1);
+    assert.equal(fs.realpathSync('.'), TEMP_DIR_1);
 
     assert.equal(process.env.OLDPWD, TEMP_DIR_2_SUBDIR_1);
 
@@ -92,7 +92,7 @@ describe('cd cases', () => {
   it('Provide path that is a dir symlink', (done) => {
     assert.ok(fs.existsSync(TEMP_DIR_2_SUBDIR_1_SYMLINK_DIR_1));
     assert.doesNotThrow(() => tl.cd(TEMP_DIR_2_SUBDIR_1_SYMLINK_DIR_1));
-    assert.equal(process.cwd(), TEMP_DIR_2_SUBDIR_1_SYMLINK_DIR_1);
+    assert.equal(fs.realpathSync('.'), TEMP_DIR_1);
     done();
   });
 
