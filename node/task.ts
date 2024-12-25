@@ -1100,8 +1100,8 @@ function retryer(func: Function, retryCount: number = 0, continueOnError: boolea
  * @param {boolean} [continueOnError] - Optional. whether to continue on error.
  * @param {number} [retryCount=0] - Optional. Retry count to copy the file. It might help to resolve intermittent issues e.g. with UNC target paths on a remote host.
  */
-export function cp(source: string, destination: string, options?: string, continueOnError?: boolean, retryCount: number = 0): void;
-export function cp(options: string, source: string, destination: string, continueOnError?: boolean, retryCount: number = 0): void;
+export function cp(source: string, destination: string, options?: string, continueOnError?: boolean, retryCount?: number): void;
+export function cp(options: string, source: string, destination: string, continueOnError?: boolean, retryCount?: number): void;
 
 export function cp(sourceOrOptions: string, destinationOrSource: string, optionsOrDestination: string, continueOnError?: boolean, retryCount: number = 0): void {
     retryer(() => {
