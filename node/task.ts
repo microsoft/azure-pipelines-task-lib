@@ -783,7 +783,7 @@ export const checkPath = im._checkPath;
 export function cd(path: string): void {
     if (path === '-') {
         if (!process.env.OLDPWD) {
-            throw new Error(`Failed cd: could not find previous directory`);
+            throw new Error(loc('LIB_NotFoundPreviousDirectory'));
         } else {
             path = process.env.OLDPWD;
         }
@@ -794,11 +794,11 @@ export function cd(path: string): void {
     }
 
     if (!fs.existsSync(path)) {
-        throw new Error(`Failed cd: no such file or directory: ${path}`)
+        throw new Error(loc('LIB_PathNotFound', 'cd', path));
     }
 
     if (!fs.statSync(path).isDirectory()) {
-        throw new Error(`Failed cd: not a directory: ${path}`);
+        throw new Error(loc('LIB_PathIsNotADirectory', path));
     }
 
     try {
