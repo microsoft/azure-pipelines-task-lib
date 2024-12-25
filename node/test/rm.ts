@@ -10,7 +10,7 @@ const DIRNAME = __dirname;
 import * as testutil from './testutil';
 
 describe('rm cases', () => {
-  const TEMP_DIR = fs.mkdtempSync(DIRNAME + '/');
+  const TEMP_DIR = fs.mkdtempSync(DIRNAME + path.sep);
   const TEMP_NESTED_DIR_LEVEL_1 = path.join(TEMP_DIR, 'a');
   const TEMP_NESTED_DIR_FULL_TREE = path.join(TEMP_NESTED_DIR_LEVEL_1, 'b', 'c');
   const TEMP_FILE_1 = path.join(TEMP_DIR, 'file1');
@@ -23,11 +23,14 @@ describe('rm cases', () => {
     }
 
     fs.writeFileSync(TEMP_FILE_1, 'test');
+
     done();
   });
 
   after((done) => {
-    fs.rmSync(TEMP_DIR, { recursive: true });
+    tl.cd(DIRNAME)
+    tl.rmRF(TEMP_DIR);
+
     done();
   });
 
@@ -35,6 +38,7 @@ describe('rm cases', () => {
     // @ts-ignore
     assert.throws(() => tl.rmRF(), { message: 'Failed rmRF: The "path" argument must be of type string or an instance of Buffer or URL. Received undefined' });
     assert.doesNotThrow(() => tl.rmRF('somefolderpaththatdoesnotexist'));
+
     done();
   });
 
@@ -42,22 +46,27 @@ describe('rm cases', () => {
     assert.ok(fs.existsSync(TEMP_FILE_1));
     assert.doesNotThrow(() => tl.rmRF(TEMP_FILE_1));
     assert.ok(!fs.existsSync(TEMP_FILE_1));
+
     done();
   });
 
   it('Remove subdirectory recursive at TEMP_NESTED_DIR_LEVEL_1', (done) => {
     tl.mkdirP(TEMP_NESTED_DIR_FULL_TREE);
+
     assert.ok(fs.existsSync(TEMP_NESTED_DIR_FULL_TREE));
     assert.doesNotThrow(() => tl.rmRF(TEMP_NESTED_DIR_LEVEL_1));
     assert.ok(!fs.existsSync(TEMP_NESTED_DIR_LEVEL_1));
+
     done();
   });
 
   it('Remove subdirectory recursive at TEMP_NESTED_DIR_LEVEL_1 with absolute path', (done) => {
     tl.mkdirP(TEMP_NESTED_DIR_FULL_TREE);
+
     assert.ok(fs.existsSync(TEMP_NESTED_DIR_FULL_TREE));
     assert.doesNotThrow(() => tl.rmRF(path.resolve(`./${TEMP_NESTED_DIR_LEVEL_1}`)));
     assert.ok(!fs.existsSync(`./${TEMP_NESTED_DIR_LEVEL_1}`));
+
     done();
   });
 
@@ -66,9 +75,11 @@ describe('rm cases', () => {
     tl.mkdirP(READONLY_DIR);
     fs.writeFileSync(path.join(READONLY_DIR, 'file'), 'test');
     fs.chmodSync(path.join(READONLY_DIR, 'file'), '0444');
+
     assert.doesNotThrow(() => tl.rmRF(path.join(READONLY_DIR, 'file')));
     assert.ok(!fs.existsSync(path.join(READONLY_DIR, 'file')));
     assert.doesNotThrow(() => tl.rmRF(READONLY_DIR));
+
     done();
   });
 
@@ -77,8 +88,10 @@ describe('rm cases', () => {
     fs.writeFileSync(path.join(TEMP_DIR, 'tree', 'file1'), 'test');
     fs.writeFileSync(path.join(TEMP_DIR, 'tree', 'file2'), 'test');
     fs.chmodSync(path.join(TEMP_DIR, 'tree', 'file1'), '0444');
+
     assert.doesNotThrow(() => tl.rmRF(path.join(TEMP_DIR, 'tree')));
     assert.ok(!fs.existsSync(path.join(TEMP_DIR, 'tree')));
+
     done();
   });
   
@@ -92,26 +105,33 @@ describe('rm cases', () => {
     fs.chmodSync(path.join(TEMP_TREE4_DIR, 'file'), '0444');
     fs.chmodSync(path.join(TEMP_TREE4_DIR, 'subtree', 'file'), '0444');
     fs.chmodSync(path.join(TEMP_TREE4_DIR, '.hidden', 'file'), '0444');
+
     assert.doesNotThrow(() => tl.rmRF(path.join(TEMP_DIR, 'tree4')));
     assert.ok(!fs.existsSync(path.join(TEMP_DIR, 'tree4')));
+
     done();
   });
   
   it('Removing symbolic link to a directory', (done) => {
     fs.mkdirSync(path.join(TEMP_DIR, 'rm', 'a_dir'), { recursive: true });
     fs.symlinkSync(path.join(TEMP_DIR, 'rm', 'a_dir'), path.join(TEMP_DIR, 'rm', 'link_to_a_dir'), 'dir');
+
     assert.doesNotThrow(() => tl.rmRF(path.join(TEMP_DIR, 'rm', 'link_to_a_dir')));
     assert.ok(!fs.existsSync(path.join(TEMP_DIR, 'rm', 'link_to_a_dir')));
     assert.ok(fs.existsSync(path.join(TEMP_DIR, 'rm', 'a_dir')));
-    fs.rmSync(path.join(TEMP_DIR, 'rm'), { recursive: true });
+
+    tl.rmRF(path.join(TEMP_DIR, 'rm'));
+
     done();
   });
 
   it('Remove path with relative non-normalized structure', (done) => {
     tl.mkdirP(TEMP_NESTED_DIR_FULL_TREE);
+
     assert.ok(fs.existsSync(TEMP_NESTED_DIR_FULL_TREE));
     assert.doesNotThrow(() => tl.rmRF(path.join(TEMP_DIR, 'a', '..', './a')));
     assert.ok(!fs.existsSync(path.join(TEMP_DIR, 'a')));
+
     done();
   });
 });

@@ -16,8 +16,10 @@ describe('cd cases', () => {
   const TEMP_FILE_1 = path.resolve(TEMP_DIR_1, 'file1');
 
   before((done) => {
-    fs.mkdirSync(TEMP_DIR_1);
-    fs.mkdirSync(TEMP_DIR_2);
+    process.chdir(DIRNAME);
+    TEMP_DIR_PATH = fs.mkdtempSync('temp_test_');
+    tl.mkdirP(TEMP_DIR_1);
+    tl.mkdirP(TEMP_DIR_2);
     fs.writeFileSync(TEMP_FILE_1, 'file1');
 
     try {
@@ -29,75 +31,71 @@ describe('cd cases', () => {
     done();
   });
 
-  beforeEach((done) => {
-    TEMP_DIR_PATH = fs.mkdtempSync('temp_test_');
-    process.chdir(DIRNAME);
-
-    if (!fs.existsSync(TEMP_DIR_PATH)) {
-      fs.mkdirSync(TEMP_DIR_PATH);
-    }
-
-    done();
-  });
-
-  afterEach((done) => {
-    process.chdir(DIRNAME);
-    if (fs.existsSync(TEMP_DIR_PATH)) {
-      fs.rmdirSync(TEMP_DIR_PATH, { recursive: true });
-    }
-
-    done();
-  });
-
   after((done) => {
-    fs.rmdirSync(TEMP_DIR_1, { recursive: true });
-    fs.rmdirSync(TEMP_DIR_2, { recursive: true });
+    tl.cd(DIRNAME);
+    tl.rmRF(TEMP_DIR_1);
+    tl.rmRF(TEMP_DIR_2);
+    tl.rmRF(TEMP_DIR_PATH);
+
     done();
   });
 
   it('Check change directory for a folder that does not exist', (done) => {
     assert.ok(!fs.existsSync('/thisfolderdoesnotexist'));
     assert.throws(() => tl.cd('/thisfolderdoesnotexist'), { message: "Failed cd: no such file or directory: /thisfolderdoesnotexist" });
+
     done();
   });
 
   it('Change directory to a file path', (done) => {
     const filePath = path.resolve(DIRNAME, 'scripts', 'match-input-exe.cs');
+
     assert.ok(fs.existsSync(filePath));
     assert.throws(() => tl.cd(filePath), { message: `Failed cd: not a directory: ${filePath}` });
+
     done();
   });
 
   it('There is no previous directory', (done) => {
     assert.throws(() => tl.cd('-'), { message: 'Failed cd: could not find previous directory' });
+
     done();
   });
 
   it('Change direcotry to a relative path', (done) => {
     tl.cd(TEMP_DIR_PATH);
+
     assert.equal(path.basename(TEMP_DIR_PATH), TEMP_DIR_PATH);
+
     done();
   });
 
   it('Change directory to an absolute path', (done) => {
     tl.cd('/');
+
     assert.equal(process.cwd(), path.resolve('/'));
+
     done();
   });
 
   it('Change directory to a previous directory -', (done) => {
     tl.cd('/');
     tl.cd('-');
+
     assert.ok(process.cwd(), path.resolve(DIRNAME));
+
     done();
   });
 
   it('Change directory with cp', (done) => {
     assert.ok(!fs.existsSync(path.resolve(TEMP_DIR_PATH, "file1")));
+
     tl.cd(TEMP_DIR_1);
     tl.cp(TEMP_FILE_1, path.resolve("..", TEMP_DIR_PATH));
     tl.cd(path.resolve("..", TEMP_DIR_PATH));
+
     assert.ok(fs.existsSync('file1'));
+
     done();
   });
 
@@ -108,6 +106,7 @@ describe('cd cases', () => {
     assert.notEqual(process.cwd(), os.homedir());
     tl.cd('~');
     assert.equal(process.cwd(), os.homedir());
+
     done();
   });
 });

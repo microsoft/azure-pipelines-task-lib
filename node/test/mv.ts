@@ -9,7 +9,7 @@ const DIRNAME = __dirname;
 import * as testutil from './testutil';
 
 describe('mv cases', () => {
-  const TEMP_DIR = fs.mkdtempSync(DIRNAME + '/');
+  const TEMP_DIR = fs.mkdtempSync(DIRNAME + path.sep);
   let TEMP_FILE_1: string;
   let TEMP_FILE_1_JS: string;
   let TEMP_FILE_2: string;
@@ -40,55 +40,91 @@ describe('mv cases', () => {
   });
 
   after((done) => {
-    fs.rmSync(TEMP_DIR, { recursive: true });
-    done();
-  });
+    tl.cd(DIRNAME);
+    tl.rmRF(TEMP_DIR);
 
-  it('Provide invalid arguments', (done) => {
-    // @ts-ignore
-    assert.doesNotThrow(() => tl.mv());
-    // @ts-ignore
-    assert.doesNotThrow(() => tl.mv('file1'));
-    // @ts-ignore
-    assert.doesNotThrow(() => tl.mv('-f'));
     done();
   });
 
   it('Provide an unsupported option argument', (done) => {
     assert.ok(fs.existsSync('file1'));
-    assert.doesNotThrow(() => tl.mv('file1', 'file1', '-Z'));
+    assert.doesNotThrow(() => tl.mv('file1', 'file1', '-Z', true));
     assert.ok(fs.existsSync('file1'));
+
     done();
   });
 
   it('Provide a source that does not exist', (done) => {
-    assert.doesNotThrow(() => tl.mv('pathdoesntexist1', '..'));
-    assert.ok(!fs.existsSync('../pathdoesntexist2'));
+    assert.throws(() => tl.mv('pathdoesnotexist1', '..'), { message: /Failed mv: Error: Not found mv: pathdoesnotexist1/ });
+    assert.ok(!fs.existsSync('../pathdoesnotexist2'));
+
     done();
   });
 
-  it('Provide a source that does not exist', (done) => {
-    assert.doesNotThrow(() => tl.mv('pathdoesntexist1', 'pathdoesntexist2', '..'));
-    assert.ok(!fs.existsSync('../pathdoesntexist1'));
-    assert.ok(!fs.existsSync('../pathdoesntexist2'));
+  it('Provide a source that does not exist, continue on error', (done) => {
+    assert.doesNotThrow(() => tl.mv('pathdoesnotexist1', '..', '', true));
+    assert.ok(!fs.existsSync('../pathdoesnotexist2'));
+
+    done();
+  });
+
+  it('Provide a source that does not exist 2', (done) => {
+    assert.throws(() => tl.mv('pathdoesnotexist1', 'pathdoesnotexist2'), { message: /Failed mv: Error: Not found mv: pathdoesnotexist1/ });
+    assert.ok(!fs.existsSync('../pathdoesnotexist1'));
+    assert.ok(!fs.existsSync('../pathdoesnotexist2'));
+
+    done();
+  });
+
+  it('Provide a source that does not exist, continue on error', (done) => {
+    assert.doesNotThrow(() => tl.mv('pathdoesnotexist1', 'pathdoesnotexist2', '', true));
+    assert.ok(!fs.existsSync('../pathdoesnotexist1'));
+    assert.ok(!fs.existsSync('../pathdoesnotexist2'));
+
     done();
   });
 
   it('Provide a destination that already exist', (done) => {
     assert.ok(fs.existsSync('file1'));
     assert.ok(fs.existsSync('file2'));
-    assert.doesNotThrow(() => tl.mv('file1', 'file2'));
+
+    assert.throws(() => tl.mv('file1', 'file2'), { message: /Failed mv: Error: File already exists at file2/ });
+
     assert.ok(fs.existsSync('file1'));
     assert.ok(fs.existsSync('file2'));
+
     done();
   });
 
   it('Provide a wildcard when dest is file', (done) => {
-    assert.doesNotThrow(() => tl.mv('file*', 'file1'));
+    assert.throws(() => tl.mv('file*', 'file1'), { message: /Failed mv: Error: File already exists at file1/ });
     assert.ok(fs.existsSync('file1'));
     assert.ok(fs.existsSync('file2'));
     assert.ok(fs.existsSync('file1.js'));
     assert.ok(fs.existsSync('file2.js'));
+
+    done();
+  });
+
+  it('Provide a destination that already exist, continue on error', (done) => {
+    assert.ok(fs.existsSync('file1'));
+    assert.ok(fs.existsSync('file2'));
+
+    assert.doesNotThrow(() => tl.mv('file1', 'file2', '', true));
+
+    assert.ok(fs.existsSync('file1'));
+    assert.ok(fs.existsSync('file2'));
+
+    done();
+  });
+
+  it('Provide a wildcard when dest is file, continue on error', (done) => {
+    assert.doesNotThrow(() => tl.mv('file*', 'file1', '', true));
+    assert.ok(fs.existsSync('file1'));
+    assert.ok(fs.existsSync('file2'));
+    assert.ok(fs.existsSync('file1.js'));
+    assert.ok(fs.existsSync('file2.js'));
+
     done();
   });
 
@@ -99,6 +135,7 @@ describe('mv cases', () => {
     assert.ok(fs.existsSync('file3'));
     tl.mv('file3', 'file1');
     assert.ok(fs.existsSync('file1'));
+
     done();
   });
 
@@ -107,6 +144,7 @@ describe('mv cases', () => {
     assert.doesNotThrow(() => tl.mv('file1', 'file2', '-f'));
     assert.ok(!fs.existsSync('file1'));
     assert.ok(fs.existsSync('file2'));
+
     done();
   });
 });

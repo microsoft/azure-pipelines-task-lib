@@ -980,17 +980,15 @@ export const which = im._which;
  * @return {string[]}          An array of files in the given path(s).
  */
 export function ls(optionsOrPaths?: string | string[], ...paths: string[]): string[] {
-    try {
-        let isRecursive = false;
-        let includeHidden = false;
-        let handleAsOptions = false;
+    let isRecursive = false;
+    let includeHidden = false;
+    let handleAsOptions = false;
 
-        if (typeof optionsOrPaths == 'string' && optionsOrPaths.includes('-')) {
-            isRecursive = optionsOrPaths.includes('R');
-            includeHidden = optionsOrPaths.includes('A');
-            handleAsOptions = isRecursive || includeHidden;
-        }
-
+    if (typeof optionsOrPaths == 'string' && optionsOrPaths.startsWith('-')) {
+        optionsOrPaths = optionsOrPaths.toLowerCase();
+        isRecursive = optionsOrPaths.includes('r');
+        includeHidden = optionsOrPaths.includes('a');
+    } else {
         if (paths === undefined || paths.length === 0) {
             if (Array.isArray(optionsOrPaths)) {
                 paths = optionsOrPaths as string[];
@@ -1000,13 +998,15 @@ export function ls(optionsOrPaths?: string | string[], ...paths: string[]): stri
                 paths = [];
             }
         }
+    }
 
-        if (paths.length === 0) {
-            paths.push(path.resolve('.'));
-        }
+    if (paths.length === 0) {
+        paths.push(path.resolve('.'));
+    }
 
-        const preparedPaths: string[] = [];
+    const preparedPaths: string[] = [];
 
+    try {
         while (paths.length > 0) {
             const pathEntry = resolve(paths.shift());
 
@@ -1085,18 +1085,24 @@ function retryer(func: Function, retryCount: number = 0, continueOnError: boolea
  */
 export function cp(sourceOrOptions: string, destinationOrSource: string, optionsOrDestination?: string, continueOnError?: boolean, retryCount: number = 0): void {
     retryer(() => {
-        const isOptions = sourceOrOptions.startsWith('-') && sourceOrOptions.length > 1;
         let recursive = false;
         let force = true;
         let source = sourceOrOptions;
         let destination = destinationOrSource;
+        let options = '';
 
-        if (isOptions) {
-            sourceOrOptions = sourceOrOptions.toLowerCase();
-            recursive = sourceOrOptions.includes('r');
-            force = !sourceOrOptions.includes('n');
+        if (sourceOrOptions.startsWith('-')) {
+            options = sourceOrOptions.toLowerCase();
+            recursive = options.includes('r');
+            force = !options.includes('n');
             source = destinationOrSource;
             destination = optionsOrDestination!;
+        } else if (optionsOrDestination && optionsOrDestination.startsWith('-')) {
+            options = optionsOrDestination.toLowerCase();
+            recursive = options.includes('r');
+            force = !options.includes('n');
+            source = sourceOrOptions;
+            destination = destinationOrSource;
         }
 
         if (!fs.existsSync(destination) && !force) {
@@ -1142,23 +1148,43 @@ export function cp(sourceOrOptions: string, destinationOrSource: string, options
  * @param     continueOnError optional. whether to continue on error
  */
 export function mv(source: string, dest: string, options?: string, continueOnError?: boolean): void {
+    let force = false;
+
+    if (options && options.startsWith('-')) {
+        options = options.toLowerCase();
+        force = options.includes('f') && !options.includes('n');
+    }
+
+    const sourceExists = fs.existsSync(source);
+    const destExists = fs.existsSync(dest);
+    let sources: string[] = [];
+
     try {
-        const isForce = !options?.toLowerCase()?.includes('-n') && options?.toLowerCase()?.includes('-f');
-        const destExists = fs.existsSync(dest);
-
-        if (!fs.existsSync(source)) {
-            throw new Error(loc('LIB_PathNotFound', source));
+        if (!sourceExists) {
+            if (source.includes('*')) {
+                sources.push(...findMatch(path.resolve(path.dirname(source)), [path.basename(source)]));
+            } else {
+                throw new Error(loc('LIB_PathNotFound', 'mv', source));
+            }
+        } else {
+            sources.push(source);
         }
 
-        if (destExists && !isForce) {
-            throw new Error(loc('LIB_PathNotFound', dest));
+        if (destExists && !force) {
+            throw new Error(`File already exists at ${dest}`);
         }
 
-        fs.renameSync(source, dest);
+        for (const source of sources) {
+            fs.renameSync(source, dest);
+        }
     } catch (error) {
         debug('mv failed');
         var errMsg = loc('LIB_OperationFailed', 'mv', error);
         debug(errMsg);
+
+        if (!continueOnError) {
+            throw new Error(errMsg);
+        }
     }
 }
 
