@@ -73,8 +73,7 @@ describe('ls cases', () => {
 
   it('Provide the folder which does not exist', (done) => {
     assert.ok(!fs.existsSync('/thisfolderdoesnotexist'));
-    assert.throws(() => tl.ls('/thisfolderdoesnotexist'), { message: /^Failed ls: Error: ENOENT: no such file or directory, lstat/ });
-
+    assert.throws(() => tl.ls('/thisfolderdoesnotexist'), { message: /^Not found ls: ENOENT: no such file or directory, lstat/ });
     done();
   });
 
@@ -266,8 +265,39 @@ describe('ls cases', () => {
     done();
   });
 
-  it('Empty attributes, but several paths', (done) => {
+  it('Empty attributes, but several paths as multiple arguments', (done) => {
     const result = tl.ls('', TEMP_SUBDIR_1, TEMP_FILE_1);
+
+    assert.ok(result.includes(TEMP_FILE_1));
+    assert.ok(result.includes(TEMP_SUBDIR_FILE_1));
+    assert.ok(result.includes(TEMP_SUBDIR_FILELINK_1));
+    assert.equal(result.length, 3);
+
+    done();
+  });
+
+  it('Empty attributes, but several paths in array', (done) => {
+    const result = tl.ls('', [TEMP_SUBDIR_1]);
+
+    assert.ok(result.includes(TEMP_SUBDIR_FILE_1));
+    assert.ok(result.includes(TEMP_SUBDIR_FILELINK_1));
+    assert.equal(result.length, 2);
+
+    done();
+  });
+
+  it('Empty attributes, but one path', (done) => {
+    const result = tl.ls('', TEMP_SUBDIR_1);
+
+    assert.ok(result.includes(TEMP_SUBDIR_FILE_1));
+    assert.ok(result.includes(TEMP_SUBDIR_FILELINK_1));
+    assert.equal(result.length, 2);
+
+    done();
+  });
+
+  it('Provide path as first argument and subdir as second argument', (done) => {
+    const result = tl.ls(TEMP_FILE_1, TEMP_SUBDIR_1);
 
     assert.ok(result.includes(TEMP_FILE_1));
     assert.ok(result.includes(TEMP_SUBDIR_FILE_1));

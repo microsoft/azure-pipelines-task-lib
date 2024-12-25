@@ -975,29 +975,45 @@ export function resolve(...pathSegments: any[]): string {
 export const which = im._which;
 
 /**
- * Returns array of files in the given path, or in current directory if no path provided.  See shelljs.ls
+ * Returns array of files in the given path, or in current directory if no path provided.
  * @param  {string}   options  Available options: -R (recursive), -A (all files, include files beginning with ., except for . and ..)
  * @param  {string[]} paths    Paths to search.
  * @return {string[]}          An array of files in the given path(s).
  */
-export function ls(optionsOrPaths?: string | string[], ...paths: string[]): string[] {
+export function ls(optionsOrPaths?: string | string[], ...paths: string[]): string[];
+export function ls(optionsOrPaths?: string | string[], paths?: string[]): string[];
+export function ls(optionsOrPaths?: string | string[], paths?: string): string[];
+
+export function ls(optionsOrPaths?: string | string[], ...paths: unknown[]): string[] {
     let isRecursive = false;
     let includeHidden = false;
     let handleAsOptions = false;
 
-    if (typeof optionsOrPaths == 'string' && optionsOrPaths.startsWith('-')) {
+    if (typeof optionsOrPaths === 'string' && optionsOrPaths.startsWith('-')) {
         optionsOrPaths = optionsOrPaths.toLowerCase();
         isRecursive = optionsOrPaths.includes('r');
         includeHidden = optionsOrPaths.includes('a');
-    } else {
+    }
+
+    // Flatten paths if the paths argument is array
+    if (Array.isArray(paths)) {
+        paths = paths.flat(Infinity);
+    }
+
+    // If the first argument is not options, then it is a path
+    if (typeof optionsOrPaths !== 'string' || !optionsOrPaths.startsWith('-')) {
+        let pathsFromOptions: string[] = [];
+
+        if (Array.isArray(optionsOrPaths)) {
+            pathsFromOptions = optionsOrPaths;
+        } else if (optionsOrPaths) {
+            pathsFromOptions = [optionsOrPaths];
+        }
+
         if (paths === undefined || paths.length === 0) {
-            if (Array.isArray(optionsOrPaths)) {
-                paths = optionsOrPaths as string[];
-            } else if (optionsOrPaths && !handleAsOptions) {
-                paths = [optionsOrPaths];
-            } else {
-                paths = [];
-            }
+            paths = pathsFromOptions;
+        } else {
+            paths.push(...pathsFromOptions);
         }
     }
 
@@ -1048,7 +1064,7 @@ export function ls(optionsOrPaths?: string | string[], ...paths: string[]): stri
         return entries;
     } catch (error) {
         if (error.code === 'ENOENT') {
-            throw new Error(`Failed ls: ${error}`);
+            throw new Error(loc('LIB_PathNotFound', 'ls', error.message));
         } else {
             throw new Error(loc('LIB_OperationFailed', 'ls', error));
         }
@@ -1084,7 +1100,10 @@ function retryer(func: Function, retryCount: number = 0, continueOnError: boolea
  * @param {boolean} [continueOnError] - Optional. whether to continue on error.
  * @param {number} [retryCount=0] - Optional. Retry count to copy the file. It might help to resolve intermittent issues e.g. with UNC target paths on a remote host.
  */
-export function cp(sourceOrOptions: string, destinationOrSource: string, optionsOrDestination?: string, continueOnError?: boolean, retryCount: number = 0): void {
+export function cp(source: string, destination: string, options?: string, continueOnError?: boolean, retryCount: number = 0): void;
+export function cp(options: string, source: string, destination: string, continueOnError?: boolean, retryCount: number = 0): void;
+
+export function cp(sourceOrOptions: string, destinationOrSource: string, optionsOrDestination: string, continueOnError?: boolean, retryCount: number = 0): void {
     retryer(() => {
         let recursive = false;
         let force = true;
@@ -1107,7 +1126,7 @@ export function cp(sourceOrOptions: string, destinationOrSource: string, options
         }
 
         if (!fs.existsSync(destination) && !force) {
-            throw new Error(`ENOENT: no such file or directory: ${destination}`);
+            throw new Error(loc('LIB_PathNotFound', 'cp', destination));
         }
 
         const lstatSource = fs.lstatSync(source);
@@ -1131,11 +1150,7 @@ export function cp(sourceOrOptions: string, destinationOrSource: string, options
                 fs.cpSync(source, path.join(destination, path.basename(source)), { recursive, force });
             }
         } catch (error) {
-            if (error.code === 'ENOENT') {
-                throw new Error(error);
-            } else {
-                throw new Error(loc('LIB_OperationFailed', 'cp', error));
-            }
+            throw new Error(loc('LIB_OperationFailed', 'cp', error));
         }
     }, retryCount, continueOnError);
 }
