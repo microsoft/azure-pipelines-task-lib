@@ -22,11 +22,11 @@ function reset() {
 }
 
 describe('popd cases', () => {
-  const TEMP_DIR_PATH = path.resolve('test_pushd', 'nested', 'dir');
+  const TEMP_DIR_PATH = path.resolve(DIRNAME, 'test_pushd', 'nested', 'dir');
 
   before(() => {
-    tl.mkdirP(path.resolve(DIRNAME, TEMP_DIR_PATH, 'a'));
-    tl.mkdirP(path.resolve(DIRNAME, TEMP_DIR_PATH, 'b', 'c'));
+    tl.mkdirP(path.resolve(TEMP_DIR_PATH, 'a'));
+    tl.mkdirP(path.resolve(TEMP_DIR_PATH, 'b', 'c'));
   });
 
   beforeEach(() => {
@@ -36,7 +36,7 @@ describe('popd cases', () => {
   after(() => {
     tl.cd(DIRNAME);
     reset();
-    tl.rmRF(path.resolve(DIRNAME, TEMP_DIR_PATH));
+    tl.rmRF(path.resolve(TEMP_DIR_PATH));
   });
 
   it('The default usage', (done) => {
@@ -56,7 +56,7 @@ describe('popd cases', () => {
 
     assert.ok(process.cwd(), trail[0]);
     assert.deepEqual(trail, [
-      path.resolve(DIRNAME, TEMP_DIR_PATH),
+      path.resolve(TEMP_DIR_PATH),
       DIRNAME,
     ]);
 
@@ -94,7 +94,7 @@ describe('popd cases', () => {
     const trail = tl.popd('+1');
 
     assert.ok(process.cwd(), trail[0]);
-    assert.deepEqual(trail, [path.resolve(DIRNAME, TEMP_DIR_PATH)]);
+    assert.deepEqual(trail, [path.resolve(TEMP_DIR_PATH)]);
 
     done();
   });
@@ -104,7 +104,7 @@ describe('popd cases', () => {
     const trail = tl.popd('-0');
 
     assert.ok(process.cwd(), trail[0]);
-    assert.deepEqual(trail, [path.resolve(DIRNAME, TEMP_DIR_PATH)]);
+    assert.deepEqual(trail, [path.resolve(TEMP_DIR_PATH)]);
 
     done();
   });
@@ -130,7 +130,7 @@ describe('popd cases', () => {
     tl.pushd('b');
     const trail = tl.popd();
 
-    assert.ok(trail[0], path.resolve(DIRNAME, TEMP_DIR_PATH));
+    assert.ok(trail[0], path.resolve(TEMP_DIR_PATH));
     assert.ok(process.cwd(), trail[0]);
     assert.throws(() => tl.popd(), { message: 'Directory stack is empty' });
 
