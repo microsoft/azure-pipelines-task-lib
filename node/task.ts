@@ -1702,6 +1702,15 @@ export function rmRF(inputPath: string): void {
             }
 
             return;
+        } else if (lstats.isSymbolicLink()) {
+            debug('removing symbolic link');
+            try {
+                fs.unlinkSync(inputPath);
+            } catch (errMsg) {
+                throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
+            }
+
+            return;
         }
 
         debug('removing file');

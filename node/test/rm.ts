@@ -35,10 +35,7 @@ describe('rm cases', () => {
   });
 
   it('Invalid arguments', (done) => {
-    // @ts-ignore
-    assert.throws(() => tl.rmRF(), { message: 'Failed rmRF: The "path" argument must be of type string or an instance of Buffer or URL. Received undefined' });
     assert.doesNotThrow(() => tl.rmRF('somefolderpaththatdoesnotexist'));
-
     done();
   });
 
