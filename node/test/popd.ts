@@ -1,4 +1,3 @@
-import fs = require('node:fs');
 import path = require('node:path');
 import assert = require('node:assert');
 
@@ -121,7 +120,7 @@ describe('popd cases', () => {
   });
 
   it('Using when stack is empty', (done) => {
-    assert.throws(() => tl.popd(), { message: 'Failed popd: directory stack empty' });
+    assert.throws(() => tl.popd(), { message: 'Directory stack is empty' });
 
     done();
   });
@@ -133,7 +132,7 @@ describe('popd cases', () => {
 
     assert.ok(trail[0], path.resolve(DIRNAME, TEMP_DIR_PATH));
     assert.ok(process.cwd(), trail[0]);
-    assert.throws(() => tl.popd(), { message: 'Failed popd: directory stack empty' });
+    assert.throws(() => tl.popd(), { message: 'Directory stack is empty' });
 
     done();
   });

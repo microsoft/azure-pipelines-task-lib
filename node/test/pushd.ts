@@ -1,4 +1,3 @@
-import fs = require('node:fs');
 import path = require('node:path');
 import assert = require('node:assert');
 
@@ -293,7 +292,7 @@ describe('pushd cases', () => {
   it('Using invalid directory', (done) => {
     const oldCwd = process.cwd();
 
-    assert.throws(() => tl.pushd('does/not/exist'), { message: /^Failed pushd: no such file or directory:/ });
+    assert.throws(() => tl.pushd('does/not/exist'), { message: /^Not found pushd/ });
     assert.equal(process.cwd(), oldCwd);
 
     done();
@@ -332,7 +331,7 @@ describe('pushd cases', () => {
   });
 
   it('Using without arguments invalid when stack is empty', (done) => {
-    assert.throws(() => tl.pushd(), { message: 'Failed pushd: no other directory' });
+    assert.throws(() => tl.pushd(), { message: 'Directory stack is empty' });
 
     done();
   });

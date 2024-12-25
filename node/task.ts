@@ -833,7 +833,7 @@ export function pushd(dir: string = ''): string[] {
         if (dirs.length > 1) {
             dirs.splice(0, 0, ...dirs.splice(1, 1));
         } else {
-            throw new Error(`Failed pushd: no other directory`);
+            throw new Error(loc('LIB_DirectoryStackEmpty'));
         }
     } else if (!isNaN(maybeIndex)) {
         if (maybeIndex < dirStack.length + 1) {
@@ -850,11 +850,12 @@ export function pushd(dir: string = ''): string[] {
         cd(_path);
     } catch (error) {
         if (!fs.existsSync(_path)) {
-            throw new Error(`Failed pushd: no such file or directory: ${_path}`);
+            throw new Error(loc('Not found', 'pushd', _path));
         }
 
         throw error;
     }
+
     dirStack.splice(0, dirStack.length, ...dirs);
     return getActualStack();
 }
@@ -867,7 +868,7 @@ export function pushd(dir: string = ''): string[] {
  */
 export function popd(index: string = ''): string[] {
     if (dirStack.length === 0) {
-        throw new Error(`Failed popd: directory stack empty`);
+        throw new Error(loc('LIB_DirectoryStackEmpty'));
     }
 
     let maybeIndex = parseInt(index);
