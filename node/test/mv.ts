@@ -48,6 +48,7 @@ describe('mv cases', () => {
 
   it('Provide an unsupported option argument', (done) => {
     assert.ok(fs.existsSync('file1'));
+    // @ts-ignore
     assert.doesNotThrow(() => tl.mv('file1', 'file1', '-Z', true));
     assert.ok(fs.existsSync('file1'));
 

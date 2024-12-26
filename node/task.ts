@@ -9,6 +9,13 @@ import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
 import semver = require('semver');
 
+type OptionCases<T extends string> = `-${Uppercase<T> | Lowercase<T>}`;
+
+type OptionsPermutations<T extends string, U extends string = ''> =
+    T extends `${infer First}${infer Rest}`
+        ? OptionCases<`${U}${First}`> | OptionCases<`${First}${U}`> | OptionsPermutations<Rest, `${U}${First}`> | OptionCases<First>
+        : OptionCases<U> | '';
+
 export enum TaskResult {
     Succeeded = 0,
     SucceededWithIssues = 1,
@@ -777,8 +784,8 @@ export const checkPath = im._checkPath;
 /**
  * Change working directory.
  *
- * @param     path      new working directory path
- * @returns   void
+ * @param   {string} path - New working directory path
+ * @returns {void}
  */
 export function cd(path: string): void {
     if (path === '-') {
@@ -819,8 +826,8 @@ function getActualStack() {
 /**
  * Change working directory and push it on the stack
  *
- * @param     dir      new working directory path
- * @returns   void
+ * @param   {string} dir - New working directory path
+ * @returns {void}
  */
 export function pushd(dir: string = ''): string[] {
     const dirs = getActualStack();
@@ -863,8 +870,8 @@ export function pushd(dir: string = ''): string[] {
 /**
  * Change working directory back to previously pushed directory
  *
- * @param     index      index to remove from the stack
- * @returns   void
+ * @param   {string} index - Index to remove from the stack
+ * @returns {void}
  */
 export function popd(index: string = ''): string[] {
     if (dirStack.length === 0) {
@@ -891,11 +898,11 @@ export function popd(index: string = ''): string[] {
 }
 
 /**
- * Make a directory.  Creates the full path with folders in between
+ * Make a directory. Creates the full path with folders in between
  * Will throw if it fails
  *
- * @param     p       path to create
- * @returns   void
+ * @param   {string} p - Path to create
+ * @returns {void}
  */
 export function mkdirP(p: string): void {
     if (!p) {
@@ -974,25 +981,67 @@ export function resolve(...pathSegments: any[]): string {
 
 export const which = im._which;
 
+type ListOptionsVariants = OptionsPermutations<'ra'>;
+
 /**
  * Returns array of files in the given path, or in current directory if no path provided.
- * @param  {string}   options  Available options: -R (recursive), -A (all files, include files beginning with ., except for . and ..)
- * @param  {string[]} paths    Paths to search.
- * @return {string[]}          An array of files in the given path(s).
+ * @param  {ListOptionsVariants} options - Available options: -R (recursive), -A (all files, include files beginning with ., except for . and ..)
+ * @param  {...string[]}         paths   - Paths to search.
+ * @return {string[]}                    - An array of files in the given path(s).
  */
-export function ls(optionsOrPaths?: string | string[], ...paths: string[]): string[];
-export function ls(optionsOrPaths?: string | string[], paths?: string[]): string[];
-export function ls(optionsOrPaths?: string | string[], paths?: string): string[];
+export function ls(options: ListOptionsVariants, ...paths: string[]): string[];
 
-export function ls(optionsOrPaths?: string | string[], ...paths: unknown[]): string[] {
+/**
+ * Returns array of files in the given path, or in current directory if no path provided.
+ * @param  {ListOptionsVariants} options - Available options: -R (recursive), -A (all files, include files beginning with ., except for . and ..)
+ * @param  {string[]}            paths   - Paths to search.
+ * @return {string[]}                    - An array of files in the given path(s).
+ */
+export function ls(options: ListOptionsVariants, paths: string[]): string[];
+
+/**
+ * Returns array of files in the given path, or in current directory if no path provided.
+ * @param  {ListOptionsVariants} options - Available options: -R (recursive), -A (all files, include files beginning with ., except for . and ..)
+ * @param  {string}              paths   - Paths to search.
+ * @return {string[]}                    - An array of files in the given path(s).
+ */
+export function ls(options: ListOptionsVariants, paths: string): string[];
+
+/**
+ * Returns array of files in the given path, or in current directory if no path provided.
+ * @param  {string}   path - Paths to search.
+ * @return {string[]}      - An array of files in the given path(s).
+ */
+export function ls(path: string): string[];
+
+/**
+ * Returns array of files in the given path, or in current directory if no path provided.
+ * @param  {string[]} paths - Paths to search.
+ * @return {string[]}       - An array of files in the given path(s).
+ */
+export function ls(paths: string[]): string[];
+
+/**
+ * Returns array of files in the given path, or in current directory if no path provided.
+ * @param  {...string[]} paths - Paths to search.
+ * @return {string[]}          - An array of files in the given path(s).
+ */
+export function ls(...paths: string[]): string[];
+
+/**
+ * Returns array of files in the given path, or in current directory if no path provided.
+ * @param  {unknown}   optionsOrPaths  - Available options: -R (recursive), -A (all files, include files beginning with ., except for . and ..)
+ * @param  {unknown[]} paths           - Paths to search.
+ * @return {string[]}                  - An array of files in the given path(s).
+ */
+export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
     let isRecursive = false;
     let includeHidden = false;
-    let handleAsOptions = false;
 
     if (typeof optionsOrPaths === 'string' && optionsOrPaths.startsWith('-')) {
-        optionsOrPaths = optionsOrPaths.toLowerCase();
-        isRecursive = optionsOrPaths.includes('r');
-        includeHidden = optionsOrPaths.includes('a');
+        const options = String(optionsOrPaths).toLowerCase();
+        isRecursive = options.includes('r');
+        includeHidden = options.includes('a');
     }
 
     // Flatten paths if the paths argument is array
@@ -1006,7 +1055,7 @@ export function ls(optionsOrPaths?: string | string[], ...paths: unknown[]): str
 
         if (Array.isArray(optionsOrPaths)) {
             pathsFromOptions = optionsOrPaths;
-        } else if (optionsOrPaths) {
+        } else if (optionsOrPaths && typeof optionsOrPaths === 'string') {
             pathsFromOptions = [optionsOrPaths];
         }
 
@@ -1071,57 +1120,58 @@ export function ls(optionsOrPaths?: string | string[], ...paths: unknown[]): str
     }
 }
 
-function retryer(func: Function, retryCount: number = 0, continueOnError: boolean = false) {
-    while (retryCount >= 0) {
-        try {
-            return func();
-        } catch (error) {
-            if (!continueOnError || error.code === "ENOENT") {
-                throw error;
-            }
-
-            console.log(loc('LIB_CopyFileFailed', retryCount));
-            retryCount--;
-
-            if (retryCount < 0) {
-                warning(error, IssueSource.TaskInternal);
-                break;
-            }
-        }
-    }
-}
+type CopyOptionsVariants = OptionsPermutations<'frn'>;
 
 /**
  * Copies a file or folder.
- *
- * @param {string} sourceOrOptions - Either the source path or an option string '-r', '-f' or '-rf' for recursive and force.
- * @param {string} destinationOrSource - The destination path or the source path.
- * @param {string} [optionsOrDestination] - Options string or the destination path.
- * @param {boolean} [continueOnError] - Optional. whether to continue on error.
- * @param {number} [retryCount=0] - Optional. Retry count to copy the file. It might help to resolve intermittent issues e.g. with UNC target paths on a remote host.
+ * @param   {string}  source                   - Source path.
+ * @param   {string}  destination              - Destination path.
+ * @param   {string}  [options]                - Options string '-r', '-f' , '-n' or '-rfn' for recursive, force and no-clobber.
+ * @param   {boolean} [continueOnError=false]  - Optional. Whether to continue on error.
+ * @param   {number}  [retryCount=0]           - Optional. Retry count to copy the file. It might help to resolve intermittent issues e.g. with UNC target paths on a remote host.
+ * @returns {void}
  */
-export function cp(source: string, destination: string, options?: string, continueOnError?: boolean, retryCount?: number): void;
-export function cp(options: string, source: string, destination: string, continueOnError?: boolean, retryCount?: number): void;
+export function cp(source: string, destination: string, options?: CopyOptionsVariants, continueOnError?: boolean, retryCount?: number): void;
 
-export function cp(sourceOrOptions: string, destinationOrSource: string, optionsOrDestination: string, continueOnError?: boolean, retryCount: number = 0): void {
-    retryer(() => {
+/**
+ * Copies a file or folder.
+ * @param   {string}  options                  - Options string '-r', '-f' , '-n' or '-rfn' for recursive, force and no-clobber.
+ * @param   {string}  source                   - Source path.
+ * @param   {string}  [destination]            - Destination path.
+ * @param   {boolean} [continueOnError=false]  - Optional. Whether to continue on error.
+ * @param   {number}  [retryCount=0]           - Optional. Retry count to copy the file. It might help to resolve intermittent issues e.g. with UNC target paths on a remote host.
+ * @returns {void}
+ */
+export function cp(options: CopyOptionsVariants, source: string, destination: string, continueOnError?: boolean, retryCount?: number): void;
+
+/**
+ * Copies a file or folder.
+ * @param   {string}  sourceOrOptions          - Either the source path or an option string '-r', '-f' , '-n' or '-rfn' for recursive, force and no-clobber.
+ * @param   {string}  destinationOrSource      - Destination path or the source path.
+ * @param   {string}  [optionsOrDestination]   - Options string or the destination path.
+ * @param   {boolean} [continueOnError=false]  - Optional. Whether to continue on error.
+ * @param   {number}  [retryCount=0]           - Optional. Retry count to copy the file. It might help to resolve intermittent issues e.g. with UNC target paths on a remote host.
+ * @returns {void}
+ */
+export function cp(sourceOrOptions: unknown, destinationOrSource: string, optionsOrDestination: unknown, continueOnError: boolean = false, retryCount: number = 0): void {
+    retry(() => {
         let recursive = false;
         let force = true;
-        let source = sourceOrOptions;
+        let source = String(sourceOrOptions);
         let destination = destinationOrSource;
         let options = '';
 
-        if (sourceOrOptions.startsWith('-')) {
+        if (typeof sourceOrOptions === 'string' && sourceOrOptions.startsWith('-')) {
             options = sourceOrOptions.toLowerCase();
             recursive = options.includes('r');
             force = !options.includes('n');
             source = destinationOrSource;
-            destination = optionsOrDestination!;
-        } else if (optionsOrDestination && optionsOrDestination.startsWith('-')) {
+            destination = String(optionsOrDestination)!;
+        } else if (typeof optionsOrDestination === 'string' && optionsOrDestination && optionsOrDestination.startsWith('-')) {
             options = optionsOrDestination.toLowerCase();
             recursive = options.includes('r');
             force = !options.includes('n');
-            source = sourceOrOptions;
+            source = String(sourceOrOptions);
             destination = destinationOrSource;
         }
 
@@ -1152,23 +1202,26 @@ export function cp(sourceOrOptions: string, destinationOrSource: string, options
         } catch (error) {
             throw new Error(loc('LIB_OperationFailed', 'cp', error));
         }
-    }, retryCount, continueOnError);
+    }, [], { retryCount, continueOnError});
 }
+
+type MoveOptionsVariants = OptionsPermutations<'fn'>;
 
 /**
  * Moves a path.
  *
- * @param     source     source path
- * @param     dest       destination path
- * @param     options    string -f or -n for force and no clobber
- * @param     continueOnError optional. whether to continue on error
+ * @param  {string}              source            - Source path.
+ * @param  {string}              dest              - Destination path.
+ * @param  {MoveOptionsVariants} [options]         - Option string -f or -n for force and no clobber.
+ * @param  {boolean}             [continueOnError] - Optional. Whether to continue on error.
+ * @returns {void}
  */
-export function mv(source: string, dest: string, options?: string, continueOnError?: boolean): void {
+export function mv(source: string, dest: string, options?: MoveOptionsVariants, continueOnError?: boolean): void {
     let force = false;
 
-    if (options && options.startsWith('-')) {
-        options = options.toLowerCase();
-        force = options.includes('f') && !options.includes('n');
+    if (options && typeof options === 'string' && options.startsWith('-')) {
+        const lowercasedOptions = String(options).toLowerCase();
+        force = lowercasedOptions.includes('f') && !lowercasedOptions.includes('n');
     }
 
     const sourceExists = fs.existsSync(source);
@@ -1646,8 +1699,9 @@ function _legacyFindFiles_getMatchingItems(
 /**
  * Remove a path recursively with force
  *
- * @param     inputPath path to remove
- * @throws    when the file or directory exists but could not be deleted.
+ * @param  {string} inputPath - Path to remove
+ * @return {void}
+ * @throws When the file or directory exists but could not be deleted.
  */
 export function rmRF(inputPath: string): void {
     debug('rm -rf ' + inputPath);
