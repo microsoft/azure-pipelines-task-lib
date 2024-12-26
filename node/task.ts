@@ -1,4 +1,3 @@
-import Q = require('q');
 import shell = require('shelljs');
 import childProcess = require('child_process');
 import fs = require('fs');
@@ -1534,7 +1533,7 @@ export function execAsync(tool: string, args: any, options?: trm.IExecOptions): 
  * @param     options  optional exec options.  See IExecOptions
  * @returns   number
  */
-export function exec(tool: string, args: any, options?: trm.IExecOptions): Q.Promise<number> {
+export function exec(tool: string, args: any, options?: trm.IExecOptions): Promise<number> {
     let tr: trm.ToolRunner = this.tool(tool);
     if (args) {
         if (args instanceof Array) {
