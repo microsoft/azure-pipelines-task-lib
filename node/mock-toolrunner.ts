@@ -1,4 +1,3 @@
-import Q = require('q');
 import os = require('os');
 import events = require('events');
 import ma = require('./mock-answer');
@@ -268,107 +267,8 @@ export class ToolRunner extends events.EventEmitter {
      * @deprecated use `execAsync` instead
      * @returns a promise with return code.
      */
-    public exec(options?: IExecOptions): Q.Promise<number> {
-        var defer = Q.defer<number>();
-
-        this._debug('exec tool: ' + this.toolPath);
-        this._debug('Arguments:');
-        this.args.forEach((arg) => {
-            this._debug('   ' + arg);
-        });
-
-        var success = true;
-        options = options || <IExecOptions>{};
-
-        var ops: IExecOptions = {
-            cwd: options.cwd || process.cwd(),
-            env: options.env || process.env,
-            silent: options.silent || false,
-            outStream: options.outStream || process.stdout,
-            errStream: options.errStream || process.stderr,
-            failOnStdErr: options.failOnStdErr || false,
-            ignoreReturnCode: options.ignoreReturnCode || false,
-            windowsVerbatimArguments: options.windowsVerbatimArguments
-        };
-
-        var argString = this.args.join(' ') || '';
-        var cmdString = this.toolPath;
-        if (argString) {
-            cmdString += (' ' + argString);
-        }
-
-        // Using split/join to replace the temp path
-        cmdString = this.ignoreTempPath(cmdString);
-
-        if (!ops.silent) {
-            if(this.pipeOutputToTool) {
-                var pipeToolArgString = this.pipeOutputToTool.args.join(' ') || '';
-                var pipeToolCmdString = this.ignoreTempPath(this.pipeOutputToTool.toolPath);
-                if(pipeToolArgString) {
-                    pipeToolCmdString += (' ' + pipeToolArgString);
-                }
-
-                cmdString += ' | ' + pipeToolCmdString;
-            }
-
-            ops.outStream.write('[command]' + cmdString + os.EOL);
-        }
-
-        // TODO: filter process.env
-        var res = mock.getResponse('exec', cmdString, debug);
-        if (res.stdout) {
-            this.emit('stdout', res.stdout);
-            if (!ops.silent) {
-                ops.outStream.write(res.stdout + os.EOL);
-            }
-            const stdLineArray = res.stdout.split(os.EOL);
-            for (const line of stdLineArray.slice(0, -1)) {
-                this.emit('stdline', line);
-            }
-            if(stdLineArray.length > 0 && stdLineArray[stdLineArray.length - 1].length > 0) {
-                this.emit('stdline', stdLineArray[stdLineArray.length - 1]);
-            }
-        }
-
-        if (res.stderr) {
-            this.emit('stderr', res.stderr);
-
-            success = !ops.failOnStdErr;
-            if (!ops.silent) {
-                var s = ops.failOnStdErr ? ops.errStream : ops.outStream;
-                s.write(res.stderr + os.EOL);
-            }
-            const stdErrArray = res.stderr.split(os.EOL);
-            for (const line of stdErrArray.slice(0, -1)) {
-                this.emit('errline', line);
-            }
-            if (stdErrArray.length > 0 && stdErrArray[stdErrArray.length - 1].length > 0) {
-                this.emit('errline', stdErrArray[stdErrArray.length - 1]);
-            }
-        }
-
-
-        var code = res.code;
-
-        if (!ops.silent) {
-            ops.outStream.write('rc:' + res.code + os.EOL);
-        }
-
-        if (code != 0 && !ops.ignoreReturnCode) {
-            success = false;
-        }
-
-        if (!ops.silent) {
-            ops.outStream.write('success:' + success + os.EOL);
-        }
-        if (success) {
-            defer.resolve(code);
-        }
-        else {
-            defer.reject(new Error(this.toolPath + ' failed with return code: ' + code));
-        }
-
-        return <Q.Promise<number>>defer.promise;
+    public exec(options?: IExecOptions): Promise<number> {
+        return this.execAsync(options);
     }
 
     //
