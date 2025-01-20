@@ -1059,7 +1059,7 @@ function _exposeTaskLibSecret(keyFile: string, secret: string): string | undefin
     if (secret) {
         let encryptKey = crypto.randomBytes(256);
         let cipher = crypto.createCipher("aes-256-ctr", encryptKey);
-        let encryptedContent = cipher.update(secret, "utf8", "hex");
+        let encryptedContent = cipher.update(secret, "utf8", "hex");  // CodeQL [SM01511] agent need to retrieve password later to connect to proxy server
         encryptedContent += cipher.final("hex");
 
         let storageFile = path.join(_getVariable('Agent.TempDirectory') || _getVariable("agent.workFolder") || process.cwd(), keyFile);
