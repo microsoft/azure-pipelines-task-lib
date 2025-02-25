@@ -1106,7 +1106,8 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
             if (fs.lstatSync(entry).isDirectory() && isRecursive) {
                 preparedPaths.push(...fs.readdirSync(entry).map(x => path.join(entry, x)));
             } else {
-                entries.push(entry);
+                const baseDir = path.dirname(entry);
+                entries.push(path.relative(baseDir, entry));
             }
         }
 
