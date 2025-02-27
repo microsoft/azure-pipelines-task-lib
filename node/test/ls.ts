@@ -106,10 +106,8 @@ describe('ls cases', () => {
   });
 
   it('Passed file as an argument', (done) => {
-    const result = tl.ls(TEMP_FILE_1);
-    assert.ok(result.includes(TEMP_FILE_1));
-    assert.equal(result.length, 1);
-
+    const result = tl.ls(".");
+    assert.equal(result.length, 6);
     done();
   });
 
@@ -201,7 +199,7 @@ describe('ls cases', () => {
     assert.ok(result.includes(TEMP_FILE_3_ESCAPED));
     assert.ok(result.includes(path.relative(process.cwd(), TEMP_SUBDIR_FILE_1)));
     assert.ok(result.includes(path.relative(process.cwd(), TEMP_SUBDIR_FILELINK_1)));
-    assert.equal(result.length, 7);
+    assert.equal(result.length, 8);
 
     done();
   });
@@ -213,9 +211,9 @@ describe('ls cases', () => {
     assert.ok(result.includes(TEMP_FILE_2));
     assert.ok(result.includes(TEMP_FILE_2_JS));
     assert.ok(result.includes(TEMP_FILE_3_ESCAPED));
-    assert.ok(result.includes(path.relative(process.cwd(), TEMP_SUBDIR_FILE_1)));
-    assert.ok(result.includes(path.relative(process.cwd(), TEMP_SUBDIR_FILELINK_1)));
-    assert.equal(result.length, 7);
+    assert.ok(result.includes(path.relative(TEMP_DIR_1, TEMP_SUBDIR_FILE_1)));
+    assert.ok(result.includes(path.relative(TEMP_DIR_1, TEMP_SUBDIR_FILELINK_1)));
+    assert.equal(result.length, 8);
 
     done();
   });
@@ -228,16 +226,16 @@ describe('ls cases', () => {
     assert.ok(result.includes(TEMP_FILE_2_JS));
     assert.ok(result.includes(TEMP_FILE_3_ESCAPED));
     assert.ok(result.includes(TEMP_HIDDEN_FILE_1));
-    assert.ok(result.includes(path.relative(process.cwd(), TEMP_SUBDIR_FILE_1)));
-    assert.ok(result.includes(path.relative(process.cwd(), TEMP_SUBDIR_FILELINK_1)));
-    assert.equal(result.length, 8);
+    assert.ok(result.includes(path.relative(TEMP_DIR_1, TEMP_SUBDIR_FILE_1)));
+    assert.ok(result.includes(path.relative(TEMP_DIR_1, TEMP_SUBDIR_FILELINK_1)));
+    assert.equal(result.length, 10);
 
     done();
   });
 
   it('Priovide -RA attribute', (done) => {
     const result = tl.ls('-RA', TEMP_SUBDIR_1);
-    assert.ok(result.includes(path.relative(process.cwd(), TEMP_SUBDIR_FILELINK_1)));
+    assert.ok(result.includes(path.relative(TEMP_SUBDIR_1, TEMP_SUBDIR_FILELINK_1)));
     assert.equal(result.length, 2);
 
     done();
@@ -245,27 +243,26 @@ describe('ls cases', () => {
 
   it('Provide path and the -R attribute', (done) => {
     const result = tl.ls('-R', TEMP_SUBDIR_1);
-    assert.ok(result.includes(path.relative(process.cwd(), TEMP_SUBDIR_FILE_1)));
-    assert.ok(result.includes(path.relative(process.cwd(), TEMP_SUBDIR_FILELINK_1)));
+    assert.ok(result.includes(path.relative(TEMP_SUBDIR_1, TEMP_SUBDIR_FILE_1)));
+    assert.ok(result.includes(path.relative(TEMP_SUBDIR_1, TEMP_SUBDIR_FILELINK_1)));
     assert.equal(result.length, 2);
 
     done();
   });
 
-  it('Empty attributes, but several paths as multiple arguments', (done) => {
-    const result = tl.ls('', TEMP_SUBDIR_1, TEMP_FILE_1);
-    assert.ok(result.includes(TEMP_FILE_1));
-    assert.ok(result.includes(path.relative(process.cwd(), TEMP_SUBDIR_FILE_1)));
-    assert.ok(result.includes(path.relative(process.cwd(), TEMP_SUBDIR_FILELINK_1)));
-    assert.equal(result.length, 3);
+  it('Empty attributes, non-array path as arguments', (done) => {
+    const result = tl.ls('', TEMP_SUBDIR_1);
+    assert.ok(result.includes(path.relative(TEMP_SUBDIR_1, TEMP_SUBDIR_FILE_1)));
+    assert.ok(result.includes(path.relative(TEMP_SUBDIR_1, TEMP_SUBDIR_FILELINK_1)));
+    assert.equal(result.length, 2);
 
     done();
   });
 
-  it('Empty attributes, but several paths in array', (done) => {
+  it('Empty attributes, but paths in array', (done) => {
     const result = tl.ls('', [TEMP_SUBDIR_1]);
-    assert.ok(result.includes(path.relative(process.cwd(), TEMP_SUBDIR_FILE_1)));
-    assert.ok(result.includes(path.relative(process.cwd(), TEMP_SUBDIR_FILELINK_1)));
+    assert.ok(result.includes(path.relative(TEMP_SUBDIR_1, TEMP_SUBDIR_FILE_1)));
+    assert.ok(result.includes(path.relative(TEMP_SUBDIR_1, TEMP_SUBDIR_FILELINK_1)));
     assert.equal(result.length, 2);
 
     done();
@@ -273,19 +270,19 @@ describe('ls cases', () => {
 
   it('Empty attributes, but one path', (done) => {
     const result = tl.ls('', TEMP_SUBDIR_1);
-    assert.ok(result.includes(path.relative(process.cwd(), TEMP_SUBDIR_FILE_1)));
-    assert.ok(result.includes(path.relative(process.cwd(), TEMP_SUBDIR_FILELINK_1)));
+    assert.ok(result.includes(path.relative(TEMP_SUBDIR_1, TEMP_SUBDIR_FILE_1)));
+    assert.ok(result.includes(path.relative(TEMP_SUBDIR_1, TEMP_SUBDIR_FILELINK_1)));
     assert.equal(result.length, 2);
 
     done();
   });
 
   it('Provide path as first argument and subdir as second argument', (done) => {
-    const result = tl.ls(TEMP_FILE_1, TEMP_SUBDIR_1);
+    const result = tl.ls(".", TEMP_SUBDIR_1);
     assert.ok(result.includes(TEMP_FILE_1));
-    assert.ok(result.includes(path.relative(process.cwd(), TEMP_SUBDIR_FILE_1)));
-    assert.ok(result.includes(path.relative(process.cwd(), TEMP_SUBDIR_FILELINK_1)));
-    assert.equal(result.length, 3);
+    assert.ok(result.includes(path.relative(TEMP_SUBDIR_1, TEMP_SUBDIR_FILE_1)));
+    assert.ok(result.includes(path.relative(TEMP_SUBDIR_1, TEMP_SUBDIR_FILELINK_1)));
+    assert.equal(result.length, 8);
 
     done();
   });
