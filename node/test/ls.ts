@@ -12,7 +12,6 @@ import * as testutil from './testutil';
 describe('ls cases', () => {
   const TEMP_DIR_1 = path.resolve(DIRNAME, 'temp1');
   const TEMP_SUBDIR_1 = path.resolve(TEMP_DIR_1, 'temp1_subdir1');
-  const TEMP_SUBDIR_1_copy = path.relative(TEMP_DIR_1, TEMP_SUBDIR_1);
 
   let TEMP_FILE_1: string;
   let TEMP_FILE_1_JS: string;
@@ -86,7 +85,7 @@ describe('ls cases', () => {
     assert.ok(result.includes(TEMP_FILE_2));
     assert.ok(result.includes(TEMP_FILE_2_JS));
     assert.ok(result.includes(TEMP_FILE_3_ESCAPED));
-    assert.ok(result.includes(TEMP_SUBDIR_1_copy));
+    assert.ok(result.includes(path.relative(process.cwd(), TEMP_SUBDIR_1)));
     assert.equal(result.length, 6);
 
     done();
@@ -100,7 +99,7 @@ describe('ls cases', () => {
     assert.ok(result.includes(TEMP_FILE_2));
     assert.ok(result.includes(TEMP_FILE_2_JS));
     assert.ok(result.includes(TEMP_FILE_3_ESCAPED));
-    assert.ok(result.includes(TEMP_SUBDIR_1_copy));
+    assert.ok(result.includes(path.relative(process.cwd(), TEMP_SUBDIR_1)));
     assert.equal(result.length, 6);
 
     done();
@@ -122,7 +121,7 @@ describe('ls cases', () => {
     assert.ok(result.includes(TEMP_FILE_2));
     assert.ok(result.includes(TEMP_FILE_2_JS));
     assert.ok(result.includes(TEMP_FILE_3_ESCAPED));
-    assert.ok(result.includes(TEMP_SUBDIR_1_copy));
+    assert.ok(result.includes(path.relative(process.cwd(), TEMP_SUBDIR_1)));
     assert.ok(result.includes(TEMP_HIDDEN_FILE_1));
     assert.ok(result.includes(TEMP_HIDDEN_DIR_1));
     assert.equal(result.length, 8);
