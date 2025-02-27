@@ -105,7 +105,7 @@ describe('ls cases', () => {
     done();
   });
 
-  it('Passed file as an argument', (done) => {
+  it('Passed . as an argument', (done) => {
     const result = tl.ls(".");
     assert.equal(result.length, 6);
     done();
