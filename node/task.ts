@@ -1065,17 +1065,15 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
             paths.push(...pathsFromOptions);
         }
     }
-
+    
     if (paths.length === 0) {
         paths.push(path.resolve('.'));
     }
-
+    const pathsCopy = [...paths];
     const preparedPaths: string[] = [];
-
     try {
         while (paths.length > 0) {
             const pathEntry = resolve(paths.shift());
-
             if (pathEntry?.includes('*')) {
                 paths.push(...findMatch(path.dirname(pathEntry), [path.basename(pathEntry)]));
                 continue;
@@ -1102,11 +1100,13 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
             if (!includeHidden && entrybasename.startsWith('.') && entrybasename !== '.' && entrybasename !== '..') {
                 continue;
             }
-
+            const baseDir = pathsCopy.find(p => entry.startsWith(path.resolve(p as string))) as string || path.resolve('.');
+            
             if (fs.lstatSync(entry).isDirectory() && isRecursive) {
                 preparedPaths.push(...fs.readdirSync(entry).map(x => path.join(entry, x)));
+                entries.push(path.relative(baseDir, entry));
             } else {
-                entries.push(entry);
+                entries.push(path.relative(baseDir, entry));
             }
         }
 
