@@ -1186,6 +1186,9 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
         }
 
         try {
+            if (lstatSource.isSymbolicLink()) {
+                source = fs.readlinkSync(source);
+            }
             if (lstatSource.isFile()) {
                 if (fs.existsSync(destination) && fs.lstatSync(destination).isDirectory()) {
                     destination = path.join(destination, path.basename(source));
