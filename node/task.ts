@@ -1736,17 +1736,12 @@ export function rmRF(inputPath: string): void {
                             // If the symbolic link points to a file, remove the link itself
                             fs.unlinkSync(inputPath);
                         }
-                    } else {
-                        // If the real path does not exist, throw ENOENT error
-                        fs.unlinkSync(inputPath);
-                        throw new Error(loc('LIB_OperationFailed', 'rmRF', 'ENOENT'));
                     }
 
                 } catch (errMsg) {
-                    // throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
                     if (errMsg.code === 'ENOENT') {
-                        // If the real path does not exist, throw ENOENT error
-                        throw new Error(loc('LIB_OperationFailed', 'rmRF', 'ENOENT'));
+                        // If the real path does not exist, remove the symbolic link itself
+                        fs.unlinkSync(inputPath);
                     } else {
                         throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg.message));
                     }
@@ -1824,15 +1819,15 @@ export function rmRF(inputPath: string): void {
                         // If the symbolic link points to a file, remove the link itself
                         fs.unlinkSync(inputPath);
                     }
-                } else {
-                    // If the real path does not exist, throw ENOENT error
-                    fs.unlinkSync(inputPath);
-                    throw new Error(loc('LIB_OperationFailed', 'rmRF', 'ENOENT'));
-
                 }
-
             } catch (errMsg) {
-                throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
+                if (errMsg.code === 'ENOENT') {
+                    // If the real path does not exist, remove the symbolic link itself
+                    fs.unlinkSync(inputPath);
+                } else {
+                    throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg.message));
+                }
+                // throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
             }
 
             return;
