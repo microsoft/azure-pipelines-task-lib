@@ -132,7 +132,6 @@ describe('rm cases', () => {
     done();
   });
 
-  // New tests for symbolic links
   it('Removing symbolic link to a file', (done) => {
     const filePath = path.join(TEMP_DIR, 'file');
     const linkPath = path.join(TEMP_DIR, 'link_to_file');
@@ -154,8 +153,6 @@ describe('rm cases', () => {
     fs.mkdirSync(dirPath, { recursive: true });
     fs.writeFileSync(path.join(dirPath, 'file_in_dir'), 'test');
     fs.symlinkSync(dirPath, linkPath, 'dir');
-    console.log("************** dirPath: ", dirPath);
-    console.log("************** linkPath: ", linkPath);
     assert.ok(fs.existsSync(linkPath));
     assert.doesNotThrow(() => tl.rmRF(linkPath));
     assert.ok(!fs.existsSync(linkPath));
