@@ -1723,17 +1723,25 @@ export function rmRF(inputPath: string): void {
             } else if (fs.statSync(inputPath).isSymbolicLink()) {
                 debug('removing symbolic link');
                 try {
-                    const stats = fs.statSync(inputPath);
-                    if (stats.isDirectory()) {
-                        // If the symbolic link points to a directory, remove the contents of the directory recursively
-                        const realPath = fs.readlinkSync(inputPath);
-                        fs.rmSync(realPath, { recursive: true, force: true });
-                        // Remove the symbolic link itself
-                        fs.unlinkSync(inputPath);
+                    const realPath = fs.readlinkSync(inputPath);
+                    if (fs.existsSync(realPath)) {
+                        const stats = fs.statSync(inputPath);
+                        if (stats.isDirectory()) {
+                            // If the symbolic link points to a directory, remove the contents of the directory recursively
+
+                            fs.rmSync(realPath, { recursive: true, force: true });
+                            // Remove the symbolic link itself
+                            fs.unlinkSync(inputPath);
+                        } else {
+                            // If the symbolic link points to a file, remove the link itself
+                            fs.unlinkSync(inputPath);
+                        }
                     } else {
-                        // If the symbolic link points to a file, remove the link itself
+                        // If the real path does not exist, throw ENOENT error
                         fs.unlinkSync(inputPath);
+                        throw new Error(loc('LIB_OperationFailed', 'rmRF', 'ENOENT'));
                     }
+
                 } catch (errMsg) {
                     // throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
                     if (errMsg.code === 'ENOENT') {
@@ -1803,17 +1811,26 @@ export function rmRF(inputPath: string): void {
         } else if (lstats.isSymbolicLink()) {
             debug('removing symbolic link');
             try {
-                const stats = fs.statSync(inputPath);
-                if (stats.isDirectory()) {
-                    // If the symbolic link points to a directory, remove the contents of the directory recursively
-                    const realPath = fs.readlinkSync(inputPath);
-                    fs.rmSync(realPath, { recursive: true, force: true });
-                    // Remove the symbolic link itself
-                    fs.unlinkSync(inputPath);
+                const realPath = fs.readlinkSync(inputPath);
+                if (fs.existsSync(realPath)) {
+                    const stats = fs.statSync(inputPath);
+                    if (stats.isDirectory()) {
+                        // If the symbolic link points to a directory, remove the contents of the directory recursively
+
+                        fs.rmSync(realPath, { recursive: true, force: true });
+                        // Remove the symbolic link itself
+                        fs.unlinkSync(inputPath);
+                    } else {
+                        // If the symbolic link points to a file, remove the link itself
+                        fs.unlinkSync(inputPath);
+                    }
                 } else {
-                    // If the symbolic link points to a file, remove the link itself
+                    // If the real path does not exist, throw ENOENT error
                     fs.unlinkSync(inputPath);
+                    throw new Error(loc('LIB_OperationFailed', 'rmRF', 'ENOENT'));
+
                 }
+
             } catch (errMsg) {
                 throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
             }
