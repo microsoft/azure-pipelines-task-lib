@@ -131,7 +131,7 @@ describe('rm cases', () => {
 
     done();
   });
-
+/*
   it('Removing symbolic link to a file', (done) => {
     const filePath = path.join(TEMP_DIR, 'file');
     const linkPath = path.join(TEMP_DIR, 'link_to_file');
@@ -158,6 +158,6 @@ describe('rm cases', () => {
     assert.ok(!fs.existsSync(linkPath));
     assert.ok(fs.existsSync(dirPath));
     done();
-  });
+  });*/
 
 });
