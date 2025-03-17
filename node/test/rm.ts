@@ -91,7 +91,7 @@ describe('rm cases', () => {
 
     done();
   });
-  
+
   it('removal of a sub-tree containing read-only and hidden files - without glob', (done) => {
     const TEMP_TREE4_DIR = path.join(TEMP_DIR, 'tree4');
     tl.mkdirP(path.join(TEMP_TREE4_DIR, 'subtree'));
@@ -108,7 +108,7 @@ describe('rm cases', () => {
 
     done();
   });
-  
+
   it('Removing symbolic link to a directory', (done) => {
     fs.mkdirSync(path.join(TEMP_DIR, 'rm', 'a_dir'), { recursive: true });
     fs.symlinkSync(path.join(TEMP_DIR, 'rm', 'a_dir'), path.join(TEMP_DIR, 'rm', 'link_to_a_dir'), 'dir');
@@ -131,4 +131,36 @@ describe('rm cases', () => {
 
     done();
   });
+
+  // New tests for symbolic links
+  it('Removing symbolic link to a file', (done) => {
+    const filePath = path.join(TEMP_DIR, 'file');
+    const linkPath = path.join(TEMP_DIR, 'link_to_file');
+    fs.writeFileSync(filePath, 'test');
+    fs.symlinkSync(filePath, linkPath);
+
+    assert.ok(fs.existsSync(linkPath));
+    assert.doesNotThrow(() => tl.rmRF(linkPath));
+    assert.ok(!fs.existsSync(linkPath));
+    assert.ok(fs.existsSync(filePath));
+
+    done();
+  });
+
+  it('Removing symbolic link to a directory and its contents', (done) => {
+    const dirPath = path.join(TEMP_DIR, 'dir');
+    const linkPath = path.join(TEMP_DIR, 'link_to_dir');
+
+    fs.mkdirSync(dirPath, { recursive: true });
+    fs.writeFileSync(path.join(dirPath, 'file_in_dir'), 'test');
+    fs.symlinkSync(dirPath, linkPath, 'dir');
+    console.log("************** dirPath: ", dirPath);
+    console.log("************** linkPath: ", linkPath);
+    assert.ok(fs.existsSync(linkPath));
+    assert.doesNotThrow(() => tl.rmRF(linkPath));
+    assert.ok(!fs.existsSync(linkPath));
+    assert.ok(fs.existsSync(dirPath));
+    done();
+  });
+
 });

@@ -13,8 +13,8 @@ type OptionCases<T extends string> = `-${Uppercase<T> | Lowercase<T>}`;
 
 type OptionsPermutations<T extends string, U extends string = ''> =
     T extends `${infer First}${infer Rest}`
-        ? OptionCases<`${U}${First}`> | OptionCases<`${First}${U}`> | OptionsPermutations<Rest, `${U}${First}`> | OptionCases<First>
-        : OptionCases<U> | '';
+    ? OptionCases<`${U}${First}`> | OptionCases<`${First}${U}`> | OptionsPermutations<Rest, `${U}${First}`> | OptionCases<First>
+    : OptionCases<U> | '';
 
 export enum TaskResult {
     Succeeded = 0,
@@ -893,7 +893,7 @@ export function popd(index: string = ''): string[] {
         const _path = path.resolve(dirStack.shift()!);
         cd(_path);
     }
-    
+
     return getActualStack();
 }
 
@@ -1065,7 +1065,7 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
             paths.push(...pathsFromOptions);
         }
     }
-    
+
     if (paths.length === 0) {
         paths.push(path.resolve('.'));
     }
@@ -1101,7 +1101,7 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
                 continue;
             }
             const baseDir = pathsCopy.find(p => entry.startsWith(path.resolve(p as string))) as string || path.resolve('.');
-            
+
             if (fs.lstatSync(entry).isDirectory() && isRecursive) {
                 preparedPaths.push(...fs.readdirSync(entry).map(x => path.join(entry, x)));
                 entries.push(path.relative(baseDir, entry));
@@ -1186,6 +1186,9 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
         }
 
         try {
+            if (lstatSource.isSymbolicLink()) {
+                source = fs.readlinkSync(source);
+            }
             if (lstatSource.isFile()) {
                 if (fs.existsSync(destination) && fs.lstatSync(destination).isDirectory()) {
                     destination = path.join(destination, path.basename(source));
@@ -1202,7 +1205,7 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
         } catch (error) {
             throw new Error(loc('LIB_OperationFailed', 'cp', error));
         }
-    }, [], { retryCount, continueOnError});
+    }, [], { retryCount, continueOnError });
 }
 
 type MoveOptionsVariants = OptionsPermutations<'fn'>;
@@ -1775,12 +1778,25 @@ export function rmRF(inputPath: string): void {
         } else if (lstats.isSymbolicLink()) {
             debug('removing symbolic link');
             try {
-                fs.unlinkSync(inputPath);
+                const stats = fs.statSync(inputPath);
+                if (stats.isDirectory()) {
+                    // If the symbolic link points to a directory, remove the contents of the directory recursively
+                    const realPath = fs.readlinkSync(inputPath);
+                    fs.rmSync(realPath, { recursive: true, force: true });
+                    // Remove the symbolic link itself
+                    fs.unlinkSync(inputPath);
+                } else {
+                    // If the symbolic link points to a file, remove the link itself
+                    fs.unlinkSync(inputPath);
+                }
             } catch (errMsg) {
                 throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
             }
 
             return;
+        } else if (lstats.isFIFO()) {
+            debug('removing FIFO');
+            fs.unlinkSync(inputPath);
         }
 
         debug('removing file');
