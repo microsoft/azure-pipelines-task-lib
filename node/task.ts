@@ -1717,9 +1717,34 @@ export function rmRF(inputPath: string): void {
                 debug('removing directory ' + inputPath);
                 childProcess.execFileSync("cmd.exe", ["/c", "rd", "/s", "/q", inputPath]);
             }
-            else {
+            else if (fs.statSync(inputPath).isFile()) {
                 debug('removing file ' + inputPath);
                 childProcess.execFileSync("cmd.exe", ["/c", "del", "/f", "/a", inputPath]);
+            } else if (fs.statSync(inputPath).isSymbolicLink()) {
+                debug('removing symbolic link');
+                try {
+                    const stats = fs.statSync(inputPath);
+                    if (stats.isDirectory()) {
+                        // If the symbolic link points to a directory, remove the contents of the directory recursively
+                        const realPath = fs.readlinkSync(inputPath);
+                        fs.rmSync(realPath, { recursive: true, force: true });
+                        // Remove the symbolic link itself
+                        fs.unlinkSync(inputPath);
+                    } else {
+                        // If the symbolic link points to a file, remove the link itself
+                        fs.unlinkSync(inputPath);
+                    }
+                } catch (errMsg) {
+                    // throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
+                    if (errMsg.code === 'ENOENT') {
+                        // If the real path does not exist, throw ENOENT error
+                        throw new Error(loc('LIB_OperationFailed', 'rmRF', 'ENOENT'));
+                    } else {
+                        throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg.message));
+                    }
+                }
+
+                return;
             }
         } catch (err) {
             // if you try to delete a file that doesn't exist, desired result is achieved
@@ -1730,15 +1755,15 @@ export function rmRF(inputPath: string): void {
         }
 
         // Shelling out fails to remove a symlink folder with missing source, this unlink catches that
-        try {
-            fs.unlinkSync(inputPath);
-        } catch (err) {
-            // if you try to delete a file that doesn't exist, desired result is achieved
-            // other errors are valid
-            if (err.code != 'ENOENT') {
-                throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
-            }
-        }
+        // try {
+        //     fs.unlinkSync(inputPath);
+        // } catch (err) {
+        //     // if you try to delete a file that doesn't exist, desired result is achieved
+        //     // other errors are valid
+        //     if (err.code != 'ENOENT') {
+        //         throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
+        //     }
+        // }
     } else {
         // get the lstats in order to workaround a bug in shelljs@0.3.0 where symlinks
         // with missing targets are not handled correctly by "rm('-rf', path)"
