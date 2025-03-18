@@ -1887,13 +1887,13 @@ export function rmRF(inputPath: string): void {
                         if (stats.isDirectory()) {
                             childProcess.execFileSync("cmd.exe", ["/c", "rd", "/s", "/q", realPath]);
                             // fs.rmSync(realPath, { recursive: true, force: true });
-                            fs.unlinkSync(inputPath);
+                            // fs.unlinkSync(inputPath);
                         } else {
                             // fs.unlinkSync(realPath);
                             fs.unlinkSync(inputPath);
                         }
                     }
-                    // fs.unlinkSync(inputPath);
+                    fs.unlinkSync(inputPath);
                 } catch (errMsg) {
                     if (errMsg.code === 'ENOENT') {
                         // If the real path does not exist, remove the symbolic link itself
@@ -1935,13 +1935,13 @@ export function rmRF(inputPath: string): void {
                             const stats = fs.statSync(realPath);
                             if (stats.isDirectory()) {
                                 fs.rmSync(realPath, { recursive: true, force: true });
-                                fs.unlinkSync(inputPath);
+                                // fs.unlinkSync(inputPath);
                             } else {
                                 // fs.unlinkSync(realPath);
                                 fs.unlinkSync(inputPath);
                             }
                         }
-                        // fs.unlinkSync(inputPath);
+                        fs.unlinkSync(inputPath);
                     } catch (errMsg) {
                         if (errMsg.code === 'ENOENT') {
                             // If the real path does not exist, remove the symbolic link itself
