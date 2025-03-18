@@ -1529,7 +1529,6 @@ describe('Dir Operation Tests', function () {
             catch (err) {
                 errcode = err.code;
             }
-            console.log("******************* missing file symlink rm errcode", errcode);
             assert.equal(errcode, 'ENOENT');
 
             done();
@@ -1649,7 +1648,6 @@ describe('Dir Operation Tests', function () {
         catch (err) {
             errcode = err.code;
         }
-        console.log("******************* errcode: " + errcode);
         assert.equal(errcode, 'ENOENT');
     
         done();
