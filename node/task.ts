@@ -1707,8 +1707,10 @@ function _legacyFindFiles_getMatchingItems(
  * @throws When the file or directory exists but could not be deleted.
  */
 export function rmRF(inputPath: string): void {
-    // if (fs.existsSync(inputPath)) {
-    if (getPlatform() == Platform.Windows){
+    debug('rm -rf ' + inputPath);
+    if (getPlatform() == Platform.Windows) {
+        // Node doesn't provide a delete operation, only an unlink function. This means that if the file is being used by another
+        // program (e.g. antivirus), it won't be deleted. To address this, we shell out the work to rd/del.
         try {
             const lstats = fs.lstatSync(inputPath);
             if (lstats.isDirectory() && !lstats.isSymbolicLink()) {
