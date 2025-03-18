@@ -1554,7 +1554,7 @@ describe('Dir Operation Tests', function () {
 
             tl.rmRF(symlinkLevel2File);
             assert(shell.test('-f', realFile), 'real file should still exist');
-            assert(shell.test('-e', symlinkFile), 'symlink file should still exist');
+            assert(!shell.test('-e', symlinkFile), 'symlink file should not exist');
             assert(!shell.test('-e', symlinkLevel2File), 'symlink level 2 file should have been deleted');
 
             done();
@@ -1681,7 +1681,7 @@ describe('Dir Operation Tests', function () {
         }
 
         tl.rmRF(symlinkLevel2Directory);
-        assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'real file should still exist');
+        assert(!shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'real file should not exist');
         assert(!shell.test('-e', symlinkLevel2Directory), 'symlink level 2 file should have been deleted');
 
         done();
