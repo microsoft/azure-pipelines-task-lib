@@ -1719,24 +1719,17 @@ export function rmRF(inputPath: string): void {
 
             } else if (lstats.isSymbolicLink()) {
                 debug('removing symbolic link ' + inputPath);
-                try {
-                    const realPath = fs.readlinkSync(inputPath);
-                    if (fs.existsSync(realPath)) {
-                        const stats = fs.statSync(realPath);
-                        if (stats.isDirectory()) {
-                            childProcess.execFileSync("cmd.exe", ["/c", "rd", "/s", "/q", realPath]);
-                        } else {
-                            fs.unlinkSync(inputPath);
-                        }
-                    }
-                    fs.unlinkSync(inputPath);
-                } catch (errMsg) {
-                    if (errMsg.code === 'ENOENT') {
-                        // If the real path does not exist, remove the symbolic link itself
+                const realPath = fs.readlinkSync(inputPath);
+                if (fs.existsSync(realPath)) {
+                    const stats = fs.statSync(realPath);
+                    if (stats.isDirectory()) {
+                        childProcess.execFileSync("cmd.exe", ["/c", "rd", "/s", "/q", realPath]);
                         fs.unlinkSync(inputPath);
                     } else {
-                        throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg.message));
+                        fs.unlinkSync(inputPath);
                     }
+                } else {
+                    fs.unlinkSync(inputPath);
                 }
             } else {
                 debug('removing file ' + inputPath);
@@ -1764,24 +1757,17 @@ export function rmRF(inputPath: string): void {
                     fs.rmSync(inputPath, { recursive: true, force: true });
                 } else if (lstats.isSymbolicLink()) {
                     debug('removing symbolic link ' + inputPath);
-                    try {
-                        const realPath = fs.readlinkSync(inputPath);
-                        if (fs.existsSync(realPath)) {
-                            const stats = fs.statSync(realPath);
-                            if (stats.isDirectory()) {
-                                fs.rmSync(realPath, { recursive: true, force: true });
-                            } else {
-                                fs.unlinkSync(inputPath);
-                            }
-                        }
-                        fs.unlinkSync(inputPath);
-                    } catch (errMsg) {
-                        if (errMsg.code === 'ENOENT') {
-                            // If the real path does not exist, remove the symbolic link itself
+                    const realPath = fs.readlinkSync(inputPath);
+                    if (fs.existsSync(realPath)) {
+                        const stats = fs.statSync(realPath);
+                        if (stats.isDirectory()) {
+                            fs.rmSync(realPath, { recursive: true, force: true });
                             fs.unlinkSync(inputPath);
                         } else {
-                            throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg.message));
+                            fs.unlinkSync(inputPath);
                         }
+                    } else {
+                        fs.unlinkSync(inputPath);
                     }
                 } else {
                     debug('removing file ' + inputPath);
