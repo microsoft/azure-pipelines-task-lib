@@ -141,7 +141,7 @@ describe('rm cases', () => {
     assert.ok(fs.existsSync(linkPath));
     assert.doesNotThrow(() => tl.rmRF(linkPath));
     assert.ok(!fs.existsSync(linkPath));
-    assert.ok(fs.existsSync(filePath));
+    assert.ok(!fs.existsSync(filePath));
 
     done();
   });

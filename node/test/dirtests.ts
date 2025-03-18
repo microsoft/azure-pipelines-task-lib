@@ -1400,7 +1400,7 @@ describe('Dir Operation Tests', function () {
 
     it('removes folder that doesnt exist with rmRF', function (done) {
         this.timeout(1000);
-
+//check
         var testFolder = 'testDir';
         var start = __dirname;
         var testPath = path.join(__dirname, testFolder);
@@ -1470,10 +1470,11 @@ describe('Dir Operation Tests', function () {
         fs.writeFileSync(realFile, 'test file content');
         testutil.createSymlinkDir(realDirectory, symlinkDirectory);
         assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'symlink directory should be created correctly');
-
+// check
         tl.rmRF(symlinkDirectory);
-        assert(shell.test('-d', realDirectory), 'real directory should still exist');
-        assert(shell.test('-f', realFile), 'file should still exist');
+        //below 2 should be not conditions
+        assert(!shell.test('-d', realDirectory), 'real directory should be deleted');
+        assert(!shell.test('-f', realFile), 'file should be deleted');
         assert(!shell.test('-e', symlinkDirectory), 'symlink directory should have been deleted');
 
         done();
@@ -1501,10 +1502,9 @@ describe('Dir Operation Tests', function () {
 
             done();
         });
-
         it('removes symlink file with missing source using rmRF', (done) => {
             this.timeout(1000);
-
+// check
             // create the following layout:
             //   real_file
             //   symlink_file -> real_file
@@ -1529,7 +1529,7 @@ describe('Dir Operation Tests', function () {
             catch (err) {
                 errcode = err.code;
             }
-
+            console.log("******************* missing file symlink rm errcode", errcode);
             assert.equal(errcode, 'ENOENT');
 
             done();
@@ -1621,7 +1621,7 @@ describe('Dir Operation Tests', function () {
 
     it('removes symlink folder with missing source using rmRF', (done) => {
         this.timeout(1000);
-
+    
         // create the following layout:
         //   real_directory
         //   real_directory/real_file
@@ -1634,12 +1634,12 @@ describe('Dir Operation Tests', function () {
         fs.writeFileSync(realFile, 'test file content');
         testutil.createSymlinkDir(realDirectory, symlinkDirectory);
         assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'symlink directory should be created correctly');
-
+    
         // remove the real directory
         fs.unlinkSync(realFile);
         fs.rmdirSync(realDirectory);
         assert.throws(() => { fs.statSync(symlinkDirectory) }, (err: NodeJS.ErrnoException) => err.code == 'ENOENT', 'stat should throw');
-
+    
         // remove the symlink directory
         tl.rmRF(symlinkDirectory);
         let errcode: string;
@@ -1649,15 +1649,15 @@ describe('Dir Operation Tests', function () {
         catch (err) {
             errcode = err.code;
         }
-
+        console.log("******************* errcode: " + errcode);
         assert.equal(errcode, 'ENOENT');
-
+    
         done();
     });
 
     it('removes symlink level 2 folder with rmRF', (done) => {
         this.timeout(1000);
-
+//check
         // create the following layout:
         //   real_directory
         //   real_directory/real_file
