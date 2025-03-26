@@ -1741,40 +1741,39 @@ function _legacyFindFiles_getMatchingItems(
  */
 export function rmRF(inputPath: string): void {
     debug('rm -rf ' + inputPath);
-
     if (getPlatform() == Platform.Windows) {
         // Node doesn't provide a delete operation, only an unlink function. This means that if the file is being used by another
         // program (e.g. antivirus), it won't be deleted. To address this, we shell out the work to rd/del.
         try {
-            if (fs.statSync(inputPath).isDirectory()) {
+            const lstats = fs.lstatSync(inputPath);
+            if (lstats.isDirectory() && !lstats.isSymbolicLink()) {
                 debug('removing directory ' + inputPath);
                 childProcess.execFileSync("cmd.exe", ["/c", "rd", "/s", "/q", inputPath]);
-            }
-            else {
+
+            } else if (lstats.isSymbolicLink()) {
+                debug('removing symbolic link ' + inputPath);
+                const realPath = fs.readlinkSync(inputPath);
+                if (fs.existsSync(realPath)) {
+                    const stats = fs.statSync(realPath);
+                    if (stats.isDirectory()) {
+                        childProcess.execFileSync("cmd.exe", ["/c", "rd", "/s", "/q", realPath]);
+                        fs.unlinkSync(inputPath);
+                    } else {
+                        fs.unlinkSync(inputPath);
+                    }
+                } else {
+                    fs.unlinkSync(inputPath);
+                }
+            } else {
                 debug('removing file ' + inputPath);
                 childProcess.execFileSync("cmd.exe", ["/c", "del", "/f", "/a", inputPath]);
             }
         } catch (err) {
-            // if you try to delete a file that doesn't exist, desired result is achieved
-            // other errors are valid
-            if (err.code != 'ENOENT') {
-                throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
-            }
-        }
-
-        // Shelling out fails to remove a symlink folder with missing source, this unlink catches that
-        try {
-            fs.unlinkSync(inputPath);
-        } catch (err) {
-            // if you try to delete a file that doesn't exist, desired result is achieved
-            // other errors are valid
             if (err.code != 'ENOENT') {
                 throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
             }
         }
     } else {
-        // get the lstats in order to workaround a bug in shelljs@0.3.0 where symlinks
-        // with missing targets are not handled correctly by "rm('-rf', path)"
         let lstats: fs.Stats;
 
         try {
@@ -1782,53 +1781,36 @@ export function rmRF(inputPath: string): void {
                 const entries = findMatch(path.dirname(inputPath), [path.basename(inputPath)]);
 
                 for (const entry of entries) {
-                    fs.rmSync(entry, { recursive: true, force: true });
+                    rmRF(entry);
                 }
-
-                return;
             } else {
                 lstats = fs.lstatSync(inputPath);
+                if (lstats.isDirectory() && !lstats.isSymbolicLink()) {
+                    debug('removing directory ' + inputPath);
+                    fs.rmSync(inputPath, { recursive: true, force: true });
+                } else if (lstats.isSymbolicLink()) {
+                    debug('removing symbolic link ' + inputPath);
+                    const realPath = fs.readlinkSync(inputPath);
+                    if (fs.existsSync(realPath)) {
+                        const stats = fs.statSync(realPath);
+                        if (stats.isDirectory()) {
+                            fs.rmSync(realPath, { recursive: true, force: true });
+                            fs.unlinkSync(inputPath);
+                        } else {
+                            fs.unlinkSync(inputPath);
+                        }
+                    } else {
+                        fs.unlinkSync(inputPath);
+                    }
+                } else {
+                    debug('removing file ' + inputPath);
+                    fs.unlinkSync(inputPath);
+                }
             }
         } catch (err) {
-            // if you try to delete a file that doesn't exist, desired result is achieved
-            // other errors are valid
-            if (err.code == 'ENOENT') {
-                return;
+            if (err.code != 'ENOENT') {
+                throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
             }
-
-            throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
-        }
-
-        if (lstats.isDirectory()) {
-            debug('removing directory');
-            try {
-                fs.rmSync(inputPath, { recursive: true, force: true });
-            } catch (errMsg) {
-                throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
-            }
-
-            return;
-        } else if (lstats.isSymbolicLink()) {
-            debug('removing symbolic link');
-            try {
-                fs.unlinkSync(inputPath);
-            } catch (errMsg) {
-                throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
-            }
-
-            return;
-        }
-
-        debug('removing file');
-        try {
-            const entries = findMatch(path.dirname(inputPath), [path.basename(inputPath)]);
-
-            for (const entry of entries) {
-                fs.rmSync(entry, { recursive: true, force: true });
-            }
-        }
-        catch (err) {
-            throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
         }
     }
 }

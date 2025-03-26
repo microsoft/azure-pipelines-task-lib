@@ -112,10 +112,9 @@ describe('rm cases', () => {
   it('Removing symbolic link to a directory', (done) => {
     fs.mkdirSync(path.join(TEMP_DIR, 'rm', 'a_dir'), { recursive: true });
     fs.symlinkSync(path.join(TEMP_DIR, 'rm', 'a_dir'), path.join(TEMP_DIR, 'rm', 'link_to_a_dir'), 'dir');
-
     assert.doesNotThrow(() => tl.rmRF(path.join(TEMP_DIR, 'rm', 'link_to_a_dir')));
     assert.ok(!fs.existsSync(path.join(TEMP_DIR, 'rm', 'link_to_a_dir')));
-    assert.ok(fs.existsSync(path.join(TEMP_DIR, 'rm', 'a_dir')));
+    assert.ok(!fs.existsSync(path.join(TEMP_DIR, 'rm', 'a_dir')));
 
     tl.rmRF(path.join(TEMP_DIR, 'rm'));
 
@@ -154,10 +153,11 @@ describe('rm cases', () => {
     fs.writeFileSync(path.join(dirPath, 'file_in_dir'), 'test');
     fs.symlinkSync(dirPath, linkPath, 'dir');
     assert.ok(fs.existsSync(linkPath));
+
     assert.doesNotThrow(() => tl.rmRF(linkPath));
+
     assert.ok(!fs.existsSync(linkPath));
-    assert.ok(fs.existsSync(dirPath));
+    assert.ok(!fs.existsSync(dirPath));
     done();
   });
-
 });

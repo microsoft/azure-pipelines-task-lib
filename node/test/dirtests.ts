@@ -1472,8 +1472,8 @@ describe('Dir Operation Tests', function () {
         assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'symlink directory should be created correctly');
 
         tl.rmRF(symlinkDirectory);
-        assert(shell.test('-d', realDirectory), 'real directory should still exist');
-        assert(shell.test('-f', realFile), 'file should still exist');
+        assert(!shell.test('-d', realDirectory), 'real directory should be deleted');
+        assert(!shell.test('-f', realFile), 'file should be deleted');
         assert(!shell.test('-e', symlinkDirectory), 'symlink directory should have been deleted');
 
         done();
@@ -1501,7 +1501,6 @@ describe('Dir Operation Tests', function () {
 
             done();
         });
-
         it('removes symlink file with missing source using rmRF', (done) => {
             this.timeout(1000);
 
@@ -1529,7 +1528,6 @@ describe('Dir Operation Tests', function () {
             catch (err) {
                 errcode = err.code;
             }
-
             assert.equal(errcode, 'ENOENT');
 
             done();
@@ -1621,7 +1619,7 @@ describe('Dir Operation Tests', function () {
 
     it('removes symlink folder with missing source using rmRF', (done) => {
         this.timeout(1000);
-
+    
         // create the following layout:
         //   real_directory
         //   real_directory/real_file
@@ -1634,12 +1632,12 @@ describe('Dir Operation Tests', function () {
         fs.writeFileSync(realFile, 'test file content');
         testutil.createSymlinkDir(realDirectory, symlinkDirectory);
         assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'symlink directory should be created correctly');
-
+    
         // remove the real directory
         fs.unlinkSync(realFile);
         fs.rmdirSync(realDirectory);
         assert.throws(() => { fs.statSync(symlinkDirectory) }, (err: NodeJS.ErrnoException) => err.code == 'ENOENT', 'stat should throw');
-
+    
         // remove the symlink directory
         tl.rmRF(symlinkDirectory);
         let errcode: string;
@@ -1649,9 +1647,8 @@ describe('Dir Operation Tests', function () {
         catch (err) {
             errcode = err.code;
         }
-
         assert.equal(errcode, 'ENOENT');
-
+    
         done();
     });
 
@@ -1681,7 +1678,7 @@ describe('Dir Operation Tests', function () {
         }
 
         tl.rmRF(symlinkLevel2Directory);
-        assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'real file should still exist');
+        assert(!shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'real file should not exist');
         assert(!shell.test('-e', symlinkLevel2Directory), 'symlink level 2 file should have been deleted');
 
         done();
