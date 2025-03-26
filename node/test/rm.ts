@@ -160,4 +160,40 @@ describe('rm cases', () => {
     assert.ok(!fs.existsSync(dirPath));
     done();
   });
+
+  it('Remove a symlink after deleting the source file', (done) => {
+    const filePath = path.join(TEMP_DIR, 'source_file.txt');
+    const linkPath = path.join(TEMP_DIR, 'link_to_source_file');
+    fs.mkdirSync(TEMP_DIR, { recursive: true });
+
+    fs.writeFileSync(filePath, 'This is a test file.');
+    fs.symlinkSync(filePath, linkPath);
+    assert.ok(fs.existsSync(linkPath), 'Symbolic link should exist');
+    fs.unlinkSync(filePath);
+    assert.ok(!fs.existsSync(filePath), 'Source file should be deleted');
+    assert.doesNotThrow(() => tl.rmRF(linkPath));
+    assert.ok(!fs.existsSync(linkPath), 'Symbolic link should be removed');
+    done();
+  });
+
+  it('Remove a symlink after deleting the source directory', (done) => {
+    const dirPath = path.join(TEMP_DIR, 'source_dir');
+    const linkPath = path.join(TEMP_DIR, 'link_to_source_dir');
+    fs.mkdirSync(TEMP_DIR, { recursive: true });
+    fs.mkdirSync(dirPath, { recursive: true });
+
+    if (process.platform === 'win32') {
+      fs.symlinkSync(dirPath, linkPath, 'junction');
+    } else {
+      fs.symlinkSync(dirPath, linkPath);
+    }
+
+    assert.ok(fs.existsSync(linkPath), 'Symbolic link should exist');
+    fs.rmdirSync(dirPath, { recursive: true });
+    assert.ok(!fs.existsSync(dirPath), 'Source directory should be deleted');
+    assert.doesNotThrow(() => tl.rmRF(linkPath));
+    assert.ok(!fs.existsSync(linkPath), 'Symbolic link should be removed');
+    done();
+  });
+
 });

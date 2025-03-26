@@ -1210,15 +1210,18 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
 }
 
 const copyDirectoryWithResolvedSymlinks = (src: string, dest: string, force: boolean) => {
+    var srcPath: string;
+    var destPath: string;
+    var entry: fs.Dirent;
+    const entries = fs.readdirSync(src, { withFileTypes: true });
+
     if (!fs.existsSync(dest)) {
         fs.mkdirSync(dest, { recursive: true });
     }
-
-    const entries = fs.readdirSync(src, { withFileTypes: true });
-
-    for (const entry of entries) {
-        const srcPath = path.join(src, entry.name);
-        const destPath = path.join(dest, entry.name);
+    
+    for (entry of entries) {
+        srcPath = path.join(src, entry.name);
+        destPath = path.join(dest, entry.name);
 
         if (entry.isSymbolicLink()) {
             // Resolve the symbolic link and copy the target
@@ -1762,6 +1765,7 @@ export function rmRF(inputPath: string): void {
                         fs.unlinkSync(inputPath);
                     }
                 } else {
+                    debug(`Symbolic link '${inputPath}' points to a non-existing target '${realPath}'. Removing the symbolic link.`);
                     fs.unlinkSync(inputPath);
                 }
             } else {
@@ -1769,6 +1773,7 @@ export function rmRF(inputPath: string): void {
                 childProcess.execFileSync("cmd.exe", ["/c", "del", "/f", "/a", inputPath]);
             }
         } catch (err) {
+            debug('Error: ' + err.message);
             if (err.code != 'ENOENT') {
                 throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
             }
@@ -1800,6 +1805,7 @@ export function rmRF(inputPath: string): void {
                             fs.unlinkSync(inputPath);
                         }
                     } else {
+                        debug(`Symbolic link '${inputPath}' points to a non-existing target '${realPath}'. Removing the symbolic link.`);
                         fs.unlinkSync(inputPath);
                     }
                 } else {
@@ -1808,6 +1814,7 @@ export function rmRF(inputPath: string): void {
                 }
             }
         } catch (err) {
+            debug('Error: ' + err.message);
             if (err.code != 'ENOENT') {
                 throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
             }
