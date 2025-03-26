@@ -16,15 +16,17 @@ describe('cp cases', () => {
   const TESTCASE_2 = path.resolve(TEMP_DIR_1, 'testcase_2');
   const TEST_SRC_DIR = 'test-src';
   const TEST_DEST_DIR = 'test-dest';
+  const OUTSIDE_FILE = path.resolve(DIRNAME, 'outside-file.txt');
+  const SYMLINK_NAME = 'symlink-outside.txt';
 
   before((done) => {
     tl.mkdirP(TEMP_DIR_1);
     tl.mkdirP(TEMP_DIR_2);
     fs.mkdirSync(TEST_SRC_DIR, { recursive: true });
-    fs.writeFileSync(path.join(TEST_SRC_DIR, 'file.txt'), 'Hello, world!');
-    fs.symlinkSync('file.txt', path.join(TEST_SRC_DIR, 'symlink.txt'));
+    const symlinkPath = path.join(TEST_SRC_DIR, SYMLINK_NAME);
+    fs.writeFileSync(OUTSIDE_FILE, 'This is a file outside the source folder.');
+    fs.symlinkSync(OUTSIDE_FILE, symlinkPath);
     fs.mkdirSync(TEST_DEST_DIR, { recursive: true });
-
     fs.writeFileSync(TEMP_DIR_2_FILE_1, 'file1');
 
     try {
@@ -46,7 +48,7 @@ describe('cp cases', () => {
   afterEach((done) => {
     tl.rmRF(TESTCASE_1);
     tl.rmRF(TESTCASE_2);
-    
+
     done();
   });
 
@@ -54,8 +56,9 @@ describe('cp cases', () => {
     tl.cd(DIRNAME);
     tl.rmRF(TEMP_DIR_1);
     tl.rmRF(TEMP_DIR_2);
-    fs.rmSync('test-src', { recursive: true, force: true });
-    fs.rmSync('test-dest', { recursive: true, force: true })
+    tl.rmRF(OUTSIDE_FILE);
+    fs.rmSync(TEST_SRC_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DEST_DIR, { recursive: true, force: true })
     done();
   });
 
@@ -148,18 +151,13 @@ describe('cp cases', () => {
   });
 
   it('copy a directory containing symbolic link recursively', (done) => {
+
     tl.cp(TEST_SRC_DIR, TEST_DEST_DIR, '-r', false, 0);
 
-    // Check if the directory was copied
     assert(fs.existsSync(path.join(TEST_DEST_DIR, TEST_SRC_DIR)), 'Directory was not copied');
-
-    // Check if the file was copied
-    assert(fs.existsSync(path.join(TEST_DEST_DIR, TEST_SRC_DIR, 'file.txt')), 'File was not copied');
-    assert.equal(fs.readFileSync(path.join(TEST_DEST_DIR, TEST_SRC_DIR, 'file.txt'), 'utf8'), 'Hello, world!', 'File content is incorrect');
-
-    // Check if the symbolic link was copied
-    assert(fs.existsSync(path.join(TEST_DEST_DIR, TEST_SRC_DIR, 'symlink.txt')), 'Symbolic link was not copied');
-    assert.strictEqual(fs.readlinkSync(path.join(TEST_DEST_DIR, TEST_SRC_DIR, 'symlink.txt')), path.resolve(path.join(TEST_SRC_DIR, 'file.txt')), 'Symlink target is incorrect');
+    assert(fs.existsSync(path.join(TEST_DEST_DIR, TEST_SRC_DIR, 'outside-file.txt')), 'File was not copied');
+    assert.equal(fs.readFileSync(path.join(TEST_DEST_DIR, TEST_SRC_DIR, 'outside-file.txt'), 'utf8'), 'This is a file outside the source folder.', 'File content is incorrect');
+    assert(!fs.existsSync(path.join(TEST_DEST_DIR, TEST_SRC_DIR, SYMLINK_NAME)), 'Symbolic link should not be copied');
 
     done();
   });

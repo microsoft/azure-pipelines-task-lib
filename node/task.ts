@@ -1179,7 +1179,7 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
             throw new Error(loc('LIB_PathNotFound', 'cp', destination));
         }
 
-        const lstatSource = fs.lstatSync(source);
+        var lstatSource = fs.lstatSync(source);
 
         if (!force && fs.existsSync(destination)) {
             return;
@@ -1188,6 +1188,7 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
         try {
             if (lstatSource.isSymbolicLink()) {
                 source = fs.readlinkSync(source);
+                lstatSource = fs.lstatSync(source);
             }
             if (lstatSource.isFile()) {
                 if (fs.existsSync(destination) && fs.lstatSync(destination).isDirectory()) {
@@ -1200,13 +1201,45 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
                     fs.copyFileSync(source, destination, fs.constants.COPYFILE_EXCL);
                 }
             } else {
-                fs.cpSync(source, path.join(destination, path.basename(source)), { recursive, force });
+                copyDirectoryWithResolvedSymlinks(source, path.join(destination, path.basename(source)), force);
             }
         } catch (error) {
             throw new Error(loc('LIB_OperationFailed', 'cp', error));
         }
     }, [], { retryCount, continueOnError });
 }
+
+const copyDirectoryWithResolvedSymlinks = (src: string, dest: string, force: boolean) => {
+    if (!fs.existsSync(dest)) {
+        fs.mkdirSync(dest, { recursive: true });
+    }
+
+    const entries = fs.readdirSync(src, { withFileTypes: true });
+
+    for (const entry of entries) {
+        const srcPath = path.join(src, entry.name);
+        const destPath = path.join(dest, entry.name);
+
+        if (entry.isSymbolicLink()) {
+            // Resolve the symbolic link and copy the target
+            const resolvedPath = fs.readlinkSync(srcPath);
+            const stat = fs.lstatSync(resolvedPath);
+
+            if (stat.isFile()) {
+                // Use the actual target file's name instead of the symbolic link's name
+                const targetFileName = path.basename(resolvedPath);
+                const targetDestPath = path.join(dest, targetFileName);
+                fs.copyFileSync(resolvedPath, targetDestPath);
+            } else if (stat.isDirectory()) {
+                copyDirectoryWithResolvedSymlinks(resolvedPath, destPath, force);
+            }
+        } else if (entry.isFile()) {
+            fs.copyFileSync(srcPath, destPath);
+        } else if (entry.isDirectory()) {
+            copyDirectoryWithResolvedSymlinks(srcPath, destPath, force);
+        }
+    }
+};
 
 type MoveOptionsVariants = OptionsPermutations<'fn'>;
 
@@ -1778,25 +1811,12 @@ export function rmRF(inputPath: string): void {
         } else if (lstats.isSymbolicLink()) {
             debug('removing symbolic link');
             try {
-                const stats = fs.statSync(inputPath);
-                if (stats.isDirectory()) {
-                    // If the symbolic link points to a directory, remove the contents of the directory recursively
-                    const realPath = fs.readlinkSync(inputPath);
-                    fs.rmSync(realPath, { recursive: true, force: true });
-                    // Remove the symbolic link itself
-                    fs.unlinkSync(inputPath);
-                } else {
-                    // If the symbolic link points to a file, remove the link itself
-                    fs.unlinkSync(inputPath);
-                }
+                fs.unlinkSync(inputPath);
             } catch (errMsg) {
                 throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
             }
 
             return;
-        } else if (lstats.isFIFO()) {
-            debug('removing FIFO');
-            fs.unlinkSync(inputPath);
         }
 
         debug('removing file');
