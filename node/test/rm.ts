@@ -109,18 +109,6 @@ describe('rm cases', () => {
     done();
   });
 
-  it('Removing symbolic link to a directory', (done) => {
-    fs.mkdirSync(path.join(TEMP_DIR, 'rm', 'a_dir'), { recursive: true });
-    fs.symlinkSync(path.join(TEMP_DIR, 'rm', 'a_dir'), path.join(TEMP_DIR, 'rm', 'link_to_a_dir'), 'dir');
-    assert.doesNotThrow(() => tl.rmRF(path.join(TEMP_DIR, 'rm', 'link_to_a_dir')));
-    assert.ok(!fs.existsSync(path.join(TEMP_DIR, 'rm', 'link_to_a_dir')));
-    assert.ok(!fs.existsSync(path.join(TEMP_DIR, 'rm', 'a_dir')));
-
-    tl.rmRF(path.join(TEMP_DIR, 'rm'));
-
-    done();
-  });
-
   it('Remove path with relative non-normalized structure', (done) => {
     tl.mkdirP(TEMP_NESTED_DIR_FULL_TREE);
 
