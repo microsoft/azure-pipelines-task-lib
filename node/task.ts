@@ -13,8 +13,8 @@ type OptionCases<T extends string> = `-${Uppercase<T> | Lowercase<T>}`;
 
 type OptionsPermutations<T extends string, U extends string = ''> =
     T extends `${infer First}${infer Rest}`
-        ? OptionCases<`${U}${First}`> | OptionCases<`${First}${U}`> | OptionsPermutations<Rest, `${U}${First}`> | OptionCases<First>
-        : OptionCases<U> | '';
+    ? OptionCases<`${U}${First}`> | OptionCases<`${First}${U}`> | OptionsPermutations<Rest, `${U}${First}`> | OptionCases<First>
+    : OptionCases<U> | '';
 
 export enum TaskResult {
     Succeeded = 0,
@@ -893,7 +893,7 @@ export function popd(index: string = ''): string[] {
         const _path = path.resolve(dirStack.shift()!);
         cd(_path);
     }
-    
+
     return getActualStack();
 }
 
@@ -1065,7 +1065,7 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
             paths.push(...pathsFromOptions);
         }
     }
-    
+
     if (paths.length === 0) {
         paths.push(path.resolve('.'));
     }
@@ -1101,7 +1101,7 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
                 continue;
             }
             const baseDir = pathsCopy.find(p => entry.startsWith(path.resolve(p as string))) as string || path.resolve('.');
-            
+
             if (fs.lstatSync(entry).isDirectory() && isRecursive) {
                 preparedPaths.push(...fs.readdirSync(entry).map(x => path.join(entry, x)));
                 entries.push(path.relative(baseDir, entry));
@@ -1179,13 +1179,17 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
             throw new Error(loc('LIB_PathNotFound', 'cp', destination));
         }
 
-        const lstatSource = fs.lstatSync(source);
+        var lstatSource = fs.lstatSync(source);
 
         if (!force && fs.existsSync(destination)) {
             return;
         }
 
         try {
+            if (lstatSource.isSymbolicLink()) {
+                source = fs.readlinkSync(source);
+                lstatSource = fs.lstatSync(source);
+            }
             if (lstatSource.isFile()) {
                 if (fs.existsSync(destination) && fs.lstatSync(destination).isDirectory()) {
                     destination = path.join(destination, path.basename(source));
@@ -1197,13 +1201,48 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
                     fs.copyFileSync(source, destination, fs.constants.COPYFILE_EXCL);
                 }
             } else {
-                fs.cpSync(source, path.join(destination, path.basename(source)), { recursive, force });
+                copyDirectoryWithResolvedSymlinks(source, path.join(destination, path.basename(source)), force);
             }
         } catch (error) {
             throw new Error(loc('LIB_OperationFailed', 'cp', error));
         }
-    }, [], { retryCount, continueOnError});
+    }, [], { retryCount, continueOnError });
 }
+
+const copyDirectoryWithResolvedSymlinks = (src: string, dest: string, force: boolean) => {
+    var srcPath: string;
+    var destPath: string;
+    var entry: fs.Dirent;
+    const entries = fs.readdirSync(src, { withFileTypes: true });
+
+    if (!fs.existsSync(dest)) {
+        fs.mkdirSync(dest, { recursive: true });
+    }
+    
+    for (entry of entries) {
+        srcPath = path.join(src, entry.name);
+        destPath = path.join(dest, entry.name);
+
+        if (entry.isSymbolicLink()) {
+            // Resolve the symbolic link and copy the target
+            const resolvedPath = fs.readlinkSync(srcPath);
+            const stat = fs.lstatSync(resolvedPath);
+
+            if (stat.isFile()) {
+                // Use the actual target file's name instead of the symbolic link's name
+                const targetFileName = path.basename(resolvedPath);
+                const targetDestPath = path.join(dest, targetFileName);
+                fs.copyFileSync(resolvedPath, targetDestPath);
+            } else if (stat.isDirectory()) {
+                copyDirectoryWithResolvedSymlinks(resolvedPath, destPath, force);
+            }
+        } else if (entry.isFile()) {
+            fs.copyFileSync(srcPath, destPath);
+        } else if (entry.isDirectory()) {
+            copyDirectoryWithResolvedSymlinks(srcPath, destPath, force);
+        }
+    }
+};
 
 type MoveOptionsVariants = OptionsPermutations<'fn'>;
 
@@ -1705,40 +1744,41 @@ function _legacyFindFiles_getMatchingItems(
  */
 export function rmRF(inputPath: string): void {
     debug('rm -rf ' + inputPath);
-
     if (getPlatform() == Platform.Windows) {
         // Node doesn't provide a delete operation, only an unlink function. This means that if the file is being used by another
         // program (e.g. antivirus), it won't be deleted. To address this, we shell out the work to rd/del.
         try {
-            if (fs.statSync(inputPath).isDirectory()) {
+            const lstats = fs.lstatSync(inputPath);
+            if (lstats.isDirectory() && !lstats.isSymbolicLink()) {
                 debug('removing directory ' + inputPath);
                 childProcess.execFileSync("cmd.exe", ["/c", "rd", "/s", "/q", inputPath]);
-            }
-            else {
+
+            } else if (lstats.isSymbolicLink()) {
+                debug('removing symbolic link ' + inputPath);
+                const realPath = fs.readlinkSync(inputPath);
+                if (fs.existsSync(realPath)) {
+                    const stats = fs.statSync(realPath);
+                    if (stats.isDirectory()) {
+                        childProcess.execFileSync("cmd.exe", ["/c", "rd", "/s", "/q", realPath]);
+                        fs.unlinkSync(inputPath);
+                    } else {
+                        fs.unlinkSync(inputPath);
+                    }
+                } else {
+                    debug(`Symbolic link '${inputPath}' points to a non-existing target '${realPath}'. Removing the symbolic link.`);
+                    fs.unlinkSync(inputPath);
+                }
+            } else {
                 debug('removing file ' + inputPath);
                 childProcess.execFileSync("cmd.exe", ["/c", "del", "/f", "/a", inputPath]);
             }
         } catch (err) {
-            // if you try to delete a file that doesn't exist, desired result is achieved
-            // other errors are valid
-            if (err.code != 'ENOENT') {
-                throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
-            }
-        }
-
-        // Shelling out fails to remove a symlink folder with missing source, this unlink catches that
-        try {
-            fs.unlinkSync(inputPath);
-        } catch (err) {
-            // if you try to delete a file that doesn't exist, desired result is achieved
-            // other errors are valid
+            debug('Error: ' + err.message);
             if (err.code != 'ENOENT') {
                 throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
             }
         }
     } else {
-        // get the lstats in order to workaround a bug in shelljs@0.3.0 where symlinks
-        // with missing targets are not handled correctly by "rm('-rf', path)"
         let lstats: fs.Stats;
 
         try {
@@ -1746,53 +1786,38 @@ export function rmRF(inputPath: string): void {
                 const entries = findMatch(path.dirname(inputPath), [path.basename(inputPath)]);
 
                 for (const entry of entries) {
-                    fs.rmSync(entry, { recursive: true, force: true });
+                    rmRF(entry);
                 }
-
-                return;
             } else {
                 lstats = fs.lstatSync(inputPath);
+                if (lstats.isDirectory() && !lstats.isSymbolicLink()) {
+                    debug('removing directory ' + inputPath);
+                    fs.rmSync(inputPath, { recursive: true, force: true });
+                } else if (lstats.isSymbolicLink()) {
+                    debug('removing symbolic link ' + inputPath);
+                    const realPath = fs.readlinkSync(inputPath);
+                    if (fs.existsSync(realPath)) {
+                        const stats = fs.statSync(realPath);
+                        if (stats.isDirectory()) {
+                            fs.rmSync(realPath, { recursive: true, force: true });
+                            fs.unlinkSync(inputPath);
+                        } else {
+                            fs.unlinkSync(inputPath);
+                        }
+                    } else {
+                        debug(`Symbolic link '${inputPath}' points to a non-existing target '${realPath}'. Removing the symbolic link.`);
+                        fs.unlinkSync(inputPath);
+                    }
+                } else {
+                    debug('removing file ' + inputPath);
+                    fs.unlinkSync(inputPath);
+                }
             }
         } catch (err) {
-            // if you try to delete a file that doesn't exist, desired result is achieved
-            // other errors are valid
-            if (err.code == 'ENOENT') {
-                return;
+            debug('Error: ' + err.message);
+            if (err.code != 'ENOENT') {
+                throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
             }
-
-            throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
-        }
-
-        if (lstats.isDirectory()) {
-            debug('removing directory');
-            try {
-                fs.rmSync(inputPath, { recursive: true, force: true });
-            } catch (errMsg) {
-                throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
-            }
-
-            return;
-        } else if (lstats.isSymbolicLink()) {
-            debug('removing symbolic link');
-            try {
-                fs.unlinkSync(inputPath);
-            } catch (errMsg) {
-                throw new Error(loc('LIB_OperationFailed', 'rmRF', errMsg));
-            }
-
-            return;
-        }
-
-        debug('removing file');
-        try {
-            const entries = findMatch(path.dirname(inputPath), [path.basename(inputPath)]);
-
-            for (const entry of entries) {
-                fs.rmSync(entry, { recursive: true, force: true });
-            }
-        }
-        catch (err) {
-            throw new Error(loc('LIB_OperationFailed', 'rmRF', err.message));
         }
     }
 }
