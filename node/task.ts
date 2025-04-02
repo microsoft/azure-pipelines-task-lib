@@ -222,10 +222,6 @@ export function setVariable(name: string, val: string, secret: boolean = false, 
     let varValue = val || '';
     debug('set ' + name + '=' + (secret && varValue ? '********' : varValue));
     if (secret) {
-        if (varValue && varValue.match(/\r|\n/) && `${process.env['SYSTEM_UNSAFEALLOWMULTILINESECRET']}`.toUpperCase() != 'TRUE') {
-            throw new Error(loc('LIB_MultilineSecret'));
-        }
-
         im._vault.storeSecret('SECRET_' + key, varValue);
         delete process.env[key];
     } else {
@@ -246,9 +242,6 @@ export function setVariable(name: string, val: string, secret: boolean = false, 
  */
 export function setSecret(val: string): void {
     if (val) {
-        if (val.match(/\r|\n/) && `${process.env['SYSTEM_UNSAFEALLOWMULTILINESECRET']}`.toUpperCase() !== 'TRUE') {
-            throw new Error(loc('LIB_MultilineSecret'));
-        }
         command('task.setsecret', {}, val);
     }
 }
