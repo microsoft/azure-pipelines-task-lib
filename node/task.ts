@@ -176,8 +176,9 @@ export function assertAgent(minimum: string): void {
     }
 
     let agent = getVariable('Agent.Version');
+    debug('Detected Agent.Version=' + (agent ? agent : 'undefined'));
     if (agent && semver.lt(agent, minimum)) {
-        throw new Error(`Agent version ${minimum} or higher is required`);
+        throw new Error(`Agent version ${minimum} or higher is required. Detected Agent version: ${agent}`);
     }
 }
 
