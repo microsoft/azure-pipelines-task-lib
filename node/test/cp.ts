@@ -162,13 +162,13 @@ describe('cp cases', () => {
     done();
   });
 
-  it('copy symlink pointing to file where symlink is create using relative path to target file', (done) => {
+  it('copy symlink pointing to file where symlink is created using relative path to target file', (done) => {
     const rootSymlinkName = 'root-symlink-to-temp2-file';
     const symlinkPath = path.join(DIRNAME, rootSymlinkName);
     const targetPath = path.relative(DIRNAME, TEMP_DIR_2_FILE_1);
 
     fs.symlinkSync(targetPath, symlinkPath, 'file');
-    
+
     const destPath = path.join(TEST_DEST_DIR, rootSymlinkName);
     tl.cp(symlinkPath, destPath);
     assert(fs.existsSync(destPath), 'Destination file was not created');
