@@ -1188,7 +1188,8 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
 
         try {
             if (lstatSource.isSymbolicLink()) {
-                source = fs.readlinkSync(source);
+                const symlinkTarget = fs.readlinkSync(source);
+                source = path.resolve(path.dirname(source), symlinkTarget);
                 lstatSource = fs.lstatSync(source);
             }
             if (lstatSource.isFile()) {
