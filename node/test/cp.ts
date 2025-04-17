@@ -17,17 +17,23 @@ describe('cp cases', () => {
   const TEST_SRC_DIR = 'test-src';
   const TEST_DEST_DIR = 'test-dest';
   const OUTSIDE_FILE = path.resolve(DIRNAME, 'outside-file.txt');
-  const SYMLINK_NAME = 'symlink-outside.txt';
+  const RELATIVE_TARGET_FILE = path.resolve(DIRNAME, 'outside-file2.txt');
+  const ABSOLUTE_SYMLINK = 'symlink-outside.txt';
+  const RELATIVE_SYMLINK = 'symlink-outside2.txt';
 
   before((done) => {
     tl.mkdirP(TEMP_DIR_1);
     tl.mkdirP(TEMP_DIR_2);
     fs.mkdirSync(TEST_SRC_DIR, { recursive: true });
-    const symlinkPath = path.join(TEST_SRC_DIR, SYMLINK_NAME);
+    const symlinkPath = path.join(TEST_SRC_DIR, ABSOLUTE_SYMLINK);
     fs.writeFileSync(OUTSIDE_FILE, 'This is a file outside the source folder.');
+    fs.writeFileSync(RELATIVE_TARGET_FILE, 'This is the second file outside the source folder.');
     fs.symlinkSync(OUTSIDE_FILE, symlinkPath);
     fs.mkdirSync(TEST_DEST_DIR, { recursive: true });
     fs.writeFileSync(TEMP_DIR_2_FILE_1, 'file1');
+    const symlinkPath2 = path.join(TEST_SRC_DIR, RELATIVE_SYMLINK);
+    const targetPath = path.relative(TEST_SRC_DIR, RELATIVE_TARGET_FILE);
+    fs.symlinkSync(targetPath, symlinkPath2, 'file');
 
     try {
       testutil.initialize();
@@ -154,10 +160,20 @@ describe('cp cases', () => {
 
     tl.cp(TEST_SRC_DIR, TEST_DEST_DIR, '-r', false, 0);
 
+    // Verify first symlink
     assert(fs.existsSync(path.join(TEST_DEST_DIR, TEST_SRC_DIR)), 'Directory was not copied');
     assert(fs.existsSync(path.join(TEST_DEST_DIR, TEST_SRC_DIR, 'outside-file.txt')), 'File was not copied');
     assert.equal(fs.readFileSync(path.join(TEST_DEST_DIR, TEST_SRC_DIR, 'outside-file.txt'), 'utf8'), 'This is a file outside the source folder.', 'File content is incorrect');
-    assert(!fs.existsSync(path.join(TEST_DEST_DIR, TEST_SRC_DIR, SYMLINK_NAME)), 'Symbolic link should not be copied');
+    assert(!fs.existsSync(path.join(TEST_DEST_DIR, TEST_SRC_DIR, ABSOLUTE_SYMLINK)), 'First symbolic link should not be copied');
+
+    // Verify second symlink with relative path
+    assert(fs.existsSync(path.join(TEST_DEST_DIR, TEST_SRC_DIR, 'outside-file2.txt')), 'Second file was not copied');
+    assert.equal(
+      fs.readFileSync(path.join(TEST_DEST_DIR, TEST_SRC_DIR, 'outside-file2.txt'), 'utf8'),
+      'This is the second file outside the source folder.',
+      'Second file content is incorrect'
+    );
+    assert(!fs.existsSync(path.join(TEST_DEST_DIR, TEST_SRC_DIR, RELATIVE_SYMLINK)), 'Second symbolic link should not be copied');
 
     done();
   });

@@ -1227,7 +1227,8 @@ const copyDirectoryWithResolvedSymlinks = (src: string, dest: string, force: boo
 
         if (entry.isSymbolicLink()) {
             // Resolve the symbolic link and copy the target
-            const resolvedPath = fs.readlinkSync(srcPath);
+            const symlinkTarget = fs.readlinkSync(srcPath);
+            const resolvedPath = path.resolve(path.dirname(srcPath), symlinkTarget);
             const stat = fs.lstatSync(resolvedPath);
 
             if (stat.isFile()) {
