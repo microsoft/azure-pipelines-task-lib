@@ -1047,7 +1047,7 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
 
     // Flatten paths if the paths argument is array
     if (Array.isArray(paths)) {
-        paths = paths.flat(Infinity);
+        paths = flattenArray(paths);
     }
 
     // If the first argument is not options, then it is a path
@@ -1119,6 +1119,12 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
             throw new Error(loc('LIB_OperationFailed', 'ls', error));
         }
     }
+}
+
+function flattenArray(arr: any[]): any[] {
+    return arr.reduce((flat, toFlatten) => {
+        return flat.concat(Array.isArray(toFlatten) ? flattenArray(toFlatten) : toFlatten);
+    }, []);
 }
 
 type CopyOptionsVariants = OptionsPermutations<'frn'>;
