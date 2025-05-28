@@ -1095,7 +1095,6 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
             }
         }
         paths.push(...remainingPaths);
-
         while (paths.length > 0) {
             const pathEntry = resolve(paths.shift());
             if (pathEntry?.includes('*')) {
