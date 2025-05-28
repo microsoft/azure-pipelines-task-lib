@@ -1036,6 +1036,7 @@ export function ls(...paths: string[]): string[];
  * @return {string[]}                  - An array of files in the given path(s).
  */
 export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
+    console.log('[ls] called with:', { optionsOrPaths, paths });
     let isRecursive = false;
     let includeHidden = false;
 
@@ -1043,11 +1044,14 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
         const options = String(optionsOrPaths).toLowerCase();
         isRecursive = options.includes('r');
         includeHidden = options.includes('a');
+        console.log('[ls] parsed options:', { isRecursive, includeHidden });
     }
 
     // Flatten paths if the paths argument is array
     if (Array.isArray(paths)) {
-        paths = paths.flat(Infinity);
+        // paths = paths.flat(Infinity);
+        paths = flattenArray(paths);
+        console.log('[ls] flattened paths:', paths);
     }
 
     // If the first argument is not options, then it is a path
@@ -1065,24 +1069,66 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
         } else {
             paths.push(...pathsFromOptions);
         }
+        console.log('[ls] paths after optionsOrPaths handling:', paths);
     }
 
     if (paths.length === 0) {
         paths.push(path.resolve('.'));
+        console.log('[ls] no paths provided, using current directory:', paths);
     }
     const pathsCopy = [...paths];
     const preparedPaths: string[] = [];
+    const results: string[] = [];
+
     try {
+        let remainingPaths: string[] = [];
         while (paths.length > 0) {
             const pathEntry = resolve(paths.shift());
+            console.log('[ls] processing pathEntry:', pathEntry);
+
             if (pathEntry?.includes('*')) {
+                // Keep wildcards for later processing
+                remainingPaths.push(pathEntry);
+                continue;
+            }
+
+            try {
+                const stats = fs.lstatSync(pathEntry);
+                if (stats.isFile()) {
+                    // For files, just add the basename to results
+                    const fileName = path.basename(pathEntry);
+                    console.log('[ls] adding direct file:', fileName);
+                    results.push(fileName);
+                } else {
+                    // Keep directories for later processing
+                    remainingPaths.push(pathEntry);
+                }
+            } catch (err) {
+                if (err.code === 'ENOENT') {
+                    throw new Error(loc('LIB_PathNotFound', 'ls', err.message));
+                }
+                throw err;
+            }
+        }
+        paths.push(...remainingPaths);
+        while (paths.length > 0) {
+            const pathEntry = resolve(paths.shift());
+            console.log('[ls] processing pathEntry:', pathEntry);
+            if (pathEntry?.includes('*')) {
+                const matches = findMatch(path.dirname(pathEntry), [path.basename(pathEntry)]);
+                console.log('[ls] wildcard match:', matches);
                 paths.push(...findMatch(path.dirname(pathEntry), [path.basename(pathEntry)]));
+                // paths.push(...matches);
                 continue;
             }
 
             if (fs.lstatSync(pathEntry).isDirectory()) {
+                const files = fs.readdirSync(pathEntry).map(file => path.join(pathEntry, file));
+                console.log('[ls] directory, adding files:', files);
                 preparedPaths.push(...fs.readdirSync(pathEntry).map(file => path.join(pathEntry, file)));
+                // preparedPaths.push(...files);
             } else {
+                console.log('[ls] file, adding:', pathEntry);
                 preparedPaths.push(pathEntry);
             }
         }
@@ -1092,33 +1138,52 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
         while (preparedPaths.length > 0) {
             const entry = preparedPaths.shift()!;
             const entrybasename = path.basename(entry);
+            console.log('[ls] processing prepared entry:', entry);
 
             if (entry?.includes('*')) {
                 preparedPaths.push(...findMatch(path.dirname(entry), [entrybasename]));
+                const matches = findMatch(path.dirname(entry), [entrybasename]);
+                console.log('[ls] wildcard in prepared entry, matches:', matches);
+                // preparedPaths.push(...matches);
                 continue;
             }
 
             if (!includeHidden && entrybasename.startsWith('.') && entrybasename !== '.' && entrybasename !== '..') {
+                console.log('[ls] skipping hidden file:', entry);
                 continue;
             }
             const baseDir = pathsCopy.find(p => entry.startsWith(path.resolve(p as string))) as string || path.resolve('.');
 
             if (fs.lstatSync(entry).isDirectory() && isRecursive) {
-                preparedPaths.push(...fs.readdirSync(entry).map(x => path.join(entry, x)));
+                const files = fs.readdirSync(entry).map(x => path.join(entry, x));
+                console.log('[ls] recursive directory, adding files:', files);
+                preparedPaths.push(...files);
                 entries.push(path.relative(baseDir, entry));
             } else {
+                console.log('[ls] adding entry:', path.relative(baseDir, entry));
                 entries.push(path.relative(baseDir, entry));
             }
         }
 
-        return entries;
+        // console.log('[ls] final entries:', entries);
+        // return entries;
+        const finalResults = [...results, ...entries];
+        console.log('[ls] final entries:', finalResults);
+        return finalResults;
     } catch (error) {
+        console.log('[ls] error:', error);
         if (error.code === 'ENOENT') {
             throw new Error(loc('LIB_PathNotFound', 'ls', error.message));
         } else {
             throw new Error(loc('LIB_OperationFailed', 'ls', error));
         }
     }
+}
+
+function flattenArray(arr: any[]): any[] {
+    return arr.reduce((flat, toFlatten) => {
+        return flat.concat(Array.isArray(toFlatten) ? flattenArray(toFlatten) : toFlatten);
+    }, []);
 }
 
 type CopyOptionsVariants = OptionsPermutations<'frn'>;
