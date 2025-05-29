@@ -1071,7 +1071,7 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
     }
     const pathsCopy = [...paths];
     const preparedPaths: string[] = [];
-    const results: string[] = [];
+    const fileEntries: string[] = [];
 
     try {
         let remainingPaths: string[] = [];
@@ -1079,18 +1079,15 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
             const pathEntry = resolve(paths.shift());
 
             if (pathEntry?.includes('*')) {
-                // Keep wildcards for later processing
                 remainingPaths.push(pathEntry);
                 continue;
             }
 
             const stats = fs.lstatSync(pathEntry);
             if (stats.isFile()) {
-                // For files, just add the basename to results
                 const fileName = path.basename(pathEntry);
-                results.push(fileName);
+                fileEntries.push(fileName);
             } else {
-                // Keep directories for later processing
                 remainingPaths.push(pathEntry);
             }
         }
@@ -1098,13 +1095,11 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
         while (paths.length > 0) {
             const pathEntry = resolve(paths.shift());
             if (pathEntry?.includes('*')) {
-                const matches = findMatch(path.dirname(pathEntry), [path.basename(pathEntry)]);
                 paths.push(...findMatch(path.dirname(pathEntry), [path.basename(pathEntry)]));
                 continue;
             }
 
             if (fs.lstatSync(pathEntry).isDirectory()) {
-                const files = fs.readdirSync(pathEntry).map(file => path.join(pathEntry, file));
                 preparedPaths.push(...fs.readdirSync(pathEntry).map(file => path.join(pathEntry, file)));
             } else {
                 preparedPaths.push(pathEntry);
@@ -1119,7 +1114,6 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
 
             if (entry?.includes('*')) {
                 preparedPaths.push(...findMatch(path.dirname(entry), [entrybasename]));
-                const matches = findMatch(path.dirname(entry), [entrybasename]);
                 continue;
             }
 
@@ -1129,18 +1123,15 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
             const baseDir = pathsCopy.find(p => entry.startsWith(path.resolve(p as string))) as string || path.resolve('.');
 
             if (fs.lstatSync(entry).isDirectory() && isRecursive) {
-                const files = fs.readdirSync(entry).map(x => path.join(entry, x));
-                preparedPaths.push(...files);
+                preparedPaths.push(...fs.readdirSync(entry).map(x => path.join(entry, x)));
                 entries.push(path.relative(baseDir, entry));
             } else {
                 entries.push(path.relative(baseDir, entry));
             }
         }
-
-        const finalResults = [...results, ...entries];
+        const finalResults = [...fileEntries, ...entries];
         return finalResults;
     } catch (error) {
-        console.log('[ls] error:', error);
         if (error.code === 'ENOENT') {
             throw new Error(loc('LIB_PathNotFound', 'ls', error.message));
         } else {
