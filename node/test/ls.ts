@@ -296,4 +296,11 @@ describe('ls cases', () => {
 
     done();
   });
+
+  it('Provide filepaths only', (done) => {
+    const result = tl.ls([TEMP_FILE_1, TEMP_FILE_1_JS]);
+    assert.ok(result.includes(path.basename(TEMP_FILE_1)));
+    assert.ok(result.includes(path.basename(TEMP_FILE_1_JS)));
+    done();
+  });
 });

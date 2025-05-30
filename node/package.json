@@ -1,6 +1,6 @@
 {
   "name": "azure-pipelines-task-lib",
-  "version": "5.2.0",
+  "version": "5.2.1",
   "description": "Azure Pipelines Task SDK",
   "main": "./task.js",
   "typings": "./task.d.ts",
