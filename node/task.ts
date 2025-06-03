@@ -1045,7 +1045,6 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
         includeHidden = options.includes('a');
     }
 
-    // Flatten paths if the paths argument is array
     if (Array.isArray(paths)) {
         paths = flattenArray(paths);
     }
@@ -1072,7 +1071,27 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
     }
     const pathsCopy = [...paths];
     const preparedPaths: string[] = [];
+    const fileEntries: string[] = [];
+
     try {
+        let remainingPaths: string[] = [];
+        while (paths.length > 0) {
+            const pathEntry = resolve(paths.shift());
+
+            if (pathEntry?.includes('*')) {
+                remainingPaths.push(pathEntry);
+                continue;
+            }
+
+            const stats = fs.lstatSync(pathEntry);
+            if (stats.isFile()) {
+                const fileName = path.basename(pathEntry);
+                fileEntries.push(fileName);
+            } else {
+                remainingPaths.push(pathEntry);
+            }
+        }
+        paths.push(...remainingPaths);
         while (paths.length > 0) {
             const pathEntry = resolve(paths.shift());
             if (pathEntry?.includes('*')) {
@@ -1110,8 +1129,8 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
                 entries.push(path.relative(baseDir, entry));
             }
         }
-
-        return entries;
+        const finalResults = [...fileEntries, ...entries];
+        return finalResults;
     } catch (error) {
         if (error.code === 'ENOENT') {
             throw new Error(loc('LIB_PathNotFound', 'ls', error.message));
@@ -1226,7 +1245,7 @@ const copyDirectoryWithResolvedSymlinks = (src: string, dest: string, force: boo
     if (!fs.existsSync(dest)) {
         fs.mkdirSync(dest, { recursive: true });
     }
-    
+
     for (entry of entries) {
         srcPath = path.join(src, entry.name);
         destPath = path.join(dest, entry.name);
