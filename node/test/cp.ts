@@ -193,4 +193,34 @@ describe('cp cases', () => {
 
     done();
   });
+  it('Throws if no arguments are provided', (done) => {
+    assert.throws(() => (tl as any).cp(), /ENOENT|missing/i);
+    done();
+  });
+
+  it('Throws if only source is provided', (done) => {
+    assert.throws(() => (tl as any).cp('file1'), /ENOENT|missing/i);
+    done();
+  });
+
+  it('Recursive copy works with trailing slash', (done) => {
+    tl.mkdirP('dirA');
+    fs.writeFileSync(path.join('dirA', 'file.txt'), 'abc');
+    assert.doesNotThrow(() => tl.cp('-r', 'dirA/', 'dirB'));
+    assert.ok(fs.existsSync(path.join('dirB', 'dirA', 'file.txt')));
+    tl.rmRF('dirA');
+    tl.rmRF('dirB');
+    done();
+  });
+
+  it('Handles non-normalized paths', (done) => {
+    tl.mkdirP('dirC');
+    fs.writeFileSync(path.join('dirC', 'file.txt'), 'abc');
+    const nonNormalized = path.join('.', 'dirC', '.', '..', 'dirC');
+    assert.doesNotThrow(() => tl.cp('-r', nonNormalized, 'dirD'));
+    assert.ok(fs.existsSync(path.join('dirD', 'dirC', 'file.txt')));
+    tl.rmRF('dirC');
+    tl.rmRF('dirD');
+    done();
+  });
 });
