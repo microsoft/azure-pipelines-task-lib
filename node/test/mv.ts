@@ -148,4 +148,21 @@ describe('mv cases', () => {
 
     done();
   });
+
+  it('No-clobber (-n) prevents overwrite', (done) => {
+    fs.writeFileSync('file1', 'a');
+    fs.writeFileSync('file2', 'b');
+    assert.throws(() => tl.mv('file1', 'file2', '-n'), /already exists/i);
+    assert.equal(fs.readFileSync('file2', 'utf8'), 'b');
+    done();
+  });
+
+  it('No-clobber (-n) with directory as destination', (done) => {
+    fs.mkdirSync('dir1');
+    fs.writeFileSync('file1', 'a');
+    fs.writeFileSync(path.join('dir1', 'file1'), 'b');
+    assert.throws(() => tl.mv('file1', 'dir1', '-n'), /already exists/i);
+    assert.equal(fs.readFileSync(path.join('dir1', 'file1'), 'utf8'), 'b');
+    done();
+  });
 });
