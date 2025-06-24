@@ -296,4 +296,39 @@ describe('ls cases', () => {
 
     done();
   });
+
+  it('Provide filepaths only', (done) => {
+    const result = tl.ls([TEMP_FILE_1, TEMP_FILE_1_JS]);
+    assert.ok(result.includes(path.basename(TEMP_FILE_1)));
+    assert.ok(result.includes(path.basename(TEMP_FILE_1_JS)));
+    done();
+  });
+
+  it('Handles directory with trailing slash', (done) => {
+    const result1 = tl.ls(TEMP_DIR_1);
+    const result2 = tl.ls(TEMP_DIR_1 + path.sep);
+    assert.deepStrictEqual(result1.sort(), result2.sort());
+    done();
+  });
+
+  it('Handles non-normalized paths', (done) => {
+    const nonNormalized = path.join(TEMP_DIR_1, '.', 'temp1_subdir1', '..', 'temp1_subdir1');
+    const result = tl.ls('-R', nonNormalized);
+    const expected = tl.ls('-R', TEMP_SUBDIR_1);
+    assert.deepStrictEqual(result.sort(), expected.sort());
+    done();
+  });
+
+  it('Handles multiple paths, some non-existent', (done) => {
+    assert.throws(() => tl.ls([TEMP_FILE_1, 'doesnotexist']), /Not found ls/);
+    done();
+  });
+
+  it('Handles empty directory', (done) => {
+    tl.mkdirP('emptydir');
+    const result = tl.ls('emptydir');
+    assert.strictEqual(result.length, 0);
+    tl.rmRF('emptydir');
+    done();
+  });
 });
