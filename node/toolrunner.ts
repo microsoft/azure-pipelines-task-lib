@@ -671,18 +671,20 @@ export class ToolRunner extends events.EventEmitter {
                 });
             }
 
+            let stdinEpipe = false;
             cp.stdin?.on("error", (err: Error) => {
-            if (!im.isSigPipeError(err)) {
-                throw err;
-            }
-        });
+                if (!im.isSigPipeError(err)) {
+                    throw err;
+                }
+                 stdinEpipe = true;
+            });
             //pipe stdout of first tool to stdin of second tool
             cpFirst.stdout?.on('data', (data: Buffer) => {
                 try {
                     if (fileStream) {
                         fileStream.write(data);
                     }
-                    if (!cp.stdin?.destroyed) {
+                    if (!cp.stdin?.destroyed && !cp.stdin?.writableEnded && !stdinEpipe) {
                         cp.stdin?.write(data);
                     }
                 } catch (err) {
@@ -876,10 +878,12 @@ export class ToolRunner extends events.EventEmitter {
             });
         }
 
+        let stdinEpipe = false;
         cp.stdin?.on("error", (err: Error) => {
             if (!im.isSigPipeError(err)) {
                 throw err;
             }
+            stdinEpipe = true;
         });
         //pipe stdout of first tool to stdin of second tool
         cpFirst.stdout?.on('data', (data: Buffer) => {
@@ -887,7 +891,9 @@ export class ToolRunner extends events.EventEmitter {
                 if (fileStream) {
                     fileStream.write(data);
                 }
-                cp.stdin?.write(data);
+                if (!cp.stdin?.destroyed && !cp.stdin?.writableEnded && !stdinEpipe) {
+                    cp.stdin?.write(data);
+                }
             } catch (err) {
                 this._debug('Failed to pipe output of ' + toolPathFirst + ' to ' + toolPath);
                 this._debug(toolPath + ' might have exited due to errors prematurely. Verify the arguments passed are valid.');
