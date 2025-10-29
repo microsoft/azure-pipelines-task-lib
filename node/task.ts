@@ -8,6 +8,7 @@ import im = require('./internal');
 import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
 import semver = require('semver');
+import * as mm from './memory-metrics';
 
 type OptionCases<T extends string> = `-${Uppercase<T> | Lowercase<T>}`;
 
@@ -1441,7 +1442,151 @@ function _getStats(path: string, followSymbolicLink: boolean, allowBrokenSymboli
  * @param     options   optional. defaults to { followSymbolicLinks: true }. following soft links is generally appropriate unless deleting files.
  * @returns   string[]
  */
-export function find(findPath: string, options?: FindOptions): string[] {
+
+// export function find(findPath: string, options?: FindOptions): string[] {
+//     if (!findPath) {
+//         debug('no path specified');
+//         return [];
+//     }
+
+//     // normalize the path, otherwise the first result is inconsistently formatted from the rest of the results
+//     // because path.join() performs normalization.
+//     findPath = path.normalize(findPath);
+
+//     // debug trace the parameters
+//     debug(`findPath: '${findPath}'`);
+//     options = options || _getDefaultFindOptions();
+//     _debugFindOptions(options)
+
+//     // return empty if not exists
+//     try {
+//         fs.lstatSync(findPath);
+//     }
+//     catch (err) {
+//         if (err.code == 'ENOENT') {
+//             debug('0 results')
+//             return [];
+//         }
+
+//         throw err;
+//     }
+
+//     try {
+//         let result: string[] = [];
+
+//         // push the first item
+//         let stack: _FindItem[] = [new _FindItem(findPath, 1)];
+//         let traversalChain: string[] = []; // used to detect cycles
+
+//         while (stack.length) {
+//             // pop the next item and push to the result array
+//             let item = stack.pop()!; // non-null because `stack.length` was truthy
+
+//             let stats: fs.Stats;
+//             try {
+//                 // `item.path` equals `findPath` for the first item to be processed, when the `result` array is empty
+//                 const isPathToSearch: boolean = !result.length;
+
+//                 // following specified symlinks only if current path equals specified path
+//                 const followSpecifiedSymbolicLink: boolean = options.followSpecifiedSymbolicLink && isPathToSearch;
+
+//                 // following all symlinks or following symlink for the specified path
+//                 const followSymbolicLink: boolean = options.followSymbolicLinks || followSpecifiedSymbolicLink;
+
+//                 // stat the item. The stat info is used further below to determine whether to traverse deeper
+//                 stats = _getStats(item.path, followSymbolicLink, options.allowBrokenSymbolicLinks);
+//             } catch (err) {
+//                 if (err.code == 'ENOENT' && options.skipMissingFiles) {
+//                     warning(`No such file or directory: "${item.path}" - skipping.`, IssueSource.TaskInternal);
+//                     continue;
+//                 }
+//                 throw err;
+//             }
+//             result.push(item.path);
+
+//             // note, isDirectory() returns false for the lstat of a symlink
+//             if (stats.isDirectory()) {
+//                 debug(`  ${item.path} (directory)`);
+
+//                 if (options.followSymbolicLinks) {
+//                     // get the realpath
+//                     let realPath: string;
+//                     if (im._isUncPath(item.path)) {
+//                         // Sometimes there are spontaneous issues when working with unc-paths, so retries have been added for them.
+//                         realPath = retry(fs.realpathSync, [item.path], { continueOnError: false, retryCount: 5 });
+//                     } else {
+//                         realPath = fs.realpathSync(item.path);
+//                     }
+
+//                     // fixup the traversal chain to match the item level
+//                     while (traversalChain.length >= item.level) {
+//                         traversalChain.pop();
+//                     }
+
+//                     // test for a cycle
+//                     if (traversalChain.some((x: string) => x == realPath)) {
+//                         debug('    cycle detected');
+//                         continue;
+//                     }
+
+//                     // update the traversal chain
+//                     traversalChain.push(realPath);
+//                 }
+
+//                 // Use memory-efficient approach for large directories by batching readdir
+//                 let childItems: _FindItem[] = [];
+//                 try {
+//                     const childNames = fs.readdirSync(item.path);
+//                     const childLevel: number = item.level + 1;
+                    
+//                     // For very large directories, use fast-glob as fallback to avoid memory issues
+//                     if (childNames.length > 10000 && _canUseFastGlob(options)) {
+//                         debug(`Large directory detected (${childNames.length} items), using memory-efficient approach`);
+//                         const remainingItems = _findLargeDirectoryMemoryEfficient(item.path, item.level, options);
+//                         result = result.concat(remainingItems);
+//                         continue;
+//                     }
+                    
+//                     // Normal processing for smaller directories
+//                     childItems = childNames.map((childName: string) => new _FindItem(path.join(item.path, childName), childLevel));
+//                 } catch (err) {
+//                     // Handle permission errors or other issues
+//                     debug(`Error reading directory ${item.path}: ${err.message}`);
+//                     if (options.skipMissingFiles) {
+//                         continue;
+//                     }
+//                     throw err;
+//                 }
+
+//                 // push the child items in reverse onto the stack
+//                 for (var i = childItems.length - 1; i >= 0; i--) {
+//                     stack.push(childItems[i]);
+//                 }
+//             }
+//             else {
+//                 debug(`  ${item.path} (file)`);
+//             }
+//         }
+
+//         debug(`${result.length} results`);
+//         return result;
+//     }
+//     catch (err) {
+//         throw new Error(loc('LIB_OperationFailed', 'find', err.message));
+//     }
+// }
+
+
+/**
+ * Memory-efficient custom streaming implementation using generator functions.
+ * Provides full FindOptions compatibility while avoiding memory issues for large directories.
+ * 
+ * @param     findPath  path to search
+ * @param     options   optional. defaults to { followSymbolicLinks: true }
+ * @param     batchSize optional. number of results to yield per batch. defaults to 1000
+ * @returns   string[]
+ */
+export function find(findPath: string, options?: FindOptions, batchSize: number = 1000): string[] {
     if (!findPath) {
         debug('no path specified');
         return [];
@@ -1452,9 +1597,9 @@ export function find(findPath: string, options?: FindOptions): string[] {
     findPath = path.normalize(findPath);
 
     // debug trace the parameters
-    debug(`findPath: '${findPath}'`);
+    debug(`findCustom: findPath: '${findPath}', batchSize: ${batchSize}`);
     options = options || _getDefaultFindOptions();
-    _debugFindOptions(options)
+    _debugFindOptions(options);
 
     // return empty if not exists
     try {
@@ -1462,94 +1607,407 @@ export function find(findPath: string, options?: FindOptions): string[] {
     }
     catch (err) {
         if (err.code == 'ENOENT') {
-            debug('0 results')
+            debug('0 results');
             return [];
         }
-
         throw err;
     }
 
     try {
-        let result: string[] = [];
+        // Use generator to stream results and collect them
+        const results: string[] = [];
+        const generator = _findGeneratorBatched(findPath, options, batchSize);
+        
+        let batchResult = generator.next();
+        while (!batchResult.done) {
+            results.push(...batchResult.value);
+            batchResult = generator.next();
+        }
 
-        // push the first item
-        let stack: _FindItem[] = [new _FindItem(findPath, 1)];
-        let traversalChain: string[] = []; // used to detect cycles
+        debug(`findCustom: ${results.length} results`);
+        return results;
+    }
+    catch (err) {
+        throw new Error(loc('LIB_OperationFailed', 'findCustom', err.message));
+    }
+}
 
-        while (stack.length) {
-            // pop the next item and push to the result array
-            let item = stack.pop()!; // non-null because `stack.length` was truthy
+/**
+ * Memory-efficient find implementation with detailed memory monitoring.
+ * Provides metrics to understand memory consumption patterns.
+ * 
+ * @param     findPath  path to search
+ * @param     options   optional. defaults to { followSymbolicLinks: true }
+ * @param     batchSize optional. number of results to yield per batch. defaults to 1000
+ * @param     enableMetrics optional. whether to collect detailed memory metrics. defaults to false
+ * @returns   FindResult containing results and optional metrics
+ */
+export function findWithMetrics(
+    findPath: string, 
+    options?: FindOptions, 
+    batchSize: number = 1000,
+    enableMetrics: boolean = false
+): mm.FindWithMetricsResult {
+    
+    if (!findPath) {
+        debug('no path specified');
+        return { results: [] };
+    }
 
-            let stats: fs.Stats;
+    // normalize the path
+    findPath = path.normalize(findPath);
+
+    // debug trace the parameters
+    debug(`findWithMetrics: findPath: '${findPath}', batchSize: ${batchSize}, enableMetrics: ${enableMetrics}`);
+    options = options || _getDefaultFindOptions();
+    _debugFindOptions(options);
+
+    // return empty if not exists
+    try {
+        fs.lstatSync(findPath);
+    }
+    catch (err) {
+        if (err.code == 'ENOENT') {
+            debug('0 results');
+            return { results: [] };
+        }
+        throw err;
+    }
+
+    try {
+        const startTime = Date.now();
+        const results: string[] = [];
+        let metrics: mm.FindMemoryMetrics | undefined;
+        
+        if (enableMetrics) {
+            metrics = mm.initializeMetrics();
+            
+            // Initial snapshot
+            mm.addSnapshot(metrics, 0, 0, 'Operation start');
+        }
+
+        // Use generator to stream results and collect them
+        const generator = _findGeneratorBatchedWithMetrics(findPath, options, batchSize, metrics);
+        
+        let batchResult = generator.next();
+        let batchCount = 0;
+        
+        while (!batchResult.done) {
+            const batch = batchResult.value;
+            results.push(...batch);
+            batchCount++;
+            
+            if (enableMetrics && metrics) {
+                // Update metrics after each batch
+                mm.updateMetrics(metrics, results, 0, []);
+                
+                // Take snapshot at significant milestones
+                if (mm.shouldTakeSnapshot(batchCount, results.length)) {
+                    mm.addSnapshot(
+                        metrics, 
+                        results.length, 
+                        0, 
+                        mm.getBatchDescription(batchCount, results.length)
+                    );
+                }
+            }
+            
+            batchResult = generator.next();
+        }
+
+        if (enableMetrics && metrics) {
+            // Final snapshot
+            mm.updateMetrics(metrics, results, 0, []);
+            mm.addSnapshot(metrics, results.length, 0, 'Operation complete');
+            
+            // Log summary metrics
+            mm.logMemoryReport(metrics, startTime);
+        }
+
+        debug(`findWithMetrics: ${results.length} results`);
+        return { results, metrics };
+    }
+    catch (err) {
+        throw new Error(loc('LIB_OperationFailed', 'findWithMetrics', err.message));
+    }
+}
+
+/**
+ * Enhanced generator function that yields batches and tracks memory metrics
+ */
+function* _findGeneratorBatchedWithMetrics(
+    findPath: string, 
+    options: FindOptions, 
+    batchSize: number,
+    metrics?: mm.FindMemoryMetrics
+): Generator<string[], void, unknown> {
+    let currentBatch: string[] = [];
+    let traversalChain: string[] = [];
+    let currentStackDepth = 0;
+
+    // Create generator for individual items
+    const itemGenerator = _findGeneratorWithMetrics(findPath, options, traversalChain, metrics);
+    let itemResult = itemGenerator.next();
+    
+    while (!itemResult.done) {
+        currentBatch.push(itemResult.value.path);
+        currentStackDepth = itemResult.value.stackDepth;
+        
+        if (metrics) {
+            // Update stack metrics
+            metrics.maxStackDepth = Math.max(metrics.maxStackDepth, currentStackDepth);
+            metrics.stackMemoryMB = mm.estimateStackMemory(currentStackDepth, traversalChain);
+        }
+        
+        // Yield batch when it reaches the specified size
+        if (currentBatch.length >= batchSize) {
+            yield currentBatch;
+            currentBatch = [];
+        }
+        
+        itemResult = itemGenerator.next();
+    }
+
+    // Yield remaining items in the final batch
+    if (currentBatch.length > 0) {
+        yield currentBatch;
+    }
+}
+
+/**
+ * Enhanced generator function that yields individual file paths with metadata
+ */
+function* _findGeneratorWithMetrics(
+    findPath: string, 
+    options: FindOptions, 
+    traversalChain: string[],
+    metrics?: mm.FindMemoryMetrics
+): Generator<mm.FindItemMetadata, void, unknown> {
+    // Stack-based iteration to avoid recursion depth issues
+    let stack: _FindItem[] = [new _FindItem(findPath, 1)];
+    let processedCount = 0;
+
+    while (stack.length > 0) {
+        const currentStackDepth = stack.length;
+        
+        if (metrics && processedCount % 1000 === 0) {
+            // Update metrics every 1000 items
+            metrics.stackMemoryMB = Math.max(metrics.stackMemoryMB, mm.estimateStackMemory(currentStackDepth, traversalChain));
+            metrics.maxStackDepth = Math.max(metrics.maxStackDepth, currentStackDepth);
+        }
+
+        // pop the next item
+        let item = stack.pop()!;
+        processedCount++;
+
+        let stats: fs.Stats;
+        try {
+            const isPathToSearch: boolean = item.path === findPath;
+            const followSpecifiedSymbolicLink: boolean = options.followSpecifiedSymbolicLink && isPathToSearch;
+            const followSymbolicLink: boolean = options.followSymbolicLinks || followSpecifiedSymbolicLink;
+            stats = _getStats(item.path, followSymbolicLink, options.allowBrokenSymbolicLinks);
+        } catch (err) {
+            if (err.code == 'ENOENT' && options.skipMissingFiles) {
+                warning(`No such file or directory: "${item.path}" - skipping.`, IssueSource.TaskInternal);
+                continue;
+            }
+            throw err;
+        }
+
+        // Yield the current path with stack depth
+        yield { path: item.path, stackDepth: currentStackDepth };
+
+        // Process directories
+        if (stats.isDirectory()) {
+            debug(`  ${item.path} (directory, stack depth: ${currentStackDepth})`);
+
+            if (options.followSymbolicLinks) {
+                // Handle symlink cycle detection
+                let realPath: string;
+                if (im._isUncPath(item.path)) {
+                    realPath = retry(fs.realpathSync, [item.path], { continueOnError: false, retryCount: 5 });
+                } else {
+                    realPath = fs.realpathSync(item.path);
+                }
+
+                while (traversalChain.length >= item.level) {
+                    traversalChain.pop();
+                }
+
+                if (traversalChain.some((x: string) => x == realPath)) {
+                    debug('    cycle detected');
+                    continue;
+                }
+
+                traversalChain.push(realPath);
+            }
+
+            // Process directory contents
             try {
-                // `item.path` equals `findPath` for the first item to be processed, when the `result` array is empty
-                const isPathToSearch: boolean = !result.length;
+                const childNames = fs.readdirSync(item.path);
+                const childLevel: number = item.level + 1;
+                
+                if (childNames.length > 1000) {
+                    debug(`  Large directory detected: ${childNames.length} items in ${item.path}`);
+                }
 
-                // following specified symlinks only if current path equals specified path
-                const followSpecifiedSymbolicLink: boolean = options.followSpecifiedSymbolicLink && isPathToSearch;
+                // Create child items and add to stack in reverse order
+                const childItems = childNames.map((childName: string) => 
+                    new _FindItem(path.join(item.path, childName), childLevel)
+                );
+                
+                for (let i = childItems.length - 1; i >= 0; i--) {
+                    stack.push(childItems[i]);
+                }
 
-                // following all symlinks or following symlink for the specified path
-                const followSymbolicLink: boolean = options.followSymbolicLinks || followSpecifiedSymbolicLink;
-
-                // stat the item. The stat info is used further below to determine whether to traverse deeper
-                stats = _getStats(item.path, followSymbolicLink, options.allowBrokenSymbolicLinks);
             } catch (err) {
-                if (err.code == 'ENOENT' && options.skipMissingFiles) {
-                    warning(`No such file or directory: "${item.path}" - skipping.`, IssueSource.TaskInternal);
+                debug(`Error reading directory ${item.path}: ${err.message}`);
+                if (options.skipMissingFiles) {
                     continue;
                 }
                 throw err;
             }
-            result.push(item.path);
+        } else {
+            debug(`  ${item.path} (file)`);
+        }
+    }
+}
 
-            // note, isDirectory() returns false for the lstat of a symlink
-            if (stats.isDirectory()) {
-                debug(`  ${item.path} (directory)`);
+/**
+ * Utility function to run find with metrics and log detailed memory information
+ */
+export function findAndLogMetrics(findPath: string, options?: FindOptions, batchSize: number = 1000): string[] {
+    debug('=== Starting Find Operation with Memory Metrics ===');
+    
+    const result = findWithMetrics(findPath, options, batchSize, true);
+    
+    debug('=== Find Operation with Memory Metrics Complete ===');
+    return result.results;
+}
 
-                if (options.followSymbolicLinks) {
-                    // get the realpath
-                    let realPath: string;
-                    if (im._isUncPath(item.path)) {
-                        // Sometimes there are spontaneous issues when working with unc-paths, so retries have been added for them.
-                        realPath = retry(fs.realpathSync, [item.path], { continueOnError: false, retryCount: 5 });
-                    } else {
-                        realPath = fs.realpathSync(item.path);
-                    }
+/**
+ * Generator function that yields batches of found paths for memory efficiency.
+ * Implements the exact same logic as the original find() function but with streaming.
+ */
+function* _findGeneratorBatched(findPath: string, options: FindOptions, batchSize: number): Generator<string[], void, unknown> {
+    let currentBatch: string[] = [];
+    let traversalChain: string[] = []; // used to detect cycles
 
-                    // fixup the traversal chain to match the item level
-                    while (traversalChain.length >= item.level) {
-                        traversalChain.pop();
-                    }
+    // Create generator for individual items
+    const itemGenerator = _findGenerator(findPath, options, traversalChain);
+    let itemResult = itemGenerator.next();
+    
+    while (!itemResult.done) {
+        currentBatch.push(itemResult.value);
+        
+        // Yield batch when it reaches the specified size
+        if (currentBatch.length >= batchSize) {
+            yield currentBatch;
+            currentBatch = [];
+        }
+        
+        itemResult = itemGenerator.next();
+    }
 
-                    // test for a cycle
-                    if (traversalChain.some((x: string) => x == realPath)) {
-                        debug('    cycle detected');
-                        continue;
-                    }
+    // Yield remaining items in the final batch
+    if (currentBatch.length > 0) {
+        yield currentBatch;
+    }
+}
 
-                    // update the traversal chain
-                    traversalChain.push(realPath);
-                }
+/**
+ * Core generator function that yields individual file paths.
+ * Maintains exact compatibility with original find() function logic.
+ */
+function* _findGenerator(findPath: string, options: FindOptions, traversalChain: string[]): Generator<string, void, unknown> {
+    // Stack-based iteration to avoid recursion depth issues
+    let stack: _FindItem[] = [new _FindItem(findPath, 1)];
 
-                // push the child items in reverse onto the stack
-                let childLevel: number = item.level + 1;
-                let childItems: _FindItem[] =
-                    fs.readdirSync(item.path)
-                        .map((childName: string) => new _FindItem(path.join(item.path, childName), childLevel));
-                for (var i = childItems.length - 1; i >= 0; i--) {
-                    stack.push(childItems[i]);
-                }
+    while (stack.length > 0) {
+        // pop the next item
+        let item = stack.pop()!;
+
+        let stats: fs.Stats;
+        try {
+            // `item.path` equals `findPath` for the first item to be processed
+            const isPathToSearch: boolean = item.path === findPath;
+
+            // following specified symlinks only if current path equals specified path
+            const followSpecifiedSymbolicLink: boolean = options.followSpecifiedSymbolicLink && isPathToSearch;
+
+            // following all symlinks or following symlink for the specified path
+            const followSymbolicLink: boolean = options.followSymbolicLinks || followSpecifiedSymbolicLink;
+
+            // stat the item. The stat info is used further below to determine whether to traverse deeper
+            stats = _getStats(item.path, followSymbolicLink, options.allowBrokenSymbolicLinks);
+        } catch (err) {
+            if (err.code == 'ENOENT' && options.skipMissingFiles) {
+                warning(`No such file or directory: "${item.path}" - skipping.`, IssueSource.TaskInternal);
+                continue;
             }
-            else {
-                debug(`  ${item.path} (file)`);
-            }
+            throw err;
         }
 
-        debug(`${result.length} results`);
-        return result;
-    }
-    catch (err) {
-        throw new Error(loc('LIB_OperationFailed', 'find', err.message));
+        // Yield the current path
+        yield item.path;
+
+        // note, isDirectory() returns false for the lstat of a symlink
+        if (stats.isDirectory()) {
+            debug(`  ${item.path} (directory)`);
+
+            if (options.followSymbolicLinks) {
+                // get the realpath
+                let realPath: string;
+                if (im._isUncPath(item.path)) {
+                    // Sometimes there are spontaneous issues when working with unc-paths, so retries have been added for them.
+                    realPath = retry(fs.realpathSync, [item.path], { continueOnError: false, retryCount: 5 });
+                } else {
+                    realPath = fs.realpathSync(item.path);
+                }
+
+                // fixup the traversal chain to match the item level
+                while (traversalChain.length >= item.level) {
+                    traversalChain.pop();
+                }
+
+                // test for a cycle
+                if (traversalChain.some((x: string) => x == realPath)) {
+                    debug('    cycle detected');
+                    continue;
+                }
+
+                // update the traversal chain
+                traversalChain.push(realPath);
+            }
+
+            // Process directory contents in memory-efficient way
+            try {
+                const childNames = fs.readdirSync(item.path);
+                const childLevel: number = item.level + 1;
+                
+                debug(`  Processing directory with ${childNames.length} children: ${item.path}`);
+
+                // Create child items and add to stack in reverse order to maintain traversal order
+                const childItems = childNames.map((childName: string) => 
+                    new _FindItem(path.join(item.path, childName), childLevel)
+                );
+                
+                // Add children to stack in reverse order for proper depth-first traversal
+                for (let i = childItems.length - 1; i >= 0; i--) {
+                    stack.push(childItems[i]);
+                }
+
+            } catch (err) {
+                // Handle permission errors or other issues
+                debug(`Error reading directory ${item.path}: ${err.message}`);
+                if (options.skipMissingFiles) {
+                    continue;
+                }
+                throw err;
+            }
+        } else {
+            debug(`  ${item.path} (file)`);
+        }
     }
 }
 

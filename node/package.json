@@ -33,7 +33,8 @@
     "q": "^1.5.1",
     "semver": "^5.7.2",
     "shelljs": "^0.8.5",
-    "uuid": "^3.0.1"
+    "uuid": "^3.0.1",
+    "fast-glob": "^3.3.3"
   },
   "devDependencies": {
     "@types/minimatch": "3.0.3",
