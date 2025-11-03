@@ -1,0 +1,1716 @@
+{
+  "timestamp": "2025-10-30T07:06:11.368Z",
+  "testType": "Enhanced Scaling Test with Process Memory and Fast-Glob",
+  "system": {
+    "platform": "win32",
+    "arch": "x64",
+    "nodeVersion": "v22.15.0",
+    "totalMemoryGB": 64,
+    "heapLimit": 4345298944,
+    "cpus": 16
+  },
+  "testConfiguration": {
+    "approaches": [
+      {
+        "name": "Generator",
+        "shortName": "gen"
+      },
+      {
+        "name": "Memory-Optimized",
+        "shortName": "mem"
+      },
+      {
+        "name": "Fast-Glob",
+        "shortName": "fg"
+      }
+    ],
+    "timeout": 900000,
+    "scales": 1,
+    "basePath": "C:\\RISHABH\\ADO\\Test",
+    "levels": 10,
+    "filesPerLevel": 100000
+  },
+  "results": [
+    {
+      "scale": 1,
+      "expectedItems": 100000,
+      "path": "C:\\RISHABH\\ADO\\Test",
+      "results": {
+        "gen": {
+          "approach": "Generator",
+          "success": true,
+          "filesFound": 1200010,
+          "duration": 64156,
+          "startMemory": 6301941.76,
+          "endMemory": 238955790.336,
+          "peakMemory": 766743552,
+          "memoryDelta": 232653848.576,
+          "peakRSS_MB": 795.676,
+          "rssDelta_MB": 743.461,
+          "processMemoryStart": {
+            "heapUsed_MB": 6.01,
+            "heapTotal_MB": 11.07,
+            "rss_MB": 52.215,
+            "external_MB": 1.72,
+            "arrayBuffers_MB": 0.016
+          },
+          "processMemoryEnd": {
+            "heapUsed_MB": 227.886,
+            "heapTotal_MB": 448.047,
+            "rss_MB": 795.676,
+            "external_MB": 1.72,
+            "arrayBuffers_MB": 0.016
+          },
+          "batchesProcessed": 121,
+          "error": null,
+          "metrics": {
+            "snapshots": [
+              {
+                "timestamp": 1761807822322,
+                "resultCount": 0,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 6.0490875244140625,
+                "description": "Generator find operation start"
+              },
+              {
+                "timestamp": 1761807825393,
+                "resultCount": 10000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 652.3857574462891,
+                "description": "Batch 1 completed - 10000 files processed"
+              },
+              {
+                "timestamp": 1761807825781,
+                "resultCount": 20000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 657.359504699707,
+                "description": "Batch 2 completed - 20000 files processed"
+              },
+              {
+                "timestamp": 1761807826164,
+                "resultCount": 30000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 662.0106658935547,
+                "description": "Batch 3 completed - 30000 files processed"
+              },
+              {
+                "timestamp": 1761807826547,
+                "resultCount": 40000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 666.6585540771484,
+                "description": "Batch 4 completed - 40000 files processed"
+              },
+              {
+                "timestamp": 1761807826928,
+                "resultCount": 50000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 657.5185623168945,
+                "description": "Batch 5 completed - 50000 files processed"
+              },
+              {
+                "timestamp": 1761807827306,
+                "resultCount": 60000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 662.4218597412109,
+                "description": "Batch 6 completed - 60000 files processed"
+              },
+              {
+                "timestamp": 1761807827688,
+                "resultCount": 70000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 666.8402557373047,
+                "description": "Batch 7 completed - 70000 files processed"
+              },
+              {
+                "timestamp": 1761807828070,
+                "resultCount": 80000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 671.9671096801758,
+                "description": "Batch 8 completed - 80000 files processed"
+              },
+              {
+                "timestamp": 1761807828728,
+                "resultCount": 90000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 670.0803833007812,
+                "description": "Batch 9 completed - 90000 files processed"
+              },
+              {
+                "timestamp": 1761807829357,
+                "resultCount": 100000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 667.3362121582031,
+                "description": "Batch 10 completed - 100000 files processed"
+              },
+              {
+                "timestamp": 1761807829988,
+                "resultCount": 110000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 678.765495300293,
+                "description": "Batch 11 completed - 110000 files processed"
+              },
+              {
+                "timestamp": 1761807830646,
+                "resultCount": 120000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 677.4473190307617,
+                "description": "Batch 12 completed - 120000 files processed"
+              },
+              {
+                "timestamp": 1761807831297,
+                "resultCount": 130000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 681.2039031982422,
+                "description": "Batch 13 completed - 130000 files processed"
+              },
+              {
+                "timestamp": 1761807831754,
+                "resultCount": 140000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 671.5770797729492,
+                "description": "Batch 14 completed - 140000 files processed"
+              },
+              {
+                "timestamp": 1761807832157,
+                "resultCount": 150000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 675.6788482666016,
+                "description": "Batch 15 completed - 150000 files processed"
+              },
+              {
+                "timestamp": 1761807832543,
+                "resultCount": 160000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 679.7650680541992,
+                "description": "Batch 16 completed - 160000 files processed"
+              },
+              {
+                "timestamp": 1761807832925,
+                "resultCount": 170000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 683.8537063598633,
+                "description": "Batch 17 completed - 170000 files processed"
+              },
+              {
+                "timestamp": 1761807833374,
+                "resultCount": 180000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 689.9308547973633,
+                "description": "Batch 18 completed - 180000 files processed"
+              },
+              {
+                "timestamp": 1761807833760,
+                "resultCount": 190000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 680.4349594116211,
+                "description": "Batch 19 completed - 190000 files processed"
+              },
+              {
+                "timestamp": 1761807834149,
+                "resultCount": 200000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 684.5200805664062,
+                "description": "Batch 20 completed - 200000 files processed"
+              },
+              {
+                "timestamp": 1761807834811,
+                "resultCount": 210000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 681.4948272705078,
+                "description": "Batch 21 completed - 210000 files processed"
+              },
+              {
+                "timestamp": 1761807835460,
+                "resultCount": 220000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 692.3331909179688,
+                "description": "Batch 22 completed - 220000 files processed"
+              },
+              {
+                "timestamp": 1761807836100,
+                "resultCount": 230000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 689.0693511962891,
+                "description": "Batch 23 completed - 230000 files processed"
+              },
+              {
+                "timestamp": 1761807836749,
+                "resultCount": 240000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 685.6508636474609,
+                "description": "Batch 24 completed - 240000 files processed"
+              },
+              {
+                "timestamp": 1761807837231,
+                "resultCount": 250000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 689.4287414550781,
+                "description": "Batch 25 completed - 250000 files processed"
+              },
+              {
+                "timestamp": 1761807837680,
+                "resultCount": 260000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 696.3019714355469,
+                "description": "Batch 26 completed - 260000 files processed"
+              },
+              {
+                "timestamp": 1761807838070,
+                "resultCount": 270000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 700.2876815795898,
+                "description": "Batch 27 completed - 270000 files processed"
+              },
+              {
+                "timestamp": 1761807838670,
+                "resultCount": 280000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 704.216796875,
+                "description": "Batch 28 completed - 280000 files processed"
+              },
+              {
+                "timestamp": 1761807839063,
+                "resultCount": 290000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 694.474250793457,
+                "description": "Batch 29 completed - 290000 files processed"
+              },
+              {
+                "timestamp": 1761807839452,
+                "resultCount": 300000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 698.4216995239258,
+                "description": "Batch 30 completed - 300000 files processed"
+              },
+              {
+                "timestamp": 1761807839859,
+                "resultCount": 310000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 702.3975067138672,
+                "description": "Batch 31 completed - 310000 files processed"
+              },
+              {
+                "timestamp": 1761807840246,
+                "resultCount": 320000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 706.2672958374023,
+                "description": "Batch 32 completed - 320000 files processed"
+              },
+              {
+                "timestamp": 1761807840992,
+                "resultCount": 330000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 702.9039764404297,
+                "description": "Batch 33 completed - 330000 files processed"
+              },
+              {
+                "timestamp": 1761807841876,
+                "resultCount": 340000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 713.1604995727539,
+                "description": "Batch 34 completed - 340000 files processed"
+              },
+              {
+                "timestamp": 1761807842537,
+                "resultCount": 350000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 709.248420715332,
+                "description": "Batch 35 completed - 350000 files processed"
+              },
+              {
+                "timestamp": 1761807843205,
+                "resultCount": 360000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 705.3087463378906,
+                "description": "Batch 36 completed - 360000 files processed"
+              },
+              {
+                "timestamp": 1761807843606,
+                "resultCount": 370000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 708.8054656982422,
+                "description": "Batch 37 completed - 370000 files processed"
+              },
+              {
+                "timestamp": 1761807844005,
+                "resultCount": 380000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 712.4804992675781,
+                "description": "Batch 38 completed - 380000 files processed"
+              },
+              {
+                "timestamp": 1761807844404,
+                "resultCount": 390000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 720.6573333740234,
+                "description": "Batch 39 completed - 390000 files processed"
+              },
+              {
+                "timestamp": 1761807844871,
+                "resultCount": 400000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 724.3825302124023,
+                "description": "Batch 40 completed - 400000 files processed"
+              },
+              {
+                "timestamp": 1761807845270,
+                "resultCount": 410000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 714.2471694946289,
+                "description": "Batch 41 completed - 410000 files processed"
+              },
+              {
+                "timestamp": 1761807845673,
+                "resultCount": 420000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 718.048828125,
+                "description": "Batch 42 completed - 420000 files processed"
+              },
+              {
+                "timestamp": 1761807846071,
+                "resultCount": 430000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 721.7440795898438,
+                "description": "Batch 43 completed - 430000 files processed"
+              },
+              {
+                "timestamp": 1761807846465,
+                "resultCount": 440000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 725.4693145751953,
+                "description": "Batch 44 completed - 440000 files processed"
+              },
+              {
+                "timestamp": 1761807847097,
+                "resultCount": 450000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 721.4375305175781,
+                "description": "Batch 45 completed - 450000 files processed"
+              },
+              {
+                "timestamp": 1761807847733,
+                "resultCount": 460000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 731.2236328125,
+                "description": "Batch 46 completed - 460000 files processed"
+              },
+              {
+                "timestamp": 1761807848386,
+                "resultCount": 470000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 726.5570907592773,
+                "description": "Batch 47 completed - 470000 files processed"
+              },
+              {
+                "timestamp": 1761807849032,
+                "resultCount": 480000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 721.9860153198242,
+                "description": "Batch 48 completed - 480000 files processed"
+              },
+              {
+                "timestamp": 1761807849429,
+                "resultCount": 490000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 725.3897094726562,
+                "description": "Batch 49 completed - 490000 files processed"
+              },
+              {
+                "timestamp": 1761807849817,
+                "resultCount": 500000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 728.9309616088867,
+                "description": "Batch 50 completed - 500000 files processed"
+              },
+              {
+                "timestamp": 1761807850529,
+                "resultCount": 510000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 363.39306640625,
+                "description": "Batch 51 completed - 510000 files processed"
+              },
+              {
+                "timestamp": 1761807850929,
+                "resultCount": 520000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 367.04017639160156,
+                "description": "Batch 52 completed - 520000 files processed"
+              },
+              {
+                "timestamp": 1761807851326,
+                "resultCount": 530000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 370.6692123413086,
+                "description": "Batch 53 completed - 530000 files processed"
+              },
+              {
+                "timestamp": 1761807851722,
+                "resultCount": 540000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 374.1470642089844,
+                "description": "Batch 54 completed - 540000 files processed"
+              },
+              {
+                "timestamp": 1761807852123,
+                "resultCount": 550000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 377.7247848510742,
+                "description": "Batch 55 completed - 550000 files processed"
+              },
+              {
+                "timestamp": 1761807852560,
+                "resultCount": 560000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 367.3283996582031,
+                "description": "Batch 56 completed - 560000 files processed"
+              },
+              {
+                "timestamp": 1761807853218,
+                "resultCount": 570000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 376.6203384399414,
+                "description": "Batch 57 completed - 570000 files processed"
+              },
+              {
+                "timestamp": 1761807853886,
+                "resultCount": 580000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 378.11756896972656,
+                "description": "Batch 58 completed - 580000 files processed"
+              },
+              {
+                "timestamp": 1761807854570,
+                "resultCount": 590000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 387.2909698486328,
+                "description": "Batch 59 completed - 590000 files processed"
+              },
+              {
+                "timestamp": 1761807855268,
+                "resultCount": 600000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 382.1482238769531,
+                "description": "Batch 60 completed - 600000 files processed"
+              },
+              {
+                "timestamp": 1761807855700,
+                "resultCount": 610000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 385.38124084472656,
+                "description": "Batch 61 completed - 610000 files processed"
+              },
+              {
+                "timestamp": 1761807856120,
+                "resultCount": 620000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 388.60858154296875,
+                "description": "Batch 62 completed - 620000 files processed"
+              },
+              {
+                "timestamp": 1761807856549,
+                "resultCount": 630000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 392.02515411376953,
+                "description": "Batch 63 completed - 630000 files processed"
+              },
+              {
+                "timestamp": 1761807856982,
+                "resultCount": 640000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 381.23072814941406,
+                "description": "Batch 64 completed - 640000 files processed"
+              },
+              {
+                "timestamp": 1761807857389,
+                "resultCount": 650000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 384.5870132446289,
+                "description": "Batch 65 completed - 650000 files processed"
+              },
+              {
+                "timestamp": 1761807857836,
+                "resultCount": 660000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 387.94261169433594,
+                "description": "Batch 66 completed - 660000 files processed"
+              },
+              {
+                "timestamp": 1761807858276,
+                "resultCount": 670000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 391.31312561035156,
+                "description": "Batch 67 completed - 670000 files processed"
+              },
+              {
+                "timestamp": 1761807858685,
+                "resultCount": 680000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 394.6238327026367,
+                "description": "Batch 68 completed - 680000 files processed"
+              },
+              {
+                "timestamp": 1761807859330,
+                "resultCount": 690000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 389.2665557861328,
+                "description": "Batch 69 completed - 690000 files processed"
+              },
+              {
+                "timestamp": 1761807859965,
+                "resultCount": 700000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 397.85131072998047,
+                "description": "Batch 70 completed - 700000 files processed"
+              },
+              {
+                "timestamp": 1761807860621,
+                "resultCount": 710000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 392.0827178955078,
+                "description": "Batch 71 completed - 710000 files processed"
+              },
+              {
+                "timestamp": 1761807861300,
+                "resultCount": 720000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 400.67457580566406,
+                "description": "Batch 72 completed - 720000 files processed"
+              },
+              {
+                "timestamp": 1761807861705,
+                "resultCount": 730000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 403.6225128173828,
+                "description": "Batch 73 completed - 730000 files processed"
+              },
+              {
+                "timestamp": 1761807862113,
+                "resultCount": 740000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 392.54764556884766,
+                "description": "Batch 74 completed - 740000 files processed"
+              },
+              {
+                "timestamp": 1761807862521,
+                "resultCount": 750000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 395.7123489379883,
+                "description": "Batch 75 completed - 750000 files processed"
+              },
+              {
+                "timestamp": 1761807862932,
+                "resultCount": 760000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 398.87049865722656,
+                "description": "Batch 76 completed - 760000 files processed"
+              },
+              {
+                "timestamp": 1761807863335,
+                "resultCount": 770000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 402.12638092041016,
+                "description": "Batch 77 completed - 770000 files processed"
+              },
+              {
+                "timestamp": 1761807863757,
+                "resultCount": 780000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 405.318115234375,
+                "description": "Batch 78 completed - 780000 files processed"
+              },
+              {
+                "timestamp": 1761807864170,
+                "resultCount": 790000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 408.5039749145508,
+                "description": "Batch 79 completed - 790000 files processed"
+              },
+              {
+                "timestamp": 1761807864590,
+                "resultCount": 800000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 397.4668731689453,
+                "description": "Batch 80 completed - 800000 files processed"
+              },
+              {
+                "timestamp": 1761807865246,
+                "resultCount": 810000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 405.6365966796875,
+                "description": "Batch 81 completed - 810000 files processed"
+              },
+              {
+                "timestamp": 1761807865917,
+                "resultCount": 820000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 399.1758728027344,
+                "description": "Batch 82 completed - 820000 files processed"
+              },
+              {
+                "timestamp": 1761807866582,
+                "resultCount": 830000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 407.19129943847656,
+                "description": "Batch 83 completed - 830000 files processed"
+              },
+              {
+                "timestamp": 1761807867267,
+                "resultCount": 840000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 400.7511978149414,
+                "description": "Batch 84 completed - 840000 files processed"
+              },
+              {
+                "timestamp": 1761807867693,
+                "resultCount": 850000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 403.6458969116211,
+                "description": "Batch 85 completed - 850000 files processed"
+              },
+              {
+                "timestamp": 1761807868111,
+                "resultCount": 860000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 406.61988067626953,
+                "description": "Batch 86 completed - 860000 files processed"
+              },
+              {
+                "timestamp": 1761807868531,
+                "resultCount": 870000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 419.57749938964844,
+                "description": "Batch 87 completed - 870000 files processed"
+              },
+              {
+                "timestamp": 1761807868970,
+                "resultCount": 880000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 422.6422653198242,
+                "description": "Batch 88 completed - 880000 files processed"
+              },
+              {
+                "timestamp": 1761807869465,
+                "resultCount": 890000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 425.57666778564453,
+                "description": "Batch 89 completed - 890000 files processed"
+              },
+              {
+                "timestamp": 1761807869896,
+                "resultCount": 900000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 414.20459747314453,
+                "description": "Batch 90 completed - 900000 files processed"
+              },
+              {
+                "timestamp": 1761807870350,
+                "resultCount": 910000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 417.25074768066406,
+                "description": "Batch 91 completed - 910000 files processed"
+              },
+              {
+                "timestamp": 1761807870852,
+                "resultCount": 920000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 228.14846801757812,
+                "description": "Batch 92 completed - 920000 files processed"
+              },
+              {
+                "timestamp": 1761807871576,
+                "resultCount": 930000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 235.75171661376953,
+                "description": "Batch 93 completed - 930000 files processed"
+              },
+              {
+                "timestamp": 1761807872310,
+                "resultCount": 940000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 228.66858673095703,
+                "description": "Batch 94 completed - 940000 files processed"
+              },
+              {
+                "timestamp": 1761807873027,
+                "resultCount": 950000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 236.16593170166016,
+                "description": "Batch 95 completed - 950000 files processed"
+              },
+              {
+                "timestamp": 1761807873719,
+                "resultCount": 960000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 243.6153564453125,
+                "description": "Batch 96 completed - 960000 files processed"
+              },
+              {
+                "timestamp": 1761807874166,
+                "resultCount": 970000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 231.72240447998047,
+                "description": "Batch 97 completed - 970000 files processed"
+              },
+              {
+                "timestamp": 1761807874610,
+                "resultCount": 980000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 234.44385528564453,
+                "description": "Batch 98 completed - 980000 files processed"
+              },
+              {
+                "timestamp": 1761807875047,
+                "resultCount": 990000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 237.19644165039062,
+                "description": "Batch 99 completed - 990000 files processed"
+              },
+              {
+                "timestamp": 1761807875478,
+                "resultCount": 1000000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 239.8754653930664,
+                "description": "Batch 100 completed - 1000000 files processed"
+              },
+              {
+                "timestamp": 1761807876017,
+                "resultCount": 1010000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 204.40110778808594,
+                "description": "Batch 101 completed - 1010000 files processed"
+              },
+              {
+                "timestamp": 1761807876445,
+                "resultCount": 1020000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 207.14634704589844,
+                "description": "Batch 102 completed - 1020000 files processed"
+              },
+              {
+                "timestamp": 1761807876872,
+                "resultCount": 1030000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 209.98126220703125,
+                "description": "Batch 103 completed - 1030000 files processed"
+              },
+              {
+                "timestamp": 1761807877305,
+                "resultCount": 1040000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 212.63546752929688,
+                "description": "Batch 104 completed - 1040000 files processed"
+              },
+              {
+                "timestamp": 1761807877984,
+                "resultCount": 1050000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 219.71620178222656,
+                "description": "Batch 105 completed - 1050000 files processed"
+              },
+              {
+                "timestamp": 1761807878666,
+                "resultCount": 1060000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 212.04763793945312,
+                "description": "Batch 106 completed - 1060000 files processed"
+              },
+              {
+                "timestamp": 1761807879351,
+                "resultCount": 1070000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 218.9999008178711,
+                "description": "Batch 107 completed - 1070000 files processed"
+              },
+              {
+                "timestamp": 1761807880069,
+                "resultCount": 1080000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 211.2052001953125,
+                "description": "Batch 108 completed - 1080000 files processed"
+              },
+              {
+                "timestamp": 1761807880540,
+                "resultCount": 1090000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 213.78038787841797,
+                "description": "Batch 109 completed - 1090000 files processed"
+              },
+              {
+                "timestamp": 1761807880978,
+                "resultCount": 1100000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 216.30404663085938,
+                "description": "Batch 110 completed - 1100000 files processed"
+              },
+              {
+                "timestamp": 1761807881426,
+                "resultCount": 1110000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 218.84386444091797,
+                "description": "Batch 111 completed - 1110000 files processed"
+              },
+              {
+                "timestamp": 1761807881923,
+                "resultCount": 1120000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 221.4827651977539,
+                "description": "Batch 112 completed - 1120000 files processed"
+              },
+              {
+                "timestamp": 1761807882363,
+                "resultCount": 1130000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 223.99610137939453,
+                "description": "Batch 113 completed - 1130000 files processed"
+              },
+              {
+                "timestamp": 1761807882861,
+                "resultCount": 1140000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 211.96968841552734,
+                "description": "Batch 114 completed - 1140000 files processed"
+              },
+              {
+                "timestamp": 1761807883312,
+                "resultCount": 1150000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 214.50872039794922,
+                "description": "Batch 115 completed - 1150000 files processed"
+              },
+              {
+                "timestamp": 1761807883752,
+                "resultCount": 1160000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 217.08386993408203,
+                "description": "Batch 116 completed - 1160000 files processed"
+              },
+              {
+                "timestamp": 1761807884425,
+                "resultCount": 1170000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 223.4937286376953,
+                "description": "Batch 117 completed - 1170000 files processed"
+              },
+              {
+                "timestamp": 1761807885120,
+                "resultCount": 1180000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 215.17900848388672,
+                "description": "Batch 118 completed - 1180000 files processed"
+              },
+              {
+                "timestamp": 1761807885791,
+                "resultCount": 1190000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 221.5423583984375,
+                "description": "Batch 119 completed - 1190000 files processed"
+              },
+              {
+                "timestamp": 1761807886468,
+                "resultCount": 1200000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 227.85784912109375,
+                "description": "Batch 120 completed - 1200000 files processed"
+              },
+              {
+                "timestamp": 1761807886469,
+                "resultCount": 1200010,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 227.8802032470703,
+                "description": "Generator find operation complete"
+              }
+            ],
+            "maxStackDepth": 1000000,
+            "peakMemoryMB": 731.2236328125,
+            "resultArrayMemoryMB": 178.22384452819824,
+            "stackMemoryMB": 228.8818359375,
+            "filesProcessed": 1200010,
+            "batchesProcessed": 121
+          }
+        },
+        "mem": {
+          "approach": "Memory-Optimized",
+          "success": true,
+          "filesFound": 1200010,
+          "duration": 64211,
+          "startMemory": 6465519.616,
+          "endMemory": 168982216.704,
+          "peakMemory": 575061544,
+          "memoryDelta": 162516697.088,
+          "peakRSS_MB": 784.41,
+          "rssDelta_MB": 13.534999999999968,
+          "processMemoryStart": {
+            "heapUsed_MB": 6.166,
+            "heapTotal_MB": 39.07,
+            "rss_MB": 770.875,
+            "external_MB": 1.72,
+            "arrayBuffers_MB": 0.016
+          },
+          "processMemoryEnd": {
+            "heapUsed_MB": 161.154,
+            "heapTotal_MB": 210.98,
+            "rss_MB": 784.41,
+            "external_MB": 1.719,
+            "arrayBuffers_MB": 0.016
+          },
+          "error": null,
+          "metrics": {
+            "resultArrayMemoryMB": 178.22384452819824,
+            "stackMemoryMB": 228.8818359375,
+            "peakMemoryMB": 548.4214248657227,
+            "filesProcessed": 1200010,
+            "maxStackDepth": 1000000,
+            "snapshots": [
+              {
+                "timestamp": 1761807890601,
+                "resultCount": 0,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 10.654624938964844,
+                "description": "Memory-optimized find (efficient strategy) start"
+              },
+              {
+                "timestamp": 1761807897816,
+                "resultCount": 100000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 548.4214248657227,
+                "description": "Memory-efficient processing: 10 chunks, 100000 files"
+              },
+              {
+                "timestamp": 1761807902879,
+                "resultCount": 200000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 490.1414260864258,
+                "description": "Memory-efficient processing: 20 chunks, 200000 files"
+              },
+              {
+                "timestamp": 1761807908133,
+                "resultCount": 300000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 443.4571838378906,
+                "description": "Memory-efficient processing: 30 chunks, 300000 files"
+              },
+              {
+                "timestamp": 1761807913407,
+                "resultCount": 400000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 399.8173370361328,
+                "description": "Memory-efficient processing: 40 chunks, 400000 files"
+              },
+              {
+                "timestamp": 1761807918593,
+                "resultCount": 500000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 359.22957611083984,
+                "description": "Memory-efficient processing: 50 chunks, 500000 files"
+              },
+              {
+                "timestamp": 1761807923879,
+                "resultCount": 600000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 321.73890686035156,
+                "description": "Memory-efficient processing: 60 chunks, 600000 files"
+              },
+              {
+                "timestamp": 1761807928676,
+                "resultCount": 700000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 282.9597930908203,
+                "description": "Memory-efficient processing: 70 chunks, 700000 files"
+              },
+              {
+                "timestamp": 1761807933508,
+                "resultCount": 800000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 248.40152740478516,
+                "description": "Memory-efficient processing: 80 chunks, 800000 files"
+              },
+              {
+                "timestamp": 1761807938692,
+                "resultCount": 900000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 222.30962371826172,
+                "description": "Memory-efficient processing: 90 chunks, 900000 files"
+              },
+              {
+                "timestamp": 1761807943987,
+                "resultCount": 1000000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 199.26903533935547,
+                "description": "Memory-efficient processing: 100 chunks, 1000000 files"
+              },
+              {
+                "timestamp": 1761807949255,
+                "resultCount": 1100000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 179.28020477294922,
+                "description": "Memory-efficient processing: 110 chunks, 1100000 files"
+              },
+              {
+                "timestamp": 1761807954611,
+                "resultCount": 1200000,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 162.3930206298828,
+                "description": "Memory-efficient processing: 120 chunks, 1200000 files"
+              },
+              {
+                "timestamp": 1761807954707,
+                "resultCount": 1200010,
+                "stackDepth": 0,
+                "estimatedMemoryMB": 161.148681640625,
+                "description": "Memory-optimized find (efficient strategy) complete"
+              }
+            ],
+            "batchesProcessed": 121
+          }
+        },
+        "fg": {
+          "approach": "Fast-Glob",
+          "success": true,
+          "filesFound": 1000009,
+          "duration": 9402,
+          "startMemory": 5599395.84,
+          "endMemory": 1067883429.888,
+          "peakMemory": 1067883429.888,
+          "memoryDelta": 1062284034.048,
+          "peakRSS_MB": 1108.145,
+          "rssDelta_MB": 336.9069999999999,
+          "processMemoryStart": {
+            "heapUsed_MB": 5.34,
+            "heapTotal_MB": 38.57,
+            "rss_MB": 771.238,
+            "external_MB": 1.719,
+            "arrayBuffers_MB": 0.016
+          },
+          "processMemoryEnd": {
+            "heapUsed_MB": 1018.413,
+            "heapTotal_MB": 1056.309,
+            "rss_MB": 1108.145,
+            "external_MB": 1.719,
+            "arrayBuffers_MB": 0.016
+          },
+          "pattern": "C:/RISHABH/ADO/Test/**/*",
+          "error": null
+        }
+      },
+      "fastest": {
+        "key": "fg",
+        "approach": "Fast-Glob",
+        "success": true,
+        "filesFound": 1000009,
+        "duration": 9402,
+        "startMemory": 5599395.84,
+        "endMemory": 1067883429.888,
+        "peakMemory": 1067883429.888,
+        "memoryDelta": 1062284034.048,
+        "peakRSS_MB": 1108.145,
+        "rssDelta_MB": 336.9069999999999,
+        "processMemoryStart": {
+          "heapUsed_MB": 5.34,
+          "heapTotal_MB": 38.57,
+          "rss_MB": 771.238,
+          "external_MB": 1.719,
+          "arrayBuffers_MB": 0.016
+        },
+        "processMemoryEnd": {
+          "heapUsed_MB": 1018.413,
+          "heapTotal_MB": 1056.309,
+          "rss_MB": 1108.145,
+          "external_MB": 1.719,
+          "arrayBuffers_MB": 0.016
+        },
+        "pattern": "C:/RISHABH/ADO/Test/**/*",
+        "error": null
+      },
+      "mostMemoryEfficient": {
+        "key": "mem",
+        "approach": "Memory-Optimized",
+        "success": true,
+        "filesFound": 1200010,
+        "duration": 64211,
+        "startMemory": 6465519.616,
+        "endMemory": 168982216.704,
+        "peakMemory": 575061544,
+        "memoryDelta": 162516697.088,
+        "peakRSS_MB": 784.41,
+        "rssDelta_MB": 13.534999999999968,
+        "processMemoryStart": {
+          "heapUsed_MB": 6.166,
+          "heapTotal_MB": 39.07,
+          "rss_MB": 770.875,
+          "external_MB": 1.72,
+          "arrayBuffers_MB": 0.016
+        },
+        "processMemoryEnd": {
+          "heapUsed_MB": 161.154,
+          "heapTotal_MB": 210.98,
+          "rss_MB": 784.41,
+          "external_MB": 1.719,
+          "arrayBuffers_MB": 0.016
+        },
+        "error": null,
+        "metrics": {
+          "resultArrayMemoryMB": 178.22384452819824,
+          "stackMemoryMB": 228.8818359375,
+          "peakMemoryMB": 548.4214248657227,
+          "filesProcessed": 1200010,
+          "maxStackDepth": 1000000,
+          "snapshots": [
+            {
+              "timestamp": 1761807890601,
+              "resultCount": 0,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 10.654624938964844,
+              "description": "Memory-optimized find (efficient strategy) start"
+            },
+            {
+              "timestamp": 1761807897816,
+              "resultCount": 100000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 548.4214248657227,
+              "description": "Memory-efficient processing: 10 chunks, 100000 files"
+            },
+            {
+              "timestamp": 1761807902879,
+              "resultCount": 200000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 490.1414260864258,
+              "description": "Memory-efficient processing: 20 chunks, 200000 files"
+            },
+            {
+              "timestamp": 1761807908133,
+              "resultCount": 300000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 443.4571838378906,
+              "description": "Memory-efficient processing: 30 chunks, 300000 files"
+            },
+            {
+              "timestamp": 1761807913407,
+              "resultCount": 400000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 399.8173370361328,
+              "description": "Memory-efficient processing: 40 chunks, 400000 files"
+            },
+            {
+              "timestamp": 1761807918593,
+              "resultCount": 500000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 359.22957611083984,
+              "description": "Memory-efficient processing: 50 chunks, 500000 files"
+            },
+            {
+              "timestamp": 1761807923879,
+              "resultCount": 600000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 321.73890686035156,
+              "description": "Memory-efficient processing: 60 chunks, 600000 files"
+            },
+            {
+              "timestamp": 1761807928676,
+              "resultCount": 700000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 282.9597930908203,
+              "description": "Memory-efficient processing: 70 chunks, 700000 files"
+            },
+            {
+              "timestamp": 1761807933508,
+              "resultCount": 800000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 248.40152740478516,
+              "description": "Memory-efficient processing: 80 chunks, 800000 files"
+            },
+            {
+              "timestamp": 1761807938692,
+              "resultCount": 900000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 222.30962371826172,
+              "description": "Memory-efficient processing: 90 chunks, 900000 files"
+            },
+            {
+              "timestamp": 1761807943987,
+              "resultCount": 1000000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 199.26903533935547,
+              "description": "Memory-efficient processing: 100 chunks, 1000000 files"
+            },
+            {
+              "timestamp": 1761807949255,
+              "resultCount": 1100000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 179.28020477294922,
+              "description": "Memory-efficient processing: 110 chunks, 1100000 files"
+            },
+            {
+              "timestamp": 1761807954611,
+              "resultCount": 1200000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 162.3930206298828,
+              "description": "Memory-efficient processing: 120 chunks, 1200000 files"
+            },
+            {
+              "timestamp": 1761807954707,
+              "resultCount": 1200010,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 161.148681640625,
+              "description": "Memory-optimized find (efficient strategy) complete"
+            }
+          ],
+          "batchesProcessed": 121
+        }
+      },
+      "mostRSSEfficient": {
+        "key": "mem",
+        "approach": "Memory-Optimized",
+        "success": true,
+        "filesFound": 1200010,
+        "duration": 64211,
+        "startMemory": 6465519.616,
+        "endMemory": 168982216.704,
+        "peakMemory": 575061544,
+        "memoryDelta": 162516697.088,
+        "peakRSS_MB": 784.41,
+        "rssDelta_MB": 13.534999999999968,
+        "processMemoryStart": {
+          "heapUsed_MB": 6.166,
+          "heapTotal_MB": 39.07,
+          "rss_MB": 770.875,
+          "external_MB": 1.72,
+          "arrayBuffers_MB": 0.016
+        },
+        "processMemoryEnd": {
+          "heapUsed_MB": 161.154,
+          "heapTotal_MB": 210.98,
+          "rss_MB": 784.41,
+          "external_MB": 1.719,
+          "arrayBuffers_MB": 0.016
+        },
+        "error": null,
+        "metrics": {
+          "resultArrayMemoryMB": 178.22384452819824,
+          "stackMemoryMB": 228.8818359375,
+          "peakMemoryMB": 548.4214248657227,
+          "filesProcessed": 1200010,
+          "maxStackDepth": 1000000,
+          "snapshots": [
+            {
+              "timestamp": 1761807890601,
+              "resultCount": 0,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 10.654624938964844,
+              "description": "Memory-optimized find (efficient strategy) start"
+            },
+            {
+              "timestamp": 1761807897816,
+              "resultCount": 100000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 548.4214248657227,
+              "description": "Memory-efficient processing: 10 chunks, 100000 files"
+            },
+            {
+              "timestamp": 1761807902879,
+              "resultCount": 200000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 490.1414260864258,
+              "description": "Memory-efficient processing: 20 chunks, 200000 files"
+            },
+            {
+              "timestamp": 1761807908133,
+              "resultCount": 300000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 443.4571838378906,
+              "description": "Memory-efficient processing: 30 chunks, 300000 files"
+            },
+            {
+              "timestamp": 1761807913407,
+              "resultCount": 400000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 399.8173370361328,
+              "description": "Memory-efficient processing: 40 chunks, 400000 files"
+            },
+            {
+              "timestamp": 1761807918593,
+              "resultCount": 500000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 359.22957611083984,
+              "description": "Memory-efficient processing: 50 chunks, 500000 files"
+            },
+            {
+              "timestamp": 1761807923879,
+              "resultCount": 600000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 321.73890686035156,
+              "description": "Memory-efficient processing: 60 chunks, 600000 files"
+            },
+            {
+              "timestamp": 1761807928676,
+              "resultCount": 700000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 282.9597930908203,
+              "description": "Memory-efficient processing: 70 chunks, 700000 files"
+            },
+            {
+              "timestamp": 1761807933508,
+              "resultCount": 800000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 248.40152740478516,
+              "description": "Memory-efficient processing: 80 chunks, 800000 files"
+            },
+            {
+              "timestamp": 1761807938692,
+              "resultCount": 900000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 222.30962371826172,
+              "description": "Memory-efficient processing: 90 chunks, 900000 files"
+            },
+            {
+              "timestamp": 1761807943987,
+              "resultCount": 1000000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 199.26903533935547,
+              "description": "Memory-efficient processing: 100 chunks, 1000000 files"
+            },
+            {
+              "timestamp": 1761807949255,
+              "resultCount": 1100000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 179.28020477294922,
+              "description": "Memory-efficient processing: 110 chunks, 1100000 files"
+            },
+            {
+              "timestamp": 1761807954611,
+              "resultCount": 1200000,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 162.3930206298828,
+              "description": "Memory-efficient processing: 120 chunks, 1200000 files"
+            },
+            {
+              "timestamp": 1761807954707,
+              "resultCount": 1200010,
+              "stackDepth": 0,
+              "estimatedMemoryMB": 161.148681640625,
+              "description": "Memory-optimized find (efficient strategy) complete"
+            }
+          ],
+          "batchesProcessed": 121
+        }
+      },
+      "timestamp": "2025-10-30T07:03:39.300Z",
+      "systemMemoryBefore": {
+        "totalGB": 64,
+        "freeGB": 28.8,
+        "usedGB": 35.1,
+        "usagePercent": 54.9
+      },
+      "systemMemoryAfter": {
+        "totalGB": 64,
+        "freeGB": 26.9,
+        "usedGB": 37,
+        "usagePercent": 57.9
+      }
+    }
+  ],
+  "summary": {
+    "totalTests": 3,
+    "successfulTests": 3,
+    "fastestOverall": {
+      "approach": "Fast-Glob",
+      "success": true,
+      "filesFound": 1000009,
+      "duration": 9402,
+      "startMemory": 5599395.84,
+      "endMemory": 1067883429.888,
+      "peakMemory": 1067883429.888,
+      "memoryDelta": 1062284034.048,
+      "peakRSS_MB": 1108.145,
+      "rssDelta_MB": 336.9069999999999,
+      "processMemoryStart": {
+        "heapUsed_MB": 5.34,
+        "heapTotal_MB": 38.57,
+        "rss_MB": 771.238,
+        "external_MB": 1.719,
+        "arrayBuffers_MB": 0.016
+      },
+      "processMemoryEnd": {
+        "heapUsed_MB": 1018.413,
+        "heapTotal_MB": 1056.309,
+        "rss_MB": 1108.145,
+        "external_MB": 1.719,
+        "arrayBuffers_MB": 0.016
+      },
+      "pattern": "C:/RISHABH/ADO/Test/**/*",
+      "error": null,
+      "scale": 1
+    },
+    "mostMemoryEfficientOverall": {
+      "approach": "Memory-Optimized",
+      "success": true,
+      "filesFound": 1200010,
+      "duration": 64211,
+      "startMemory": 6465519.616,
+      "endMemory": 168982216.704,
+      "peakMemory": 575061544,
+      "memoryDelta": 162516697.088,
+      "peakRSS_MB": 784.41,
+      "rssDelta_MB": 13.534999999999968,
+      "processMemoryStart": {
+        "heapUsed_MB": 6.166,
+        "heapTotal_MB": 39.07,
+        "rss_MB": 770.875,
+        "external_MB": 1.72,
+        "arrayBuffers_MB": 0.016
+      },
+      "processMemoryEnd": {
+        "heapUsed_MB": 161.154,
+        "heapTotal_MB": 210.98,
+        "rss_MB": 784.41,
+        "external_MB": 1.719,
+        "arrayBuffers_MB": 0.016
+      },
+      "error": null,
+      "metrics": {
+        "resultArrayMemoryMB": 178.22384452819824,
+        "stackMemoryMB": 228.8818359375,
+        "peakMemoryMB": 548.4214248657227,
+        "filesProcessed": 1200010,
+        "maxStackDepth": 1000000,
+        "snapshots": [
+          {
+            "timestamp": 1761807890601,
+            "resultCount": 0,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 10.654624938964844,
+            "description": "Memory-optimized find (efficient strategy) start"
+          },
+          {
+            "timestamp": 1761807897816,
+            "resultCount": 100000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 548.4214248657227,
+            "description": "Memory-efficient processing: 10 chunks, 100000 files"
+          },
+          {
+            "timestamp": 1761807902879,
+            "resultCount": 200000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 490.1414260864258,
+            "description": "Memory-efficient processing: 20 chunks, 200000 files"
+          },
+          {
+            "timestamp": 1761807908133,
+            "resultCount": 300000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 443.4571838378906,
+            "description": "Memory-efficient processing: 30 chunks, 300000 files"
+          },
+          {
+            "timestamp": 1761807913407,
+            "resultCount": 400000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 399.8173370361328,
+            "description": "Memory-efficient processing: 40 chunks, 400000 files"
+          },
+          {
+            "timestamp": 1761807918593,
+            "resultCount": 500000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 359.22957611083984,
+            "description": "Memory-efficient processing: 50 chunks, 500000 files"
+          },
+          {
+            "timestamp": 1761807923879,
+            "resultCount": 600000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 321.73890686035156,
+            "description": "Memory-efficient processing: 60 chunks, 600000 files"
+          },
+          {
+            "timestamp": 1761807928676,
+            "resultCount": 700000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 282.9597930908203,
+            "description": "Memory-efficient processing: 70 chunks, 700000 files"
+          },
+          {
+            "timestamp": 1761807933508,
+            "resultCount": 800000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 248.40152740478516,
+            "description": "Memory-efficient processing: 80 chunks, 800000 files"
+          },
+          {
+            "timestamp": 1761807938692,
+            "resultCount": 900000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 222.30962371826172,
+            "description": "Memory-efficient processing: 90 chunks, 900000 files"
+          },
+          {
+            "timestamp": 1761807943987,
+            "resultCount": 1000000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 199.26903533935547,
+            "description": "Memory-efficient processing: 100 chunks, 1000000 files"
+          },
+          {
+            "timestamp": 1761807949255,
+            "resultCount": 1100000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 179.28020477294922,
+            "description": "Memory-efficient processing: 110 chunks, 1100000 files"
+          },
+          {
+            "timestamp": 1761807954611,
+            "resultCount": 1200000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 162.3930206298828,
+            "description": "Memory-efficient processing: 120 chunks, 1200000 files"
+          },
+          {
+            "timestamp": 1761807954707,
+            "resultCount": 1200010,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 161.148681640625,
+            "description": "Memory-optimized find (efficient strategy) complete"
+          }
+        ],
+        "batchesProcessed": 121
+      },
+      "scale": 1
+    },
+    "mostRSSEfficientOverall": {
+      "approach": "Memory-Optimized",
+      "success": true,
+      "filesFound": 1200010,
+      "duration": 64211,
+      "startMemory": 6465519.616,
+      "endMemory": 168982216.704,
+      "peakMemory": 575061544,
+      "memoryDelta": 162516697.088,
+      "peakRSS_MB": 784.41,
+      "rssDelta_MB": 13.534999999999968,
+      "processMemoryStart": {
+        "heapUsed_MB": 6.166,
+        "heapTotal_MB": 39.07,
+        "rss_MB": 770.875,
+        "external_MB": 1.72,
+        "arrayBuffers_MB": 0.016
+      },
+      "processMemoryEnd": {
+        "heapUsed_MB": 161.154,
+        "heapTotal_MB": 210.98,
+        "rss_MB": 784.41,
+        "external_MB": 1.719,
+        "arrayBuffers_MB": 0.016
+      },
+      "error": null,
+      "metrics": {
+        "resultArrayMemoryMB": 178.22384452819824,
+        "stackMemoryMB": 228.8818359375,
+        "peakMemoryMB": 548.4214248657227,
+        "filesProcessed": 1200010,
+        "maxStackDepth": 1000000,
+        "snapshots": [
+          {
+            "timestamp": 1761807890601,
+            "resultCount": 0,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 10.654624938964844,
+            "description": "Memory-optimized find (efficient strategy) start"
+          },
+          {
+            "timestamp": 1761807897816,
+            "resultCount": 100000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 548.4214248657227,
+            "description": "Memory-efficient processing: 10 chunks, 100000 files"
+          },
+          {
+            "timestamp": 1761807902879,
+            "resultCount": 200000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 490.1414260864258,
+            "description": "Memory-efficient processing: 20 chunks, 200000 files"
+          },
+          {
+            "timestamp": 1761807908133,
+            "resultCount": 300000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 443.4571838378906,
+            "description": "Memory-efficient processing: 30 chunks, 300000 files"
+          },
+          {
+            "timestamp": 1761807913407,
+            "resultCount": 400000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 399.8173370361328,
+            "description": "Memory-efficient processing: 40 chunks, 400000 files"
+          },
+          {
+            "timestamp": 1761807918593,
+            "resultCount": 500000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 359.22957611083984,
+            "description": "Memory-efficient processing: 50 chunks, 500000 files"
+          },
+          {
+            "timestamp": 1761807923879,
+            "resultCount": 600000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 321.73890686035156,
+            "description": "Memory-efficient processing: 60 chunks, 600000 files"
+          },
+          {
+            "timestamp": 1761807928676,
+            "resultCount": 700000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 282.9597930908203,
+            "description": "Memory-efficient processing: 70 chunks, 700000 files"
+          },
+          {
+            "timestamp": 1761807933508,
+            "resultCount": 800000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 248.40152740478516,
+            "description": "Memory-efficient processing: 80 chunks, 800000 files"
+          },
+          {
+            "timestamp": 1761807938692,
+            "resultCount": 900000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 222.30962371826172,
+            "description": "Memory-efficient processing: 90 chunks, 900000 files"
+          },
+          {
+            "timestamp": 1761807943987,
+            "resultCount": 1000000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 199.26903533935547,
+            "description": "Memory-efficient processing: 100 chunks, 1000000 files"
+          },
+          {
+            "timestamp": 1761807949255,
+            "resultCount": 1100000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 179.28020477294922,
+            "description": "Memory-efficient processing: 110 chunks, 1100000 files"
+          },
+          {
+            "timestamp": 1761807954611,
+            "resultCount": 1200000,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 162.3930206298828,
+            "description": "Memory-efficient processing: 120 chunks, 1200000 files"
+          },
+          {
+            "timestamp": 1761807954707,
+            "resultCount": 1200010,
+            "stackDepth": 0,
+            "estimatedMemoryMB": 161.148681640625,
+            "description": "Memory-optimized find (efficient strategy) complete"
+          }
+        ],
+        "batchesProcessed": 121
+      },
+      "scale": 1
+    }
+  }
+}

@@ -19,6 +19,8 @@ export interface FindMemoryMetrics {
     maxStackDepth: number;
     /** Memory snapshots at different stages */
     snapshots: MemorySnapshot[];
+    /** Number of batches processed (for generator approach) */
+    batchesProcessed?: number;
 }
 
 /**

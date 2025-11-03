@@ -6,7 +6,15 @@
   "typings": "./task.d.ts",
   "scripts": {
     "build": "node make.js build",
-    "test": "node make.js test"
+    "test": "node make.js test",
+    "test:scaling": "node --expose-gc run_scaling_tests.js",
+    "test:enhanced": "node --expose-gc run_enhanced_scaling_tests.js",
+    "test:enhanced:1": "node --expose-gc run_enhanced_scaling_tests.js 1",
+    "test:enhanced:2": "node --expose-gc run_enhanced_scaling_tests.js 2",
+    "test:enhanced:3": "node --expose-gc run_enhanced_scaling_tests.js 3",
+    "test:enhanced:5": "node --expose-gc run_enhanced_scaling_tests.js 5",
+    "test:enhanced:10": "node --expose-gc run_enhanced_scaling_tests.js 10",
+    "test:enhanced:help": "node run_enhanced_scaling_tests.js --help"
   },
   "repository": {
     "type": "git",
@@ -28,13 +36,13 @@
   "homepage": "https://github.com/Microsoft/azure-pipelines-task-lib",
   "dependencies": {
     "adm-zip": "^0.5.10",
+    "fast-glob": "^3.3.3",
     "minimatch": "3.0.5",
     "nodejs-file-downloader": "^4.11.1",
     "q": "^1.5.1",
     "semver": "^5.7.2",
     "shelljs": "^0.8.5",
-    "uuid": "^3.0.1",
-    "fast-glob": "^3.3.3"
+    "uuid": "^3.0.1"
   },
   "devDependencies": {
     "@types/minimatch": "3.0.3",
