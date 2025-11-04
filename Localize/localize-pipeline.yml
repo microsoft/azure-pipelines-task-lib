@@ -56,7 +56,7 @@ stages:
         repoType: 'gitHub'
         prSourceBranchPrefix: 'Localize'
         gitHubPatVariable: '$(GitHubPAT)'
-        isAutoCompletePrSelected: true
+        isAutoCompletePrSelected: false
         gitHubPrMergeMethod: 'squash'
       env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
