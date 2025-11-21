@@ -84,7 +84,6 @@
         "Test",
         "Package",
         "Deploy",
-
         "Azure Repos",
         "Azure Boards",
         "Azure Pipelines",
@@ -394,6 +393,9 @@
       "additionalProperties": false,
       "description": "Execution options for this task (on Pre-Job stage)",
       "properties": {
+        "Node24": {
+          "$ref": "#/definitions/executionObject"
+        },
         "Node20_1": {
           "$ref": "#/definitions/executionObject"
         },
@@ -419,6 +421,9 @@
       "additionalProperties": false,
       "description": "Execution options for this task",
       "properties": {
+        "Node24": {
+          "$ref": "#/definitions/executionObject"
+        },
         "Node20_1": {
           "$ref": "#/definitions/executionObject"
         },
@@ -444,6 +449,9 @@
       "additionalProperties": false,
       "description": "Execution options for this task (on Post-Job stage)",
       "properties": {
+        "Node24": {
+          "$ref": "#/definitions/executionObject"
+        },
         "Node20_1": {
           "$ref": "#/definitions/executionObject"
         },
@@ -532,7 +540,7 @@
       "type": "object",
       "additionalProperties": true,
       "required": [
-          "target"
+        "target"
       ],
       "properties": {
         "target": {
