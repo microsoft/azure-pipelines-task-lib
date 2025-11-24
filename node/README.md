@@ -17,17 +17,32 @@ Documentation: [TypeScript API](https://github.com/microsoft/azure-pipelines-tas
 
 Guidance: [Finding Files](https://github.com/microsoft/azure-pipelines-task-lib/blob/master/node/docs/findingfiles.md), [Minimum agent version](https://github.com/microsoft/azure-pipelines-task-lib/blob/master/node/docs/minagent.md), [Proxy](https://github.com/microsoft/azure-pipelines-task-lib/blob/master/node/docs/proxy.md), [Certificate](https://github.com/microsoft/azure-pipelines-task-lib/blob/master/node/docs/cert.md)
 
-## Node 10 Upgrade Notice
+## Node Runtime Support
 
-Azure DevOps is currently working to establish Node 10 as the new preferred runtime for tasks, upgrading from Node 6.
-Relevant work is happening in the `master` branch and the major version should be used with Node 10 is 3.
-Previous major version is stored in the `releases/2.x`
+Azure Pipelines supports multiple Node.js runtimes for task execution:
 
-### Upgrading to Node 10
+* **Node 6** - Supported
+* **Node 10** - Supported
+* **Node 16** - Supported
+* **Node 20** - Current recommended version
+* **Node 24** - Latest version with modern JavaScript features
 
-Upgrading your tasks from Node 6 should be relatively painless, however there are some things to note:
-* Typescript has been upgraded to TS 4. Older versions of TS may or may not work with Node 14 or the 3.x branch. We recommend upgrading to TS 4 when upgrading to task-lib 3.x.
-* Node has made some changes to `fs` between Node 6 and Node 10. It is worth reviewing and testing your tasks thoroughly before publishing updates to Node 10.
+### Node Version Selection
+
+The Node runtime used depends on the `execution` handler specified in your task's `task.json`:
+* `Node` - Uses Node 6 
+* `Node10` - Uses Node 10 
+* `Node16` - Uses Node 16
+* `Node20` or `Node20_1` - Uses Node 20
+* `Node24` - Uses Node 24
+
+### Upgrading to Newer Node Versions
+
+When upgrading your tasks to newer Node versions:
+* **TypeScript**: Ensure you're using a compatible TypeScript version (TS 4.0+ for Node 10+, TS 5.0+ for Node 20+, TS 5.7+ for Node 24)
+* **Dependencies**: Review and update npm dependencies for compatibility with the target Node version
+* **Testing**: Thoroughly test your tasks with the new Node runtime before publishing
+* **Breaking Changes**: Review Node.js release notes for breaking changes between versions (especially `fs` module changes)
 
 ## Reference Examples
 

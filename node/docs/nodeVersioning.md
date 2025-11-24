@@ -2,9 +2,9 @@
 
 ## Agent Node Handler
 
-The agent currently has 3 different node handlers that it can use to execute node tasks: Node 6, Node 10, Node 16.
+The agent currently has multiple node handlers that it can use to execute node tasks: Node 6, Node 10, Node 16, Node 20, and Node 24.
 The handler used depends on the `execution` property specified in the tasks `task.json`.
-If the `execution` property is specified to be `Node`, the task will run on the Node 6 handler, for `Node10` it will run on the Node 10 handler, for `Node16` it will run on the Node 16 handler.
+If the `execution` property is specified to be `Node`, the task will run on the Node 6 handler, for `Node10` it will run on the Node 10 handler, for `Node16` it will run on the Node 16 handler, for `Node20` or `Node20_1` it will run on the Node 20 handler, and for `Node24` it will run on the Node 24 handler.
 
 ## Mock-test Node Handler
 
@@ -16,5 +16,5 @@ If this version of node is not found on the path, the library downloads the appr
 
 ### Behavior overrides
 
-To specify a specific version of node to use, set the `nodeVersion` optional parameter in the `run` function of the `MockTestRunner` to the integer major version (e.g. `mtr.run(5)`).
+To specify a specific version of node to use, set the `nodeVersion` optional parameter in the `run` function of the `MockTestRunner` to the integer major version (e.g. `mtr.run(20)` for Node 20, `mtr.run(24)` for Node 24).
 To specify the location of a `task.json` file, set the `taskJsonPath` optional parameter in the `MockTestRunner` constructor to the path of the file (e.g. `let mtr = new mt.MockTaskRunner('<pathToTest>', '<pathToTask.json>'`).

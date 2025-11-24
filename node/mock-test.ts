@@ -166,7 +166,7 @@ export class MockTestRunner {
     private async getNodePath(nodeVersion?: number): Promise<string> {
         const version: number = nodeVersion || this.getNodeVersion();
         const versions = {
-            24: 'v24.0.0',
+            24: 'v24.10.0',
             20: 'v20.13.1',
             16: 'v16.20.2',
             10: 'v10.24.1',

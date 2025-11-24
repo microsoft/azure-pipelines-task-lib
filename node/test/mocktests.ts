@@ -348,6 +348,16 @@ describe('Mock Tests', function () {
         await Promise.resolve()
     })
 
+    it('MockTest handles node 24 tasks correctly', async function () {
+        this.timeout(30000);
+        const runner = await (new mtm.MockTestRunner).LoadAsync(path.join(__dirname, 'fakeTasks', 'node24task', 'entry.js'));
+        const nodePath = runner.nodePath;
+        assert(nodePath, 'node path should have been correctly set');
+        const version = ncp.execSync(nodePath + ' -v').toString().trim();
+        assert(semver.satisfies(version, '24.x'), 'Downloaded node version should be Node 24 instead of ' + version);
+        await Promise.resolve()
+    })
+
     it('MockTest handles node tasks correctly by async call', async () => {
         this.timeout(30000);
         const runner = await (new mtm.MockTestRunner).LoadAsync(path.join(__dirname, 'fakeTasks', 'node16task', 'entry.js'));
