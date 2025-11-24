@@ -61,8 +61,12 @@ target.build = async function () {
 }
 
 target.test = async function () {
-    util.ensureTool('tsc', '--version', 'Version 4.0.2');
-    util.ensureTool('mocha', '--version', '5.2.0');
+    util.ensureTool('tsc', '--version', function(version) {
+        if (!version.startsWith('Version 5.')) {
+            throw new Error('expected TypeScript 5.x, got: ' + version);
+        }
+    });
+    util.ensureTool('mocha', '--version', '10.8.2');
     await target.build();
 
     util.mkdir('-p', testPath);
