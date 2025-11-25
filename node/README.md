@@ -33,7 +33,7 @@ The Node runtime used depends on the `execution` handler specified in your task'
 * `Node` - Uses Node 6 
 * `Node10` - Uses Node 10 
 * `Node16` - Uses Node 16
-* `Node20` or `Node20_1` - Uses Node 20
+* `Node20_1` - Uses Node 20 (Note: handler name includes _1 suffix)
 * `Node24` - Uses Node 24
 
 ### Upgrading to Newer Node Versions

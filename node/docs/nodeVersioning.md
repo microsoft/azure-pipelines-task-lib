@@ -4,7 +4,7 @@
 
 The agent currently has multiple node handlers that it can use to execute node tasks: Node 6, Node 10, Node 16, Node 20, and Node 24.
 The handler used depends on the `execution` property specified in the tasks `task.json`.
-If the `execution` property is specified to be `Node`, the task will run on the Node 6 handler, for `Node10` it will run on the Node 10 handler, for `Node16` it will run on the Node 16 handler, for `Node20` or `Node20_1` it will run on the Node 20 handler, and for `Node24` it will run on the Node 24 handler.
+If the `execution` property is specified to be `Node`, the task will run on the Node 6 handler, for `Node10` it will run on the Node 10 handler, for `Node16` it will run on the Node 16 handler, for `Node20_1` it will run on the Node 20 handler, and for `Node24` it will run on the Node 24 handler.
 
 ## Mock-test Node Handler
 
