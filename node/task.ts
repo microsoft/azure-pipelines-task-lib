@@ -114,7 +114,7 @@ export function setResult(result: TaskResult, message: string, done?: boolean): 
  * Sets the result of the task with sanitized message.
  *
  * @param result    TaskResult enum of Succeeded, SucceededWithIssues, Failed, Cancelled or Skipped.
- * @param message   A message which will be logged as an error issue if the result is Failed. Message will be truncated 
+ * @param message   A message which will be logged as an error issue if the result is Failed. Message will be truncated
  *                  before first occurence of wellknown sensitive keyword.
  * @param done      Optional. Instructs the agent the task is done. This is helpful when child processes
  *                  may still be running and prevent node from fully exiting. This argument is supported
@@ -140,7 +140,7 @@ process.on('uncaughtException', (err: Error) => {
 
 //
 // Catching unhandled rejections from promises and rethrowing them as exceptions
-// For example, a promise that is rejected but not handled by a .catch() handler in node 10 
+// For example, a promise that is rejected but not handled by a .catch() handler in node 10
 // doesn't cause an uncaughtException but causes in Node 16.
 // For types definitions(Error | Any) see https://nodejs.org/docs/latest-v16.x/api/process.html#event-unhandledrejection
 //
@@ -464,7 +464,7 @@ export function getEndpointUrlRequired(id: string): string {
     return getEndpointUrl(id, false)!;
 }
 
-/*
+/**
  * Gets the endpoint data parameter value with specified key for a service endpoint
  * If the endpoint data parameter was not set and is not optional, it will throw.
  *
@@ -484,7 +484,7 @@ export function getEndpointDataParameter(id: string, key: string, optional: bool
     return dataParamVal;
 }
 
-/*
+/**
  * Gets the endpoint data parameter value with specified key for a service endpoint
  * If the endpoint data parameter was not set, it will throw.
  *
@@ -2328,7 +2328,7 @@ export interface ProxyConfiguration {
     proxyUrl: string;
     /**
      * Proxy URI formated as: protocol://username:password@hostname:port
-     * 
+     *
      * For tools that require setting proxy configuration in the single environment variable
      */
     proxyFormattedUrl: string;
