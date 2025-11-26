@@ -98,9 +98,11 @@ target.loc = function () {
 process.on('uncaughtException', err => {
     console.error(`Uncaught exception: ${err.message}`);
     console.debug(err.stack);
+    process.exit(1);
 });
 
 process.on('unhandledRejection', err => {
     console.error(`Unhandled rejection: ${err.message}`);
     console.debug(err.stack);
+    process.exit(1);
 });
