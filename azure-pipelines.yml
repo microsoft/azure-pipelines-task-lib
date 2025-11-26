@@ -45,8 +45,12 @@ extends:
           image: abtt-windows-2022
           os: windows
         steps:
-        - template: /azure-pipelines-steps-node.yml@self
+        - template: /ci/node/steps.yml@self
           parameters:
+            os: Windows_NT
+        - template: /ci/powershell/steps.yml@self
+          parameters:
+            runTests: true
             os: Windows_NT  
 
       #################################################
@@ -63,8 +67,12 @@ extends:
             artifactType: 'pipeline'
             artifactName: 'npm-package'
         steps:
-        - template: /azure-pipelines-steps-node.yml@self
+        - template: /ci/node/steps.yml@self
           parameters:
+            os: Linux
+        - template: /ci/powershell/steps.yml@self
+          parameters:
+            runTests: true
             os: Linux
 
       #################################################
@@ -75,6 +83,10 @@ extends:
           image: macOS-latest
           os: macOS
         steps:
-        - template: /azure-pipelines-steps-node.yml@self
+        - template: /ci/node/steps.yml@self
           parameters:
+            os: Darwin
+        - template: /ci/powershell/steps.yml@self
+          parameters:
+            runTests: true
             os: Darwin

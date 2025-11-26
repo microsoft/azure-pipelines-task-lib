@@ -1,23 +1,47 @@
+parameters:
+- name: apiKeyVariable
+  type: string
+  default: '$(PSGalleryApiKey)'
+
 jobs:
-  - job: Publish
-    displayName: Publish SDK to PowerShell gallery
-    pool:
-      vmImage: windows-2022
-    steps:
-      - powershell: |
-          Install-Module -Name Microsoft.PowerShell.PSResourceGet -Verbose
-        displayName: Install new publish cmdlets
+- job: PublishToGallery
+  displayName: 'Publish PowerShell Module to Gallery'
+  pool:
+    vmImage: windows-2022
+  variables:
+    nodeVersionForPowershell: '20.x'
+  steps:
+  - checkout: self
+    displayName: 'Checkout source code'
 
-      - powershell: |
-          $publishOptions = @{
-              Path       = './VstsTaskSdk'
-              ApiKey     = $env:API_KEY
-              Repository = 'PSGallery'
-              Verbose    = $true
-          }
-          Publish-PSResource @publishOptions
+  # First build and test the module
+  - template: /ci/powershell/steps.yml@self
+    parameters:
+      runTests: true    # Always test before publishing
+      os: Windows_NT    # Specify OS for proper .NET build
 
-        displayName: Publish to gallery
-        workingDirectory: powershell/_build
-        env:
-          API_KEY: $(PSGalleryApiKey)
+  # Then publish to PowerShell Gallery
+  - powershell: |
+      Install-Module -Name Microsoft.PowerShell.PSResourceGet -Force -Verbose
+    displayName: 'Install PowerShell Gallery publish tools'
+
+  - powershell: |
+      $publishOptions = @{
+          Path       = '.\_build\VstsTaskSdk'
+          ApiKey     = $env:API_KEY
+          Repository = 'PSGallery'
+          Verbose    = $true
+      }
+      Publish-PSResource @publishOptions
+    displayName: 'Publish to PowerShell Gallery'
+    workingDirectory: powershell
+    env:
+      API_KEY: ${{ parameters.apiKeyVariable }}
+
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish built module as artifact'
+    inputs:
+      targetPath: 'powershell/_build'
+      artifact: 'VstsTaskSdk-Published'
+      publishLocation: 'pipeline'
+    condition: succeededOrFailed()

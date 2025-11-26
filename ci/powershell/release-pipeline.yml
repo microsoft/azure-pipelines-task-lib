@@ -1,0 +1,16 @@
+# Release pipeline for publishing PowerShell module to PowerShell Gallery
+# This pipeline should be triggered manually for publishing releases
+
+trigger: none # No CI trigger - manual trigger only
+pr: none # No PR trigger
+
+variables:
+- group: powershell-gallery-secrets  # Variable group containing PSGalleryApiKey
+
+stages:
+- stage: PublishPowerShellModule
+  displayName: 'Publish PowerShell Module'
+  jobs:
+  - template: /ci/powershell/publish-job.yml@self
+    parameters:
+      apiKeyVariable: $(PSGalleryApiKey)
