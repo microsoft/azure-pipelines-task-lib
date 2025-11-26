@@ -166,6 +166,7 @@ export class MockTestRunner {
     private async getNodePath(nodeVersion?: number): Promise<string> {
         const version: number = nodeVersion || this.getNodeVersion();
         const versions = {
+            24: 'v24.10.0',
             20: 'v20.13.1',
             16: 'v16.20.2',
             10: 'v10.24.1',
@@ -174,7 +175,7 @@ export class MockTestRunner {
 
         const downloadVersion: string = versions[version]; 
         if (!downloadVersion) {
-            throw new Error('Invalid node version, must be 6, 10, 16 or 20 (received ' + version + ')');
+            throw new Error('Invalid node version, must be 6, 10, 16, 20 or 24 (received ' + version + ')');
         }       
 
         // Install node in home directory if it isn't already there.
