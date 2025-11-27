@@ -25,7 +25,7 @@ target.build = async function () {
     util.cp('-r', path.join('VstsTaskSdk', '*'), path.join(buildPath, 'VstsTaskSdk'));
 
     // download externals
-    var minimatchPackage = await util.downloadArchiveAsync('https://api.nuget.org/v3-flatcontainer/minimatch/1.1.0/minimatch.1.1.0.nupkg') //('https://www.nuget.org/api/v3/package/minimatch/1.1.0');
+    var minimatchPackage = await util.downloadArchiveAsync('https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicNugetFeed/nuget/v3/flat2/minimatch/1.1.0/minimatch.1.1.0.nupkg') //('https://www.nuget.org/api/v3/package/minimatch/1.1.0');
     util.cp(path.join(minimatchPackage, 'lib', 'portable-net40%2Bsl50%2Bwin%2Bwp80', 'Minimatch.dll'), path.join(buildPath, 'VstsTaskSdk'));
 
     var compiledHelperPackage = await util.downloadArchiveAsync('https://vstsagenttools.blob.core.windows.net/tools/VstsTaskSdkCompiledHelpers/3/VstsTaskSdk.zip');
