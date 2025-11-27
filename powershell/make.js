@@ -25,7 +25,7 @@ target.build = async function () {
     util.cp('-r', path.join('VstsTaskSdk', '*'), path.join(buildPath, 'VstsTaskSdk'));
 
     // download externals
-    var minimatchPackage = await util.downloadArchiveAsync('https://www.nuget.org/api/v2/package/minimatch/1.1.0');
+    var minimatchPackage = await util.downloadArchiveAsync('https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicNugetFeed/nuget/v3/flat2/minimatch/1.1.0/minimatch.1.1.0.nupkg') //('https://www.nuget.org/api/v3/package/minimatch/1.1.0');
     util.cp(path.join(minimatchPackage, 'lib', 'portable-net40%2Bsl50%2Bwin%2Bwp80', 'Minimatch.dll'), path.join(buildPath, 'VstsTaskSdk'));
 
     var compiledHelperPackage = await util.downloadArchiveAsync('https://vstsagenttools.blob.core.windows.net/tools/VstsTaskSdkCompiledHelpers/3/VstsTaskSdk.zip');
@@ -61,8 +61,12 @@ target.build = async function () {
 }
 
 target.test = async function () {
-    util.ensureTool('tsc', '--version', 'Version 4.0.2');
-    util.ensureTool('mocha', '--version', '5.2.0');
+    util.ensureTool('tsc', '--version', function(version) {
+        if (!version.startsWith('Version 5.')) {
+            throw new Error('expected TypeScript 5.x, got: ' + version);
+        }
+    });
+    util.ensureTool('mocha', '--version', '10.8.2');
     await target.build();
 
     util.mkdir('-p', testPath);
@@ -94,9 +98,11 @@ target.loc = function () {
 process.on('uncaughtException', err => {
     console.error(`Uncaught exception: ${err.message}`);
     console.debug(err.stack);
+    process.exit(1);
 });
 
 process.on('unhandledRejection', err => {
     console.error(`Unhandled rejection: ${err.message}`);
     console.debug(err.stack);
+    process.exit(1);
 });
