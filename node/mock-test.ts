@@ -263,7 +263,7 @@ export class MockTestRunner {
         }
 
         // Write marker to indicate download completed.
-        const marker = downloadDestination + '.completed';
+        const marker = path.join(downloadDestination, '.completed');
         fs.writeFileSync(marker, '');
         return downloadPath
     }
