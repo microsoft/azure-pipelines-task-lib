@@ -36,8 +36,11 @@ function Test-CanUnravel {
     [CmdletBinding()]
     param($Object)
 
-    return !([object]::ReferenceEquals($Object, $null)) -and
-        $Object.GetType().IsClass -and
+    if ([object]::ReferenceEquals($Object, $null)) {
+        return $false
+    }
+    
+    return $Object.GetType().IsClass -and
         !([object]::ReferenceEquals($Object, ($Object | ForEach-Object { $_ })))
 }
 

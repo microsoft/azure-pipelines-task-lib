@@ -10,6 +10,8 @@ variables:
 - group: npm-tokens
 - name: nodeVersion
   value: '16.13.0'
+- name: nodeVersionForPowershell
+  value: '20.x'
 
 resources:
   repositories:

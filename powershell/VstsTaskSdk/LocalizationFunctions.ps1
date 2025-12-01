@@ -50,7 +50,7 @@ function Get-LocString {
     if (!$ArgumentList.Count) { return $format }
 
     try {
-        [string]::Format($format, $ArgumentList)
+        [string]::Format([System.Globalization.CultureInfo]::InvariantCulture, $format, $ArgumentList)
     } catch {
         Write-Warning (Get-LocString -Key 'PSLIB_StringFormatFailed')
         $OFS = " "

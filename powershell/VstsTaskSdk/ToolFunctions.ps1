@@ -208,6 +208,12 @@ function Invoke-Process {
 
         $procExitCode = $proc.ExitCode
         Write-Verbose "Exit code: $procExitCode"
+        
+        # Handle case where exit code might be null
+        if ($procExitCode -eq $null) {
+            Write-Warning "Process exit code is null, defaulting to 0"
+            $procExitCode = 0
+        }
 
         if ($RequireExitCodeZero -and $procExitCode -ne 0) {
             Write-Error (Get-LocString -Key PSLIB_Process0ExitedWithCode1 -ArgumentList ([System.IO.Path]::GetFileName($FileName)), $procExitCode)
@@ -215,7 +221,8 @@ function Invoke-Process {
 
         $global:LASTEXITCODE = $procExitCode
 
-        return $procExitCode
+        # Ensure we return an integer
+        return [int]$procExitCode
     }
     finally {
         Trace-LeavingInvocation $MyInvocation

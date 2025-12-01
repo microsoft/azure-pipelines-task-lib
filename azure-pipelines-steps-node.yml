@@ -44,6 +44,11 @@ steps:
       projects: 'powershell/CompiledHelpers/VstsTaskSdk.csproj'
       arguments: '--configuration Release'
 
+  - task: NodeTool@0
+    displayName: use node $(nodeVersionForPowershell) for PowerShell SDK
+    inputs:
+      versionSpec: $(nodeVersionForPowershell)
+
   - task: NpmAuthenticate@0
     inputs:
       workingFile: .npmrc
