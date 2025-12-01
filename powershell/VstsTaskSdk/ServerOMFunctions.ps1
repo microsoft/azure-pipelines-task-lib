@@ -187,6 +187,8 @@ function Get-TfsClientCredentials {
                     $federatedCredential,
                     [Microsoft.VisualStudio.Services.Common.CredentialPromptType]::DoNotPrompt)
             }
+
+            Write-Verbose "VssClientCredentials is available but no compatible OAuth credential type was found. Falling back to TfsClientCredentials."
         }
 
         # Fallback to TfsClientCredentials for older SDK versions.
