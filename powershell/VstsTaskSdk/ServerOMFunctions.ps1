@@ -169,20 +169,24 @@ function Get-TfsClientCredentials {
         # Check if VssClientCredentials is available (ClientOM 19+).
         # This type replaces TfsClientCredentials in newer SDK versions.
         if ((Get-OMType -TypeName 'Microsoft.VisualStudio.Services.Client.VssClientCredentials' -OMKind 'ExtendedClient' -OMDirectory $OMDirectory)) {
+            $federatedCredential = $null
+
             # Check if VssOAuthAccessTokenCredential is available.
             if ((Get-OMType -TypeName 'Microsoft.VisualStudio.Services.OAuth.VssOAuthAccessTokenCredential' -OMKind 'ExtendedClient' -OMDirectory $OMDirectory)) {
                 $federatedCredential = New-Object Microsoft.VisualStudio.Services.OAuth.VssOAuthAccessTokenCredential($endpoint.auth.parameters.AccessToken)
-            } else {
-                # Fallback to VssOAuthCredential.
-                $null = Get-OMType -TypeName 'Microsoft.VisualStudio.Services.Client.VssOAuthCredential' -OMKind 'ExtendedClient' -OMDirectory $OMDirectory -Require
+            }
+            # Fallback to VssOAuthCredential.
+            elseif ((Get-OMType -TypeName 'Microsoft.VisualStudio.Services.Client.VssOAuthCredential' -OMKind 'ExtendedClient' -OMDirectory $OMDirectory)) {
                 $federatedCredential = New-Object Microsoft.VisualStudio.Services.Client.VssOAuthCredential($endpoint.auth.parameters.AccessToken)
             }
 
-            # Construct and return VssClientCredentials.
-            return New-Object Microsoft.VisualStudio.Services.Client.VssClientCredentials(
-                (New-Object Microsoft.VisualStudio.Services.Common.WindowsCredential($false)), # Do not use default credentials.
-                $federatedCredential,
-                [Microsoft.VisualStudio.Services.Common.CredentialPromptType]::DoNotPrompt)
+            if ($federatedCredential) {
+                # Construct and return VssClientCredentials.
+                return New-Object Microsoft.VisualStudio.Services.Client.VssClientCredentials(
+                    (New-Object Microsoft.VisualStudio.Services.Common.WindowsCredential($false)), # Do not use default credentials.
+                    $federatedCredential,
+                    [Microsoft.VisualStudio.Services.Common.CredentialPromptType]::DoNotPrompt)
+            }
         }
 
         # Fallback to TfsClientCredentials for older SDK versions.
