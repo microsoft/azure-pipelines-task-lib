@@ -30,7 +30,8 @@ target.build = function() {
     cp(rp('ThirdPartyNotice.txt'), buildPath);
     cp('-Rf', rp('Strings'), buildPath);
     // just a bootstrap file to avoid /// in final js and .d.ts file
-    rm(path.join(buildPath, 'index.*'));
+    // Use force flag so build doesn't fail if files don't exist
+    rm('-f', path.join(buildPath, 'index.*'));
 }
 
 target.test = async function() {

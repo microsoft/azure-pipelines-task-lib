@@ -22,7 +22,7 @@ target.build = async function () {
 
     // copy the sources
     util.mkdir('-p', path.join(buildPath, 'VstsTaskSdk'));
-    util.cp('-r', path.join('VstsTaskSdk', '*'), path.join(buildPath, 'VstsTaskSdk'));
+    util.cp('-r', 'VstsTaskSdk/*', path.join(buildPath, 'VstsTaskSdk'));
 
     // download externals
     var minimatchPackage = await util.downloadArchiveAsync('https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicNugetFeed/nuget/v3/flat2/minimatch/1.1.0/minimatch.1.1.0.nupkg') //('https://www.nuget.org/api/v3/package/minimatch/1.1.0');
