@@ -164,7 +164,23 @@ function Get-TfsClientCredentials {
         }
         [System.AppDomain]::CurrentDomain.add_AssemblyResolve($onAssemblyResolve)
 
-        # Validate the type can be found.
+        # Try to use VssClientCredentials first (ClientOM 14+), then fall back to TfsClientCredentials (legacy)
+        if ((Get-OMType -TypeName 'Microsoft.VisualStudio.Services.Client.VssClientCredentials' -OMKind 'WebApi' -OMDirectory $OMDirectory)) {
+            # Create the federated credential - try VssOAuthAccessTokenCredential first (ClientOM 16+), then VssOAuthCredential (ClientOM 14)
+            if ((Get-OMType -TypeName 'Microsoft.VisualStudio.Services.OAuth.VssOAuthAccessTokenCredential' -OMKind 'WebApi' -OMDirectory $OMDirectory)) {
+                $federatedCredential = New-Object Microsoft.VisualStudio.Services.OAuth.VssOAuthAccessTokenCredential([string]$endpoint.auth.parameters.AccessToken)
+            } else {
+                $null = Get-OMType -TypeName 'Microsoft.VisualStudio.Services.Client.VssOAuthCredential' -OMKind 'WebApi' -OMDirectory $OMDirectory -Require
+                $federatedCredential = New-Object Microsoft.VisualStudio.Services.Client.VssOAuthCredential([string]$endpoint.auth.parameters.AccessToken)
+            }
+            
+            # Create VssClientCredentials using (WindowsCredential, FederatedCredential) constructor
+            return New-Object Microsoft.VisualStudio.Services.Client.VssClientCredentials(
+                (New-Object Microsoft.VisualStudio.Services.Common.WindowsCredential($false)), # Do not use default credentials.
+                $federatedCredential)
+        }
+        
+        # Fall back to TfsClientCredentials (legacy)
         $null = Get-OMType -TypeName 'Microsoft.TeamFoundation.Client.TfsClientCredentials' -OMKind 'ExtendedClient' -OMDirectory $OMDirectory -Require
 
         # Construct the credentials.
@@ -621,6 +637,8 @@ function Get-OMType {
 
                     $dllPaths += [System.IO.Path]::Combine($OMDirectory, "$namespace.WebApi.dll")
                     $dllPaths += [System.IO.Path]::Combine($OMDirectory, "$namespace.dll")
+                    # Also check for Interactive.dll (VssClientCredentials moved here in ClientOM 16+)
+                    $dllPaths += [System.IO.Path]::Combine($OMDirectory, "$namespace.Interactive.dll")
                 }
             }
         }
