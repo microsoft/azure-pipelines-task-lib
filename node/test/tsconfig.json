@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "target": "ES6",
+        "target": "es2020",
         "module": "commonjs",
         "declaration": false,
         "outDir": "../_test",

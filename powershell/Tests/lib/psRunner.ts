@@ -78,30 +78,45 @@ class PSEngineRunner extends EventEmitter {
         this.childProcess.stdout.on(
             'data',
             (data) => {
-                // Check for special ouput indicating end of test.
-                if (('' + data).indexOf('_END_OF_TEST_ce10a77a_') >= 0) {
-                    if (this.errors.length > 0) {
-                        this.dp.reject(this.errors.join('\n'));
-                    } else {
-                        this.dp.resolve();
-                    }
-                } else if (data != '\n') {
-                    if (('' + data).match(/##vso\[task.logissue .*type=error/)) {
-                        // The VstsTaskSdk converts error records to error issue commands.
-                        debug('stdout: ' + data);
-                        this.errors.push(data);
-                    } else {
-                        // Otherwise, normal stdout.
-                        debug('stdout: ' + data);
+                const lines = data.toString().split('\n');
+                
+                for (const line of lines) {
+                    if (line !== '\r' && line !== '') {
+                        // Check for special output indicating end of test.
+                        if (line.indexOf('_END_OF_TEST_ce10a77a_') >= 0) {
+                            if (this.errors.length > 0) {
+                                this.dp.reject(new Error(this.errors.join('\n')));
+                            } else {
+                                this.dp.resolve();
+                            }
+                        } else {
+                            // Only treat as error if it's an actual error logging command at the start of the line,
+                            // not a debug message that contains the error command text
+                            if (line.match(/^##vso\[task\.logissue .*type=error/)) {
+                                // The VstsTaskSdk converts error records to error issue commands.
+                                debug('stdout: ' + line);
+                                this.errors.push(line);
+                            } else {
+                                // Otherwise, normal stdout.
+                                debug('stdout: ' + line);
+                            }
+                        }
                     }
                 }
             });
         this.childProcess.stderr.on(
             'data',
             (data) => {
-                // Stderr indicates an error record was written to PowerShell's error pipeline.
-                debug('stderr: ' + data);
-                this.errors.push(data);
+                // Process current chunk only
+                const lines = data.toString().split('\n');
+                
+                for (const line of lines) {
+                    if (line !== '\r' && line !== '') {
+                        // Stderr indicates an error record was written to PowerShell's error pipeline.
+                        debug('stderr: ' + line);
+                        this.errors.push(line);
+                    }
+                }
             });
     }
 
