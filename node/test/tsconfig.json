@@ -4,7 +4,15 @@
         "module": "commonjs",
         "declaration": false,
         "outDir": "../_test",
-        "moduleResolution": "node"
+        "moduleResolution": "node",
+        "lib": [
+            "es2020"
+        ],
+        "types": [
+            "mocha",
+            "node"
+        ],
+        "skipLibCheck": true
     },
     "files": [
         "cctests.ts",

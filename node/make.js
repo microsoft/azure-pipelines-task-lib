@@ -45,7 +45,7 @@ target.test = async function() {
     cp('-Rf', rp('test/fakeTasks'), testPath);
     process.env['TASKLIB_INPROC_UNITS'] = '1'; // export task-lib internals for internal unit testing
     set('+e'); // Don't throw an exception when tests fail
-    run('mocha ' + testPath);
+    run('npx mocha ' + testPath);
 }
 
 target.loc = function() {
