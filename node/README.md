@@ -83,6 +83,7 @@ Library: [Powershell Library](https://github.com/microsoft/azure-pipelines-task-
 Usage: [Consuming the SDK](https://github.com/microsoft/azure-pipelines-task-lib/blob/master/powershell/Docs/Consuming.md)
 
 ## Third Party Notices
+
 To generate/update third party notice file run:
 ```bash
 $ node generate-third-party-notice.js
