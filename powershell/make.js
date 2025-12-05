@@ -75,7 +75,6 @@ target.test = async function () {
             throw new Error('expected TypeScript 5.x, got: ' + version);
         }
     });
-
     util.ensureTool('mocha', '--version', function(version) {
         const v = version.trim();
         if (!(v.startsWith('10.') || v.startsWith('11.'))) {
@@ -85,8 +84,8 @@ target.test = async function () {
     await target.build();
 
     util.mkdir('-p', testPath);
-    util.run(`tsc --outDir "${testPath}" --module commonjs --target es2020 --esModuleInterop --rootDir Tests Tests/lib/psRunner.ts`);
-    util.run(`tsc --outDir "${testPath}" --module commonjs --target es2020 --esModuleInterop --rootDir Tests Tests/L0/_suite.ts`);
+    util.run(`tsc --outDir "${testPath}" --module commonjs --target es6 --esModuleInterop --rootDir Tests Tests/lib/psRunner.ts`);
+    util.run(`tsc --outDir "${testPath}" --module commonjs --target es6 --esModuleInterop --rootDir Tests Tests/L0/_suite.ts`);
     util.cp('-r', 'Tests/*', testPath);
     util.run('mocha "' + path.join(testPath, 'L0', '_suite.js') + '"');
 }

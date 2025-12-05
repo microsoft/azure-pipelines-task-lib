@@ -255,7 +255,7 @@ export function _loc(key: string, ...param: any[]): string {
  * @param     name     name of the variable to get
  * @returns   string
  */
-export function _getVariable(name: string, skipDebug: boolean = false): string | undefined {
+export function _getVariable(name: string): string | undefined {
     let varval: string | undefined;
 
     // get the metadata
@@ -279,9 +279,7 @@ export function _getVariable(name: string, skipDebug: boolean = false): string |
         }
     }
 
-    if (!skipDebug) {
-        _debug(name + '=' + varval);
-    }
+    _debug(name + '=' + varval);
     return varval;
 }
 
@@ -346,8 +344,8 @@ export function _error(
     );
 }
 
-const debugMode = _getVariable('system.debug', true)?.toLowerCase() === 'true';
-const shouldCheckDebugMode = _getVariable('DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff', true)?.toLowerCase() === 'true';
+const debugMode = _getVariable('system.debug')?.toLowerCase() === 'true';
+const shouldCheckDebugMode = _getVariable('DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff')?.toLowerCase() === 'true';
 
 export function _debug(message: string): void {
     if (
