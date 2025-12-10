@@ -4,7 +4,8 @@
         "module": "commonjs",
         "declaration": true,
         "moduleResolution": "node",
-        "strictNullChecks": true
+        "strictNullChecks": true,
+        "skipLibCheck": true
     },
     "files": [
         "index.ts",
