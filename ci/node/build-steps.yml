@@ -1,0 +1,23 @@
+parameters:
+- name: os
+  type: string
+
+steps:
+- task: NodeTool@0
+  displayName: use node $(nodeVersion)
+  inputs:
+    versionSpec: $(nodeVersion)
+
+- task: NpmAuthenticate@0
+  inputs:
+    workingFile: .npmrc
+
+- script: npm ci
+  displayName: (task-lib) npm ci
+  workingDirectory: node
+
+- script: npm test
+  workingDirectory: node
+  displayName: (task-lib) npm test
+
+

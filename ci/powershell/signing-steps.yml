@@ -1,0 +1,153 @@
+parameters:
+- name: dllPath
+  type: string
+  default: 'powershell/CompiledHelpers/bin/Release/netstandard2.1'
+
+steps:
+# Strong name sign
+- task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@5
+  displayName: 'Strong name Sign VstsTaskSdk.dll'
+  inputs:
+    ConnectedServiceName: $(ConnectedServiceName)
+    UseMSIAuthentication: true
+    AppRegistrationClientId: $(AppRegistrationClientId)
+    AppRegistrationTenantId: $(AppRegistrationTenantId)
+    EsrpClientId: $(EsrpClientId)
+    AuthAKVName: $(AuthAKVName)
+    AuthSignCertName: $(AuthSignCertName)
+    FolderPath: '${{ parameters.dllPath }}'
+    Pattern: 'VstsTaskSdk.dll'
+    SessionTimeout: '60'
+    MaxConcurrency: '50'
+    MaxRetryAttempts: '5'
+    signConfigType: inlineSignParams
+    inlineOperation: |
+      [
+        {
+          "KeyCode": "CP-233907-SN",
+          "OperationCode": "StrongNameSign",
+          "ToolName": "sign",
+          "ToolVersion": "1.0",
+          "Parameters": {}
+        },
+        {
+          "KeyCode": "CP-233907-SN",
+          "OperationCode": "StrongNameVerify",
+          "ToolName": "sign",
+          "ToolVersion": "1.0",
+          "Parameters": {}
+        }
+      ]
+
+# Authenticode Signing
+- task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@5
+  displayName: 'Authenticode Sign VstsTaskSdk.dll'
+  inputs:
+    ConnectedServiceName: $(ConnectedServiceName)
+    UseMSIAuthentication: true
+    AppRegistrationClientId: $(AppRegistrationClientId)
+    AppRegistrationTenantId: $(AppRegistrationTenantId)
+    EsrpClientId: $(EsrpClientId)
+    AuthAKVName: $(AuthAKVName)
+    AuthSignCertName: $(AuthSignCertName)
+    FolderPath: '${{ parameters.dllPath }}'
+    Pattern: 'VstsTaskSdk.dll'
+    SessionTimeout: '60'
+    MaxConcurrency: '50'
+    MaxRetryAttempts: '5'
+    signConfigType: inlineSignParams
+    inlineOperation: |
+      [
+        {
+          "keyCode": "CP-230012",
+          "operationSetCode": "SigntoolSign",
+          "parameters": [
+            {
+              "parameterName": "OpusName",
+              "parameterValue": "Microsoft"
+            },
+            {
+              "parameterName": "OpusInfo",
+              "parameterValue": "http://www.microsoft.com"
+            },
+            {
+              "parameterName": "FileDigest",
+              "parameterValue": "/fd \"SHA256\""
+            },
+            {
+              "parameterName": "PageHash",
+              "parameterValue": "/NPH"
+            },
+            {
+              "parameterName": "TimeStamp",
+              "parameterValue": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+            }
+          ],
+          "toolName": "sign",
+          "toolVersion": "1.0"
+        },
+        {
+          "keyCode": "CP-230012",
+          "operationSetCode": "SigntoolVerify",
+          "parameters": [],
+          "toolName": "sign",
+          "toolVersion": "1.0"
+        }
+      ]
+
+# 3rd party signing
+- task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@5
+  displayName: '3rd Party Sign VstsTaskSdk.dll'
+  inputs:
+    ConnectedServiceName: $(ConnectedServiceName)
+    UseMSIAuthentication: true
+    AppRegistrationClientId: $(AppRegistrationClientId)
+    AppRegistrationTenantId: $(AppRegistrationTenantId)
+    EsrpClientId: $(EsrpClientId)
+    AuthAKVName: $(AuthAKVName)
+    AuthSignCertName: $(AuthSignCertName)
+    FolderPath: '${{ parameters.dllPath }}'
+    Pattern: 'VstsTaskSdk.dll'
+    signConfigType: inlineSignParams
+    inlineOperation: |
+      [
+        {
+          "keyCode": "CP-231522",
+          "operationSetCode": "SigntoolSign",
+          "parameters": [
+            {
+              "parameterName": "OpusName",
+              "parameterValue": "Microsoft"
+            },
+            {
+              "parameterName": "OpusInfo",
+              "parameterValue": "http://www.microsoft.com"
+            },
+            {
+              "parameterName": "Append",
+              "parameterValue": "/as"
+            },
+            {
+              "parameterName": "FileDigest",
+              "parameterValue": "/fd \"SHA256\""
+            },
+            {
+              "parameterName": "PageHash",
+              "parameterValue": "/NPH"
+            },
+            {
+              "parameterName": "TimeStamp",
+              "parameterValue": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+            }
+          ],
+          "toolName": "sign",
+          "toolVersion": "1.0"
+        },
+        {
+          "keyCode": "CP-231522",
+          "operationSetCode": "SigntoolVerify",
+          "parameters": [],
+          "toolName": "sign",
+          "toolVersion": "1.0"
+        }
+      ]

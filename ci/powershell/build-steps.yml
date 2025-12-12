@@ -1,0 +1,48 @@
+parameters:
+- name: runTests
+  type: boolean
+  default: true
+
+steps:
+# Build .NET project (requires Windows)
+- task: DotNetCoreCLI@2
+  displayName: 'Build .NET project(s)'
+  inputs:
+    command: build
+    projects: 'powershell/CompiledHelpers/VstsTaskSdk.csproj'
+    arguments: '--configuration Release'
+
+# Copy the built DLL to a location where make.js can use it instead of downloading
+- pwsh: |
+    $sourceDll = "CompiledHelpers/bin/Release/netstandard2.1/VstsTaskSdk.dll"
+    $targetDir = "_lib"
+    New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
+    Copy-Item -Path $sourceDll -Destination "$targetDir/VstsTaskSdk.dll" -Force
+    Write-Host "Copied locally built VstsTaskSdk.dll to $targetDir"
+  displayName: 'Copy locally built VstsTaskSdk.dll'
+  workingDirectory: powershell
+
+# Use Node.js 20.x for PowerShell SDK (required for newer dependencies)
+- task: NodeTool@0
+  displayName: use node $(nodeVersionForPowershell) for PowerShell SDK
+  inputs:
+    versionSpec: $(nodeVersionForPowershell)
+
+- task: NpmAuthenticate@0
+  inputs:
+    workingFile: .npmrc
+
+- script: npm ci
+  displayName: (VstsTaskSdk) npm ci
+  workingDirectory: powershell
+
+# Build the PowerShell module
+- script: node make.js build
+  displayName: (VstsTaskSdk) build module
+  workingDirectory: powershell
+
+# Run tests if requested
+- ${{ if eq(parameters.runTests, true) }}:
+  - script: npm test
+    displayName: (VstsTaskSdk) npm test
+    workingDirectory: powershell

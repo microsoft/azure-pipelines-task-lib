@@ -1,0 +1,36 @@
+parameters:
+- name: npmToken
+  type: string
+  default: '$(npm-automation.token)'
+
+jobs:
+- job: PublishToNpm
+  displayName: 'Publish Node.js Package to npm'
+  pool:
+    vmImage: ubuntu-latest
+  variables:
+    nodeVersion: '16.13.0'
+  steps:
+  - checkout: self
+    displayName: 'Checkout source code'
+
+  # Build and test the package
+  - template: /ci/node/build-steps.yml@self
+    parameters:
+      os: ''
+
+  - bash: |
+      echo //registry.npmjs.org/:_authToken=\${NPM_TOKEN} > .npmrc
+      npm publish
+    displayName: (task-lib) npm publish
+    workingDirectory: node/_build
+    env:
+      NPM_TOKEN: ${{ parameters.npmToken }}
+
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish npm package artifact'
+    inputs:
+      targetPath: 'node/_build'
+      artifact: 'npm-package'
+      publishLocation: 'pipeline'
+    condition: succeededOrFailed()

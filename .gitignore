@@ -8,6 +8,9 @@ node/docs/temp
 node/docs/*.js
 .DS_Store
 
+# IDE
+.vscode/settings.json
+
 # Logs
 logs
 *.log

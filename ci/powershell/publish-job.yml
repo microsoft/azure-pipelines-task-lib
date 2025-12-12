@@ -2,28 +2,74 @@ parameters:
 - name: apiKeyVariable
   type: string
   default: '$(PSGalleryApiKey)'
+- name: enableSigning
+  type: boolean
+  default: true
 
 jobs:
 - job: PublishToGallery
   displayName: 'Publish PowerShell Module to Gallery'
   pool:
-    vmImage: windows-2022
+    name: 1ES-ABTT-Shared-Pool
+    image: abtt-windows-2022
+    os: windows
   variables:
     nodeVersionForPowershell: '20.x'
   steps:
   - checkout: self
     displayName: 'Checkout source code'
 
-  # First build and test the module
-  - template: /ci/powershell/steps.yml@self
-    parameters:
-      runTests: true    # Always test before publishing
-      os: Windows_NT    # Specify OS for proper .NET build
+  # Build .NET project
+  - task: DotNetCoreCLI@2
+    displayName: 'Build .NET project(s)'
+    inputs:
+      command: build
+      projects: 'powershell/CompiledHelpers/VstsTaskSdk.csproj'
+      arguments: '--configuration Release'
+
+  # Sign the DLL if enabled
+  - ${{ if eq(parameters.enableSigning, true) }}:
+    - template: /ci/powershell/signing-steps.yml@self
+      parameters:
+        dllPath: 'powershell/CompiledHelpers/bin/Release/netstandard2.1'
+
+  # Copy signed DLL to _lib folder
+  - pwsh: |
+      $sourceDll = "CompiledHelpers/bin/Release/netstandard2.1/VstsTaskSdk.dll"
+      $targetDir = "_lib"
+      New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
+      Copy-Item -Path $sourceDll -Destination "$targetDir/VstsTaskSdk.dll" -Force
+      Write-Host "Copied signed VstsTaskSdk.dll to $targetDir"
+    displayName: 'Copy signed VstsTaskSdk.dll'
+    workingDirectory: powershell
+
+  # Setup Node.js and build PowerShell module
+  - task: NodeTool@0
+    displayName: use node $(nodeVersionForPowershell) for PowerShell SDK
+    inputs:
+      versionSpec: $(nodeVersionForPowershell)
+
+  - task: NpmAuthenticate@0
+    inputs:
+      workingFile: .npmrc
+
+  - script: npm ci
+    displayName: (VstsTaskSdk) npm ci
+    workingDirectory: powershell
+
+  - script: node make.js build
+    displayName: (VstsTaskSdk) build module
+    workingDirectory: powershell
+
+  - script: npm test
+    displayName: (VstsTaskSdk) npm test
+    workingDirectory: powershell
 
   # Then publish to PowerShell Gallery
   - powershell: |
       Install-Module -Name Microsoft.PowerShell.PSResourceGet -Force -Verbose
     displayName: 'Install PowerShell Gallery publish tools'
+    condition: succeeded()
 
   - powershell: |
       $publishOptions = @{
@@ -35,6 +81,7 @@ jobs:
       Publish-PSResource @publishOptions
     displayName: 'Publish to PowerShell Gallery'
     workingDirectory: powershell
+    condition: succeeded()
     env:
       API_KEY: ${{ parameters.apiKeyVariable }}
 

@@ -45,13 +45,9 @@ extends:
           image: abtt-windows-2022
           os: windows
         steps:
-        - template: /ci/node/steps.yml@self
+        - template: /ci/node/build-steps.yml@self
           parameters:
             os: Windows_NT
-        - template: /ci/powershell/steps.yml@self
-          parameters:
-            runTests: true
-            os: Windows_NT  
 
       #################################################
       - job: linux
@@ -67,12 +63,8 @@ extends:
             artifactType: 'pipeline'
             artifactName: 'npm-package'
         steps:
-        - template: /ci/node/steps.yml@self
+        - template: /ci/node/build-steps.yml@self
           parameters:
-            os: Linux
-        - template: /ci/powershell/steps.yml@self
-          parameters:
-            runTests: true
             os: Linux
 
       #################################################
@@ -83,10 +75,24 @@ extends:
           image: macOS-latest
           os: macOS
         steps:
-        - template: /ci/node/steps.yml@self
+        - template: /ci/node/build-steps.yml@self
           parameters:
             os: Darwin
-        - template: /ci/powershell/steps.yml@self
+
+      #################################################
+      - job: powershell
+      #################################################
+        pool:
+          name: 1ES-ABTT-Shared-Pool
+          image: abtt-windows-2022
+          os: windows
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            targetPath: 'powershell/_build'
+            artifactType: 'pipeline'
+            artifactName: 'powershell-module'
+        steps:
+        - template: /ci/powershell/build-steps.yml@self
           parameters:
             runTests: true
-            os: Darwin

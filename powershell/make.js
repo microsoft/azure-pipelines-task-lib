@@ -28,8 +28,16 @@ target.build = async function () {
     var minimatchPackage = await util.downloadArchiveAsync('https://www.nuget.org/api/v2/package/minimatch/1.1.0');
     util.cp(path.join(minimatchPackage, 'lib', 'portable-net40%2Bsl50%2Bwin%2Bwp80', 'Minimatch.dll'), path.join(buildPath, 'VstsTaskSdk'));
 
-    var compiledHelperPackage = await util.downloadArchiveAsync('https://vstsagenttools.blob.core.windows.net/tools/VstsTaskSdkCompiledHelpers/3/VstsTaskSdk.zip');
-    util.cp(path.join(compiledHelperPackage, 'VstsTaskSdk.dll'), path.join(buildPath, 'VstsTaskSdk'));
+    // Use locally built VstsTaskSdk.dll if available (from CI/release pipeline), otherwise download
+    var localDllPath = path.join(__dirname, '_lib', 'VstsTaskSdk.dll');
+    if (fs.existsSync(localDllPath)) {
+        console.log('Using locally built VstsTaskSdk.dll');
+        util.cp(localDllPath, path.join(buildPath, 'VstsTaskSdk'));
+    } else {
+        console.log('Downloading VstsTaskSdk.dll from remote location');
+        var compiledHelperPackage = await util.downloadArchiveAsync('https://vstsagenttools.blob.core.windows.net/tools/VstsTaskSdkCompiledHelpers/3/VstsTaskSdk.zip');
+        util.cp(path.join(compiledHelperPackage, 'VstsTaskSdk.dll'), path.join(buildPath, 'VstsTaskSdk'));
+    }
 
     // stamp the version number from the package.json onto the PowerShell module definition
     var targetPsd1 = path.join(buildPath, 'VstsTaskSdk', 'VstsTaskSdk.psd1');
