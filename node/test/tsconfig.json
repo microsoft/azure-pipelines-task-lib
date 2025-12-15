@@ -4,7 +4,8 @@
         "module": "commonjs",
         "declaration": false,
         "outDir": "../_test",
-        "moduleResolution": "node"
+        "moduleResolution": "node",
+        "skipLibCheck": true
     },
     "files": [
         "cctests.ts",

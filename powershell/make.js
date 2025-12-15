@@ -13,6 +13,15 @@ target.clean = function () {
     util.rm('-Rf', testPath);
 };
 
+// Ensure local node_modules/.bin is on PATH so tools like mocha/tsc are found
+const localBin = path.join(__dirname, 'node_modules', '.bin');
+if (fs.existsSync(localBin)) {
+    const sep = process.platform === 'win32' ? ';' : ':';
+    if (!process.env.PATH.split(sep).includes(localBin)) {
+        process.env.PATH = `${localBin}${sep}${process.env.PATH}`;
+    }
+}
+
 // TODO: target.buildCompiledHelper
 // This will only build the C# compiled helper csproj.
 
@@ -22,7 +31,7 @@ target.build = async function () {
 
     // copy the sources
     util.mkdir('-p', path.join(buildPath, 'VstsTaskSdk'));
-    util.cp('-r', path.join('VstsTaskSdk', '*'), path.join(buildPath, 'VstsTaskSdk'));
+    util.cp('-r', 'VstsTaskSdk/*', path.join(buildPath, 'VstsTaskSdk'));
 
     // download externals
     var minimatchPackage = await util.downloadArchiveAsync('https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicNugetFeed/nuget/v3/flat2/minimatch/1.1.0/minimatch.1.1.0.nupkg') //('https://www.nuget.org/api/v3/package/minimatch/1.1.0');
@@ -66,13 +75,18 @@ target.test = async function () {
             throw new Error('expected TypeScript 5.x, got: ' + version);
         }
     });
-    util.ensureTool('mocha', '--version', '10.8.2');
+    util.ensureTool('mocha', '--version', function(version) {
+        const v = version.trim();
+        if (!(v.startsWith('10.') || v.startsWith('11.'))) {
+            throw new Error('expected mocha 10.x or 11.x, got: ' + v);
+        }
+    });
     await target.build();
 
     util.mkdir('-p', testPath);
     util.run(`tsc --outDir "${testPath}" --module commonjs --target es6 --esModuleInterop --rootDir Tests Tests/lib/psRunner.ts`);
     util.run(`tsc --outDir "${testPath}" --module commonjs --target es6 --esModuleInterop --rootDir Tests Tests/L0/_suite.ts`);
-    util.cp('-r', path.join('Tests', '*'), testPath);
+    util.cp('-r', 'Tests/*', testPath);
     util.run('mocha "' + path.join(testPath, 'L0', '_suite.js') + '"');
 }
 
