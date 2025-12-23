@@ -30,7 +30,7 @@ extends:
         baselineFile: $(Build.SourcesDirectory)/.gdn/.gdnbaselines
       sourceAnalysisPool:
         name: 1ES-ABTT-Shared-Pool
-        image: abtt-windows-2022
+        image: abtt-windows-2025
         os: windows
     customBuildTags:
     - ES365AIMigrationTooling
@@ -42,7 +42,7 @@ extends:
       #################################################
         pool:
           name: 1ES-ABTT-Shared-Pool
-          image: abtt-windows-2022
+          image: abtt-windows-2025
           os: windows
         steps:
         - template: /azure-pipelines-steps-node.yml@self
@@ -54,7 +54,7 @@ extends:
       #################################################
         pool:
           name: 1ES-ABTT-Shared-Pool
-          image: abtt-ubuntu-2204
+          image: abtt-ubuntu-2404
           os: linux
         templateContext:
           outputs:
