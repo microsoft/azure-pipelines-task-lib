@@ -1069,7 +1069,7 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
     if (paths.length === 0) {
         paths.push(path.resolve('.'));
     }
-    const pathsCopy = [...paths];
+    const pathsCopy = [...paths] as string[];
     const preparedPaths: string[] = [];
     const fileEntries: string[] = [];
 
@@ -1120,7 +1120,7 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
             if (!includeHidden && entrybasename.startsWith('.') && entrybasename !== '.' && entrybasename !== '..') {
                 continue;
             }
-            const baseDir = pathsCopy.find(p => entry.startsWith(path.resolve(p as string))) as string || path.resolve('.');
+            const baseDir = safeFind(pathsCopy, p => entry.startsWith(path.resolve(p))) || path.resolve('.');
 
             if (fs.lstatSync(entry).isDirectory() && isRecursive) {
                 preparedPaths.push(...fs.readdirSync(entry).map(x => path.join(entry, x)));
@@ -2780,3 +2780,21 @@ if (!global['_vsts_task_lib_loaded']) {
     im._exposeProxySettings();
     im._exposeCertSettings();
 }
+
+//Helper Functions for internal use only
+/**
+ * safeFind - safe replacement for Array.prototype.find
+ *
+ * @param {Array} arr - the array to search
+ * @param {Function} predicate - function to test each element, returns true if match
+ * @returns {*} - first element that matches or undefined
+ */
+function safeFind<T>(arr: T[], predicate: (v: T) => boolean): T | undefined {
+  for (let i = 0; i < arr.length; i++) {
+    if (predicate(arr[i])) {
+      return arr[i];
+    }
+  }
+  return undefined;
+}
+
