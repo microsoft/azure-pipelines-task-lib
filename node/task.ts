@@ -1069,7 +1069,7 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
     if (paths.length === 0) {
         paths.push(path.resolve('.'));
     }
-    const pathsCopy = [...paths] as string[];
+    const pathsCopy = [...paths];
     const preparedPaths: string[] = [];
     const fileEntries: string[] = [];
 
@@ -1120,13 +1120,13 @@ export function ls(optionsOrPaths?: unknown, ...paths: unknown[]): string[] {
             if (!includeHidden && entrybasename.startsWith('.') && entrybasename !== '.' && entrybasename !== '..') {
                 continue;
             }
-            const baseDir = safeFind(pathsCopy, p => entry.startsWith(path.resolve(p))) || path.resolve('.');
+            const baseDir = safeFind(pathsCopy, p => entry.startsWith(path.resolve(p as string))) || path.resolve('.');
 
             if (fs.lstatSync(entry).isDirectory() && isRecursive) {
                 preparedPaths.push(...fs.readdirSync(entry).map(x => path.join(entry, x)));
-                entries.push(path.relative(baseDir, entry));
+                entries.push(path.relative(baseDir as string, entry));
             } else {
-                entries.push(path.relative(baseDir, entry));
+                entries.push(path.relative(baseDir as string, entry));
             }
         }
         const finalResults = [...fileEntries, ...entries];
@@ -2791,7 +2791,7 @@ if (!global['_vsts_task_lib_loaded']) {
  */
 function safeFind<T>(arr: T[], predicate: (v: T) => boolean): T | undefined {
   for (let i = 0; i < arr.length; i++) {
-    if (predicate(arr[i])) {
+    if (predicate(arr[i] as T)) {
       return arr[i];
     }
   }
