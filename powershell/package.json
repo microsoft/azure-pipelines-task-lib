@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "node make.js build",
-    "test": "node make.js test"
+    "test": "nyc --reporter=cobertura --reporter=html node make.js test"
   },
   "author": "Microsoft",
   "license": "MIT",
@@ -17,6 +17,7 @@
     "mocha": "11.7.5",
     "nodejs-file-downloader": "^4.11.1",
     "shelljs": "^0.10.0",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "nyc": "^17.0.0"
   }
 }

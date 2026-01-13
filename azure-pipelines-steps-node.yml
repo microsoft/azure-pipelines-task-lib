@@ -20,6 +20,13 @@ steps:
   workingDirectory: node
   displayName: (task-lib) npm test
 
+- task: PublishCodeCoverageResults@1
+  displayName: Publish Code Coverage Results (Node)
+  inputs:
+    codeCoverageTool: Cobertura
+    summaryFileLocation: '$(System.DefaultWorkingDirectory)/node/coverage/cobertura-coverage.xml'
+    reportDirectory: '$(System.DefaultWorkingDirectory)/node/coverage/lcov-report'
+
 # Only on Linux. For CI runs on master, automatically publish packages
 - ${{ if eq(parameters.os, 'Linux') }}:
   - bash: |
@@ -60,3 +67,10 @@ steps:
   - script: npm test
     displayName: (VstsTaskSdk) npm test
     workingDirectory: powershell
+
+  - task: PublishCodeCoverageResults@1
+    displayName: Publish Code Coverage Results (PowerShell SDK)
+    inputs:
+      codeCoverageTool: Cobertura
+      summaryFileLocation: '$(System.DefaultWorkingDirectory)/powershell/coverage/cobertura-coverage.xml'
+      reportDirectory: '$(System.DefaultWorkingDirectory)/powershell/coverage/lcov-report'
