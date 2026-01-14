@@ -20,6 +20,11 @@ steps:
   workingDirectory: node
   displayName: (task-lib) npm test
 
+- script: |
+    echo "Node coverage check"
+    ls -R node/coverage || echo "No node coverage folder"
+  displayName: Debug Node Coverage
+
 - task: PublishCodeCoverageResults@1
   displayName: Publish Code Coverage Results (Node)
   inputs:
@@ -67,6 +72,11 @@ steps:
   - script: npm test
     displayName: (VstsTaskSdk) npm test
     workingDirectory: powershell
+
+  - script: |
+      echo "PowerShell coverage check"
+      ls -R powershell/coverage || echo "No powershell coverage folder"
+    displayName: Debug PowerShell Coverage
 
   - task: PublishCodeCoverageResults@1
     displayName: Publish Code Coverage Results (PowerShell SDK)
