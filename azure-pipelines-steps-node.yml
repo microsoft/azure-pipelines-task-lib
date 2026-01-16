@@ -77,17 +77,17 @@ steps:
     displayName: (VstsTaskSdk) npm test
     workingDirectory: powershell
 
-  - script: |
-      echo "PowerShell coverage check"
-      ls -R powershell/coverage || echo "No powershell coverage folder"
+  # - script: |
+  #     echo "PowerShell coverage check"
+  #     ls -R powershell/coverage || echo "No powershell coverage folder"
 
-      echo "PowerShell Cobertura class count:"
-      cat powershell/coverage/cobertura-coverage.xml | grep "<class" | wc -l || echo "No Cobertura XML found"
-    displayName: Debug PowerShell Coverage
+  #     echo "PowerShell Cobertura class count:"
+  #     cat powershell/coverage/cobertura-coverage.xml | grep "<class" | wc -l || echo "No Cobertura XML found"
+  #   displayName: Debug PowerShell Coverage
 
-  - task: PublishCodeCoverageResults@1
-    displayName: Publish Code Coverage Results (PowerShell SDK)
-    inputs:
-      codeCoverageTool: Cobertura
-      summaryFileLocation: '$(System.DefaultWorkingDirectory)/powershell/coverage/cobertura-coverage.xml'
-      reportDirectory: '$(System.DefaultWorkingDirectory)/powershell/coverage/lcov-report'
+  # - task: PublishCodeCoverageResults@1
+  #   displayName: Publish Code Coverage Results (PowerShell SDK)
+  #   inputs:
+  #     codeCoverageTool: Cobertura
+  #     summaryFileLocation: '$(System.DefaultWorkingDirectory)/powershell/coverage/cobertura-coverage.xml'
+  #     reportDirectory: '$(System.DefaultWorkingDirectory)/powershell/coverage/lcov-report'
