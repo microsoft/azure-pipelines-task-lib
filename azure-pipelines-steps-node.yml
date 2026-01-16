@@ -28,12 +28,13 @@ steps:
     cat node/coverage/cobertura-coverage.xml | grep "<class" | wc -l || echo "No Cobertura XML found"
   displayName: Debug Node Coverage
 
-- task: PublishCodeCoverageResults@1
-  displayName: Publish Code Coverage Results (Node)
-  inputs:
-    codeCoverageTool: Cobertura
-    summaryFileLocation: '$(System.DefaultWorkingDirectory)/node/coverage/cobertura-coverage.xml'
-    reportDirectory: '$(System.DefaultWorkingDirectory)/node/coverage/lcov-report'
+- ${{ if eq(parameters.os, 'Linux') }}:
+  - task: PublishCodeCoverageResults@1
+    displayName: Publish Code Coverage Results (Node)
+    inputs:
+      codeCoverageTool: Cobertura
+      summaryFileLocation: '$(System.DefaultWorkingDirectory)/node/coverage/cobertura-coverage.xml'
+      reportDirectory: '$(System.DefaultWorkingDirectory)/node/coverage/lcov-report'
 
 # Only on Linux. For CI runs on master, automatically publish packages
 - ${{ if eq(parameters.os, 'Linux') }}:
