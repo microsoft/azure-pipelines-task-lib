@@ -25,6 +25,11 @@ steps:
     ls -R node/coverage || echo "No node coverage folder"
   displayName: Debug Node Coverage
 
+- script: |
+    echo "Searching for coverage files"
+    find . -name "*coverage*.xml"
+  displayName: Find Coverage XML
+
 - task: PublishCodeCoverageResults@1
   displayName: Publish Code Coverage Results (Node)
   inputs:
@@ -77,6 +82,11 @@ steps:
       echo "PowerShell coverage check"
       ls -R powershell/coverage || echo "No powershell coverage folder"
     displayName: Debug PowerShell Coverage
+  
+  - script: |
+      echo "Searching for coverage files"
+      find . -name "*coverage*.xml"
+    displayName: Find Coverage XML
 
   - task: PublishCodeCoverageResults@1
     displayName: Publish Code Coverage Results (PowerShell SDK)

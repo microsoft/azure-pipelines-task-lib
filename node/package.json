@@ -6,7 +6,7 @@
   "typings": "./task.d.ts",
   "scripts": {
     "build": "node make.js build",
-    "test": "nyc --reporter=cobertura --reporter=html node make.js test"
+    "test": "node make.js --test"
   },
   "repository": {
     "type": "git",
