@@ -20,39 +20,39 @@ steps:
   workingDirectory: node
   displayName: (task-lib) npm test
 
-- ${{ if eq(parameters.os, 'Linux') }}:
-  - script: |
-      echo "======================================"
-      echo "Node coverage - executed files summary"
-      echo "======================================"
+# - ${{ if eq(parameters.os, 'Linux') }}:
+#   - script: |
+#       echo "======================================"
+#       echo "Node coverage - executed files summary"
+#       echo "======================================"
 
-      if [ -f node/coverage/cobertura-coverage.xml ]; then
-        echo "Total executed files (Cobertura classes):"
-        grep "<class" node/coverage/cobertura-coverage.xml | wc -l
+#       if [ -f node/coverage/cobertura-coverage.xml ]; then
+#         echo "Total executed files (Cobertura classes):"
+#         grep "<class" node/coverage/cobertura-coverage.xml | wc -l
 
-        echo ""
-        echo "Executed source files:"
-        grep "<class" node/coverage/cobertura-coverage.xml \
-          | sed -n 's/.*filename="\([^"]*\)".*/\1/p' \
-          | sort | uniq
-      else
-        echo "Cobertura XML not found"
-      fi
-    displayName: DEBUG Node executed files (coverage)
+#         echo ""
+#         echo "Executed source files:"
+#         grep "<class" node/coverage/cobertura-coverage.xml \
+#           | sed -n 's/.*filename="\([^"]*\)".*/\1/p' \
+#           | sort | uniq
+#       else
+#         echo "Cobertura XML not found"
+#       fi
+#     displayName: DEBUG Node executed files (coverage)
 
-- ${{ if eq(parameters.os, 'Linux') }}:
-  - script: |
-      echo "Node coverage check"
-      ls -R node/coverage || echo "No node coverage folder"
-    displayName: Debug Node Coverage
+# - ${{ if eq(parameters.os, 'Linux') }}:
+#   - script: |
+#       echo "Node coverage check"
+#       ls -R node/coverage || echo "No node coverage folder"
+#     displayName: Debug Node Coverage
 
-- ${{ if eq(parameters.os, 'Linux') }}:
-  - task: PublishCodeCoverageResults@1
-    displayName: Publish Code Coverage Results (Node)
-    inputs:
-      codeCoverageTool: Cobertura
-      summaryFileLocation: '$(System.DefaultWorkingDirectory)/node/coverage/cobertura-coverage.xml'
-      reportDirectory: '$(System.DefaultWorkingDirectory)/node/coverage/lcov-report'
+# - ${{ if eq(parameters.os, 'Linux') }}:
+#   - task: PublishCodeCoverageResults@1
+#     displayName: Publish Code Coverage Results (Node)
+#     inputs:
+#       codeCoverageTool: Cobertura
+#       summaryFileLocation: '$(System.DefaultWorkingDirectory)/node/coverage/cobertura-coverage.xml'
+#       reportDirectory: '$(System.DefaultWorkingDirectory)/node/coverage/lcov-report'
 
 # Only on Linux. For CI runs on master, automatically publish packages
 - ${{ if eq(parameters.os, 'Linux') }}:
@@ -95,17 +95,41 @@ steps:
     displayName: (VstsTaskSdk) npm test
     workingDirectory: powershell
 
-  # - script: |
-  #     echo "PowerShell coverage check"
-  #     ls -R powershell/coverage || echo "No powershell coverage folder"
+- ${{ if eq(parameters.os, 'Windows_NT') }}:
+  - pwsh: |
+      Write-Host "======================================"
+      Write-Host "PowerShell coverage - executed files"
+      Write-Host "======================================"
 
-  #     echo "PowerShell Cobertura class count:"
-  #     cat powershell/coverage/cobertura-coverage.xml | grep "<class" | wc -l || echo "No Cobertura XML found"
-  #   displayName: Debug PowerShell Coverage
+      $coverageFile = "powershell/coverage/cobertura-coverage.xml"
 
-  # - task: PublishCodeCoverageResults@1
-  #   displayName: Publish Code Coverage Results (PowerShell SDK)
-  #   inputs:
-  #     codeCoverageTool: Cobertura
-  #     summaryFileLocation: '$(System.DefaultWorkingDirectory)/powershell/coverage/cobertura-coverage.xml'
-  #     reportDirectory: '$(System.DefaultWorkingDirectory)/powershell/coverage/lcov-report'
+      if (Test-Path $coverageFile) {
+          $classes = Select-String "<class" $coverageFile
+
+          Write-Host ""
+          Write-Host "Total executed files (Cobertura classes):"
+          Write-Host $classes.Count
+
+          Write-Host ""
+          Write-Host "Executed PowerShell source files:"
+          $classes | ForEach-Object {
+              if ($_ -match 'filename="([^"]+)"') {
+                  $matches[1]
+              }
+          } | Sort-Object -Unique
+      }
+      else {
+          Write-Host "Cobertura XML not found"
+      }
+
+      Write-Host ""
+      Write-Host "PowerShell coverage folder check:"
+      Get-ChildItem -Recurse powershell/coverage -ErrorAction SilentlyContinue
+    displayName: DEBUG PowerShell Coverage
+
+  - task: PublishCodeCoverageResults@1
+    displayName: Publish Code Coverage Results (PowerShell SDK)
+    inputs:
+      codeCoverageTool: Cobertura
+      summaryFileLocation: '$(System.DefaultWorkingDirectory)/powershell/coverage/cobertura-coverage.xml'
+      reportDirectory: '$(System.DefaultWorkingDirectory)/powershell/coverage/lcov-report'
