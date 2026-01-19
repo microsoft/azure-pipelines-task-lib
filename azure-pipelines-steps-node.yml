@@ -21,11 +21,27 @@ steps:
   displayName: (task-lib) npm test
 
 - script: |
+    echo "======================================"
+    echo "Node coverage - executed files summary"
+    echo "======================================"
+
+    if [ -f node/coverage/cobertura-coverage.xml ]; then
+      echo "Total executed files (Cobertura classes):"
+      grep "<class" node/coverage/cobertura-coverage.xml | wc -l
+
+      echo ""
+      echo "Executed source files:"
+      grep "<class" node/coverage/cobertura-coverage.xml \
+        | sed -n 's/.*filename="\([^"]*\)".*/\1/p' \
+        | sort | uniq
+    else
+      echo "Cobertura XML not found"
+    fi
+  displayName: DEBUG Node executed files (coverage)
+
+- script: |
     echo "Node coverage check"
     ls -R node/coverage || echo "No node coverage folder"
-
-    echo "Node Cobertura class count:"
-    cat node/coverage/cobertura-coverage.xml | grep "<class" | wc -l || echo "No Cobertura XML found"
   displayName: Debug Node Coverage
 
 - ${{ if eq(parameters.os, 'Linux') }}:
