@@ -101,30 +101,42 @@ steps:
       Write-Host "PowerShell coverage - executed files"
       Write-Host "======================================"
 
+      $root = "powershell"
       $coverageFile = "powershell/coverage/cobertura-coverage.xml"
 
+      # 1. All PowerShell source files (excluding test files)
+      $allPsFiles = Get-ChildItem $root -Recurse -Filter *.ps1 |
+        Where-Object { $_.Name -notmatch '\.Tests\.ps1$' } |
+        ForEach-Object { $_.FullName.Replace('\','/') }
+
+      Write-Host ""
+      Write-Host "Total PowerShell source files:"
+      Write-Host $allPsFiles.Count
+
+      # 2. Files executed during tests (from Cobertura)
+      $coveredFiles = @()
       if (Test-Path $coverageFile) {
-          $classes = Select-String "<class" $coverageFile
-
-          Write-Host ""
-          Write-Host "Total executed files (Cobertura classes):"
-          Write-Host $classes.Count
-
-          Write-Host ""
-          Write-Host "Executed PowerShell source files:"
-          $classes | ForEach-Object {
-              if ($_ -match 'filename="([^"]+)"') {
-                  $matches[1]
-              }
-          } | Sort-Object -Unique
-      }
-      else {
-          Write-Host "Cobertura XML not found"
+        $coveredFiles = Select-String "<class" $coverageFile | ForEach-Object {
+          if ($_ -match 'filename="([^"]+)"') {
+            $matches[1]
+          }
+        }
       }
 
       Write-Host ""
-      Write-Host "PowerShell coverage folder check:"
-      Get-ChildItem -Recurse powershell/coverage -ErrorAction SilentlyContinue
+      Write-Host "PowerShell files executed during tests:"
+      Write-Host $coveredFiles.Count
+
+      # 3. Untested files
+      $untested = $allPsFiles | Where-Object { $coveredFiles -notcontains $_ }
+
+      Write-Host ""
+      Write-Host "UNTESTED PowerShell files:"
+      if ($untested.Count -eq 0) {
+        Write-Host "None"
+      } else {
+        $untested | Sort-Object
+      }
     displayName: DEBUG PowerShell Coverage
 
   - task: PublishCodeCoverageResults@1
