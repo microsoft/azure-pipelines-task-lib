@@ -1,0 +1,147 @@
+parameters:
+- name: os
+  type: string
+
+steps:
+# - task: NodeTool@0
+#   displayName: use node $(nodeVersion)
+#   inputs:
+#     versionSpec: $(nodeVersion)
+
+# - task: NpmAuthenticate@0
+#   inputs:
+#     workingFile: .npmrc
+
+# - script: npm ci
+#   displayName: (task-lib) npm ci
+#   workingDirectory: node
+
+# - script: npm test
+#   workingDirectory: node
+#   displayName: (task-lib) npm test
+
+# - ${{ if eq(parameters.os, 'Linux') }}:
+#   - script: |
+#       echo "======================================"
+#       echo "Node coverage - executed files summary"
+#       echo "======================================"
+
+#       if [ -f node/coverage/cobertura-coverage.xml ]; then
+#         echo "Total executed files (Cobertura classes):"
+#         grep "<class" node/coverage/cobertura-coverage.xml | wc -l
+
+#         echo ""
+#         echo "Executed source files:"
+#         grep "<class" node/coverage/cobertura-coverage.xml \
+#           | sed -n 's/.*filename="\([^"]*\)".*/\1/p' \
+#           | sort | uniq
+#       else
+#         echo "Cobertura XML not found"
+#       fi
+#     displayName: DEBUG Node executed files (coverage)
+
+# - ${{ if eq(parameters.os, 'Linux') }}:
+#   - script: |
+#       echo "Node coverage check"
+#       ls -R node/coverage || echo "No node coverage folder"
+#     displayName: Debug Node Coverage
+
+# - ${{ if eq(parameters.os, 'Linux') }}:
+#   - task: PublishCodeCoverageResults@1
+#     displayName: Publish Code Coverage Results (Node)
+#     inputs:
+#       codeCoverageTool: Cobertura
+#       summaryFileLocation: '$(System.DefaultWorkingDirectory)/node/coverage/cobertura-coverage.xml'
+#       reportDirectory: '$(System.DefaultWorkingDirectory)/node/coverage/lcov-report'
+
+# Only on Linux. For CI runs on master, automatically publish packages
+# - ${{ if eq(parameters.os, 'Linux') }}:
+#   - bash: |
+#       echo //registry.npmjs.org/:_authToken=\${NPM_TOKEN} > .npmrc
+#       npm publish || true # Ignore publish failures, usually will happen because package already exists
+#     displayName: (task-lib) npm publish
+#     workingDirectory: node/_build
+#     condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master'))
+#     env:
+#       NPM_TOKEN: $(npm-automation.token)
+
+  # PublishPipelineArtifact step is configured in the base template.
+  # See the templateContext section in the azure-pipelines.yml file
+
+# Only on Windows. Build VstsTaskSdk for powershell 
+- ${{ if eq(parameters.os, 'Windows_NT') }}:
+  # Build step for .NET source code. This is needed to enable CodeQL for C# code
+  - task: DotNetCoreCLI@2
+    displayName: 'Build .NET project(s)'
+    inputs:
+      command: build
+      projects: 'powershell/CompiledHelpers/VstsTaskSdk.csproj'
+      arguments: '--configuration Release'
+
+  - task: NodeTool@0
+    displayName: use node $(nodeVersionForPowershell) for PowerShell SDK
+    inputs:
+      versionSpec: $(nodeVersionForPowershell)
+
+  - task: NpmAuthenticate@0
+    inputs:
+      workingFile: .npmrc
+
+  - script: npm ci
+    displayName: (VstsTaskSdk) npm ci
+    workingDirectory: powershell
+
+  - script: npm test
+    displayName: (VstsTaskSdk) npm test
+    workingDirectory: powershell
+
+- ${{ if eq(parameters.os, 'Windows_NT') }}:
+  - pwsh: |
+      Write-Host "======================================"
+      Write-Host "PowerShell coverage - executed files"
+      Write-Host "======================================"
+
+      $root = "powershell"
+      $coverageFile = "powershell/coverage/cobertura-coverage.xml"
+
+      # 1. All PowerShell source files (excluding test files)
+      $allPsFiles = Get-ChildItem $root -Recurse -Filter *.ps1 |
+        Where-Object { $_.Name -notmatch '\.Tests\.ps1$' } |
+        ForEach-Object { $_.FullName.Replace('\','/') }
+
+      Write-Host ""
+      Write-Host "Total PowerShell source files:"
+      Write-Host $allPsFiles.Count
+
+      # 2. Files executed during tests (from Cobertura)
+      $coveredFiles = @()
+      if (Test-Path $coverageFile) {
+        $coveredFiles = Select-String "<class" $coverageFile | ForEach-Object {
+          if ($_ -match 'filename="([^"]+)"') {
+            $matches[1]
+          }
+        }
+      }
+
+      Write-Host ""
+      Write-Host "PowerShell files executed during tests:"
+      Write-Host $coveredFiles.Count
+
+      # 3. Untested files
+      $untested = $allPsFiles | Where-Object { $coveredFiles -notcontains $_ }
+
+      Write-Host ""
+      Write-Host "UNTESTED PowerShell files:"
+      if ($untested.Count -eq 0) {
+        Write-Host "None"
+      } else {
+        $untested | Sort-Object
+      }
+    displayName: DEBUG PowerShell Coverage
+
+  - task: PublishCodeCoverageResults@1
+    displayName: Publish Code Coverage Results (PowerShell SDK)
+    inputs:
+      codeCoverageTool: Cobertura
+      summaryFileLocation: '$(System.DefaultWorkingDirectory)/powershell/coverage/cobertura-coverage.xml'
+      reportDirectory: '$(System.DefaultWorkingDirectory)/powershell/coverage/lcov-report'

@@ -45,7 +45,7 @@ extends:
           image: abtt-windows-2025
           os: windows
         steps:
-        - template: /azure-pipelines-steps-node.yml@self
+        - template: /azure-pipelines-steps-powershell.yml@self
           parameters:
             os: Windows_NT  
 
