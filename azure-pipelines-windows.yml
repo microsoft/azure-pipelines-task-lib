@@ -35,46 +35,46 @@ extends:
     customBuildTags:
     - ES365AIMigrationTooling
     stages:
-    # - stage: stage
-    #   jobs:
-    #   #################################################
-    #   - job: windows
-    #   #################################################
-    #     pool:
-    #       name: 1ES-ABTT-Shared-Pool
-    #       image: abtt-windows-2025
-    #       os: windows
-    #     steps:
-    #     - template: /azure-pipelines-steps-powershell.yml@self
-    #       parameters:
-    #         os: Windows_NT  
-
+    - stage: stage
+      jobs:
       #################################################
-      - job: linux
+      - job: windows
       #################################################
         pool:
           name: 1ES-ABTT-Shared-Pool
-          image: abtt-ubuntu-2404
-          os: linux
-        templateContext:
-          outputs:
-          - output: pipelineArtifact
-            targetPath: 'node/_build'
-            artifactType: 'pipeline'
-            artifactName: 'npm-package'
+          image: abtt-windows-2025
+          os: windows
         steps:
-        - template: /azure-pipelines-steps-node.yml@self
+        - template: /azure-pipelines-steps-powershell.yml@self
           parameters:
-            os: Linux
+            os: Windows_NT  
 
       #################################################
-      - job: macOS
-      #################################################
-        pool:
-          name: Azure Pipelines
-          image: macOS-latest
-          os: macOS
-        steps:
-        - template: /azure-pipelines-steps-node.yml@self
-          parameters:
-            os: Darwin
+      # - job: linux
+      # #################################################
+      #   pool:
+      #     name: 1ES-ABTT-Shared-Pool
+      #     image: abtt-ubuntu-2404
+      #     os: linux
+      #   templateContext:
+      #     outputs:
+      #     - output: pipelineArtifact
+      #       targetPath: 'node/_build'
+      #       artifactType: 'pipeline'
+      #       artifactName: 'npm-package'
+      #   steps:
+      #   - template: /azure-pipelines-steps-node.yml@self
+      #     parameters:
+      #       os: Linux
+
+      # #################################################
+      # - job: macOS
+      # #################################################
+      #   pool:
+      #     name: Azure Pipelines
+      #     image: macOS-latest
+      #     os: macOS
+      #   steps:
+      #   - template: /azure-pipelines-steps-node.yml@self
+      #     parameters:
+      #       os: Darwin
