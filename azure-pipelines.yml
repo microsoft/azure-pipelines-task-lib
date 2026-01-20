@@ -35,8 +35,8 @@ extends:
     customBuildTags:
     - ES365AIMigrationTooling
     stages:
-    # - stage: stage
-    #   jobs:
+    - stage: stage
+      jobs:
     #   #################################################
     #   - job: windows
     #   #################################################
