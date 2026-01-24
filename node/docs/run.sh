@@ -1,3 +1,5 @@
+#!/bin/bash
+
 function failed()
 {
    local error=${1:-Undefined error}
@@ -6,4 +8,4 @@ function failed()
 }
 
 ../node_modules/.bin/tsc || failed 'Compilation failed.'
-../_download/archive/*/*/bin/node gendocs.js
+node gendocs.js
