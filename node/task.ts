@@ -1779,7 +1779,7 @@ export function rmRF(inputPath: string): void {
             const lstats = fs.lstatSync(inputPath);
             if (lstats.isDirectory() && !lstats.isSymbolicLink()) {
                 debug('removing directory ' + inputPath);
-                childProcess.execFileSync("cmd.exe", ["/c", "rd", "/s", "/q", inputPath]);
+                childProcess.execFileSync("cmd.exe", ["/c", "rd", "/s", "/q", im._normalizeSeparators(inputPath)]);
 
             } else if (lstats.isSymbolicLink()) {
                 debug('removing symbolic link ' + inputPath);
@@ -1787,7 +1787,7 @@ export function rmRF(inputPath: string): void {
                 if (fs.existsSync(realPath)) {
                     const stats = fs.statSync(realPath);
                     if (stats.isDirectory()) {
-                        childProcess.execFileSync("cmd.exe", ["/c", "rd", "/s", "/q", realPath]);
+                        childProcess.execFileSync("cmd.exe", ["/c", "rd", "/s", "/q", im._normalizeSeparators(realPath)]);
                         fs.unlinkSync(inputPath);
                     } else {
                         fs.unlinkSync(inputPath);
@@ -1798,7 +1798,7 @@ export function rmRF(inputPath: string): void {
                 }
             } else {
                 debug('removing file ' + inputPath);
-                childProcess.execFileSync("cmd.exe", ["/c", "del", "/f", "/a", inputPath]);
+                childProcess.execFileSync("cmd.exe", ["/c", "del", "/f", "/a", im._normalizeSeparators(inputPath)]);
             }
         } catch (err) {
             debug('Error: ' + err.message);
