@@ -1146,13 +1146,13 @@ function flattenArray(arr: any[]): any[] {
     }, []);
 }
 
-type CopyOptionsVariants = OptionsPermutations<'frnd'>;
+type CopyOptionsVariants = OptionsPermutations<'frn'>;
 
 /**
  * Copies a file or folder.
  * @param   {string}  source                   - Source path.
  * @param   {string}  destination              - Destination path.
- * @param   {string}  [options]                - Options string '-r', '-f' , '-n', '-d' or combinations like '-rfnd' for recursive, force, no-clobber, and do-not-dereference (preserve symlinks).
+ * @param   {string}  [options]                - Options string '-r', '-f' , '-n' or '-rfn' for recursive, force and no-clobber.
  * @param   {boolean} [continueOnError=false]  - Optional. Whether to continue on error.
  * @param   {number}  [retryCount=0]           - Optional. Retry count to copy the file. It might help to resolve intermittent issues e.g. with UNC target paths on a remote host.
  * @returns {void}
@@ -1161,7 +1161,7 @@ export function cp(source: string, destination: string, options?: CopyOptionsVar
 
 /**
  * Copies a file or folder.
- * @param   {string}  options                  - Options string '-r', '-f' , '-n', '-d' or combinations like '-rfnd' for recursive, force, no-clobber, and do-not-dereference (preserve symlinks).
+ * @param   {string}  options                  - Options string '-r', '-f' , '-n' or '-rfn' for recursive, force and no-clobber.
  * @param   {string}  source                   - Source path.
  * @param   {string}  [destination]            - Destination path.
  * @param   {boolean} [continueOnError=false]  - Optional. Whether to continue on error.
@@ -1172,8 +1172,7 @@ export function cp(options: CopyOptionsVariants, source: string, destination: st
 
 /**
  * Copies a file or folder.
- * @param   {string}  sourceOrOptions          - Either the source path or an option string '-r', '-f' , '-n', '-d' or combinations like '-rfnd' for recursive, force, no-clobber, and do-not-dereference (preserve symlinks).
- * @param   {string}  destinationOrSource      - Destination path or the source path.
+ * @param   {string}  sourceOrOptions          -Options string '-r', '-f' , '-n' or '-rfn' for recursive, force and no-clobber.
  * @param   {string}  [optionsOrDestination]   - Options string or the destination path.
  * @param   {boolean} [continueOnError=false]  - Optional. Whether to continue on error.
  * @param   {number}  [retryCount=0]           - Optional. Retry count to copy the file. It might help to resolve intermittent issues e.g. with UNC target paths on a remote host.
@@ -1183,7 +1182,6 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
     retry(() => {
         let recursive = false;
         let force = true;
-        let dereference = true; 
         let source = String(sourceOrOptions);
         let destination = destinationOrSource;
         let options = '';
@@ -1192,14 +1190,12 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
             options = sourceOrOptions.toLowerCase();
             recursive = options.includes('r');
             force = !options.includes('n');
-            dereference = !options.includes('d');
             source = destinationOrSource;
             destination = String(optionsOrDestination)!;
         } else if (typeof optionsOrDestination === 'string' && optionsOrDestination && optionsOrDestination.startsWith('-')) {
             options = optionsOrDestination.toLowerCase();
             recursive = options.includes('r');
             force = !options.includes('n');
-            dereference = !options.includes('d');
             source = String(sourceOrOptions);
             destination = destinationOrSource;
         }
@@ -1208,83 +1204,54 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
             throw new Error(loc('LIB_PathNotFound', 'cp', destination));
         }
 
+        const hasGlobPattern = source.includes('*') || source.includes('?') || source.includes('[');
+        if (hasGlobPattern) {
+            let sourcesToProcess: string[] = [];
+            sourcesToProcess = findMatch(path.dirname(source), [path.basename(source)]);
+            if (sourcesToProcess.length === 0) {
+                throw new Error(`No files found matching pattern: ${source}`);
+            }
+            for (const src of sourcesToProcess) {
+                cp(src, destination, options as CopyOptionsVariants, continueOnError, retryCount);
+            }
+            return;
+        }
         var lstatSource = fs.lstatSync(source);
 
+        if(!recursive && lstatSource.isDirectory()) {
+            throw new Error("cp: cannot copy a directory without the recursive option");
+        }
         if (!force && fs.existsSync(destination)) {
             return;
         }
 
         try {
-            // When dereference is true (default): follow symlinks and copy their targets
-            // When dereference is false (-d option): preserve symlinks as symlinks
-            if (lstatSource.isSymbolicLink() && dereference) {
-                const symlinkTarget = fs.readlinkSync(source);
-                source = path.resolve(path.dirname(source), symlinkTarget);
-                lstatSource = fs.lstatSync(source);
-            }
-            if (lstatSource.isFile() || (lstatSource.isSymbolicLink() && !dereference)) {
+            if (lstatSource.isSymbolicLink()) {
                 if (fs.existsSync(destination) && fs.lstatSync(destination).isDirectory()) {
                     destination = path.join(destination, path.basename(source));
                 }
-
-                if (lstatSource.isSymbolicLink() && !dereference) {
-                    const symlinkTarget = fs.readlinkSync(source);
-                    fs.symlinkSync(symlinkTarget, destination);
-                } else {
-                    if (force) {
-                        fs.copyFileSync(source, destination);
-                    } else {
-                        fs.copyFileSync(source, destination, fs.constants.COPYFILE_EXCL);
-                    }
+                const symlinkTarget = fs.readlinkSync(source);
+                fs.symlinkSync(symlinkTarget, destination);
+            } else if (lstatSource.isFile()) {
+                if (fs.existsSync(destination) && fs.lstatSync(destination).isDirectory()) {
+                    destination = path.join(destination, path.basename(source));
                 }
-            } else {
-                if (!dereference) {
-                    copyDirectoryWithPreservedSymlinks(source, path.join(destination, path.basename(source)), force);
+                if (force) {
+                    fs.copyFileSync(source, destination);
                 } else {
-                    copyDirectoryWithResolvedSymlinks(source, path.join(destination, path.basename(source)), force);
+                    fs.copyFileSync(source, destination, fs.constants.COPYFILE_EXCL);
                 }
+            } else {                
+                if (fs.existsSync(destination) && fs.lstatSync(destination).isDirectory()) {
+                    destination = path.join(destination, path.basename(source));
+                }
+                copyDirectoryWithPreservedSymlinks(source, destination, force);    
             }
         } catch (error) {
             throw new Error(loc('LIB_OperationFailed', 'cp', error));
         }
     }, [], { retryCount, continueOnError });
 }
-
-const copyDirectoryWithResolvedSymlinks = (src: string, dest: string, force: boolean) => {
-    var srcPath: string;
-    var destPath: string;
-    var entry: fs.Dirent;
-    const entries = fs.readdirSync(src, { withFileTypes: true });
-
-    if (!fs.existsSync(dest)) {
-        fs.mkdirSync(dest, { recursive: true });
-    }
-
-    for (entry of entries) {
-        srcPath = path.join(src, entry.name);
-        destPath = path.join(dest, entry.name);
-
-        if (entry.isSymbolicLink()) {
-            // Resolve the symbolic link and copy the target
-            const symlinkTarget = fs.readlinkSync(srcPath);
-            const resolvedPath = path.resolve(path.dirname(srcPath), symlinkTarget);
-            const stat = fs.lstatSync(resolvedPath);
-
-            if (stat.isFile()) {
-                // Use the actual target file's name instead of the symbolic link's name
-                const targetFileName = path.basename(resolvedPath);
-                const targetDestPath = path.join(dest, targetFileName);
-                fs.copyFileSync(resolvedPath, targetDestPath);
-            } else if (stat.isDirectory()) {
-                copyDirectoryWithResolvedSymlinks(resolvedPath, destPath, force);
-            }
-        } else if (entry.isFile()) {
-            fs.copyFileSync(srcPath, destPath);
-        } else if (entry.isDirectory()) {
-            copyDirectoryWithResolvedSymlinks(srcPath, destPath, force);
-        }
-    }
-};
 
 const copyDirectoryWithPreservedSymlinks = (src: string, dest: string, force: boolean) => {
     var srcPath: string;
