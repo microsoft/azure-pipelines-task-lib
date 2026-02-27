@@ -244,14 +244,13 @@ describe('cp cases', () => {
   });
 
   it('cp with * pattern', (done) => {
-    const pattern = path.join(GLOB_TEST_DIR, 'file?.txt');
+    const pattern = path.join(GLOB_TEST_DIR, '\\*');
     assert.doesNotThrow(() => tl.cp(pattern, GLOB_DEST_DIR));
     assert.ok(fs.existsSync(path.join(GLOB_DEST_DIR, 'file1.txt')));
     assert.ok(fs.existsSync(path.join(GLOB_DEST_DIR, 'file2.txt')));
-    assert.ok(!fs.existsSync(path.join(GLOB_DEST_DIR, 'test.txt')));
-    assert.ok(!fs.existsSync(path.join(GLOB_DEST_DIR, 'file3.log')));
-    tl.rmRF('dirA');
-    tl.rmRF('dirB');
+    assert.ok(fs.existsSync(path.join(GLOB_DEST_DIR, 'test.txt')));
+    assert.ok(fs.existsSync(path.join(GLOB_DEST_DIR, 'file3.log')));
+
     done();
   });
 
