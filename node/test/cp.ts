@@ -244,7 +244,7 @@ describe('cp cases', () => {
   });
 
   it('cp with * pattern', (done) => {
-    const pattern = path.join(GLOB_TEST_DIR, '\\*');
+    const pattern = path.join(GLOB_TEST_DIR, '*');
     assert.doesNotThrow(() => tl.cp(pattern, GLOB_DEST_DIR));
     assert.ok(fs.existsSync(path.join(GLOB_DEST_DIR, 'file1.txt')));
     assert.ok(fs.existsSync(path.join(GLOB_DEST_DIR, 'file2.txt')));
