@@ -1173,6 +1173,7 @@ export function cp(options: CopyOptionsVariants, source: string, destination: st
 /**
  * Copies a file or folder.
  * @param   {string}  sourceOrOptions          -Options string '-r', '-f' , '-n' or '-rfn' for recursive, force and no-clobber.
+ * @param   {string}  destinationOrSource      - Destination path or the source path. 
  * @param   {string}  [optionsOrDestination]   - Options string or the destination path.
  * @param   {boolean} [continueOnError=false]  - Optional. Whether to continue on error.
  * @param   {number}  [retryCount=0]           - Optional. Retry count to copy the file. It might help to resolve intermittent issues e.g. with UNC target paths on a remote host.
@@ -1203,11 +1204,12 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
         if (!fs.existsSync(destination) && !force) {
             throw new Error(loc('LIB_PathNotFound', 'cp', destination));
         }
-
-        const hasGlobPattern = source.includes('*') || source.includes('?') || source.includes('[');
+        const hasGlobPattern =  /[*?{[!@#]/.test(source);
         if (hasGlobPattern) {
             let sourcesToProcess: string[] = [];
-            sourcesToProcess = findMatch(path.dirname(source), [path.basename(source)]);
+            let sourceDir = path.dirname(source);
+            sourceDir = sourceDir == '.' ? path.resolve() : sourceDir;
+            sourcesToProcess = findMatch(sourceDir, [path.basename(source)]);
             if (sourcesToProcess.length === 0) {
                 throw new Error(`No files found matching pattern: ${source}`);
             }
@@ -1226,25 +1228,27 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
         }
 
         try {
-            if (lstatSource.isSymbolicLink()) {
-                if (fs.existsSync(destination) && fs.lstatSync(destination).isDirectory()) {
-                    destination = path.join(destination, path.basename(source));
-                }
+            if (fs.existsSync(destination) && fs.lstatSync(destination).isDirectory()) {
+                destination = path.join(destination, path.basename(source));
+            }
+            if (lstatSource.isSymbolicLink()) {               
                 const symlinkTarget = fs.readlinkSync(source);
+                if (force && fs.existsSync(destination)) {
+                    const destStats = fs.lstatSync(destination);
+                    if (destStats.isSymbolicLink()) {
+                        fs.unlinkSync(destination);
+                    } else {
+                        fs.rmSync(destination, { recursive: true, force: true });
+                    }
+                }
                 fs.symlinkSync(symlinkTarget, destination);
             } else if (lstatSource.isFile()) {
-                if (fs.existsSync(destination) && fs.lstatSync(destination).isDirectory()) {
-                    destination = path.join(destination, path.basename(source));
-                }
                 if (force) {
                     fs.copyFileSync(source, destination);
                 } else {
                     fs.copyFileSync(source, destination, fs.constants.COPYFILE_EXCL);
                 }
             } else {                
-                if (fs.existsSync(destination) && fs.lstatSync(destination).isDirectory()) {
-                    destination = path.join(destination, path.basename(source));
-                }
                 copyDirectoryWithPreservedSymlinks(source, destination, force);    
             }
         } catch (error) {
@@ -1270,6 +1274,14 @@ const copyDirectoryWithPreservedSymlinks = (src: string, dest: string, force: bo
         if (entry.isSymbolicLink()) {
             // Preserve the symbolic link as-is
             const symlinkTarget = fs.readlinkSync(srcPath);
+            if (force && fs.existsSync(destPath)) {
+                const destStats = fs.lstatSync(destPath);
+                if (destStats.isSymbolicLink()) {
+                    fs.unlinkSync(destPath);
+                } else {
+                    fs.rmSync(destPath, { recursive: true, force: true });
+                }
+            }
             fs.symlinkSync(symlinkTarget, destPath);
         } else if (entry.isFile()) {
             fs.copyFileSync(srcPath, destPath);
