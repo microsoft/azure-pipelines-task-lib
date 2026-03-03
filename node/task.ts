@@ -1172,8 +1172,8 @@ export function cp(options: CopyOptionsVariants, source: string, destination: st
 
 /**
  * Copies a file or folder.
- * @param   {string}  sourceOrOptions          -Options string '-r', '-f' , '-n' or '-rfn' for recursive, force and no-clobber.
- * @param   {string}  destinationOrSource      - Destination path or the source path. 
+ * @param   {string}  sourceOrOptions          - Either the source path or an option string '-r', '-f' , '-n' or '-rfn' for recursive, force and no-clobber.
+ * @param   {string}  destinationOrSource      - Destination path or the source path.
  * @param   {string}  [optionsOrDestination]   - Options string or the destination path.
  * @param   {boolean} [continueOnError=false]  - Optional. Whether to continue on error.
  * @param   {number}  [retryCount=0]           - Optional. Retry count to copy the file. It might help to resolve intermittent issues e.g. with UNC target paths on a remote host.
@@ -1248,8 +1248,8 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
                 } else {
                     fs.copyFileSync(source, destination, fs.constants.COPYFILE_EXCL);
                 }
-            } else {                
-                copyDirectoryWithPreservedSymlinks(source, destination, force);    
+            } else {
+                copyDirectoryWithPreservedSymlinks(source, destination, force);
             }
         } catch (error) {
             throw new Error(loc('LIB_OperationFailed', 'cp', error));
