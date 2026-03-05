@@ -202,7 +202,7 @@ describe('cp cases', () => {
 
     done();
   });
-  
+
   it('Throws if no arguments are provided', (done) => {
     assert.throws(() => (tl as any).cp(), /ENOENT|missing/i);
     done();
@@ -298,12 +298,6 @@ describe('cp cases', () => {
     assert.ok(fs.existsSync(path.join(GLOB_DEST_DIR, 'file2.txt')));
     assert.ok(fs.existsSync(path.join(GLOB_DEST_DIR, 'file3.log')));
 
-    done();
-  });
-  
-  it('cp with pattern that matches no files throws error', (done) => {
-    const pattern = path.join(GLOB_TEST_DIR, 'nonexistent?.txt');
-    assert.throws(() => tl.cp(pattern, GLOB_DEST_DIR), /No files found matching pattern/);
     done();
   });
 

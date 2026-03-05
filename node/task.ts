@@ -1211,7 +1211,7 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
             sourceDir = sourceDir == '.' ? path.resolve() : sourceDir;
             sourcesToProcess = findMatch(sourceDir, [path.basename(source)]);
             if (sourcesToProcess.length === 0) {
-                throw new Error(`No files found matching pattern: ${source}`);
+                debug(`No matches found for glob pattern: ${source}`);
             }
             for (const src of sourcesToProcess) {
                 cp(src, destination, options as CopyOptionsVariants, continueOnError, retryCount);
@@ -1221,7 +1221,7 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
         var lstatSource = fs.lstatSync(source);
 
         if(!recursive && lstatSource.isDirectory()) {
-            throw new Error("cp: cannot copy a directory without the recursive option");
+            throw new Error(loc('LIB_CopyDirectoryWithoutRecursiveOption', source));
         }
         if (!force && fs.existsSync(destination)) {
             return;

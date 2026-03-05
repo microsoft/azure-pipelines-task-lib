@@ -1,5 +1,6 @@
 {
   "messages": {
+    "LIB_CopyDirectoryWithoutRecursiveOption": "cp: cannot copy a directory '%s' without the recursive option",
     "LIB_CopyFileFailed": "Error while copying the file. Attempts left: %s",
     "LIB_DirectoryStackEmpty": "Directory stack is empty",
     "LIB_EndpointAuthNotExist": "Endpoint auth data not present: %s",
