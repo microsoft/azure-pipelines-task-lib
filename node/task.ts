@@ -1231,62 +1231,45 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
             if (fs.existsSync(destination) && fs.lstatSync(destination).isDirectory()) {
                 destination = path.join(destination, path.basename(source));
             }
-            if (lstatSource.isSymbolicLink()) {               
-                const symlinkTarget = fs.readlinkSync(source);
-                if (force && fs.existsSync(destination)) {
-                    const destStats = fs.lstatSync(destination);
-                    if (destStats.isSymbolicLink()) {
-                        fs.unlinkSync(destination);
-                    } else {
-                        fs.rmSync(destination, { recursive: true, force: true });
-                    }
-                }
-                fs.symlinkSync(symlinkTarget, destination);
-            } else if (lstatSource.isFile()) {
-                if (force) {
-                    fs.copyFileSync(source, destination);
-                } else {
-                    fs.copyFileSync(source, destination, fs.constants.COPYFILE_EXCL);
-                }
-            } else {
-                copyDirectoryWithPreservedSymlinks(source, destination, force);
-            }
+            copyWithPreservedSymlinks(source, destination, force);
         } catch (error) {
             throw new Error(loc('LIB_OperationFailed', 'cp', error));
         }
     }, [], { retryCount, continueOnError });
 }
 
-const copyDirectoryWithPreservedSymlinks = (src: string, dest: string, force: boolean) => {
-    var srcPath: string;
-    var destPath: string;
-    var entry: fs.Dirent;
-    const entries = fs.readdirSync(src, { withFileTypes: true });
+const copyWithPreservedSymlinks = (source: string, destination: string, force: boolean): void => {
+    const lstatSource = fs.lstatSync(source);
 
-    if (!fs.existsSync(dest)) {
-        fs.mkdirSync(dest, { recursive: true });
-    }
-
-    for (entry of entries) {
-        srcPath = path.join(src, entry.name);
-        destPath = path.join(dest, entry.name);
-
-        if (entry.isSymbolicLink()) {
-            // Preserve the symbolic link as-is
-            const symlinkTarget = fs.readlinkSync(srcPath);
-            if (force && fs.existsSync(destPath)) {
-                const destStats = fs.lstatSync(destPath);
-                if (destStats.isSymbolicLink()) {
-                    fs.unlinkSync(destPath);
-                } else {
-                    fs.rmSync(destPath, { recursive: true, force: true });
-                }
+    if (lstatSource.isSymbolicLink()) {
+        const symlinkTarget = fs.readlinkSync(source);
+        if (force && fs.existsSync(destination)) {
+            const destStats = fs.lstatSync(destination);
+            if (destStats.isSymbolicLink()) {
+                fs.unlinkSync(destination);
+            } else {
+                fs.rmSync(destination, { recursive: true, force: true });
             }
-            fs.symlinkSync(symlinkTarget, destPath);
-        } else if (entry.isFile()) {
-            fs.copyFileSync(srcPath, destPath);
-        } else if (entry.isDirectory()) {
-            copyDirectoryWithPreservedSymlinks(srcPath, destPath, force);
+        }
+        fs.symlinkSync(symlinkTarget, destination);
+    } else if (lstatSource.isFile()) {
+        if (force) {
+            fs.copyFileSync(source, destination);
+        } else {
+            fs.copyFileSync(source, destination, fs.constants.COPYFILE_EXCL);
+        }
+    } else {
+        const entries = fs.readdirSync(source, { withFileTypes: true });
+
+        if (!fs.existsSync(destination)) {
+            fs.mkdirSync(destination, { recursive: true });
+        }
+
+        for (const entry of entries) {
+            const srcPath = path.join(source, entry.name);
+            const destPath = path.join(destination, entry.name);
+            
+            copyWithPreservedSymlinks(srcPath, destPath, force);
         }
     }
 };
