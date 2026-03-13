@@ -48,3 +48,4 @@ powershell/CompiledHelpers/obj
 
 # generate third party notice script
 !generate-third-party-notice.js
+.env
