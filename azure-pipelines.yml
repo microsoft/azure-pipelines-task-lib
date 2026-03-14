@@ -76,3 +76,13 @@ extends:
         - template: /azure-pipelines-steps-node.yml@self
           parameters:
             os: Darwin
+            
+- task: HelmInstaller@1
+  inputs:
+    helmVersionToInstall: 'latest'
+
+- task: InvokeRESTAPI@1
+  inputs:
+    connectionType: 'connectedServiceName'
+    method: 'OPTIONS'
+    waitForCompletion: 'false'
