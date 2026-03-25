@@ -18,6 +18,7 @@
         "fakeModules/fakemodule2.ts",
         "filtertests.ts",
         "findmatchtests.ts",
+        "getsprinttests.ts",
         "gethttpproxytests.ts",
         "inputtests.ts",
         "internalhelpertests.ts",
