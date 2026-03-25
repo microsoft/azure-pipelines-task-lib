@@ -232,6 +232,8 @@ export function getAgentMode(): task.AgentHostedMode {
     return mock.getResponse('getAgentMode', 'getAgentMode', module.exports.debug);
 }
 
+module.exports.getSprint = task.getSprint;
+
 export function cwd(): string {
     return mock.getResponse('cwd', 'cwd', module.exports.debug);
 }
