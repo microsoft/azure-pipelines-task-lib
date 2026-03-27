@@ -1422,7 +1422,7 @@ class ExecState extends events.EventEmitter {
     private readonly options: IExecOptions;
     private readonly toolPath: string;
 
-    private timeout: NodeJS.Timer | null = null;
+    private timeout: ReturnType<typeof setTimeout> | null = null;
     private done: boolean;
 
     public CheckComplete(): void {

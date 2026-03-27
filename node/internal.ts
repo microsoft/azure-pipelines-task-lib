@@ -600,6 +600,7 @@ export interface _MatchOptions {
     nocomment?: boolean;
     nonegate?: boolean;
     flipNegate?: boolean;
+    windowsPathsNoEscape?: boolean;
 }
 
 export function _cloneMatchOptions(matchOptions: _MatchOptions): _MatchOptions {
@@ -614,7 +615,8 @@ export function _cloneMatchOptions(matchOptions: _MatchOptions): _MatchOptions {
         matchBase: matchOptions.matchBase,
         nocomment: matchOptions.nocomment,
         nonegate: matchOptions.nonegate,
-        flipNegate: matchOptions.flipNegate
+        flipNegate: matchOptions.flipNegate,
+        windowsPathsNoEscape: matchOptions.windowsPathsNoEscape
     };
 }
 
@@ -646,6 +648,9 @@ export function _getFindInfoFromPattern(defaultRoot: string, pattern: string, ma
     // for the sake of determining the findPath, pretend nocase=false
     matchOptions = _cloneMatchOptions(matchOptions);
     matchOptions.nocase = false;
+    if (process.platform == 'win32' && matchOptions.windowsPathsNoEscape === undefined) {
+        matchOptions.windowsPathsNoEscape = true;
+    }
 
     // check if basename only and matchBase=true
     if (matchOptions.matchBase &&

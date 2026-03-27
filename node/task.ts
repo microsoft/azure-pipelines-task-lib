@@ -1983,6 +1983,7 @@ export interface MatchOptions {
     nocomment?: boolean;
     nonegate?: boolean;
     flipNegate?: boolean;
+    windowsPathsNoEscape?: boolean;
 }
 
 /**
@@ -1997,6 +1998,9 @@ export function match(list: string[], patterns: string[] | string, patternRoot?:
     // trace parameters
     debug(`patternRoot: '${patternRoot}'`);
     options = options || _getDefaultMatchOptions(); // default match options
+    if (process.platform == 'win32' && options.windowsPathsNoEscape === undefined) {
+        options.windowsPathsNoEscape = true;
+    }
     _debugMatchOptions(options);
 
     // convert pattern to an array
@@ -2129,6 +2133,9 @@ export function match(list: string[], patterns: string[] | string, patternRoot?:
  */
 export function filter(pattern: string, options?: MatchOptions): (element: string, indexed: number, array: string[]) => boolean {
     options = options || _getDefaultMatchOptions();
+    if (process.platform == 'win32' && options.windowsPathsNoEscape === undefined) {
+        options.windowsPathsNoEscape = true;
+    }
     return minimatch.filter(pattern, options);
 }
 
@@ -2144,6 +2151,7 @@ function _debugMatchOptions(options: MatchOptions): void {
     debug(`matchOptions.nocomment: '${options.nocomment}'`);
     debug(`matchOptions.nonegate: '${options.nonegate}'`);
     debug(`matchOptions.flipNegate: '${options.flipNegate}'`);
+    debug(`matchOptions.windowsPathsNoEscape: '${options.windowsPathsNoEscape}'`);
 }
 
 function _getDefaultMatchOptions(): MatchOptions {
@@ -2158,7 +2166,8 @@ function _getDefaultMatchOptions(): MatchOptions {
         matchBase: false,
         nocomment: false,
         nonegate: false,
-        flipNegate: false
+        flipNegate: false,
+        windowsPathsNoEscape: process.platform == 'win32'
     };
 }
 
@@ -2182,6 +2191,9 @@ export function findMatch(defaultRoot: string, patterns: string[] | string, find
     findOptions = findOptions || _getDefaultFindOptions();
     _debugFindOptions(findOptions);
     matchOptions = matchOptions || _getDefaultMatchOptions();
+    if (process.platform == 'win32' && matchOptions.windowsPathsNoEscape === undefined) {
+        matchOptions.windowsPathsNoEscape = true;
+    }
     _debugMatchOptions(matchOptions);
 
     // normalize slashes for root dir

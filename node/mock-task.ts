@@ -392,6 +392,7 @@ export interface MatchOptions {
     nocomment?: boolean;
     nonegate?: boolean;
     flipNegate?: boolean;
+    windowsPathsNoEscape?: boolean;
 }
 
 export function findMatch(defaultRoot: string, patterns: string[] | string) : string[] {
