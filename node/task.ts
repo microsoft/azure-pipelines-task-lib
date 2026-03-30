@@ -65,6 +65,16 @@ export enum AgentHostedMode {
     MsHosted
 }
 
+export interface SprintInfo {
+    sprint: number;
+    week: number;
+}
+
+const SPRINT_ONE_START_UTC_MS = Date.UTC(2010, 7, 14, 0, 0, 0, 0);
+const DAYS_PER_WEEK = 7;
+const DAYS_PER_SPRINT = 21;
+const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
+
 //-----------------------------------------------------
 // General Helpers
 //-----------------------------------------------------
@@ -114,7 +124,7 @@ export function setResult(result: TaskResult, message: string, done?: boolean): 
  * Sets the result of the task with sanitized message.
  *
  * @param result    TaskResult enum of Succeeded, SucceededWithIssues, Failed, Cancelled or Skipped.
- * @param message   A message which will be logged as an error issue if the result is Failed. Message will be truncated 
+ * @param message   A message which will be logged as an error issue if the result is Failed. Message will be truncated
  *                  before first occurence of wellknown sensitive keyword.
  * @param done      Optional. Instructs the agent the task is done. This is helpful when child processes
  *                  may still be running and prevent node from fully exiting. This argument is supported
@@ -140,7 +150,7 @@ process.on('uncaughtException', (err: Error) => {
 
 //
 // Catching unhandled rejections from promises and rethrowing them as exceptions
-// For example, a promise that is rejected but not handled by a .catch() handler in node 10 
+// For example, a promise that is rejected but not handled by a .catch() handler in node 10
 // doesn't cause an uncaughtException but causes in Node 16.
 // For types definitions(Error | Any) see https://nodejs.org/docs/latest-v16.x/api/process.html#event-unhandledrejection
 //
@@ -771,6 +781,24 @@ export function getAgentMode(): AgentHostedMode {
 }
 
 /**
+ * Calculates sprint and week using the same cadence as whatsprintis.it.
+ *
+ * @param date Optional date to evaluate. Defaults to the current date/time.
+ * @returns SprintInfo with `sprint` and `week` properties.
+ */
+export function getSprint(date?: Date): SprintInfo {
+    const targetDate = date || new Date();
+    const elapsedDays = Math.floor((targetDate.getTime() - SPRINT_ONE_START_UTC_MS) / MILLISECONDS_PER_DAY);
+    const sprintIndex = Math.floor(elapsedDays / DAYS_PER_SPRINT);
+    const dayWithinSprint = ((elapsedDays % DAYS_PER_SPRINT) + DAYS_PER_SPRINT) % DAYS_PER_SPRINT;
+
+    return {
+        sprint: sprintIndex + 1,
+        week: Math.floor(dayWithinSprint / DAYS_PER_WEEK) + 1
+    };
+}
+
+/**
  * Returns the process's current working directory.
  * see [process.cwd](https://nodejs.org/api/process.html#process_process_cwd)
  *
@@ -1268,7 +1296,7 @@ const copyWithPreservedSymlinks = (source: string, destination: string, force: b
         for (const entry of entries) {
             const srcPath = path.join(source, entry.name);
             const destPath = path.join(destination, entry.name);
-            
+
             copyWithPreservedSymlinks(srcPath, destPath, force);
         }
     }
@@ -2330,7 +2358,7 @@ export interface ProxyConfiguration {
     proxyUrl: string;
     /**
      * Proxy URI formated as: protocol://username:password@hostname:port
-     * 
+     *
      * For tools that require setting proxy configuration in the single environment variable
      */
     proxyFormattedUrl: string;
