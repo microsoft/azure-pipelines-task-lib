@@ -1232,7 +1232,7 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
         if (!fs.existsSync(destination) && !force) {
             throw new Error(loc('LIB_PathNotFound', 'cp', destination));
         }
-        const hasGlobPattern =  /[*?{[!@#]/.test(source);
+        const hasGlobPattern =  /[*?{!\[]/.test(source) || /^[#]/.test(source) || /[@+]\(/.test(source);
         if (hasGlobPattern) {
             let sourcesToProcess: string[] = [];
             let sourceDir = path.dirname(source);

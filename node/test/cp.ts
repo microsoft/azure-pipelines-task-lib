@@ -301,6 +301,33 @@ describe('cp cases', () => {
     done();
   });
 
+  it('cp with @() extglob pattern', (done) => {
+    const pattern = path.join(GLOB_TEST_DIR, '@(file1|file2).txt');
+    assert.doesNotThrow(() => tl.cp(pattern, GLOB_DEST_DIR));
+
+    assert.ok(fs.existsSync(path.join(GLOB_DEST_DIR, 'file1.txt')));
+    assert.ok(fs.existsSync(path.join(GLOB_DEST_DIR, 'file2.txt')));
+    assert.ok(!fs.existsSync(path.join(GLOB_DEST_DIR, 'test.txt')));
+    assert.ok(!fs.existsSync(path.join(GLOB_DEST_DIR, 'file3.log')));
+
+    done();
+  });
+
+  it('cp handles literal @ in path', (done) => {
+    const srcDir = path.resolve(DIRNAME, 'dir@test');
+    const destDir = path.resolve(DIRNAME, 'dest-at');
+    tl.mkdirP(srcDir);
+    tl.mkdirP(destDir);
+    fs.writeFileSync(path.join(srcDir, 'file.txt'), 'content');
+    
+    assert.doesNotThrow(() => tl.cp(path.join(srcDir, 'file.txt'), destDir));
+    assert.ok(fs.existsSync(path.join(destDir, 'file.txt')));
+    
+    tl.rmRF(srcDir);
+    tl.rmRF(destDir);
+    done();
+  });
+
   it('Handles non-normalized paths', (done) => {
     tl.mkdirP('dirC');
     fs.writeFileSync(path.join('dirC', 'file.txt'), 'abc');
