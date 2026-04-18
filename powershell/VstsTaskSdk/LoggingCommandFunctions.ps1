@@ -19,6 +19,22 @@ $IssueSources = @{
     TaskInternal = "TaskInternal"
 }
 
+function Get-ConsoleColorOrDefault {
+    [CmdletBinding()]
+    param(
+        [AllowNull()]
+        $Value,
+        [Parameter(Mandatory = $true)]
+        [System.ConsoleColor]$DefaultColor
+    )
+
+    if ($Value -is [System.ConsoleColor] -and [System.Enum]::IsDefined([System.ConsoleColor], $Value)) {
+        return $Value
+    }
+
+    return $DefaultColor
+}
+
 <#
 .SYNOPSIS
 See https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
@@ -584,19 +600,11 @@ function Write-LogIssue {
     }
 
     if ($Type -eq 'error') {
-        $foregroundColor = $host.PrivateData.ErrorForegroundColor
-        $backgroundColor = $host.PrivateData.ErrorBackgroundColor
-        if ($foregroundColor -isnot [System.ConsoleColor] -or $backgroundColor -isnot [System.ConsoleColor]) {
-            $foregroundColor = [System.ConsoleColor]::Red
-            $backgroundColor = [System.ConsoleColor]::Black
-        }
+        $foregroundColor = Get-ConsoleColorOrDefault -Value $host.PrivateData.ErrorForegroundColor -DefaultColor ([System.ConsoleColor]::Red)
+        $backgroundColor = Get-ConsoleColorOrDefault -Value $host.PrivateData.ErrorBackgroundColor -DefaultColor ([System.ConsoleColor]::Black)
     } else {
-        $foregroundColor = $host.PrivateData.WarningForegroundColor
-        $backgroundColor = $host.PrivateData.WarningBackgroundColor
-        if ($foregroundColor -isnot [System.ConsoleColor] -or $backgroundColor -isnot [System.ConsoleColor]) {
-            $foregroundColor = [System.ConsoleColor]::Yellow
-            $backgroundColor = [System.ConsoleColor]::Black
-        }
+        $foregroundColor = Get-ConsoleColorOrDefault -Value $host.PrivateData.WarningForegroundColor -DefaultColor ([System.ConsoleColor]::Yellow)
+        $backgroundColor = Get-ConsoleColorOrDefault -Value $host.PrivateData.WarningBackgroundColor -DefaultColor ([System.ConsoleColor]::Black)
     }
 
     Write-Host $command -ForegroundColor $foregroundColor -BackgroundColor $backgroundColor
@@ -615,19 +623,11 @@ function Write-TaskDebug_Internal {
     }
 
     if ($AsVerbose) {
-        $foregroundColor = $host.PrivateData.VerboseForegroundColor
-        $backgroundColor = $host.PrivateData.VerboseBackgroundColor
-        if ($foregroundColor -isnot [System.ConsoleColor] -or $backgroundColor -isnot [System.ConsoleColor]) {
-            $foregroundColor = [System.ConsoleColor]::Cyan
-            $backgroundColor = [System.ConsoleColor]::Black
-        }
+        $foregroundColor = Get-ConsoleColorOrDefault -Value $host.PrivateData.VerboseForegroundColor -DefaultColor ([System.ConsoleColor]::Cyan)
+        $backgroundColor = Get-ConsoleColorOrDefault -Value $host.PrivateData.VerboseBackgroundColor -DefaultColor ([System.ConsoleColor]::Black)
     } else {
-        $foregroundColor = $host.PrivateData.DebugForegroundColor
-        $backgroundColor = $host.PrivateData.DebugBackgroundColor
-        if ($foregroundColor -isnot [System.ConsoleColor] -or $backgroundColor -isnot [System.ConsoleColor]) {
-            $foregroundColor = [System.ConsoleColor]::DarkGray
-            $backgroundColor = [System.ConsoleColor]::Black
-        }
+        $foregroundColor = Get-ConsoleColorOrDefault -Value $host.PrivateData.DebugForegroundColor -DefaultColor ([System.ConsoleColor]::DarkGray)
+        $backgroundColor = Get-ConsoleColorOrDefault -Value $host.PrivateData.DebugBackgroundColor -DefaultColor ([System.ConsoleColor]::Black)
     }
 
     Write-Host -Object $command -ForegroundColor $foregroundColor -BackgroundColor $backgroundColor
