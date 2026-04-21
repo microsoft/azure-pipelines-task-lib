@@ -266,6 +266,17 @@ describe('cp cases', () => {
     done();
   });
 
+  it('cp with ! pattern2', (done) => {
+    const pattern = path.join(GLOB_TEST_DIR, 'file?.!(txt)');
+    assert.doesNotThrow(() => tl.cp(pattern, GLOB_DEST_DIR));
+    assert.ok(!fs.existsSync(path.join(GLOB_DEST_DIR, 'file1.txt')));
+    assert.ok(!fs.existsSync(path.join(GLOB_DEST_DIR, 'file2.txt')));
+    assert.ok(!fs.existsSync(path.join(GLOB_DEST_DIR, 'test.txt')));
+    assert.ok(fs.existsSync(path.join(GLOB_DEST_DIR, 'file3.log')));
+
+    done();
+  });
+
   it('cp with ? pattern matches single character', (done) => {
     
     const pattern = path.join(GLOB_TEST_DIR, 'file?.txt');
@@ -315,7 +326,7 @@ describe('cp cases', () => {
 
   it('cp handles literal @ in path', (done) => {
     const srcDir = path.resolve(DIRNAME, 'dir@test');
-    const destDir = path.resolve(DIRNAME, 'dest-at');
+    const destDir = path.resolve(DIRNAME, 'dest');
     tl.mkdirP(srcDir);
     tl.mkdirP(destDir);
     fs.writeFileSync(path.join(srcDir, 'file.txt'), 'content');
