@@ -1232,14 +1232,14 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
         if (!fs.existsSync(destination) && !force) {
             throw new Error(loc('LIB_PathNotFound', 'cp', destination));
         }
-        const hasGlobPattern =  /[*?{[!@#]/.test(source);
-        if (hasGlobPattern) {
+        const isPattern = /[*?{\[]/.test(source) || /^[#!]/.test(source) || /[@+!]\(/.test(source);
+        if (isPattern) {
             let sourcesToProcess: string[] = [];
             let sourceDir = path.dirname(source);
             sourceDir = sourceDir == '.' ? path.resolve() : sourceDir;
             sourcesToProcess = findMatch(sourceDir, [path.basename(source)]);
             if (sourcesToProcess.length === 0) {
-                debug(`No matches found for glob pattern: ${source}`);
+                debug(`No matches found for pattern: ${source}`);
             }
             for (const src of sourcesToProcess) {
                 cp(src, destination, options as CopyOptionsVariants, continueOnError, retryCount);
