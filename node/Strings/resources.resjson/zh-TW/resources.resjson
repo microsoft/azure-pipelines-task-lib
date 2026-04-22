@@ -1,4 +1,5 @@
 {
+  "loc.messages.LIB_CopyDirectoryWithoutRecursiveOption": "cp: cannot copy a directory '%s' without the recursive option",
   "loc.messages.LIB_CopyFileFailed": "複製檔案時發生錯誤。剩餘嘗試次數: %s",
   "loc.messages.LIB_DirectoryStackEmpty": "目錄堆疊是空的",
   "loc.messages.LIB_EndpointAuthNotExist": "端點驗證資料不存在: %s",
