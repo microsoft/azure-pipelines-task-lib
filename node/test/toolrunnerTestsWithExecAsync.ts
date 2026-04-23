@@ -951,7 +951,7 @@ describe('Toolrunner Tests With ExecAsync', function () {
                 })
         }
     })
-    it.skip('Exec pipe output to file and another tool, fails if second tool fails', function (done) {
+    it('Exec pipe output to file and another tool, fails if second tool fails', function (done) {
         this.timeout(20000);
 
         var _testExecOptions = <trm.IExecOptions>{
