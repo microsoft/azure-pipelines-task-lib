@@ -1,4 +1,5 @@
 {
+  "loc.messages.LIB_CopyDirectoryWithoutRecursiveOption": "cp: cannot copy a directory '%s' without the recursive option",
   "loc.messages.LIB_CopyFileFailed": "ファイルのコピー中にエラーが発生しました。残りの試行回数: %s",
   "loc.messages.LIB_DirectoryStackEmpty": "ディレクトリ スタックが空です",
   "loc.messages.LIB_EndpointAuthNotExist": "エンドポイントの認証データがありません: %s",
