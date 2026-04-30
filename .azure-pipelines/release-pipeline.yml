@@ -1,8 +1,12 @@
-# PR validation pipeline - build and test only, no publishing
-# The Task 'PublishPipelineArtifact@1' has been converted to an output named '' in the templateContext section.
-trigger: none
+# CI/Release pipeline - triggers on merge to master/releases, builds, tests, and publishes packages
+# This pipeline will be extended to the OneESPT template
+trigger:
+- master
+- features/*
+- releases/*
 
 variables:
+- group: npm-tokens
 - name: nodeVersion
   value: '16.13.0'
 - name: nodeVersionForPowershell
@@ -42,7 +46,7 @@ extends:
         steps:
         - template: /azure-pipelines-steps-node.yml@self
           parameters:
-            os: Windows_NT  
+            os: Windows_NT
 
       #################################################
       - job: linux
@@ -61,6 +65,15 @@ extends:
         - template: /azure-pipelines-steps-node.yml@self
           parameters:
             os: Linux
+
+        - bash: |
+            echo //registry.npmjs.org/:_authToken=\${NPM_TOKEN} > .npmrc
+            npm publish || true # Ignore publish failures, usually will happen because package already exists
+          displayName: (task-lib) npm publish
+          workingDirectory: node/_build
+          condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), in(variables['build.sourcebranch'], 'refs/heads/master'))
+          env:
+            NPM_TOKEN: $(npm-automation.token)
 
       #################################################
       - job: macOS
