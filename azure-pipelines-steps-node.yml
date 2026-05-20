@@ -42,7 +42,7 @@ steps:
     inputs:
       command: build
       projects: 'powershell/CompiledHelpers/VstsTaskSdk.csproj'
-      arguments: '--configuration Release'
+      arguments: '--configuration Release --no-restore'
 
   - task: NodeTool@0
     displayName: use node $(nodeVersionForPowershell) for PowerShell SDK
