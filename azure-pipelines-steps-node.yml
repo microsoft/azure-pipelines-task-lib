@@ -36,6 +36,15 @@ steps:
 
 # Only on Windows. Build VstsTaskSdk for powershell 
 - ${{ if eq(parameters.os, 'Windows_NT') }}:
+  # Restore NuGet packages from internal feed (CFS compliant)
+  - task: DotNetCoreCLI@2
+    displayName: 'Restore .NET project(s)'
+    inputs:
+      command: restore
+      projects: 'powershell/CompiledHelpers/VstsTaskSdk.csproj'
+      feedsToUse: config
+      nugetConfigPath: 'NuGet.Config'
+
   # Build step for .NET source code. This is needed to enable CodeQL for C# code
   - task: DotNetCoreCLI@2
     displayName: 'Build .NET project(s)'
