@@ -1234,7 +1234,7 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
         }
         const isPattern = /[*?{\[]/.test(source) || /[@+!]\(/.test(source);
         if (isPattern) {
-           const defaultRoot = getVariable('system.defaultWorkingDirectory') || process.cwd();
+            const defaultRoot = getVariable('system.defaultWorkingDirectory') || process.cwd();
             const sourcesToProcess = findMatch(defaultRoot, [source], undefined, <MatchOptions>{nonegate: true, nocomment: true});
             if (sourcesToProcess.length > 0) {
                 for (const src of sourcesToProcess) {
