@@ -339,6 +339,45 @@ describe('cp cases', () => {
     done();
   });
 
+  it('cp falls back to literal copy when glob pattern returns no results', (done) => {
+    const srcDir = path.resolve(DIRNAME, '[Test] dir');
+    const destDir = path.resolve(DIRNAME, 'dest');
+    tl.mkdirP(srcDir);
+    tl.mkdirP(destDir);
+    fs.writeFileSync(path.join(srcDir, 'file.txt'), 'content');
+
+    assert.doesNotThrow(() => tl.cp(path.join(srcDir, 'file.txt'), destDir));
+    assert.ok(fs.existsSync(path.join(destDir, 'file.txt')));
+    assert.equal(fs.readFileSync(path.join(destDir, 'file.txt'), 'utf8'), 'content');
+
+    tl.rmRF(srcDir);
+    tl.rmRF(destDir);
+    done();
+  });
+
+  it('cp with recursive full-path glob pattern', (done) => {
+    const nestedRoot = path.join(DIRNAME, 'src');
+    const nestedDirOne = path.join(nestedRoot, 'one');
+    const nestedDirTwo = path.join(nestedRoot, 'two', 'deep');
+    const ignoredDir = path.join(nestedRoot, 'skip');
+
+    tl.mkdirP(nestedDirOne);
+    tl.mkdirP(nestedDirTwo);
+    tl.mkdirP(ignoredDir);
+
+    fs.writeFileSync(path.join(nestedDirOne, 'file-one.txt'), 'nested-one');
+    fs.writeFileSync(path.join(nestedDirTwo, 'file-two.txt'), 'nested-two');
+    fs.writeFileSync(path.join(ignoredDir, 'other.log'), 'ignored');
+    const pattern = path.join(nestedRoot, '**', '*.txt');
+    assert.doesNotThrow(() => tl.cp(pattern, GLOB_DEST_DIR));
+    assert.ok(fs.existsSync(path.join(GLOB_DEST_DIR, 'file-one.txt')));
+    assert.ok(fs.existsSync(path.join(GLOB_DEST_DIR, 'file-two.txt')));
+    assert.ok(!fs.existsSync(path.join(GLOB_DEST_DIR, 'other.log')));
+
+    tl.rmRF(nestedRoot);
+    done();
+  });
+
   it('Handles non-normalized paths', (done) => {
     tl.mkdirP('dirC');
     fs.writeFileSync(path.join('dirC', 'file.txt'), 'abc');

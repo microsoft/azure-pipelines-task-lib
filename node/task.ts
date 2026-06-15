@@ -1232,19 +1232,18 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
         if (!fs.existsSync(destination) && !force) {
             throw new Error(loc('LIB_PathNotFound', 'cp', destination));
         }
-        const isPattern = /[*?{\[]/.test(source) || /^[#!]/.test(source) || /[@+!]\(/.test(source);
+        const isPattern = /[*?{\[]/.test(source) || /[@+!]\(/.test(source);
         if (isPattern) {
-            let sourcesToProcess: string[] = [];
-            let sourceDir = path.dirname(source);
-            sourceDir = sourceDir == '.' ? path.resolve() : sourceDir;
-            sourcesToProcess = findMatch(sourceDir, [path.basename(source)]);
-            if (sourcesToProcess.length === 0) {
-                debug(`No matches found for pattern: ${source}`);
+            const defaultRoot = getVariable('system.defaultWorkingDirectory') || process.cwd();
+            const sourcesToProcess = findMatch(defaultRoot, [source], undefined, <MatchOptions>{nonegate: true, nocomment: true});
+            if (sourcesToProcess.length > 0) {
+                for (const src of sourcesToProcess) {
+                    cp(src, destination, options as CopyOptionsVariants, continueOnError, retryCount);
+                }
+                return;
+            } else {
+                debug(`No matches found for the pattern: ${source}. Fallback to check for the literal path.`);
             }
-            for (const src of sourcesToProcess) {
-                cp(src, destination, options as CopyOptionsVariants, continueOnError, retryCount);
-            }
-            return;
         }
         var lstatSource = fs.lstatSync(source);
 
