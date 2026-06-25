@@ -3,7 +3,6 @@ import fs = require('fs');
 import path = require('path');
 import crypto = require('crypto');
 
-var uuidV4 = require('uuid/v4');
 var algorithm = "aes-256-ctr";
 var encryptEncoding: 'hex' = 'hex';
 var unencryptedEncoding: 'utf8' = 'utf8';
@@ -18,23 +17,22 @@ var unencryptedEncoding: 'utf8' = 'utf8';
 export class Vault {
     constructor(keyPath: string) {
         this._keyFile = path.join(keyPath, '.taskkey');
-        this._store = <{[key: string] : string}>{};
+        this._store = <{ [key: string]: string }>{};
         this.genKey();
     }
 
     private _keyFile: string;
-    private _store: { [key: string] : string };
+    private _store: { [key: string]: string };
 
-    public initialize(): void {
-
-    }
+    public initialize(): void { }
 
     public storeSecret(name: string, data: string): boolean {
         if (!name || name.length == 0) {
             return false;
         }
 
-        name = name.toLowerCase()
+        name = name.toLowerCase();
+
         if (!data || data.length == 0) {
             if (this._store.hasOwnProperty(name)) {
                 delete this._store[name];
@@ -56,7 +54,7 @@ export class Vault {
 
     public retrieveSecret(name: string): string | undefined {
         var secret: string | undefined;
-        name = (name || '').toLowerCase()
+        name = (name || '').toLowerCase();
 
         if (this._store.hasOwnProperty(name)) {
             var key = this.getKey();
@@ -75,14 +73,13 @@ export class Vault {
         return secret;
     }
 
-    private getKey()
-    {
+    private getKey() {
         var key = fs.readFileSync(this._keyFile).toString('utf8');
         // Key needs to be hashed to correct length to match algorithm (aes-256-ctr)
         return crypto.createHash('sha256').update(key).digest();
     }
 
     private genKey(): void {
-        fs.writeFileSync(this._keyFile, uuidV4(), {encoding: 'utf8'});
+        fs.writeFileSync(this._keyFile, crypto.randomUUID(), { encoding: 'utf8' });
     }
 }
