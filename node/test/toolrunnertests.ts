@@ -7,6 +7,7 @@ import fs = require('fs');
 import path = require('path');
 import os = require('os');
 import stream = require('stream');
+
 import * as tl from '../_build/task';
 import * as trm from '../_build/toolrunner';
 
@@ -15,19 +16,14 @@ import testutil = require('./testutil');
 const signals: (number | NodeJS.Signals)[] = ['SIGTERM', 'SIGINT', 'SIGKILL', 15, 2, 9];
 
 describe('Toolrunner Tests', function () {
-
     before(function (done) {
         try {
             testutil.initialize();
-        }
-        catch (err) {
+        } catch (err) {
             assert.fail('Failed to load task lib: ' + err.message);
         }
+
         done();
-    });
-
-    after(function () {
-
     });
 
     it('ExecSync convenience with stdout', function (done) {
@@ -46,15 +42,15 @@ describe('Toolrunner Tests', function () {
         if (os.platform() === 'win32') {
             var ret = tl.execSync('cmd', '/c echo \'azure-pipelines-task-lib\'', _testExecOptions);
             assert.equal(ret.code, 0, 'return code of cmd should be 0');
-        }
-        else {
+        } else {
             var ret = tl.execSync('ls', '-l -a', _testExecOptions);
             assert.equal(ret.code, 0, 'return code of ls should be 0');
         }
 
         assert(ret.stdout && ret.stdout.length > 0, 'should have emitted stdout');
         done();
-    })
+    });
+
     it('ExecSync with stdout', function (done) {
         this.timeout(10000);
 
@@ -207,8 +203,8 @@ describe('Toolrunner Tests', function () {
         const node = tl.tool(tl.which('node', true));
         node.arg(scriptPath);
 
-        const stdlines = [];
-        const errlines = [];
+        const stdlines: string[] = [];
+        const errlines: string[] = [];
 
         node.on('stdline', function (line) {
             stdlines.push(line);
@@ -231,7 +227,8 @@ describe('Toolrunner Tests', function () {
         assert.deepStrictEqual(code, 0, 'return code of cmd should be 0');
         assert.deepStrictEqual(stdlines, ['stdline 1', 'stdline 2', 'stdline 3'], 'should have emitted stdlines');
         assert.deepStrictEqual(errlines, ['errline 1', 'errline 2', 'errline 3'], 'should have emitted errlines');
-    })
+    });
+
     it('Execs with stdout', function (done) {
         this.timeout(10000);
 
@@ -264,8 +261,7 @@ describe('Toolrunner Tests', function () {
                 .catch(function (err) {
                     done(err);
                 });
-        }
-        else {
+        } else {
             var ls = tl.tool(tl.which('ls', true));
             ls.arg('-l');
             ls.arg('-a');
@@ -326,8 +322,7 @@ describe('Toolrunner Tests', function () {
                 .catch(function (err) {
                     done(err);
                 });
-        }
-        else {
+        } else {
             var bash = tl.tool(tl.which('bash', true));
             bash.arg('--noprofile');
             bash.arg('--norc');
@@ -463,7 +458,8 @@ describe('Toolrunner Tests', function () {
             .catch(function (err) {
                 done(err);
             });
-    })
+    });
+
     it('Handles child process holding streams open', function (done) {
         this.timeout(10000);
 
@@ -481,14 +477,13 @@ describe('Toolrunner Tests', function () {
                 .arg('/S') // Will cause first and last quote after /C to be stripped.
                 .arg('/C')
                 .arg(`"start "" /B "${nodePath}" "${scriptPath}" "file=${semaphorePath}""`);
-        }
-        else {
+        } else {
             shell = tl.tool(tl.which('bash', true))
                 .arg('-c')
                 .arg(`node '${scriptPath}' 'file=${semaphorePath}' &`);
         }
 
-        let toolRunnerDebug = [];
+        let toolRunnerDebug: string[] = [];
         shell.on('debug', function (data) {
             toolRunnerDebug.push(data);
         });
@@ -525,7 +520,7 @@ describe('Toolrunner Tests', function () {
             this.timeout(10000);
 
             let shell: trm.ToolRunner;
-            let tool;
+            let tool: string;
             if (os.platform() == 'win32') {
                 tool = tl.which('cmd.exe', true);
                 shell = tl.tool(tool)
@@ -543,7 +538,7 @@ describe('Toolrunner Tests', function () {
                     .arg("sleep 3");
             }
 
-            let toolRunnerDebug = [];
+            const toolRunnerDebug: string[] = [];
             shell.on('debug', function (data) {
                 toolRunnerDebug.push(data);
             });
@@ -566,7 +561,7 @@ describe('Toolrunner Tests', function () {
                 })
                 .catch(function () {
                     if (typeof signal === 'number') {
-                        signal = Object.keys(os.constants.signals).find(x => os.constants.signals[x] == signal) as NodeJS.Signals;
+                        signal = (Object.keys(os.constants.signals) as Array<keyof typeof os.constants.signals>).find(x => os.constants.signals[x] == signal) as NodeJS.Signals;
                     }
                     assert(toolRunnerDebug.pop(), `STDIO streams have closed and received exit code null and signal ${signal} for tool '${tool}'`);
                     done();
@@ -603,7 +598,7 @@ describe('Toolrunner Tests', function () {
                 .arg(`node '${scriptPath}' 'file=${semaphorePath}' & exit 123`);
         }
 
-        let toolRunnerDebug = [];
+        const toolRunnerDebug: string[] = [];
         shell.on('debug', function (data) {
             toolRunnerDebug.push(data);
         });
@@ -638,7 +633,8 @@ describe('Toolrunner Tests', function () {
                 fs.unlinkSync(semaphorePath);
                 delete process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'];
             });
-    })
+    });
+
     it('Handles child process holding streams open and stderr', function (done) {
         this.timeout(10000);
 
@@ -663,7 +659,7 @@ describe('Toolrunner Tests', function () {
                 .arg(`node '${scriptPath}' 'file=${semaphorePath}' & echo hi 1>&2`);
         }
 
-        let toolRunnerDebug = [];
+        const toolRunnerDebug: string[] = [];
         shell.on('debug', function (data) {
             toolRunnerDebug.push(data);
         });
@@ -1329,7 +1325,7 @@ describe('Toolrunner Tests', function () {
         node.arg('-y');
         assert.equal((node as any).args.length, 3, 'should have 3 args');
         assert.equal((node as any).args.toString(), '-TEST=escaped"quotes,-x,-y', 'should be -TEST=escaped"quotes,-x,-y');
-        done();        
+        done();
     })
     if (process.platform != 'win32') {
         it('exec prints [command] (OSX/Linux)', function (done) {
@@ -1373,7 +1369,7 @@ describe('Toolrunner Tests', function () {
             this.timeout(10000);
 
             // the echo built-in is a good tool for this test
-            let exePath = process.env.ComSpec;
+            let exePath = process.env['ComSpec']!;
             let exeRunner = tl.tool(exePath)
                 .arg('/c')
                 .arg('echo')
@@ -1407,7 +1403,7 @@ describe('Toolrunner Tests', function () {
             this.timeout(10000);
 
             // the echo built-in is a good tool for this test
-            let exePath = process.env.ComSpec;
+            let exePath = process.env['ComSpec']!;
             let exeRunner = tl.tool(exePath)
                 .arg('/c')
                 .arg('echo')
@@ -1505,7 +1501,7 @@ describe('Toolrunner Tests', function () {
                     // validate the [command] header
                     assert.equal(
                         outStream.getContents().split(os.EOL)[0],
-                        `[command]${process.env.ComSpec} /D /S /C ""${cmdPath}" arg1 arg2 arg3"`);
+                        `[command]${process.env['ComSpec']} /D /S /C ""${cmdPath}" arg1 arg2 arg3"`);
                     // validate stdout
                     assert.equal(
                         output.trim(),
@@ -1541,7 +1537,7 @@ describe('Toolrunner Tests', function () {
                     // validate the [command] header
                     assert.equal(
                         outStream.getContents().split(os.EOL)[0],
-                        `[command]${process.env.ComSpec} /D /S /C ""${cmdPath}" "my arg 1" "my arg 2""`);
+                        `[command]${process.env['ComSpec']} /D /S /C ""${cmdPath}" "my arg 1" "my arg 2""`);
                     // validate stdout
                     assert.equal(
                         output.trim(),
@@ -1596,7 +1592,7 @@ describe('Toolrunner Tests', function () {
                     // validate the [command] header
                     assert.equal(
                         outStream.getContents().split(os.EOL)[0],
-                        '[command]' + process.env.ComSpec + ' /D /S /C ""' + cmdPath + '"'
+                        '[command]' + process.env['ComSpec'] + ' /D /S /C ""' + cmdPath + '"'
                         + ' helloworld'
                         + ' "hello world"'
                         + ' "hello\tworld"'
@@ -1664,7 +1660,7 @@ describe('Toolrunner Tests', function () {
             this.timeout(10000);
 
             // the echo built-in is a good tool for this test
-            let exePath = process.env.ComSpec;
+            let exePath = process.env['ComSpec']!;
             let exeRunner = tl.tool(exePath)
                 .arg('/c')
                 .arg('echo')
@@ -1689,7 +1685,7 @@ describe('Toolrunner Tests', function () {
             this.timeout(10000);
 
             // the echo built-in is a good tool for this test
-            let exePath = process.env.ComSpec;
+            let exePath = process.env['ComSpec']!;
             let exeRunner = tl.tool(exePath)
                 .arg('/c')
                 .arg('echo')
@@ -1762,7 +1758,7 @@ describe('Toolrunner Tests', function () {
             // validate the [command] header
             assert.equal(
                 outStream.getContents().split(os.EOL)[0],
-                `[command]${process.env.ComSpec} /D /S /C ""${cmdPath}" arg1 arg2 arg3"`);
+                `[command]${process.env['ComSpec']} /D /S /C ""${cmdPath}" arg1 arg2 arg3"`);
             // validate stdout
             assert.equal(
                 result.stdout.trim(),
@@ -1788,7 +1784,7 @@ describe('Toolrunner Tests', function () {
             // validate the [command] header
             assert.equal(
                 outStream.getContents().split(os.EOL)[0],
-                `[command]${process.env.ComSpec} /D /S /C ""${cmdPath}" "my arg 1" "my arg 2""`);
+                `[command]${process.env['ComSpec']} /D /S /C ""${cmdPath}" "my arg 1" "my arg 2""`);
             // validate stdout
             assert.equal(
                 result.stdout.trim(),
@@ -1833,7 +1829,7 @@ describe('Toolrunner Tests', function () {
             // validate the [command] header
             assert.equal(
                 outStream.getContents().split(os.EOL)[0],
-                '[command]' + process.env.ComSpec + ' /D /S /C ""' + cmdPath + '"'
+                '[command]' + process.env['ComSpec'] + ' /D /S /C ""' + cmdPath + '"'
                 + ' helloworld'
                 + ' "hello world"'
                 + ' "hello\tworld"'
@@ -1900,7 +1896,7 @@ describe('Toolrunner Tests', function () {
             let cmdRunner = tl.tool(cmdPath)
                 .arg('"hello world"');
 
-            let exePath = path.join(process.env.windir, 'System32', 'find.exe');
+            let exePath = path.join(process.env['windir']!, 'System32', 'find.exe');
             let exeRunner = tl.tool(exePath)
                 .arg('hello world');
 
@@ -1917,7 +1913,7 @@ describe('Toolrunner Tests', function () {
                     // validate the [command] header
                     assert.equal(
                         outStream.getContents().split(os.EOL)[0],
-                        '[command]' + process.env.ComSpec + ' /D /S /C ""' + cmdPath + '" """hello world""""'
+                        '[command]' + process.env['ComSpec'] + ' /D /S /C ""' + cmdPath + '" """hello world""""'
                         + ' | ' + exePath + ' "hello world"');
                     // validate stdout
                     assert.equal(
@@ -1937,7 +1933,7 @@ describe('Toolrunner Tests', function () {
             let cmdRunner = tl.tool(cmdPath)
                 .arg('hello world');
 
-            let exePath = path.join(process.env.windir, 'System32', 'find.exe');
+            let exePath = path.join(process.env['windir']!, 'System32', 'find.exe');
             let exeRunner = tl.tool(exePath)
                 .arg('"world"');
 
@@ -1954,7 +1950,7 @@ describe('Toolrunner Tests', function () {
                     // validate the [command] header
                     assert.equal(
                         outStream.getContents().split(os.EOL)[0],
-                        '[command]' + process.env.ComSpec + ' /D /S /C ""' + cmdPath + '" hello world"'
+                        '[command]' + process.env['ComSpec'] + ' /D /S /C ""' + cmdPath + '" hello world"'
                         + ' | "' + exePath + '" "world"');
                     // validate stdout
                     assert.equal(
@@ -2148,8 +2144,7 @@ describe('Toolrunner Tests', function () {
         try {
             fs.statSync(exePath);
             return exePath;
-        }
-        catch (err) {
+        } catch (err) {
             if (err.code != 'ENOENT') {
                 throw err;
             }

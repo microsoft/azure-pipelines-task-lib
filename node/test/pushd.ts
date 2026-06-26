@@ -152,7 +152,7 @@ describe('pushd cases', () => {
       path.resolve(TEMP_DIR_PATH, 'b', 'c'),
       path.resolve(TEMP_DIR_PATH, 'b'),
     ]);
-    
+
     done();
   });
 

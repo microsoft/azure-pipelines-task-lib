@@ -6,31 +6,26 @@ import * as tl from '../_build/task';
 import testutil = require('./testutil');
 
 describe('Match Tests', function () {
-
     before(function (done) {
         try {
             testutil.initialize();
-        }
-        catch (err) {
+        } catch (err) {
             assert.fail('Failed to load task lib: ' + err.message);
         }
         done();
     });
 
-    after(function () {
-    });
-
     it('single pattern', (done) => {
         this.timeout(1000);
 
-        let list: string[] = [
+        const list: string[] = [
             '/projects/myproj1/myproj1.proj',
             '/projects/myproj2/myproj2.proj',
             '/projects/myproj2/readme.txt'
         ];
-        let pattern: string = '/projects/**/*.proj';
-        let options: tl.MatchOptions = { matchBase: true };
-        let result: string[] = tl.match(list, pattern, null, options);
+        const pattern: string = '/projects/**/*.proj';
+        const options: tl.MatchOptions = { matchBase: true };
+        const result: string[] = tl.match(list, pattern, undefined, options);
         assert.equal(result.length, 2);
         assert.equal(result[0], '/projects/myproj1/myproj1.proj');
         assert.equal(result[1], '/projects/myproj2/myproj2.proj');
@@ -41,17 +36,17 @@ describe('Match Tests', function () {
     it('aggregates matches', (done) => {
         this.timeout(1000);
 
-        let list: string[] = [
+        const list: string[] = [
             '/projects/myproj1/myproj1.proj',
             '/projects/myproj2/myproj2.proj',
             '/projects/myproj3/myproj3.proj'
         ];
-        let patterns: string[] = [
+        const patterns: string[] = [
             '/projects/**/myproj1.proj',
             '/projects/**/myproj2.proj'
         ];
-        let options: tl.MatchOptions = { matchBase: true };
-        let result: string[] = tl.match(list, patterns, null, options);
+        const options: tl.MatchOptions = { matchBase: true };
+        const result: string[] = tl.match(list, patterns, undefined, options);
         assert.equal(result.length, 2);
         assert.equal(result[0], '/projects/myproj1/myproj1.proj');
         assert.equal(result[1], '/projects/myproj2/myproj2.proj');
@@ -62,18 +57,18 @@ describe('Match Tests', function () {
     it('does not duplicate matches', (done) => {
         this.timeout(1000);
 
-        let list: string[] = [
+        const list: string[] = [
             '/solution1/proj1.proj',
             '/solution1/proj2.proj',
             '/solution2/proj1.proj',
             '/not-included/readme.txt'
         ];
-        let patterns: string[] = [
+        const patterns: string[] = [
             '/solution1/proj*.proj',
             '/**/proj1.proj'
         ];
-        let actual: string[] = tl.match(list, patterns);
-        let expected: string[] = [
+        const actual: string[] = tl.match(list, patterns);
+        const expected: string[] = [
             '/solution1/proj1.proj',
             '/solution1/proj2.proj',
             '/solution2/proj1.proj',
@@ -86,22 +81,22 @@ describe('Match Tests', function () {
     it('preserves order', (done) => {
         this.timeout(1000);
 
-        let list: string[] = [
+        const list: string[] = [
             '/projects/myproj1/myproj1.proj',
             '/projects/myproj2/myproj2.proj',
             '/projects/myproj3/myproj3.proj',
             '/projects/myproj4/myproj4.proj',
             '/projects/myproj5/myproj5.proj'
         ];
-        let patterns: string[] = [
+        const patterns: string[] = [
             '/projects/**/myproj2.proj', // mix up the order
             '/projects/**/myproj5.proj',
             '/projects/**/myproj3.proj',
             '/projects/**/myproj1.proj',
             '/projects/**/myproj4.proj',
         ];
-        let options: tl.MatchOptions = { matchBase: true };
-        let result: string[] = tl.match(list, patterns, null, options);
+        const options: tl.MatchOptions = { matchBase: true };
+        const result: string[] = tl.match(list, patterns, undefined, options);
         assert.equal(result.length, 5);
         assert.equal(result[0], '/projects/myproj1/myproj1.proj'); // should follow original list order
         assert.equal(result[1], '/projects/myproj2/myproj2.proj');
@@ -115,7 +110,7 @@ describe('Match Tests', function () {
     it('supports interleaved exclude patterns', (done) => {
         this.timeout(1000);
 
-        let list: string[] = [
+        const list: string[] = [
             '/solution1/proj1/proj1.proj',
             '/solution1/proj1/README.txt',
             '/solution1/proj2/proj2.proj',
@@ -127,13 +122,13 @@ describe('Match Tests', function () {
             '/solution2/proj2/README.txt',
             '/solution2/solution2.sln',
         ];
-        let patterns: string[] = [
+        const patterns: string[] = [
             '**/@(*.proj|README.txt)',  // include all proj and README files
             '!**/solution2/**',         // exclude the solution 2 folder entirely
             '**/*.sln',                 // include all sln files
             '!**/proj2/README.txt'      // exclude proj2 README files
         ];
-        let result: string[] = tl.match(list, patterns);
+        const result: string[] = tl.match(list, patterns);
         assert.equal(result.length, 5);
         assert.equal(result[0], '/solution1/proj1/proj1.proj');
         assert.equal(result[1], '/solution1/proj1/README.txt');
@@ -147,7 +142,7 @@ describe('Match Tests', function () {
     it('applies default options', (done) => {
         this.timeout(1000);
 
-        let list: string[] = [
+        const list: string[] = [
             '/brace-test/brace_{hello,world}.txt',
             '/brace-test/brace_hello.txt',
             '/brace-test/brace_world.txt',
@@ -168,7 +163,7 @@ describe('Match Tests', function () {
             '/negate-test/hello.txt',
             '/negate-test/world.txt',
         ];
-        let patterns: string[] = [
+        const patterns: string[] = [
             '/brace-test/brace_{hello,world}.txt',
             '/glob-star-test/**',
             '/dot-test/*/*.txt',
@@ -179,8 +174,8 @@ describe('Match Tests', function () {
             '/negate-test/*',
             '!/negate-test/hello.txt',
         ];
-        let actual: string[] = tl.match(list, patterns);
-        let expected: string[] = [];
+        const actual: string[] = tl.match(list, patterns);
+        const expected: string[] = [];
         expected.push('/brace-test/brace_{hello,world}.txt');
         expected.push('/glob-star-test/hello/world/hello-world.txt');
         expected.push('/glob-star-test/hello/hello.txt');
@@ -203,15 +198,15 @@ describe('Match Tests', function () {
     it('trims patterns', (done) => {
         this.timeout(1000);
 
-        let list: string[] = [
+        const list: string[] = [
             ' hello-world.txt ',
             'hello-world.txt',
         ];
-        let patterns: string[] = [
+        const patterns: string[] = [
             ' hello-world.txt ',
         ];
-        let actual: string[] = tl.match(list, patterns);
-        let expected: string[] = [
+        const actual: string[] = tl.match(list, patterns);
+        const expected: string[] = [
             'hello-world.txt'
         ];
         assert.deepEqual(actual, expected);
@@ -222,18 +217,18 @@ describe('Match Tests', function () {
     it('skips empty patterns', (done) => {
         this.timeout(1000);
 
-        let list: string[] = [
+        const list: string[] = [
             '',
             ' ',
             'hello-world.txt',
         ];
-        let patterns: string[] = [
+        const patterns: string[] = [
             '',
             ' ',
             'hello-world.txt',
         ];
-        let actual: string[] = tl.match(list, patterns);
-        let expected: string[] = [
+        const actual: string[] = tl.match(list, patterns);
+        const expected: string[] = [
             'hello-world.txt'
         ];
         assert.deepEqual(actual, expected);
@@ -244,15 +239,15 @@ describe('Match Tests', function () {
     it('supports nocomment true', (done) => {
         this.timeout(1000);
 
-        let list: string[] = [
+        const list: string[] = [
             '#hello-world.txt',
             'hello-world.txt',
         ];
-        let patterns: string[] = [
+        const patterns: string[] = [
             '#hello-world.txt',
         ];
-        let actual: string[] = tl.match(list, patterns, null, <tl.MatchOptions>{ nocomment: true });
-        let expected: string[] = [
+        const actual: string[] = tl.match(list, patterns, undefined, <tl.MatchOptions>{ nocomment: true });
+        const expected: string[] = [
             '#hello-world.txt'
         ];
         assert.deepEqual(actual, expected);
@@ -263,15 +258,15 @@ describe('Match Tests', function () {
     it('supports nonegate true', (done) => {
         this.timeout(1000);
 
-        let list: string[] = [
+        const list: string[] = [
             '!hello-world.txt',
             'hello-world.txt',
         ];
-        let patterns: string[] = [
+        const patterns: string[] = [
             '!hello-world.txt',
         ];
-        let actual: string[] = tl.match(list, patterns, null, <tl.MatchOptions>{ nonegate: true });
-        let expected: string[] = [
+        const actual: string[] = tl.match(list, patterns, undefined, <tl.MatchOptions>{ nonegate: true });
+        const expected: string[] = [
             '!hello-world.txt'
         ];
         assert.deepEqual(actual, expected);
@@ -282,15 +277,15 @@ describe('Match Tests', function () {
     it('supports flipNegate true', (done) => {
         this.timeout(1000);
 
-        let list: string[] = [
+        const list: string[] = [
             '!hello-world.txt',
             'hello-world.txt',
         ];
-        let patterns: string[] = [
+        const patterns: string[] = [
             '!hello-world.txt',
         ];
-        let actual: string[] = tl.match(list, patterns, null, <tl.MatchOptions>{ flipNegate: true });
-        let expected: string[] = [
+        const actual: string[] = tl.match(list, patterns, undefined, <tl.MatchOptions>{ flipNegate: true });
+        const expected: string[] = [
             'hello-world.txt'
         ];
         assert.deepEqual(actual, expected);
@@ -301,7 +296,7 @@ describe('Match Tests', function () {
     it('counts leading negate markers', (done) => {
         this.timeout(1000);
 
-        let list: string[] = [
+        const list: string[] = [
             '/hello/world.txt',
             '/hello/two-negate-markers.txt',
             '/hello/four-negate-markers.txt',
@@ -309,15 +304,15 @@ describe('Match Tests', function () {
             '/initial-includes/one-negate-markers.txt',
             '/initial-includes/three-negate-markers.txt',
         ];
-        let patterns: string[] = [
+        const patterns: string[] = [
             '/initial-includes/*.txt',
             '!!/hello/two-negate-markers.txt',
             '!!!!/hello/four-negate-markers.txt',
             '!/initial-includes/one-negate-markers.txt',
             '!!!/initial-includes/three-negate-markers.txt',
         ];
-        let actual: string[] = tl.match(list, patterns);
-        let expected: string[] = [
+        const actual: string[] = tl.match(list, patterns);
+        const expected: string[] = [
             '/hello/two-negate-markers.txt',
             '/hello/four-negate-markers.txt',
             '/initial-includes/hello.txt',
@@ -330,16 +325,16 @@ describe('Match Tests', function () {
     it('trims whitespace after trimming negate markers', (done) => {
         this.timeout(1000);
 
-        let list: string[] = [
+        const list: string[] = [
             'hello.txt',
             'world.txt',
         ];
-        let patterns: string[] = [
+        const patterns: string[] = [
             '*',
             '! hello.txt',
         ];
-        let actual: string[] = tl.match(list, patterns);
-        let expected: string[] = [
+        const actual: string[] = tl.match(list, patterns);
+        const expected: string[] = [
             'world.txt',
         ];
         assert.deepEqual(actual, expected);
@@ -350,17 +345,17 @@ describe('Match Tests', function () {
     it('evaluates comments before negation', (done) => {
         this.timeout(1000);
 
-        let list: string[] = [
+        const list: string[] = [
             '#hello.txt',
             'hello.txt',
             'world.txt',
         ];
-        let patterns: string[] = [
+        const patterns: string[] = [
             '*',
             '!#hello.txt',
         ];
-        let actual: string[] = tl.match(list, patterns);
-        let expected: string[] = [
+        const actual: string[] = tl.match(list, patterns);
+        const expected: string[] = [
             'hello.txt',
             'world.txt',
         ];
@@ -372,20 +367,20 @@ describe('Match Tests', function () {
     it('applies pattern root for include patterns', (done) => {
         this.timeout(1000);
 
-        let list: string[] = [
+        const list: string[] = [
             '/matching/pattern/root/hello.txt',
             '/matching/pattern/root/hello/world.txt',
             '/matching/pattern/root/other.zzz',
             '/non-matching/pattern/root/hello.txt',
             '/non-matching/pattern/root/hello/world.txt',
         ];
-        let patterns: string[] = [
+        const patterns: string[] = [
             'hello.txt',
             '**/world.txt',
         ];
-        let patternRoot = '/matching/pattern/root';
-        let actual: string[] = tl.match(list, patterns, patternRoot);
-        let expected: string[] = [
+        const patternRoot = '/matching/pattern/root';
+        const actual: string[] = tl.match(list, patterns, patternRoot);
+        const expected: string[] = [
             '/matching/pattern/root/hello.txt',
             '/matching/pattern/root/hello/world.txt',
         ];
@@ -397,21 +392,21 @@ describe('Match Tests', function () {
     it('applies pattern root for exclude patterns', (done) => {
         this.timeout(1000);
 
-        let list: string[] = [
+        const list: string[] = [
             '/matching/pattern/root/hello.txt',
             '/matching/pattern/root/hello/world.txt',
             '/matching/pattern/root/other.zzz',
             '/non-matching/pattern/root/hello.txt',
             '/non-matching/pattern/root/hello/world.txt',
         ];
-        let patterns: string[] = [
+        const patterns: string[] = [
             '/**/*',
             '!hello.txt',
             '!**/world.txt',
         ];
-        let patternRoot = '/matching/pattern/root';
-        let actual: string[] = tl.match(list, patterns, patternRoot);
-        let expected: string[] = [
+        const patternRoot = '/matching/pattern/root';
+        const actual: string[] = tl.match(list, patterns, patternRoot);
+        const expected: string[] = [
             '/matching/pattern/root/other.zzz',
             '/non-matching/pattern/root/hello.txt',
             '/non-matching/pattern/root/hello/world.txt',
@@ -424,21 +419,21 @@ describe('Match Tests', function () {
     it('does not apply pattern root for basename matchBase include patterns', (done) => {
         this.timeout(1000);
 
-        let list: string[] = [
+        const list: string[] = [
             '/matching/pattern/root/hello.txt',
             '/matching/pattern/root/hello/world.txt',
             '/matching/pattern/root/other.zzz',
             '/non-matching/pattern/root/hello.txt',
             '/non-matching/pattern/root/hello/world.txt',
         ];
-        let patterns: string[] = [
+        const patterns: string[] = [
             'hello.txt',
             '**/world.txt',
         ];
-        let patternRoot = '/matching/pattern/root';
-        let options = <tl.MatchOptions>{ matchBase: true };
-        let actual: string[] = tl.match(list, patterns, patternRoot, options);
-        let expected: string[] = [
+        const patternRoot = '/matching/pattern/root';
+        const options = <tl.MatchOptions>{ matchBase: true };
+        const actual: string[] = tl.match(list, patterns, patternRoot, options);
+        const expected: string[] = [
             '/matching/pattern/root/hello.txt',
             '/matching/pattern/root/hello/world.txt',
             '/non-matching/pattern/root/hello.txt',
@@ -451,22 +446,22 @@ describe('Match Tests', function () {
     it('does not apply pattern root for basename matchBase exclude patterns', (done) => {
         this.timeout(1000);
 
-        let list: string[] = [
+        const list: string[] = [
             '/matching/pattern/root/hello.txt',
             '/matching/pattern/root/hello/world.txt',
             '/matching/pattern/root/other.zzz',
             '/non-matching/pattern/root/hello.txt',
             '/non-matching/pattern/root/hello/world.txt',
         ];
-        let patterns: string[] = [
+        const patterns: string[] = [
             '/**/*',
             '!hello.txt',
             '!**/world.txt',
         ];
-        let patternRoot = '/matching/pattern/root';
-        let options = <tl.MatchOptions>{ matchBase: true };
-        let actual: string[] = tl.match(list, patterns, patternRoot, options);
-        let expected: string[] = [
+        const patternRoot = '/matching/pattern/root';
+        const options = <tl.MatchOptions>{ matchBase: true };
+        const actual: string[] = tl.match(list, patterns, patternRoot, options);
+        const expected: string[] = [
             '/matching/pattern/root/other.zzz',
             '/non-matching/pattern/root/hello/world.txt',
         ];

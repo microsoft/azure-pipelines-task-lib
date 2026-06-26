@@ -39,7 +39,7 @@ describe('cd cases', () => {
   });
 
   beforeEach(() => {
-    process.env.OLDPWD = '';
+    process.env['OLDPWD'] = '';
     process.chdir(DIRNAME);
   });
 
@@ -72,7 +72,7 @@ describe('cd cases', () => {
     tl.cd(TEMP_DIR_2_SUBDIR_1_SYMLINK_DIR_1);
     assert.equal(fs.realpathSync('.'), TEMP_DIR_1);
 
-    assert.equal(process.env.OLDPWD, TEMP_DIR_2_SUBDIR_1);
+    assert.equal(process.env['OLDPWD'], TEMP_DIR_2_SUBDIR_1);
 
     done();
   });

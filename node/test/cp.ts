@@ -62,7 +62,7 @@ describe('cp cases', () => {
   afterEach((done) => {
     tl.rmRF(TESTCASE_1);
     tl.rmRF(TESTCASE_2);
-    tl.rmRF(GLOB_DEST_DIR);    
+    tl.rmRF(GLOB_DEST_DIR);
     done();
   });
 
@@ -278,7 +278,7 @@ describe('cp cases', () => {
   });
 
   it('cp with ? pattern matches single character', (done) => {
-    
+
     const pattern = path.join(GLOB_TEST_DIR, 'file?.txt');
     assert.doesNotThrow(() => tl.cp(pattern, GLOB_DEST_DIR));
 
@@ -330,10 +330,10 @@ describe('cp cases', () => {
     tl.mkdirP(srcDir);
     tl.mkdirP(destDir);
     fs.writeFileSync(path.join(srcDir, 'file.txt'), 'content');
-    
+
     assert.doesNotThrow(() => tl.cp(path.join(srcDir, 'file.txt'), destDir));
     assert.ok(fs.existsSync(path.join(destDir, 'file.txt')));
-    
+
     tl.rmRF(srcDir);
     tl.rmRF(destDir);
     done();

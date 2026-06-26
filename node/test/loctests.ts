@@ -2,41 +2,38 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 import assert = require('assert');
-import path = require('path');
 import fs = require('fs');
+import path = require('path');
 import shell = require('shelljs');
+
 import * as tl from '../_build/task';
 import testutil = require('./testutil');
 
 describe('Loc Tests', function () {
-
     beforeEach(function (done) {
         try {
             testutil.initialize();
-        }
-        catch (err) {
+        } catch (err) {
             assert.fail('Failed to load task lib: ' + err.message);
         }
+
         done();
-    });
-
-    after(function () {
-
     });
 
     it('validate loc string key in lib.json', function (done) {
         this.timeout(1000);
 
-        var jsonPath = path.join(__dirname, '../lib.json');
-        var json = require(jsonPath);
+        const jsonPath = path.join(__dirname, '../lib.json');
+        const json = require(jsonPath);
+
         if (json && json.hasOwnProperty('messages')) {
-            for (var key in json.messages) {
+            for (const key in json.messages) {
                 assert(key.search(/\W+/gi) < 0, ('messages key: \'' + key + '\' contain non-word characters, only allows [a-zA-Z0-9_].'));
                 assert(key.search(/^LIB_/) === 0, ('messages key: \'' + key + '\' should start with \'LIB_\'.'));
+
                 if (typeof (json.messages[key]) === 'object') {
                     assert(false, ('messages key: \'' + key + '\' should have a loc string, not a object.'));
-                }
-                else if (typeof (json.messages[key]) === 'string') {
+                } else if (typeof (json.messages[key]) === 'string') {
                     assert(json.messages[key].toString().length > 0, ('messages key: \'' + key + '\' should have a loc string.'));
                 }
             }
@@ -47,16 +44,16 @@ describe('Loc Tests', function () {
     it('get loc string from loc resources.json', function (done) {
         this.timeout(1000);
 
-        var tempFolder = path.join(testutil.getTestTemp(), 'loc-str-from-loc-res-json');
+        const tempFolder = path.join(testutil.getTestTemp(), 'loc-str-from-loc-res-json');
         shell.mkdir('-p', tempFolder);
-        var jsonStr = "{\"messages\": {\"key1\" : \"string for key 1.\", \"key2\" : \"string for key %d.\", \"key3\" : \"string for key %%.\"}}";
-        var jsonPath = path.join(tempFolder, 'task.json');
+        const jsonStr = "{\"messages\": {\"key1\" : \"string for key 1.\", \"key2\" : \"string for key %d.\", \"key3\" : \"string for key %%.\"}}";
+        const jsonPath = path.join(tempFolder, 'task.json');
         fs.writeFileSync(jsonPath, jsonStr);
 
-        var tempLocFolder = path.join(tempFolder, 'Strings', 'resources.resjson', 'zh-CN');
+        const tempLocFolder = path.join(tempFolder, 'Strings', 'resources.resjson', 'zh-CN');
         shell.mkdir('-p', tempLocFolder);
-        var locJsonStr = "{\"loc.messages.key1\" : \"loc cn-string for key 1.\", \"loc.messages.key2\" : \"loc cn-string for key %d.\", \"loc.messages.key3\" : \"loc cn-string for key %%.\"}";
-        var locJsonPath = path.join(tempLocFolder, 'resources.resjson');
+        const locJsonStr = "{\"loc.messages.key1\" : \"loc cn-string for key 1.\", \"loc.messages.key2\" : \"loc cn-string for key %d.\", \"loc.messages.key3\" : \"loc cn-string for key %%.\"}";
+        const locJsonPath = path.join(tempLocFolder, 'resources.resjson');
         fs.writeFileSync(locJsonPath, locJsonStr);
 
         process.env['SYSTEM_CULTURE'] = 'ZH-cn'; // Lib should handle casing differences for culture.
@@ -76,32 +73,32 @@ describe('Loc Tests', function () {
         process.env['TASKLIB_INPROC_UNITS'] = '';
 
         // Arrange
-        var tempFolder = path.join(testutil.getTestTemp(), 'loc-str-from-loc-res-json2');
+        const tempFolder = path.join(testutil.getTestTemp(), 'loc-str-from-loc-res-json2');
         shell.mkdir('-p', tempFolder);
 
         // Create first task.json and resources file
-        var jsonStr = "{\"messages\": {\"key6\" : \"string for key 6.\"}}";
-        var jsonPath = path.join(tempFolder, 'task.json');
+        const jsonStr = "{\"messages\": {\"key6\" : \"string for key 6.\"}}";
+        const jsonPath = path.join(tempFolder, 'task.json');
         fs.writeFileSync(jsonPath, jsonStr);
 
-        var tempLocFolder = path.join(tempFolder, 'Strings', 'resources.resjson', 'zh-CN');
+        const tempLocFolder = path.join(tempFolder, 'Strings', 'resources.resjson', 'zh-CN');
         shell.mkdir('-p', tempLocFolder);
-        var locJsonStr = "{\"loc.messages.key6\" : \"loc cn-string for key 6.\"}";
-        var locJsonPath = path.join(tempLocFolder, 'resources.resjson');
+        const locJsonStr = "{\"loc.messages.key6\" : \"loc cn-string for key 6.\"}";
+        const locJsonPath = path.join(tempLocFolder, 'resources.resjson');
         fs.writeFileSync(locJsonPath, locJsonStr);
 
         // Create second task.json and resources file
-        var nestedLocFolder = path.join(tempFolder, 'nested');
+        const nestedLocFolder = path.join(tempFolder, 'nested');
         shell.mkdir('-p', nestedLocFolder);
 
-        var jsonStr2 = "{\"messages\": {\"keySecondFile\" : \"string for keySecondFile.\"}}";
-        var jsonPath2 = path.join(nestedLocFolder, 'task.json');
+        const jsonStr2 = "{\"messages\": {\"keySecondFile\" : \"string for keySecondFile.\"}}";
+        const jsonPath2 = path.join(nestedLocFolder, 'task.json');
         fs.writeFileSync(jsonPath2, jsonStr2);
 
-        var tempLocFolder2 = path.join(nestedLocFolder, 'Strings', 'resources.resjson', 'zh-CN');
+        const tempLocFolder2 = path.join(nestedLocFolder, 'Strings', 'resources.resjson', 'zh-CN');
         shell.mkdir('-p', tempLocFolder2);
-        var locJsonStr2 = "{\"loc.messages.keySecondFile\" : \"loc cn-string for keySecondFile.\"}";
-        var locJsonPath2 = path.join(tempLocFolder2, 'resources.resjson');
+        const locJsonStr2 = "{\"loc.messages.keySecondFile\" : \"loc cn-string for keySecondFile.\"}";
+        const locJsonPath2 = path.join(tempLocFolder2, 'resources.resjson');
         fs.writeFileSync(locJsonPath2, locJsonStr2);
 
         process.env['SYSTEM_CULTURE'] = 'ZH-cn'; // Lib should handle casing differences for culture.
@@ -120,10 +117,10 @@ describe('Loc Tests', function () {
     it('fallback to current string if culture resources.resjson not found', function (done) {
         this.timeout(1000);
 
-        var tempFolder = path.join(testutil.getTestTemp(), 'loc-fallback-culture-resjson-not-found');
+        const tempFolder = path.join(testutil.getTestTemp(), 'loc-fallback-culture-resjson-not-found');
         shell.mkdir('-p', tempFolder);
-        var jsonStr = "{\"messages\": {\"key1\" : \"string for key 1.\", \"key2\" : \"string for key %d.\", \"key3\" : \"string for key %%.\"}}";
-        var jsonPath = path.join(tempFolder, 'task.json');
+        const jsonStr = "{\"messages\": {\"key1\" : \"string for key 1.\", \"key2\" : \"string for key %d.\", \"key3\" : \"string for key %%.\"}}";
+        const jsonPath = path.join(tempFolder, 'task.json');
         fs.writeFileSync(jsonPath, jsonStr);
 
         process.env['SYSTEM_CULTURE'] = 'zh-CN';
@@ -136,16 +133,16 @@ describe('Loc Tests', function () {
     it('fallback to current string if loc string not found in culture resources.resjson', function (done) {
         this.timeout(1000);
 
-        var tempFolder = path.join(testutil.getTestTemp(), 'loc-fallback-culture-string-not-found');
+        const tempFolder = path.join(testutil.getTestTemp(), 'loc-fallback-culture-string-not-found');
         shell.mkdir('-p', tempFolder);
-        var jsonStr = "{\"messages\": {\"key1\" : \"string for key 1.\", \"key2\" : \"string for key %d.\", \"key3\" : \"string for key %%.\"}}";
-        var jsonPath = path.join(tempFolder, 'task.json');
+        const jsonStr = "{\"messages\": {\"key1\" : \"string for key 1.\", \"key2\" : \"string for key %d.\", \"key3\" : \"string for key %%.\"}}";
+        const jsonPath = path.join(tempFolder, 'task.json');
         fs.writeFileSync(jsonPath, jsonStr);
 
-        var tempLocFolder = path.join(tempFolder, 'Strings', 'resources.resjson', 'zh-CN');
+        const tempLocFolder = path.join(tempFolder, 'Strings', 'resources.resjson', 'zh-CN');
         shell.mkdir('-p', tempLocFolder);
-        var locJsonStr = "{\"loc.messages.key1\" : \"loc cn-string for key 1.\", \"loc.messages.key3\" : \"loc cn-string for key %%.\"}";
-        var locJsonPath = path.join(tempLocFolder, 'resources.resjson');
+        const locJsonStr = "{\"loc.messages.key1\" : \"loc cn-string for key 1.\", \"loc.messages.key3\" : \"loc cn-string for key %%.\"}";
+        const locJsonPath = path.join(tempLocFolder, 'resources.resjson');
         fs.writeFileSync(locJsonPath, locJsonStr);
 
         process.env['SYSTEM_CULTURE'] = 'zh-CN';
@@ -158,16 +155,16 @@ describe('Loc Tests', function () {
     it('fallback to en-US if culture not set', function (done) {
         this.timeout(1000);
 
-        var tempFolder = path.join(testutil.getTestTemp(), 'loc-default-to-en-US');
+        const tempFolder = path.join(testutil.getTestTemp(), 'loc-default-to-en-US');
         shell.mkdir('-p', tempFolder);
-        var jsonStr = "{\"messages\": {\"key1\" : \"string for key 1.\", \"key2\" : \"string for key %d.\", \"key3\" : \"string for key %%.\"}}";
-        var jsonPath = path.join(tempFolder, 'task.json');
+        const jsonStr = "{\"messages\": {\"key1\" : \"string for key 1.\", \"key2\" : \"string for key %d.\", \"key3\" : \"string for key %%.\"}}";
+        const jsonPath = path.join(tempFolder, 'task.json');
         fs.writeFileSync(jsonPath, jsonStr);
 
-        var tempLocFolder = path.join(tempFolder, 'Strings', 'resources.resjson', 'en-US');
+        const tempLocFolder = path.join(tempFolder, 'Strings', 'resources.resjson', 'en-US');
         shell.mkdir('-p', tempLocFolder);
-        var locJsonStr = "{\"loc.messages.key1\" : \"loc en-string for key 1.\", \"loc.messages.key2\" : \"loc en-string for key %d.\", \"loc.messages.key3\" : \"loc en-string for key %%.\"}";
-        var locJsonPath = path.join(tempLocFolder, 'resources.resjson');
+        const locJsonStr = "{\"loc.messages.key1\" : \"loc en-string for key 1.\", \"loc.messages.key2\" : \"loc en-string for key %d.\", \"loc.messages.key3\" : \"loc en-string for key %%.\"}";
+        const locJsonPath = path.join(tempLocFolder, 'resources.resjson');
         fs.writeFileSync(locJsonPath, locJsonStr);
 
         process.env['SYSTEM_CULTURE'] = '';
@@ -180,10 +177,10 @@ describe('Loc Tests', function () {
     it('return key and params if key is not in task.json', function (done) {
         this.timeout(1000);
 
-        var tempFolder = path.join(testutil.getTestTemp(), 'loc-key-not-found-returns-key-plus-args');
+        const tempFolder = path.join(testutil.getTestTemp(), 'loc-key-not-found-returns-key-plus-args');
         shell.mkdir('-p', tempFolder);
-        var jsonStr = "{\"messages\": {\"key1\" : \"string for key 1.\", \"key2\" : \"string for key %d.\"}}";
-        var jsonPath = path.join(tempFolder + 'task.json');
+        const jsonStr = "{\"messages\": {\"key1\" : \"string for key 1.\", \"key2\" : \"string for key %d.\"}}";
+        const jsonPath = path.join(tempFolder + 'task.json');
         fs.writeFileSync(jsonPath, jsonStr);
 
         tl.setResourcePath(jsonPath);

@@ -15,23 +15,27 @@ export function initialize(useRealStreams?: boolean) {
     if (useRealStreams) {
         tl.setStdStream(process.stdout);
         tl.setErrStream(process.stderr);
-    }
-    else {
-        tl.setStdStream(this.getNullStream());
-        tl.setErrStream(this.getNullStream());
+    } else {
+        tl.setStdStream(getNullStream());
+        tl.setErrStream(getNullStream());
     }
 
     process.env['TASKLIB_INPROC_UNITS'] = '1';
-    tl.mkdirP(this.getTestTemp());
+    tl.mkdirP(getTestTemp());
 }
 
 export function getTestTemp() {
     return path.join(__dirname, '_temp');
 }
 
-var NullStream = function () {
-    stream.Writable.call(this);
-    this._write = function (data, encoding, next) {
+class NullStream extends stream.Writable {
+    constructor() {
+        super();
+        stream.Writable.call(this);
+    }
+
+    // @ts-ignore we don't care about the types of the parameters, just that they exist
+    _write(_data, _encoding, next) {
         next();
     }
 }
@@ -49,6 +53,7 @@ export class StringStream extends stream.Writable {
 
     private contents = '';
 
+    // @ts-ignore we don't care about the types of the parameters, just that they exist
     public _write(data, encoding, next) {
         this.contents += data;
         next();
@@ -140,16 +145,16 @@ export class ConsoleMocker {
         this._originalConsoleWarn = console.warn;
         this._originalConsoleError = console.error;
     }
-    
+
     public mock() {
         console.log = (message?: string, ...optionalParams: any[]) => {
-            this._logs.push(message);
+            message && this._logs.push(message);
         };
         console.warn = (message?: string, ...optionalParams: any[]) => {
-            this._warns.push(message);
+            message && this._warns.push(message);
         };
         console.error = (message?: string, ...optionalParams: any[]) => {
-            this._errors.push(message);
+            message && this._errors.push(message);
         };
     }
 

@@ -195,7 +195,7 @@ export function _setResourcePath(path: string, ignoreWarnings: boolean = false):
     }
     else {
         if (ignoreWarnings) {
-           
+
         } else {
             _warning(_loc('LIB_ResourceFileAlreadySet', path), IssueSource.TaskInternal);
         }
@@ -1055,18 +1055,18 @@ export function _exposeCertSettings(): void {
 // We store the encryption key on disk and hold the encrypted content and key file in memory
 // return base64encoded<keyFilePath>:base64encoded<encryptedContent>
 // downstream vsts-node-api will retrieve the secret later
-function _exposeTaskLibSecret(keyFile: string, secret: string): string | undefined {
+export function _exposeTaskLibSecret(keyFile: string, secret: string): string | undefined {
     if (secret) {
         let encryptKey = crypto.randomBytes(32);
-        
+
         const iv = crypto.randomBytes(16);
-        
+
         let cipher = crypto.createCipheriv("aes-256-ctr", encryptKey, iv);
         let encryptedContent = cipher.update(secret, "utf8", "hex");  // CodeQL [SM01511] agent need to retrieve password later to connect to proxy server
         encryptedContent += cipher.final("hex");
 
         let storageFile = path.join(_getVariable('Agent.TempDirectory') || _getVariable("agent.workFolder") || process.cwd(), keyFile);
-        
+
         const keyAndIv = encryptKey.toString('base64') + ':' + iv.toString('base64');
         fs.writeFileSync(storageFile, keyAndIv, { encoding: 'utf8' });
 

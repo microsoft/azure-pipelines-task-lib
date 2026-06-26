@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-import * as assert from 'assert';
+import assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as testutil from './testutil';
@@ -13,15 +13,11 @@ describe('Legacy Find Files Tests', function () {
     before(function (done) {
         try {
             testutil.initialize();
-        }
-        catch (err) {
+        } catch (err) {
             assert.fail('Failed to load task lib: ' + err.message);
         }
 
         done();
-    });
-
-    after(function () {
     });
 
     it('supports directory name single char wildcard', (done) => {
@@ -33,7 +29,7 @@ describe('Legacy Find Files Tests', function () {
         //   is-2-match/file.txt
         //   is-2-match/is-not/file.txt
         //   is-not-match/file.txt
-        let root: string = path.join(testutil.getTestTemp(), 'legacy-find-dir-name-single-char-wildcard');
+        const root: string = path.join(testutil.getTestTemp(), 'legacy-find-dir-name-single-char-wildcard');
         tl.mkdirP(path.join(root, 'is-1-match', 'is-not'));
         tl.mkdirP(path.join(root, 'is-2-match', 'is-not'));
         tl.mkdirP(path.join(root, 'is-not-match', 'is-not'));
@@ -43,7 +39,7 @@ describe('Legacy Find Files Tests', function () {
         fs.writeFileSync(path.join(root, 'is-2-match', 'is-not', 'file.txt'), '');
         fs.writeFileSync(path.join(root, 'is-not-match', 'file.txt'), '');
 
-        let actual: string[] = tl.legacyFindFiles('', path.join(root, 'is-?-match', 'file.txt'));
+        const actual: string[] = tl.legacyFindFiles('', path.join(root, 'is-?-match', 'file.txt'));
 
         assert.deepEqual(
             actual,
@@ -64,7 +60,7 @@ describe('Legacy Find Files Tests', function () {
         //   is-two-match/file.txt
         //   is-two-match/is-not/file.txt
         //   is-not/file.txt
-        let root: string = path.join(testutil.getTestTemp(), 'legacy-find-dir-name-wildcard');
+        const root: string = path.join(testutil.getTestTemp(), 'legacy-find-dir-name-wildcard');
         tl.mkdirP(path.join(root, 'is-one-match', 'is-not'));
         tl.mkdirP(path.join(root, 'is-two-match', 'is-not'));
         tl.mkdirP(path.join(root, 'is-not'));
@@ -74,7 +70,7 @@ describe('Legacy Find Files Tests', function () {
         fs.writeFileSync(path.join(root, 'is-two-match', 'is-not', 'file.txt'), '');
         fs.writeFileSync(path.join(root, 'is-not', 'file.txt'), '');
 
-        let actual: string[] = tl.legacyFindFiles('', path.join(root, 'is-*-match', 'file.txt'));
+        const actual: string[] = tl.legacyFindFiles('', path.join(root, 'is-*-match', 'file.txt'));
 
         assert.deepEqual(
             actual,
@@ -97,7 +93,7 @@ describe('Legacy Find Files Tests', function () {
         //   level-1-dir-3/level-2-dir-3/match.txt
         //   level-1-dir-3/match.txt
         //   match.txt
-        let root: string = path.join(testutil.getTestTemp(), 'legacy-find-exclude-pattern');
+        const root: string = path.join(testutil.getTestTemp(), 'legacy-find-exclude-pattern');
         tl.mkdirP(path.join(root, 'level-1-dir-1', 'level-2-dir-1'));
         tl.mkdirP(path.join(root, 'level-1-dir-2', 'level-2-dir-2'));
         tl.mkdirP(path.join(root, 'level-1-dir-3', 'level-2-dir-3'));
@@ -109,7 +105,7 @@ describe('Legacy Find Files Tests', function () {
         fs.writeFileSync(path.join(root, 'level-1-dir-3', 'match.txt'), '');
         fs.writeFileSync(path.join(root, 'match.txt'), '');
 
-        let actual: string[] = tl.legacyFindFiles(
+        const actual: string[] = tl.legacyFindFiles(
             '',
             path.join(root, '**', 'match.txt')
             + ';-:' + path.join(root, '**', 'level-1-dir-2', '**')
@@ -135,14 +131,14 @@ describe('Legacy Find Files Tests', function () {
         //   is-2-match.txt
         //   is-not-match.txt
         //   is-not/is-1-match.txt
-        let root: string = path.join(testutil.getTestTemp(), 'legacy-find-file-name-single-char-wildcard');
+        const root: string = path.join(testutil.getTestTemp(), 'legacy-find-file-name-single-char-wildcard');
         tl.mkdirP(path.join(root, 'is-not'));
         fs.writeFileSync(path.join(root, 'is-1-match.txt'), '');
         fs.writeFileSync(path.join(root, 'is-2-match.txt'), '');
         fs.writeFileSync(path.join(root, 'is-not-match.txt'), '');
         fs.writeFileSync(path.join(root, 'is-not', 'is-1-match.txt'), '');
 
-        let actual: string[] = tl.legacyFindFiles('', path.join(root, 'is-?-match.txt'));
+        const actual: string[] = tl.legacyFindFiles('', path.join(root, 'is-?-match.txt'));
 
         assert.deepEqual(
             actual,
@@ -162,14 +158,14 @@ describe('Legacy Find Files Tests', function () {
         //   is-one-match.txt
         //   is-two-match.txt
         //   non-match.txt
-        let root: string = path.join(testutil.getTestTemp(), 'legacy-find-file-name-wildcard');
+        const root: string = path.join(testutil.getTestTemp(), 'legacy-find-file-name-wildcard');
         tl.mkdirP(path.join(root, 'is-not'));
         fs.writeFileSync(path.join(root, 'is-not', 'is-one-match.txt'), '');
         fs.writeFileSync(path.join(root, 'is-one-match.txt'), '');
         fs.writeFileSync(path.join(root, 'is-two-match.txt'), '');
         fs.writeFileSync(path.join(root, 'non-match.txt'), '');
 
-        let actual: string[] = tl.legacyFindFiles('', path.join(root, 'is-*-match.txt'));
+        const actual: string[] = tl.legacyFindFiles('', path.join(root, 'is-*-match.txt'));
 
         assert.deepEqual(
             actual,
@@ -190,7 +186,7 @@ describe('Legacy Find Files Tests', function () {
         //   level-1-dir-2/level-2-dir-2/match.txt
         //   level-1-dir-2/match.txt
         //   match.txt
-        let root: string = path.join(testutil.getTestTemp(), 'legacy-find-globstar');
+        const root: string = path.join(testutil.getTestTemp(), 'legacy-find-globstar');
         tl.mkdirP(path.join(root, 'level-1-dir-1', 'level-2-dir-1'));
         tl.mkdirP(path.join(root, 'level-1-dir-2', 'level-2-dir-2'));
         fs.writeFileSync(path.join(root, 'level-1-dir-1', 'level-2-dir-1', 'match.txt'), '');
@@ -199,7 +195,7 @@ describe('Legacy Find Files Tests', function () {
         fs.writeFileSync(path.join(root, 'level-1-dir-2', 'match.txt'), '');
         fs.writeFileSync(path.join(root, 'match.txt'), '');
 
-        let actual: string[] = tl.legacyFindFiles('', path.join(root, '**', 'match.txt'));
+        const actual: string[] = tl.legacyFindFiles('', path.join(root, '**', 'match.txt'));
 
         assert.deepEqual(
             actual,
@@ -221,7 +217,7 @@ describe('Legacy Find Files Tests', function () {
         //   is-1-match/file.txt
         //   is-2-match/file.txt
         //   is-not-match/file.txt
-        let root: string = path.join(testutil.getTestTemp(), 'legacy-find-include-directories');
+        const root: string = path.join(testutil.getTestTemp(), 'legacy-find-include-directories');
         tl.mkdirP(path.join(root, 'is-1-match'));
         tl.mkdirP(path.join(root, 'is-2-match'));
         tl.mkdirP(path.join(root, 'is-not-match'));
@@ -229,7 +225,7 @@ describe('Legacy Find Files Tests', function () {
         fs.writeFileSync(path.join(root, 'is-2-match', 'file.txt'), '');
         fs.writeFileSync(path.join(root, 'is-not-match', 'file.txt'), '');
 
-        let actual: string[] = tl.legacyFindFiles('', path.join(root, 'is-?-match**'), true, true);
+        const actual: string[] = tl.legacyFindFiles('', path.join(root, 'is-?-match**'), true, true);
 
         assert.deepEqual(
             actual,
@@ -250,7 +246,7 @@ describe('Legacy Find Files Tests', function () {
         //   is-1-match/file.txt
         //   is-2-match/file.txt
         //   is-not-match/file.txt
-        let root: string = path.join(testutil.getTestTemp(), 'legacy-find-include-directories-only');
+        const root: string = path.join(testutil.getTestTemp(), 'legacy-find-include-directories-only');
         tl.mkdirP(path.join(root, 'is-1-match'));
         tl.mkdirP(path.join(root, 'is-2-match'));
         tl.mkdirP(path.join(root, 'is-not-match'));
@@ -258,7 +254,7 @@ describe('Legacy Find Files Tests', function () {
         fs.writeFileSync(path.join(root, 'is-2-match', 'file.txt'), '');
         fs.writeFileSync(path.join(root, 'is-not-match', 'file.txt'), '');
 
-        let actual: string[] = tl.legacyFindFiles('', path.join(root, 'is-?-match**'), false, true);
+        const actual: string[] = tl.legacyFindFiles('', path.join(root, 'is-?-match**'), false, true);
 
         assert.deepEqual(
             actual,
@@ -283,7 +279,7 @@ describe('Legacy Find Files Tests', function () {
         //   level-1-dir-2/is-not.txt
         //   level-1-dir-2/level-2-dir-2/is-a-match.txt
         //   level-1-dir-2/level-2-dir-2/is-not.txt
-        let root: string = path.join(testutil.getTestTemp(), 'legacy-find-inter-segment-wildcard');
+        const root: string = path.join(testutil.getTestTemp(), 'legacy-find-inter-segment-wildcard');
         tl.mkdirP(path.join(root, 'level-1-dir-1', 'level-2-dir-1'));
         tl.mkdirP(path.join(root, 'level-1-dir-2', 'level-2-dir-2'));
         fs.writeFileSync(path.join(root, 'is-not-a-match.txt'), '');
@@ -296,7 +292,7 @@ describe('Legacy Find Files Tests', function () {
         fs.writeFileSync(path.join(root, 'level-1-dir-2', 'level-2-dir-2', 'is-a-match.txt'), '');
         fs.writeFileSync(path.join(root, 'level-1-dir-2', 'level-2-dir-2', 'is-not.txt'), '');
 
-        let actual: string[] = tl.legacyFindFiles('', path.join(root, 'level**match.txt'));
+        const actual: string[] = tl.legacyFindFiles('', path.join(root, 'level**match.txt'));
 
         assert.deepEqual(
             actual,
@@ -317,13 +313,13 @@ describe('Legacy Find Files Tests', function () {
         //   foo-match.txt
         //   match-foo-match.txt
         //   match-foo.txt
-        let root: string = path.join(testutil.getTestTemp(), 'legacy-find-unions-matches');
+        const root: string = path.join(testutil.getTestTemp(), 'legacy-find-unions-matches');
         tl.mkdirP(root);
         fs.writeFileSync(path.join(root, 'foo-match.txt'), '');
         fs.writeFileSync(path.join(root, 'match-foo-match.txt'), '');
         fs.writeFileSync(path.join(root, 'match-foo.txt'), '');
 
-        let actual: string[] = tl.legacyFindFiles(
+        const actual: string[] = tl.legacyFindFiles(
             '',
             `${path.join(root, 'match*.txt')};${path.join(root, '*match.txt')}`);
 
@@ -345,13 +341,13 @@ describe('Legacy Find Files Tests', function () {
         //   one.txt
         //   two.Txt
         //   three.TXT
-        let root: string = path.join(testutil.getTestTemp(), 'legacy-find-case-sensitivity');
+        const root: string = path.join(testutil.getTestTemp(), 'legacy-find-case-sensitivity');
         tl.mkdirP(root);
         fs.writeFileSync(path.join(root, 'one.txt'), '');
         fs.writeFileSync(path.join(root, 'two.Txt'), '');
         fs.writeFileSync(path.join(root, 'three.TXT'), '');
 
-        let actual: string[] = tl.legacyFindFiles('', path.join(root, '*.Txt'));
+        const actual: string[] = tl.legacyFindFiles('', path.join(root, '*.Txt'));
 
         if (process.platform == 'win32') {
             assert.deepEqual(
@@ -379,12 +375,12 @@ describe('Legacy Find Files Tests', function () {
         // create the following layout:
         //   is;match.txt
         //   is-not.txt
-        let root: string = path.join(testutil.getTestTemp(), 'legacy-find-literal-semicolon-in-pattern');
+        const root: string = path.join(testutil.getTestTemp(), 'legacy-find-literal-semicolon-in-pattern');
         tl.mkdirP(root);
         fs.writeFileSync(path.join(root, 'is;match.txt'), '');
         fs.writeFileSync(path.join(root, 'is-not.txt'), '');
 
-        let actual: string[] = tl.legacyFindFiles('', path.join(root, 'is;;match.???'));
+        const actual: string[] = tl.legacyFindFiles('', path.join(root, 'is;;match.???'));
 
         assert.deepEqual(
             actual,
@@ -401,12 +397,12 @@ describe('Legacy Find Files Tests', function () {
         // create the following layout:
         //   some;dir/is-match.txt
         //   some;dir/is-not.txt
-        let root: string = path.join(testutil.getTestTemp(), 'legacy-find-literal-semicolon-in-root-dir');
+        const root: string = path.join(testutil.getTestTemp(), 'legacy-find-literal-semicolon-in-root-dir');
         tl.mkdirP(path.join(root, 'some;dir'));
         fs.writeFileSync(path.join(root, 'some;dir', 'is-match.txt'), '');
         fs.writeFileSync(path.join(root, 'some;dir', 'is-not.txt'), '');
 
-        let actual: string[] = tl.legacyFindFiles(
+        const actual: string[] = tl.legacyFindFiles(
             path.join(root, 'some;dir'), // rootDirectory
             '*match.txt'); // pattern
 
@@ -425,12 +421,12 @@ describe('Legacy Find Files Tests', function () {
         // create the following layout:
         //   ;
         //   is-not.txt
-        let root: string = path.join(testutil.getTestTemp(), 'legacy-find-pattern-is-semicolon');
+        const root: string = path.join(testutil.getTestTemp(), 'legacy-find-pattern-is-semicolon');
         tl.mkdirP(path.join(root));
         fs.writeFileSync(path.join(root, ';'), '');
         fs.writeFileSync(path.join(root, 'is-not.txt'), '');
 
-        let actual: string[] = tl.legacyFindFiles(root, ';;');
+        const actual: string[] = tl.legacyFindFiles(root, ';;');
 
         assert.deepEqual(
             actual,
@@ -444,12 +440,11 @@ describe('Legacy Find Files Tests', function () {
     it('does not support pattern with trailing slash', (done) => {
         this.timeout(1000);
 
-        let pattern = path.join(__dirname, 'hello', 'world') + '/';
+        const pattern = path.join(__dirname, 'hello', 'world') + '/';
         try {
             tl.legacyFindFiles('', pattern);
             assert.fail('should have failed');
-        }
-        catch (err) {
+        } catch (err) {
             assert.equal(err.message, `Invalid pattern: '${pattern}'`)
             done();
         }
@@ -459,7 +454,7 @@ describe('Legacy Find Files Tests', function () {
         this.timeout(1000);
 
         if (process.platform == 'win32') {
-            let pattern = path.join(__dirname, 'hello', 'world') + '\\';
+            const pattern = path.join(__dirname, 'hello', 'world') + '\\';
             try {
                 tl.legacyFindFiles('', pattern);
                 assert.fail('should have failed');
@@ -474,13 +469,13 @@ describe('Legacy Find Files Tests', function () {
             //   one\
             //   two\
             //   three\
-            let root: string = path.join(testutil.getTestTemp(), 'legacy-find-pattern-trailing-backslash');
+            const root: string = path.join(testutil.getTestTemp(), 'legacy-find-pattern-trailing-backslash');
             tl.mkdirP(path.join(root));
             fs.writeFileSync(path.join(root, 'one\\'), '');
             fs.writeFileSync(path.join(root, 'two\\'), '');
             fs.writeFileSync(path.join(root, 'three\\'), '');
 
-            let actual: string[] = tl.legacyFindFiles('', path.join(root, '???\\'));
+            const actual: string[] = tl.legacyFindFiles('', path.join(root, '???\\'));
 
             assert.deepEqual(
                 actual,
@@ -502,14 +497,14 @@ describe('Legacy Find Files Tests', function () {
         //   level-1-real-dir/level-2-real-dir/level-3-file
         //   level-1-real-dir/level-2-sym-dir => level-1-real-dir/level-2-real-dir
         //   level-1-sym-dir => level-1-real-dir
-        let root: string = path.join(testutil.getTestTemp(), 'legacy-find-matches-symlink-dirs')
+        const root: string = path.join(testutil.getTestTemp(), 'legacy-find-matches-symlink-dirs')
         tl.mkdirP(path.join(root, 'level-1-real-dir', 'level-2-real-dir', 'level-3-dir'));
         fs.writeFileSync(path.join(root, 'level-1-real-dir', 'level-2-file'), '');
         fs.writeFileSync(path.join(root, 'level-1-real-dir', 'level-2-real-dir', 'level-3-file'), '');
         testutil.createSymlinkDir(path.join(root, 'level-1-real-dir'), path.join(root, 'level-1-sym-dir'));
         testutil.createSymlinkDir(path.join(root, 'level-1-real-dir', 'level-2-real-dir'), path.join(root, 'level-1-real-dir', 'level-2-sym-dir'));
 
-        let actual: string[] = tl.legacyFindFiles(
+        const actual: string[] = tl.legacyFindFiles(
             '', // rootDirectory
             path.join(root, 'level-1-sym-dir', '**'), // pattern
             false, // includeFiles
@@ -535,13 +530,13 @@ describe('Legacy Find Files Tests', function () {
         //   one.txt
         //   two.txt
         //   three.txt
-        let root: string = path.join(testutil.getTestTemp(), 'legacy-find-alternate-include-syntax');
+        const root: string = path.join(testutil.getTestTemp(), 'legacy-find-alternate-include-syntax');
         tl.mkdirP(root);
         fs.writeFileSync(path.join(root, 'one.txt'), '');
         fs.writeFileSync(path.join(root, 'two.txt'), '');
         fs.writeFileSync(path.join(root, 'three.txt'), '');
 
-        let actual: string[] = tl.legacyFindFiles(
+        const actual: string[] = tl.legacyFindFiles(
             '', // rootDirectory
             path.join(root, 'one.txt') // pattern
             + ';+:' + path.join(root, 'two.txt'));
@@ -563,13 +558,13 @@ describe('Legacy Find Files Tests', function () {
         //   one.txt
         //   two.txt
         //   three.txt
-        let root: string = path.join(testutil.getTestTemp(), 'legacy-find-appends-root-directory');
+        const root: string = path.join(testutil.getTestTemp(), 'legacy-find-appends-root-directory');
         tl.mkdirP(root);
         fs.writeFileSync(path.join(root, 'one.txt'), '');
         fs.writeFileSync(path.join(root, 'two.txt'), '');
         fs.writeFileSync(path.join(root, 'three.txt'), '');
 
-        let actual: string[] = tl.legacyFindFiles(
+        const actual: string[] = tl.legacyFindFiles(
             root, // rootDirectory
             path.join(root, 'one.txt') // rooted pattern
             + ';' + 'two.txt'); // unrooted pattern
@@ -591,13 +586,13 @@ describe('Legacy Find Files Tests', function () {
         //   .hello/.one.txt
         //   .hello/two.txt
         //   .hello/three.txt.bak
-        let root: string = path.join(testutil.getTestTemp(), 'legacy-find-hidden-files');
+        const root: string = path.join(testutil.getTestTemp(), 'legacy-find-hidden-files');
         tl.mkdirP(root);
         testutil.createHiddenDirectory(path.join(root, '.hello'));
         testutil.createHiddenFile(path.join(root, '.hello', '.one.txt'), '');
         fs.writeFileSync(path.join(root, '.hello', 'two.txt'), '');
 
-        let actual: string[] = tl.legacyFindFiles(
+        const actual: string[] = tl.legacyFindFiles(
             '', // rootDirectory
             path.join(root, '*', '*.txt')); // pattern
 
@@ -620,7 +615,7 @@ describe('Legacy Find Files Tests', function () {
         //   .two/.three/.four/four.txt
         //   .two/.three/three.txt
         //   .two/two.txt
-        let root: string = path.join(testutil.getTestTemp(), 'legacy-find-hidden-folders');
+        const root: string = path.join(testutil.getTestTemp(), 'legacy-find-hidden-folders');
         tl.mkdirP(root);
         testutil.createHiddenDirectory(path.join(root, '.one'));
         testutil.createHiddenDirectory(path.join(root, '.two'));
@@ -633,7 +628,7 @@ describe('Legacy Find Files Tests', function () {
         fs.writeFileSync(path.join(root, '.two', '.three', '.four', 'four.txt'), '');
         fs.writeFileSync(path.join(root, '.two', '.three', '.four', '.five', 'five.txt'), '');
 
-        let actual: string[] = tl.legacyFindFiles(
+        const actual: string[] = tl.legacyFindFiles(
             '', // rootDirectory
             path.join(root, '????') // pattern
             + ';' + path.join(root, '.two', '**'),
@@ -663,7 +658,7 @@ describe('Legacy Find Files Tests', function () {
     }
 
     it('converts patterns to RegExp', (done) => {
-        let tlAny = tl as any;
+        const tlAny = tl as any;
         if (process.platform == 'win32') {
             // should convert to forward slashes
             assertMatch('C:\\hello\\world', 'C:/hello/world');

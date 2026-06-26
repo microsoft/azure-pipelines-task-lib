@@ -1,13 +1,11 @@
-import os = require('node:os');
 import fs = require('node:fs');
 import path = require('node:path');
 import assert = require('node:assert');
 
 import * as tl from '../_build/task';
+import * as testutil from './testutil';
 
 const DIRNAME = __dirname;
-
-import * as testutil from './testutil';
 
 describe('rm cases', () => {
   const TEMP_DIR = fs.mkdtempSync(DIRNAME + path.sep);
