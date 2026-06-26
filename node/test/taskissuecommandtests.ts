@@ -204,8 +204,8 @@ describe('Task Issue command, audit action tests', function () {
             ['##vso[task.issue type=error;auditAction=1;]Test error',
                 '##vso[task.issue type=warning;auditAction=1;]Test warning']);
 
-        tl.error("Test error", undefined, IssueAuditAction.ShellTasksValidation);
-        tl.warning("Test warning", undefined, IssueAuditAction.ShellTasksValidation);
+        tl.error("Test error", null, IssueAuditAction.ShellTasksValidation);
+        tl.warning("Test warning", null, IssueAuditAction.ShellTasksValidation);
 
         const output = stdStream.getContents();
 
@@ -223,8 +223,8 @@ describe('Task Issue command, audit action tests', function () {
             ['##vso[task.issue type=error;]Test error',
                 '##vso[task.issue type=warning;]Test warning']);
 
-        tl.error("Test error", undefined);
-        tl.warning("Test warning", undefined);
+        tl.error("Test error", null);
+        tl.warning("Test warning", null);
 
         const output = stdStream.getContents();
 
@@ -242,8 +242,8 @@ describe('Task Issue command, audit action tests', function () {
             ['##vso[task.issue type=error;auditAction=123;]Test error',
                 '##vso[task.issue type=warning;auditAction=321;]Test warning']);
 
-        tl.error("Test error", undefined, 123 as IssueAuditAction);
-        tl.warning("Test warning", undefined, 321 as IssueAuditAction);
+        tl.error("Test error", null, 123 as IssueAuditAction);
+        tl.warning("Test warning", null, 321 as IssueAuditAction);
 
         const output = stdStream.getContents();
 

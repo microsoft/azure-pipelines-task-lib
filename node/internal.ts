@@ -312,7 +312,7 @@ export function _command(command: string, properties: any, message: string) {
 
 export function _warning(
     message: string,
-    source: IssueSource = IssueSource.TaskInternal,
+    source: IssueSource | null = IssueSource.TaskInternal,
     auditAction?: IssueAuditAction
 ): void {
     _command(
@@ -329,7 +329,7 @@ export function _warning(
 
 export function _error(
     message: string,
-    source: IssueSource = IssueSource.TaskInternal,
+    source: IssueSource | null = IssueSource.TaskInternal,
     auditAction?: IssueAuditAction
 ): void {
     _command(
