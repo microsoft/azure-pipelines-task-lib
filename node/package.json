@@ -1,6 +1,6 @@
 {
   "name": "azure-pipelines-task-lib",
-  "version": "5.2.11",
+  "version": "5.276.0",
   "description": "Azure Pipelines Task SDK",
   "main": "./task.js",
   "typings": "./task.d.ts",
@@ -32,8 +32,7 @@
     "nodejs-file-downloader": "^4.11.1",
     "q": "^1.5.1",
     "semver": "^5.7.2",
-    "shelljs": "^0.10.0",
-    "uuid": "^3.0.1"
+    "shelljs": "^0.10.0"
   },
   "devDependencies": {
     "@types/minimatch": "3.0.3",
