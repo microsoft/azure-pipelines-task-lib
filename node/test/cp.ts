@@ -302,7 +302,7 @@ describe('cp cases', () => {
   });
 
   it('cp with combined ? and [pattern] patterns', (done) => {
-    const pattern = path.join(GLOB_TEST_DIR, 'file[1-3].???');
+    const pattern = path.join(GLOB_TEST_DIR, 'file{1..3}.???');
     assert.doesNotThrow(() => tl.cp(pattern, GLOB_DEST_DIR));
 
     assert.ok(fs.existsSync(path.join(GLOB_DEST_DIR, 'file1.txt')));
@@ -341,6 +341,22 @@ describe('cp cases', () => {
 
   it('cp falls back to literal copy when glob pattern returns no results', (done) => {
     const srcDir = path.resolve(DIRNAME, '[Test] dir');
+    const destDir = path.resolve(DIRNAME, 'dest');
+    tl.mkdirP(srcDir);
+    tl.mkdirP(destDir);
+    fs.writeFileSync(path.join(srcDir, 'file.txt'), 'content');
+
+    assert.doesNotThrow(() => tl.cp(path.join(srcDir, 'file.txt'), destDir));
+    assert.ok(fs.existsSync(path.join(destDir, 'file.txt')));
+    assert.equal(fs.readFileSync(path.join(destDir, 'file.txt'), 'utf8'), 'content');
+
+    tl.rmRF(srcDir);
+    tl.rmRF(destDir);
+    done();
+  });
+
+  it(' handles a source path that findMatch returns identical to the input', (done) => {
+    const srcDir = path.resolve(DIRNAME, '{Testdir}');
     const destDir = path.resolve(DIRNAME, 'dest');
     tl.mkdirP(srcDir);
     tl.mkdirP(destDir);

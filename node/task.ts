@@ -1235,13 +1235,16 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
         const isPattern = /[*?{\[]/.test(source) || /[@+!]\(/.test(source);
         if (isPattern) {
             const defaultRoot = getVariable('system.defaultWorkingDirectory') || process.cwd();
-            const sourcesToProcess = findMatch(defaultRoot, [source], undefined, <MatchOptions>{nonegate: true, nocomment: true});
-            if (sourcesToProcess.length > 0) {
-                for (const src of sourcesToProcess) {
-                    cp(src, destination, options as CopyOptionsVariants, continueOnError, retryCount);
-                }
+            const matches = findMatch(defaultRoot, [source], undefined, <MatchOptions>{nonegate: true, nocomment: true});
+            const resolvedMatches = matches.filter((src) => path.resolve(src) !== path.resolve(source));
+            for (const src of resolvedMatches) {
+                cp(src, destination, options as CopyOptionsVariants, continueOnError, retryCount);
+            }
+
+            if (matches.length > 0 && resolvedMatches.length === matches.length) {
                 return;
-            } else {
+            }
+            if (matches.length === 0) {
                 debug(`No matches found for the pattern: ${source}. Fallback to check for the literal path.`);
             }
         }
