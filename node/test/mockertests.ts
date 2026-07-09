@@ -7,7 +7,7 @@ import * as libMocker from '../_build/lib-mocker'
 
 describe('Internal Mock tool Tests', function () {
     const consoleMocker = new testutil.ConsoleMocker();
-    
+
     function resetMockerToInitialState() {
         consoleMocker.restore();
         libMocker.deregisterAll();
@@ -26,13 +26,13 @@ describe('Internal Mock tool Tests', function () {
     it('[warnOnReplace: Passed true via config]. Should write warning when previously registered mocks are replaced.', (done) => {
         libMocker.enable({ warnOnReplace: true, warnOnUnregistered: false });
         const fakeModule = require('./fakeModules/fakemodule1');
-        
+
         libMocker.registerMock('fakemodule1', fakeModule);
         libMocker.registerMock('fakemodule1', fakeModule);
 
         assert.equal(fakeModule.testFuncLibrary(), 'testFuncLibrary');
         assert.equal(fakeModule.otherFuncLibrary(), 'otherFuncLibrary');
-        
+
         const warnings = consoleMocker.getWarns();
         const errors = consoleMocker.getErrors();
         assert.equal(warnings.length, 1);
@@ -46,13 +46,13 @@ describe('Internal Mock tool Tests', function () {
         libMocker.enable({ warnOnUnregistered: false });
         libMocker.warnOnReplace(true);
         const fakeModule = require('./fakeModules/fakemodule1');
-        
+
         libMocker.registerMock('fakemodule1', fakeModule);
         libMocker.registerMock('fakemodule1', fakeModule);
 
         assert.equal(fakeModule.testFuncLibrary(), 'testFuncLibrary');
         assert.equal(fakeModule.otherFuncLibrary(), 'otherFuncLibrary');
-        
+
         const warnings = consoleMocker.getWarns();
         const errors = consoleMocker.getErrors();
         assert.equal(warnings.length, 1);
@@ -65,13 +65,13 @@ describe('Internal Mock tool Tests', function () {
     it('[warnOnReplace: Passed false via config]. Should not write warning when previously registered mocks are replaced.', (done) => {
         libMocker.enable({ warnOnReplace: false, warnOnUnregistered: false });
         const fakeModule = require('./fakeModules/fakemodule1');
-        
+
         libMocker.registerMock('fakemodule1', fakeModule);
         libMocker.registerMock('fakemodule1', fakeModule);
 
         assert.equal(fakeModule.testFuncLibrary(), 'testFuncLibrary');
         assert.equal(fakeModule.otherFuncLibrary(), 'otherFuncLibrary');
-        
+
         const warnings = consoleMocker.getWarns();
         const errors = consoleMocker.getErrors();
         assert.equal(warnings.length, 0);
@@ -85,13 +85,13 @@ describe('Internal Mock tool Tests', function () {
         libMocker.enable({ warnOnUnregistered: false });
         libMocker.warnOnReplace(false);
         const fakeModule = require('./fakeModules/fakemodule1');
-        
+
         libMocker.registerMock('fakemodule1', fakeModule);
         libMocker.registerMock('fakemodule1', fakeModule);
 
         assert.equal(fakeModule.testFuncLibrary(), 'testFuncLibrary');
         assert.equal(fakeModule.otherFuncLibrary(), 'otherFuncLibrary');
-        
+
         const warnings = consoleMocker.getWarns();
         const errors = consoleMocker.getErrors();
         assert.equal(warnings.length, 0);
@@ -101,12 +101,12 @@ describe('Internal Mock tool Tests', function () {
     });
 
     it('[warnOnUnregistered: Passed true via config]. Should write warning when call unregister function.', (done) => {
-        libMocker.enable({ warnOnReplace: false,  warnOnUnregistered: true });
+        libMocker.enable({ warnOnReplace: false, warnOnUnregistered: true });
 
         const fakeModule = require('./fakeModules/fakemodule1');
         assert.equal(fakeModule.testFuncLibrary(), 'testFuncLibrary');
         assert.equal(fakeModule.otherFuncLibrary(), 'otherFuncLibrary');
-        
+
         const warnings = consoleMocker.getWarns();
         const errors = consoleMocker.getErrors();
         assert.equal(warnings.length, 1);
@@ -123,7 +123,7 @@ describe('Internal Mock tool Tests', function () {
         const fakeModule = require('./fakeModules/fakemodule1');
         assert.equal(fakeModule.testFuncLibrary(), 'testFuncLibrary');
         assert.equal(fakeModule.otherFuncLibrary(), 'otherFuncLibrary');
-        
+
         const warnings = consoleMocker.getWarns();
         const errors = consoleMocker.getErrors();
         assert.equal(warnings.length, 1);
@@ -139,7 +139,7 @@ describe('Internal Mock tool Tests', function () {
         const fakeModule = require('./fakeModules/fakemodule1');
         assert.equal(fakeModule.testFuncLibrary(), 'testFuncLibrary');
         assert.equal(fakeModule.otherFuncLibrary(), 'otherFuncLibrary');
-        
+
         const warnings = consoleMocker.getWarns();
         const errors = consoleMocker.getErrors();
         assert.equal(warnings.length, 0);
@@ -155,7 +155,7 @@ describe('Internal Mock tool Tests', function () {
         const fakeModule = require('./fakeModules/fakemodule1');
         assert.equal(fakeModule.testFuncLibrary(), 'testFuncLibrary');
         assert.equal(fakeModule.otherFuncLibrary(), 'otherFuncLibrary');
-        
+
         const warnings = consoleMocker.getWarns();
         const errors = consoleMocker.getErrors();
         assert.equal(warnings.length, 0);
@@ -171,7 +171,7 @@ describe('Internal Mock tool Tests', function () {
         const fakeModule = require('./fakeModules/fakemodule1');
         assert.equal(fakeModule.testFuncLibrary(), 'testFuncLibrary');
         assert.equal(fakeModule.otherFuncLibrary(), 'otherFuncLibrary');
-        
+
         const warnings = consoleMocker.getWarns();
         const errors = consoleMocker.getErrors();
         assert.equal(warnings.length, 0);
@@ -187,7 +187,7 @@ describe('Internal Mock tool Tests', function () {
         const fakeModule = require('./fakeModules/fakemodule1');
         assert.equal(fakeModule.testFuncLibrary(), 'testFuncLibrary');
         assert.equal(fakeModule.otherFuncLibrary(), 'otherFuncLibrary');
-        
+
         const warnings = consoleMocker.getWarns();
         const errors = consoleMocker.getErrors();
         assert.equal(warnings.length, 0);
@@ -211,7 +211,7 @@ describe('Internal Mock tool Tests', function () {
         const fakeModule = require('./fakeModules/fakemodule1');
         assert.equal(fakeModule.testFuncLibrary(), expepected.someMockedFunc);
         assert.equal(fakeModule.otherFuncLibrary(), expepected.otherMockedFunc);
-        
+
         const warnings = consoleMocker.getWarns();
         assert.equal(warnings.length, 0);
 
@@ -237,7 +237,7 @@ describe('Internal Mock tool Tests', function () {
         const fakeModule2 = require('./fakeModules/fakemodule2');
         assert.equal(fakeModule2.testFuncLibrary2(), 'testFuncLibrary2');
         assert.equal(fakeModule2.otherFuncLibrary2(), 'otherFuncLibrary2');
-        
+
         const warnings = consoleMocker.getWarns();
         assert.equal(warnings.length, 0);
 
@@ -259,12 +259,12 @@ describe('Internal Mock tool Tests', function () {
         const fakeModule = require('./fakeModules/fakemodule1');
         assert.equal(fakeModule.testFuncLibrary(), expepected.someMockedFunc);
         assert.equal(fakeModule.otherFuncLibrary(), expepected.otherMockedFunc);
-        
+
         libMocker.deregisterMock('./fakeModules/fakemodule1');
         const fakeModuleReRequired = require('./fakeModules/fakemodule1');
         assert.equal(fakeModuleReRequired.testFuncLibrary(), 'testFuncLibrary');
         assert.equal(fakeModuleReRequired.otherFuncLibrary(), 'otherFuncLibrary');
-        
+
 
         const warnings = consoleMocker.getWarns();
         const errors = consoleMocker.getErrors();
@@ -289,12 +289,12 @@ describe('Internal Mock tool Tests', function () {
         const fakeModule = require('./fakeModules/fakemodule1');
         assert.equal(fakeModule.testFuncLibrary(), expepected.someMockedFunc);
         assert.equal(fakeModule.otherFuncLibrary(), expepected.otherMockedFunc);
-        
+
         libMocker.deregisterAll();
         const fakeModuleReRequired = require('./fakeModules/fakemodule1');
         assert.equal(fakeModuleReRequired.testFuncLibrary(), 'testFuncLibrary');
         assert.equal(fakeModuleReRequired.otherFuncLibrary(), 'otherFuncLibrary');
-        
+
 
         const warnings = consoleMocker.getWarns();
         const errors = consoleMocker.getErrors();

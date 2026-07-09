@@ -13,14 +13,11 @@ describe('Find and Match Tests', function () {
     before(function (done) {
         try {
             testutil.initialize();
-        }
-        catch (err) {
+        } catch (err) {
             assert.fail('Failed to load task lib: ' + err.message);
         }
-        done();
-    });
 
-    after(function () {
+        done();
     });
 
     it('single pattern', (done) => {
@@ -30,14 +27,14 @@ describe('Find and Match Tests', function () {
         //   hello.txt
         //   world.txt
         //   zzz.zzz
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_single-pattern');
+        const root: string = path.join(testutil.getTestTemp(), 'find-and-match_single-pattern');
         tl.mkdirP(root);
         fs.writeFileSync(path.join(root, 'hello.txt'), '');
         fs.writeFileSync(path.join(root, 'world.txt'), '');
         fs.writeFileSync(path.join(root, 'zzz.zzz'), '');
 
-        let actual: string[] = tl.findMatch('', path.join(root, '*.txt'));
-        let expected: string[] = [
+        const actual: string[] = tl.findMatch('', path.join(root, '*.txt'));
+        const expected: string[] = [
             path.join(root, 'hello.txt'),
             path.join(root, 'world.txt'),
         ];
@@ -53,18 +50,18 @@ describe('Find and Match Tests', function () {
         //   myproj1.proj
         //   myproj2.proj
         //   myproj3.proj
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_aggregates-matches');
+        const root: string = path.join(testutil.getTestTemp(), 'find-and-match_aggregates-matches');
         tl.mkdirP(root);
         fs.writeFileSync(path.join(root, 'myproj1.proj'), '');
         fs.writeFileSync(path.join(root, 'myproj2.proj'), '');
         fs.writeFileSync(path.join(root, 'myproj3.proj'), '');
-        let patterns: string[] = [
+        const patterns: string[] = [
             path.join(root, '*1.proj'),
             path.join(root, '*2.proj'),
         ];
 
-        let actual: string[] = tl.findMatch('', patterns);
-        let expected: string[] = [
+        const actual: string[] = tl.findMatch('', patterns);
+        const expected: string[] = [
             path.join(root, 'myproj1.proj'),
             path.join(root, 'myproj2.proj'),
         ];
@@ -76,14 +73,14 @@ describe('Find and Match Tests', function () {
     it('supports path not found', (done) => {
         this.timeout(1000);
 
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-path-not-found');
+        const root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-path-not-found');
         tl.mkdirP(root);
-        let patterns: string[] = [
+        const patterns: string[] = [
             path.join(root, 'NotFound', '*.proj'),
         ];
 
-        let actual: string[] = tl.findMatch('', patterns);
-        let expected: string[] = [];
+        const actual: string[] = tl.findMatch('', patterns);
+        const expected: string[] = [];
         assert.deepEqual(actual, expected);
 
         done();
@@ -97,7 +94,7 @@ describe('Find and Match Tests', function () {
         //   solution1/proj2.proj
         //   solution2/proj1.proj
         //   not-included/readme.txt
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_does-not-duplicate');
+        const root: string = path.join(testutil.getTestTemp(), 'find-and-match_does-not-duplicate');
         tl.mkdirP(path.join(root, 'solution1'));
         tl.mkdirP(path.join(root, 'solution2'));
         tl.mkdirP(path.join(root, 'not-included'));
@@ -105,13 +102,13 @@ describe('Find and Match Tests', function () {
         fs.writeFileSync(path.join(root, 'solution1', 'proj2.proj'), '');
         fs.writeFileSync(path.join(root, 'solution2', 'proj1.proj'), '');
         fs.writeFileSync(path.join(root, 'not-included', 'readme.txt'), '');
-        let patterns: string[] = [
+        const patterns: string[] = [
             path.join(root, 'solution1', '*.proj'),
             path.join(root, '**', 'proj1.proj'),
         ];
 
-        let actual: string[] = tl.findMatch('', patterns);
-        let expected: string[] = [
+        const actual: string[] = tl.findMatch('', patterns);
+        const expected: string[] = [
             path.join(root, 'solution1', 'proj1.proj'),
             path.join(root, 'solution1', 'proj2.proj'),
             path.join(root, 'solution2', 'proj1.proj'),
@@ -135,7 +132,7 @@ describe('Find and Match Tests', function () {
         //   solution2/proj2/proj2.proj
         //   solution2/proj2/README.txt
         //   solution2/solution2.sln
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-interleaved-exclude-patterns');
+        const root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-interleaved-exclude-patterns');
         tl.mkdirP(path.join(root, 'solution1', 'proj1'));
         tl.mkdirP(path.join(root, 'solution1', 'proj2'));
         tl.mkdirP(path.join(root, 'solution2', 'proj1'));
@@ -150,14 +147,14 @@ describe('Find and Match Tests', function () {
         fs.writeFileSync(path.join(root, 'solution2', 'proj2', 'proj1.proj'), '');
         fs.writeFileSync(path.join(root, 'solution2', 'proj2', 'README.txt'), '');
         fs.writeFileSync(path.join(root, 'solution2', 'solution2.sln'), '');
-        let patterns: string[] = [
+        const patterns: string[] = [
             path.join(root, '**', '@(*.proj|README.txt)'),      // include all proj and README files
             '!' + path.join(root, '**', 'solution2', '**'),     // exclude the solution 2 folder entirely
             path.join(root, '**', '*.sln'),                     // include all sln files
             '!' + path.join(root, '**', 'proj2', 'README.txt'), // exclude proj2 README files
         ];
-        let actual: string[] = tl.findMatch('', patterns);
-        let expected: string[] = [
+        const actual: string[] = tl.findMatch('', patterns);
+        const expected: string[] = [
             path.join(root, 'solution1', 'proj1', 'proj1.proj'),
             path.join(root, 'solution1', 'proj1', 'README.txt'),
             path.join(root, 'solution1', 'proj2', 'proj2.proj'),
@@ -191,7 +188,7 @@ describe('Find and Match Tests', function () {
         //   !negate-test/hello.txt
         //   negate-test/hello.txt
         //   negate-test/world.txt
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_applies-default-options');
+        const root: string = path.join(testutil.getTestTemp(), 'find-and-match_applies-default-options');
         tl.mkdirP(path.join(root, 'brace-test'));
         tl.mkdirP(path.join(root, 'glob-star-test', 'hello', 'world'));
         tl.mkdirP(path.join(root, 'dot-test', '.hello'));
@@ -219,7 +216,7 @@ describe('Find and Match Tests', function () {
         fs.writeFileSync(path.join(root, '!negate-test', 'hello.txt'), '');
         fs.writeFileSync(path.join(root, 'negate-test', 'hello.txt'), '');
         fs.writeFileSync(path.join(root, 'negate-test', 'world.txt'), '');
-        let patterns: string[] = [
+        const patterns: string[] = [
             'brace-test/brace_{hello,world}.txt',
             'glob-star-test/**',
             'dot-test/*/*.txt',
@@ -230,8 +227,8 @@ describe('Find and Match Tests', function () {
             'negate-test/*',
             '!negate-test/hello.txt',
         ];
-        let actual: string[] = tl.findMatch(root, patterns);
-        let expected: string[] = [];
+        const actual: string[] = tl.findMatch(root, patterns);
+        const expected: string[] = [];
         expected.push(path.join(root, 'brace-test/brace_{hello,world}.txt'));
         expected.push(path.join(root, 'glob-star-test/hello/world'));
         expected.push(path.join(root, 'glob-star-test/hello/world/hello-world.txt'));
@@ -258,15 +255,15 @@ describe('Find and Match Tests', function () {
         // create the following layout:
         //   ' hello-world.txt '
         //   'hello-world.txt'
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_trims-patterns');
+        const root: string = path.join(testutil.getTestTemp(), 'find-and-match_trims-patterns');
         tl.mkdirP(root);
         fs.writeFileSync(path.join(root, ' hello-world.txt '), '');
         fs.writeFileSync(path.join(root, 'hello-world.txt'), '');
-        let patterns: string[] = [
+        const patterns: string[] = [
             ' hello-world.txt ',
         ];
-        let actual: string[] = tl.findMatch(root, patterns);
-        let expected: string[] = [
+        const actual: string[] = tl.findMatch(root, patterns);
+        const expected: string[] = [
             path.join(root, 'hello-world.txt'),
         ];
         assert.deepEqual(actual, expected);
@@ -280,17 +277,17 @@ describe('Find and Match Tests', function () {
         // create the following layout:
         //   ' '
         //   'hello-world.txt'
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_skips-empty-patterns');
+        const root: string = path.join(testutil.getTestTemp(), 'find-and-match_skips-empty-patterns');
         tl.mkdirP(root);
         fs.writeFileSync(path.join(root, ' '), '');
         fs.writeFileSync(path.join(root, 'hello-world.txt'), '');
-        let patterns: string[] = [
+        const patterns: string[] = [
             '',
             ' ',
             'hello-world.txt',
         ];
-        let actual: string[] = tl.findMatch(root, patterns);
-        let expected: string[] = [
+        const actual: string[] = tl.findMatch(root, patterns);
+        const expected: string[] = [
             path.join(root, 'hello-world.txt'),
         ];
         assert.deepEqual(actual, expected);
@@ -304,15 +301,15 @@ describe('Find and Match Tests', function () {
         // create the following layout:
         //   #hello-world.txt
         //   hello-world.txt
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-nocomment-true');
+        const root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-nocomment-true');
         tl.mkdirP(root);
         fs.writeFileSync(path.join(root, '#hello-world.txt'), '');
         fs.writeFileSync(path.join(root, 'hello-world.txt'), '');
-        let patterns: string[] = [
+        const patterns: string[] = [
             '#hello-world.txt',
         ];
-        let actual: string[] = tl.findMatch(root, patterns, null, <tl.MatchOptions>{ nocomment: true });
-        let expected: string[] = [
+        const actual: string[] = tl.findMatch(root, patterns, undefined, <tl.MatchOptions>{ nocomment: true });
+        const expected: string[] = [
             path.join(root, '#hello-world.txt'),
         ];
         assert.deepEqual(actual, expected);
@@ -327,16 +324,16 @@ describe('Find and Match Tests', function () {
         //   {hello,world}.txt
         //   world.txt
         //   world.txt
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-nobrace-false');
+        const root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-nobrace-false');
         tl.mkdirP(root);
         fs.writeFileSync(path.join(root, '{hello,world}.txt'), '');
         fs.writeFileSync(path.join(root, 'hello.txt'), '');
         fs.writeFileSync(path.join(root, 'world.txt'), '');
-        let patterns: string[] = [
+        const patterns: string[] = [
             '{hello,world}.txt',
         ];
-        let actual: string[] = tl.findMatch(root, patterns, null, <tl.MatchOptions>{ });
-        let expected: string[] = [
+        const actual: string[] = tl.findMatch(root, patterns, undefined, <tl.MatchOptions>{});
+        const expected: string[] = [
             path.join(root, 'hello.txt'),
             path.join(root, 'world.txt'),
         ];
@@ -352,23 +349,23 @@ describe('Find and Match Tests', function () {
         //   {hello,world}.txt
         //   world.txt
         //   world.txt
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_brace-escaping-platform-specific');
+        const root: string = path.join(testutil.getTestTemp(), 'find-and-match_brace-escaping-platform-specific');
         tl.mkdirP(root);
         fs.writeFileSync(path.join(root, '{hello,world}.txt'), '');
         fs.writeFileSync(path.join(root, 'hello.txt'), '');
         fs.writeFileSync(path.join(root, 'world.txt'), '');
-        let patterns: string[] = [
+        const patterns: string[] = [
             path.join(root, '\\{hello,world}.txt'),
         ];
-        let actual: string[] = tl.findMatch(root, patterns, null, <tl.MatchOptions>{ });
+        const actual: string[] = tl.findMatch(root, patterns, undefined, <tl.MatchOptions>{});
         let expected: string[];
+
         if (process.platform == 'win32') {
             expected = [
                 path.join(root, 'hello.txt'),
                 path.join(root, 'world.txt'),
             ];
-        }
-        else {
+        } else {
             expected = [
                 path.join(root, '{hello,world}.txt'),
             ];
@@ -386,15 +383,15 @@ describe('Find and Match Tests', function () {
         // create the following layout:
         //   !hello-world.txt
         //   hello-world.txt
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-nonegate-true');
+        const root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-nonegate-true');
         tl.mkdirP(root);
         fs.writeFileSync(path.join(root, '!hello-world.txt'), '');
         fs.writeFileSync(path.join(root, 'hello-world.txt'), '');
-        let patterns: string[] = [
+        const patterns: string[] = [
             '!hello-world.txt',
         ];
-        let actual: string[] = tl.findMatch(root, patterns, null, <tl.MatchOptions>{ nonegate: true });
-        let expected: string[] = [
+        const actual: string[] = tl.findMatch(root, patterns, undefined, <tl.MatchOptions>{ nonegate: true });
+        const expected: string[] = [
             path.join(root, '!hello-world.txt'),
         ];
         assert.deepEqual(actual, expected);
@@ -408,15 +405,15 @@ describe('Find and Match Tests', function () {
         // create the following layout:
         //   !hello-world.txt
         //   hello-world.txt
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-flipNegate-true');
+        const root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-flipNegate-true');
         tl.mkdirP(root);
         fs.writeFileSync(path.join(root, '!hello-world.txt'), '');
         fs.writeFileSync(path.join(root, 'hello-world.txt'), '');
-        let patterns: string[] = [
+        const patterns: string[] = [
             '!hello-world.txt',
         ];
-        let actual: string[] = tl.findMatch(root, patterns, null, <tl.MatchOptions>{ flipNegate: true });
-        let expected: string[] = [
+        const actual: string[] = tl.findMatch(root, patterns, undefined, <tl.MatchOptions>{ flipNegate: true });
+        const expected: string[] = [
             path.join(root, 'hello-world.txt'),
         ];
         assert.deepEqual(actual, expected);
@@ -434,7 +431,7 @@ describe('Find and Match Tests', function () {
         //   include/hello/other.txt
         //   include/include
         //   include/other.txt
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-matchBase-include');
+        const root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-matchBase-include');
         tl.mkdirP(path.join(root, 'include', 'hello', 'world'));
         fs.writeFileSync(path.join(root, 'include', 'hello', 'world', 'include'), '');
         fs.writeFileSync(path.join(root, 'include', 'hello', 'world', 'other.txt'), '');
@@ -442,11 +439,11 @@ describe('Find and Match Tests', function () {
         fs.writeFileSync(path.join(root, 'include', 'hello', 'other.txt'), '');
         fs.writeFileSync(path.join(root, 'include', 'include'), '');
         fs.writeFileSync(path.join(root, 'include', 'other.txt'), '');
-        let patterns: string[] = [
+        const patterns: string[] = [
             'include',
         ];
-        let actual: string[] = tl.findMatch(path.join(root, 'include'), patterns, null, <tl.MatchOptions>{ matchBase: true });
-        let expected: string[] = [
+        const actual: string[] = tl.findMatch(path.join(root, 'include'), patterns, undefined, <tl.MatchOptions>{ matchBase: true });
+        const expected: string[] = [
             path.join(root, 'include', 'hello', 'world', 'include'),
             path.join(root, 'include', 'hello', 'include'),
             path.join(root, 'include', 'include'),
@@ -467,7 +464,7 @@ describe('Find and Match Tests', function () {
         //   include/hello/other.txt
         //   include/include.txt
         //   include/other.txt
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-matchBase-include-with-glob');
+        const root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-matchBase-include-with-glob');
         tl.mkdirP(path.join(root, 'include', 'hello', 'world'));
         fs.writeFileSync(path.join(root, 'include', 'hello', 'world', 'include.txt'), '');
         fs.writeFileSync(path.join(root, 'include', 'hello', 'world', 'other.txt'), '');
@@ -475,11 +472,11 @@ describe('Find and Match Tests', function () {
         fs.writeFileSync(path.join(root, 'include', 'hello', 'other.txt'), '');
         fs.writeFileSync(path.join(root, 'include', 'include.txt'), '');
         fs.writeFileSync(path.join(root, 'include', 'other.txt'), '');
-        let patterns: string[] = [
+        const patterns: string[] = [
             '?nclude?(.txt)',
         ];
-        let actual: string[] = tl.findMatch(path.join(root, 'include'), patterns, null, <tl.MatchOptions>{ matchBase: true });
-        let expected: string[] = [
+        const actual: string[] = tl.findMatch(path.join(root, 'include'), patterns, undefined, <tl.MatchOptions>{ matchBase: true });
+        const expected: string[] = [
             path.join(root, 'include', 'hello', 'world', 'include.txt'),
             path.join(root, 'include', 'hello', 'include.txt'),
             path.join(root, 'include', 'include.txt'),
@@ -499,7 +496,7 @@ describe('Find and Match Tests', function () {
         //   solution2/proj1/proj1.txt
         //   solution2/proj2/proj2.txt
         //   default-root/zzz.txt
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-matchBase-exclude-pattern');
+        const root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-matchBase-exclude-pattern');
         tl.mkdirP(path.join(root, 'solution1', 'proj1'));
         tl.mkdirP(path.join(root, 'solution1', 'proj2'));
         tl.mkdirP(path.join(root, 'solution2', 'proj1'));
@@ -510,13 +507,13 @@ describe('Find and Match Tests', function () {
         fs.writeFileSync(path.join(root, 'solution2', 'proj1', 'proj1.txt'), '');
         fs.writeFileSync(path.join(root, 'solution2', 'proj2', 'proj2.txt'), '');
         fs.writeFileSync(path.join(root, 'default-root', 'zzz.txt'), '');
-        let patterns: string[] = [
+        const patterns: string[] = [
             path.join(root, 'solution1', '**'),
             path.join(root, 'solution2', '**'),
             '!proj1?(.txt)',
         ];
-        let actual: string[] = tl.findMatch(root, patterns, null, <tl.MatchOptions>{ matchBase: true });
-        let expected: string[] = [
+        const actual: string[] = tl.findMatch(root, patterns, undefined, <tl.MatchOptions>{ matchBase: true });
+        const expected: string[] = [
             path.join(root, 'solution1', 'proj2'),
             path.join(root, 'solution1', 'proj2', 'proj2.txt'),
             path.join(root, 'solution2', 'proj2'),
@@ -537,7 +534,7 @@ describe('Find and Match Tests', function () {
         //   initial-includes/hello.txt
         //   initial-includes/one-negate-markers.txt
         //   initial-includes/three-negate-markers.txt
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_counts-leading-negate-markers');
+        const root: string = path.join(testutil.getTestTemp(), 'find-and-match_counts-leading-negate-markers');
         tl.mkdirP(path.join(root, 'hello'));
         tl.mkdirP(path.join(root, 'initial-includes'));
         fs.writeFileSync(path.join(root, 'hello', 'world.txt'), '');
@@ -546,15 +543,15 @@ describe('Find and Match Tests', function () {
         fs.writeFileSync(path.join(root, 'initial-includes', 'hello.txt'), '');
         fs.writeFileSync(path.join(root, 'initial-includes', 'one-negate-markers.txt'), '');
         fs.writeFileSync(path.join(root, 'initial-includes', 'three-negate-markers.txt'), '');
-        let patterns: string[] = [
+        const patterns: string[] = [
             'initial-includes/*.txt',
             '!!hello/two-negate-markers.txt',
             '!!!!hello/four-negate-markers.txt',
             '!initial-includes/one-negate-markers.txt',
             '!!!initial-includes/three-negate-markers.txt',
         ];
-        let actual: string[] = tl.findMatch(root, patterns);
-        let expected: string[] = [
+        const actual: string[] = tl.findMatch(root, patterns);
+        const expected: string[] = [
             path.join(root, 'hello', 'two-negate-markers.txt'),
             path.join(root, 'hello', 'four-negate-markers.txt'),
             path.join(root, 'initial-includes', 'hello.txt'),
@@ -570,16 +567,16 @@ describe('Find and Match Tests', function () {
         // create the following layout:
         //   hello.txt
         //   world.txt
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_trims-whitespace-after-trimming-negate-markers');
+        const root: string = path.join(testutil.getTestTemp(), 'find-and-match_trims-whitespace-after-trimming-negate-markers');
         tl.mkdirP(root);
         fs.writeFileSync(path.join(root, 'hello.txt'), '');
         fs.writeFileSync(path.join(root, 'world.txt'), '');
-        let patterns: string[] = [
+        const patterns: string[] = [
             '*',
             '! hello.txt',
         ];
-        let actual: string[] = tl.findMatch(root, patterns);
-        let expected: string[] = [
+        const actual: string[] = tl.findMatch(root, patterns);
+        const expected: string[] = [
             path.join(root, 'world.txt'),
         ];
         assert.deepEqual(actual, expected);
@@ -595,19 +592,19 @@ describe('Find and Match Tests', function () {
         //   #comment2
         //   #hello.txt
         //   world.txt
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_evaluates-comments-before-expanding-braces');
+        const root: string = path.join(testutil.getTestTemp(), 'find-and-match_evaluates-comments-before-expanding-braces');
         tl.mkdirP(root);
         fs.writeFileSync(path.join(root, '#comment'), '');
         fs.writeFileSync(path.join(root, '#comment2'), '');
         fs.writeFileSync(path.join(root, '#hello.txt'), '');
         fs.writeFileSync(path.join(root, 'world.txt'), '');
-        let patterns: string[] = [
+        const patterns: string[] = [
             '#comment',
             '{#hello.txt,world.txt}',
             '#comment2',
         ];
-        let actual: string[] = tl.findMatch(root, patterns, null, <tl.MatchOptions>{ });
-        let expected: string[] = [
+        const actual: string[] = tl.findMatch(root, patterns, undefined, <tl.MatchOptions>{});
+        const expected: string[] = [
             path.join(root, '#hello.txt'),
             path.join(root, 'world.txt'),
         ];
@@ -623,17 +620,17 @@ describe('Find and Match Tests', function () {
         //   !hello.txt
         //   hello.txt
         //   world.txt
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_evaluates-negation-before-expanding-braces');
+        const root: string = path.join(testutil.getTestTemp(), 'find-and-match_evaluates-negation-before-expanding-braces');
         tl.mkdirP(root);
         fs.writeFileSync(path.join(root, '!hello.txt'), '');
         fs.writeFileSync(path.join(root, 'hello.txt'), '');
         fs.writeFileSync(path.join(root, 'world.txt'), '');
-        let patterns: string[] = [
+        const patterns: string[] = [
             '*',
             '!{!hello.txt,world.txt}',
         ];
-        let actual: string[] = tl.findMatch(root, patterns, null, <tl.MatchOptions>{ });
-        let expected: string[] = [
+        const actual: string[] = tl.findMatch(root, patterns, undefined, <tl.MatchOptions>{});
+        const expected: string[] = [
             path.join(root, 'hello.txt'),
         ];
         assert.deepEqual(actual, expected);
@@ -648,17 +645,17 @@ describe('Find and Match Tests', function () {
         //   #hello.txt
         //   hello.txt
         //   world.txt
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_evaluates-comments-before-negation');
+        const root: string = path.join(testutil.getTestTemp(), 'find-and-match_evaluates-comments-before-negation');
         tl.mkdirP(root);
         fs.writeFileSync(path.join(root, '#hello.txt'), '');
         fs.writeFileSync(path.join(root, 'hello.txt'), '');
         fs.writeFileSync(path.join(root, 'world.txt'), '');
-        let patterns: string[] = [
+        const patterns: string[] = [
             '*',
             '!#hello.txt',
         ];
-        let actual: string[] = tl.findMatch(root, patterns);
-        let expected: string[] = [
+        const actual: string[] = tl.findMatch(root, patterns);
+        const expected: string[] = [
             path.join(root, 'hello.txt'),
             path.join(root, 'world.txt'),
         ];
@@ -687,7 +684,7 @@ describe('Find and Match Tests', function () {
         //   initial-includes/brace/hello.txt
         //   initial-includes/brace/world.txt
         //   initial-includes/brace/zzz.txt
-        let root: string = path.join(
+        const root: string = path.join(
             testutil.getTestTemp(),
             'find-and-match_esc-def-root',
             'brackets[a-z]',
@@ -716,7 +713,7 @@ describe('Find and Match Tests', function () {
         fs.writeFileSync(path.join(root, 'initial-includes', 'brace', 'hello.txt'), '');
         fs.writeFileSync(path.join(root, 'initial-includes', 'brace', 'world.txt'), '');
         fs.writeFileSync(path.join(root, 'initial-includes', 'brace', 'zzz.txt'), '');
-        let patterns: string[] = [
+        const patterns: string[] = [
             path.join('initial-includes', '**', '*.*'),
             path.join('bracket', '[a-z]ello.txt'),
             path.join('ext-plus', '+(hello|world).txt'),
@@ -725,8 +722,8 @@ describe('Find and Match Tests', function () {
             '!' + path.join('initial-includes', 'ext-plus', '+(hello|world).txt'),
             '!' + path.join('initial-includes', 'brace', '{hello,world}.txt'),
         ];
-        let actual: string[] = tl.findMatch(root, patterns, null, <tl.MatchOptions>{ });
-        let expected: string[] = [
+        const actual: string[] = tl.findMatch(root, patterns, undefined, <tl.MatchOptions>{});
+        const expected: string[] = [
             path.join(root, 'bracket', 'hello.txt'),
             path.join(root, 'ext-plus', 'hello.txt'),
             path.join(root, 'ext-plus', 'world.txt'),
@@ -747,12 +744,12 @@ describe('Find and Match Tests', function () {
         // create the following layout:
         //   hello/hello.txt
         //   world -> hello
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_applies-default-find-options');
+        const root: string = path.join(testutil.getTestTemp(), 'find-and-match_applies-default-find-options');
         tl.mkdirP(path.join(root, 'hello'));
         fs.writeFileSync(path.join(root, 'hello', 'hello.txt'), '');
         testutil.createSymlinkDir(path.join(root, 'hello'), path.join(root, 'world'));
-        let actual: string[] = tl.findMatch(root, path.join('**', '*'));
-        let expected: string[] = [
+        const actual: string[] = tl.findMatch(root, path.join('**', '*'));
+        const expected: string[] = [
             path.join(root, 'hello'),
             path.join(root, 'hello', 'hello.txt'),
             path.join(root, 'world'),
@@ -769,15 +766,15 @@ describe('Find and Match Tests', function () {
         // create the following layout:
         //   hello/hello.txt
         //   world -> hello
-        let root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-custom-find-options');
+        const root: string = path.join(testutil.getTestTemp(), 'find-and-match_supports-custom-find-options');
         tl.mkdirP(path.join(root, 'hello'));
         fs.writeFileSync(path.join(root, 'hello', 'hello.txt'), '');
         testutil.createSymlinkDir(path.join(root, 'hello'), path.join(root, 'world'));
         assert.doesNotThrow(
             () => fs.statSync(path.join(root, 'world', 'hello.txt')),
             'soft link folder should be created properly');
-        let actual: string[] = tl.findMatch(root, path.join('**', '*'), <tl.FindOptions>{ });
-        let expected: string[] = [
+        const actual: string[] = tl.findMatch(root, path.join('**', '*'), <tl.FindOptions>{});
+        const expected: string[] = [
             path.join(root, 'hello'),
             path.join(root, 'hello', 'hello.txt'),
             path.join(root, 'world'),
@@ -790,24 +787,23 @@ describe('Find and Match Tests', function () {
     it('default root falls back to System.DefaultWorkingDirectory', (done) => {
         this.timeout(1000);
 
-        let originalSystemDefaultWorkingDirectory = process.env['SYSTEM_DEFAULTWORKINGDIRECTORY'];
+        const originalSystemDefaultWorkingDirectory = process.env['SYSTEM_DEFAULTWORKINGDIRECTORY'];
         try {
             // create the following layout:
             //   hello-from-system-default-working-directory.txt
             //   world.txt
-            let root: string = path.join(testutil.getTestTemp(), 'find-and-match_falls-back-to-system-default-working-directory');
+            const root: string = path.join(testutil.getTestTemp(), 'find-and-match_falls-back-to-system-default-working-directory');
             tl.mkdirP(root);
             fs.writeFileSync(path.join(root, 'hello-from-system-default-working-directory.txt'), '');
             fs.writeFileSync(path.join(root, 'world.txt'), '');
             process.env['SYSTEM_DEFAULTWORKINGDIRECTORY'] = root;
-            let actual: string[] = tl.findMatch(null, path.join('**', '*'), <tl.FindOptions>{ });
-            let expected: string[] = [
+            const actual: string[] = tl.findMatch('', path.join('**', '*'), <tl.FindOptions>{});
+            const expected: string[] = [
                 path.join(root, 'hello-from-system-default-working-directory.txt'),
                 path.join(root, 'world.txt'),
             ];
             assert.deepEqual(actual, expected.sort());
-        }
-        catch (err) {
+        } catch (err) {
             process.env['SYSTEM_DEFAULTWORKINGDIRECTORY'] = originalSystemDefaultWorkingDirectory;
             throw err;
         }
@@ -818,26 +814,25 @@ describe('Find and Match Tests', function () {
     it('default root falls back to cwd', (done) => {
         this.timeout(1000);
 
-        let originalSystemDefaultWorkingDirectory = process.env['SYSTEM_DEFAULTWORKINGDIRECTORY'];
-        let originalCwd = process.cwd();
+        const originalSystemDefaultWorkingDirectory = process.env['SYSTEM_DEFAULTWORKINGDIRECTORY'];
+        const originalCwd = process.cwd();
         try {
             // create the following layout:
             //   hello-from-cwd.txt
             //   world.txt
-            let root: string = path.join(testutil.getTestTemp(), 'find-and-match_falls-back-to-cwd');
+            const root: string = path.join(testutil.getTestTemp(), 'find-and-match_falls-back-to-cwd');
             tl.mkdirP(root);
             fs.writeFileSync(path.join(root, 'hello-from-cwd.txt'), '');
             fs.writeFileSync(path.join(root, 'world.txt'), '');
             delete process.env['SYSTEM_DEFAULTWORKINGDIRECTORY'];
             process.chdir(root);
-            let actual: string[] = tl.findMatch(null, path.join('**', '*'), <tl.FindOptions>{ });
-            let expected: string[] = [
+            const actual: string[] = tl.findMatch('', path.join('**', '*'), <tl.FindOptions>{});
+            const expected: string[] = [
                 path.join(root, 'hello-from-cwd.txt'),
                 path.join(root, 'world.txt'),
             ];
             assert.deepEqual(actual, expected.sort());
-        }
-        catch (err) {
+        } catch (err) {
             process.env['SYSTEM_DEFAULTWORKINGDIRECTORY'] = originalSystemDefaultWorkingDirectory;
             process.chdir(originalCwd);
             throw err;
@@ -847,7 +842,7 @@ describe('Find and Match Tests', function () {
     });
 
     function assertEnsurePatternRooted(root: string, path: string, expected: string) {
-        let actual: string = im._ensurePatternRooted(root, path);
+        const actual: string = im._ensurePatternRooted(root, path);
         if (actual != expected) {
             throw new Error(`ensureRootedPattern on <${root}, ${path}> yields <${actual}>; expected <${expected}>`);
         }
@@ -928,7 +923,7 @@ describe('Find and Match Tests', function () {
     });
 
     function assertPatternFindInfo(defaultRoot: string, pattern: string, matchOptions: tl.MatchOptions, expected: any) {
-        let actual: any = im._getFindInfoFromPattern(defaultRoot, pattern, matchOptions);
+        const actual: any = im._getFindInfoFromPattern(defaultRoot, pattern, matchOptions);
         assert.deepEqual(actual, expected);
     }
 

@@ -2,15 +2,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 import * as assert from 'assert';
-import * as fs from 'fs';
-import * as path from 'path';
 import * as testutil from './testutil';
-import * as tl from '../_build/task';
 import * as im from '../_build/internal';
 import * as mockery from '../_build/lib-mocker'
 
 describe('Internal String Helper Tests: _truncateBeforeSensitiveKeyword', function () {
-    
     it('truncates before known sensitive keywords', () => {
         const input = "this is a secret password";
 
@@ -28,9 +24,10 @@ describe('Internal String Helper Tests: _truncateBeforeSensitiveKeyword', functi
     });
 
     it('process undefined gracefully', () => {
-        const input: string = undefined;
+        const input = undefined;
 
-        const result = im._truncateBeforeSensitiveKeyword(input, /key/i);
+        // @ts-ignore we are testing the behavior of passing undefined to _truncateBeforeSensitiveKeyword, which is not a valid input
+        const result = im._truncateBeforeSensitiveKeyword(undefined, /key/i);
 
         assert.strictEqual(result, input);
     });
@@ -41,8 +38,7 @@ describe('Internal Path Helper Tests', function () {
     before(function (done) {
         try {
             testutil.initialize();
-        }
-        catch (err) {
+        } catch (err) {
             assert.fail('Failed to load task lib: ' + err.message);
         }
 
@@ -150,6 +146,7 @@ describe('Internal Path Helper Tests', function () {
     it('getDirectoryName interprets directory name from paths', (done) => {
         this.timeout(1000);
 
+        // @ts-ignore we are testing the behavior of passing null to _getDirectoryName, which is not a valid input
         assertDirectoryName(null, '');
         assertDirectoryName('', '');
         assertDirectoryName('.', '');
@@ -429,22 +426,23 @@ describe('Internal Path Helper Tests', function () {
 
         done();
     });
-    
+
     it('ReportMissingStrings', (done) => {
         mockery.registerAllowable('../_build/internal')
         const fsMock = {
-            statSync: function (path) { return null; }
+            // @ts-ignore
+            statSync: function (_path) { return null; }
         };
         mockery.registerMock('fs', fsMock);
         mockery.enable({ useCleanCache: true })
 
         const local_im = require('../_build/internal');
 
-        try{
-            const localizedMessage : string = local_im._loc("gizmo", "whatever", "music");
+        try {
+            const localizedMessage: string = local_im._loc("gizmo", "whatever", "music");
             assert.strictEqual(localizedMessage, "gizmo whatever music");
 
-        }finally{
+        } finally {
             mockery.disable();
             mockery.deregisterAll();
         }
@@ -452,7 +450,7 @@ describe('Internal Path Helper Tests', function () {
     });
 
     it('ReportMissingLocalization', (done) => {
-        const localizedMessage : string = im._loc("gizmo", "whatever", "music");
+        const localizedMessage: string = im._loc("gizmo", "whatever", "music");
         assert.strictEqual(localizedMessage, "gizmo whatever music");
         done();
     });

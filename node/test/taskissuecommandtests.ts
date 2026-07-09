@@ -2,13 +2,13 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 import assert = require('assert');
+
 import * as testutil from './testutil';
 import * as tl from '../_build/task';
 import { IssueAuditAction, IssueSource, _loadData } from '../_build/internal';
 
 
 describe('Task Issue command test without correlation ID', function () {
-
     before(function (done) {
         try {
             testutil.initialize();
@@ -33,7 +33,7 @@ describe('Task Issue command test without correlation ID', function () {
 
         var expected = testutil.buildOutput(
             ['##vso[task.issue type=error;source=CustomerScript;]Test error',
-             '##vso[task.issue type=warning;source=TaskInternal;]Test warning']);
+                '##vso[task.issue type=warning;source=TaskInternal;]Test warning']);
 
         var output = stdStream.getContents();
 
@@ -52,7 +52,7 @@ describe('Task Issue command test without correlation ID', function () {
 
         var expected = testutil.buildOutput(
             ['##vso[task.issue type=error;source=TaskInternal;]Test error',
-             '##vso[task.issue type=warning;source=TaskInternal;]Test warning']);
+                '##vso[task.issue type=warning;source=TaskInternal;]Test warning']);
 
         var output = stdStream.getContents();
 
@@ -70,8 +70,8 @@ describe('Task Issue command test without correlation ID', function () {
 
         var expected = testutil.buildOutput(
             ['##vso[task.debug]task result: Failed',
-             '##vso[task.issue type=error;source=TaskInternal;]failed msg',
-             '##vso[task.complete result=Failed;]failed msg']);
+                '##vso[task.issue type=error;source=TaskInternal;]failed msg',
+                '##vso[task.complete result=Failed;]failed msg']);
 
         var output = stdStream.getContents();
 
@@ -117,7 +117,7 @@ describe('Task Issue command test with correlation ID', function () {
         let taskVariable = tl.getTaskVariable('COMMAND_CORRELATION_ID');
         assert.equal(variable, undefined);
         assert.equal(taskVariable, undefined);
-        
+
         done();
     })
 
@@ -131,7 +131,7 @@ describe('Task Issue command test with correlation ID', function () {
 
         var expected = testutil.buildOutput(
             ['##vso[task.issue type=error;source=CustomerScript;correlationId=test_id123;]Test error',
-             '##vso[task.issue type=warning;source=TaskInternal;correlationId=test_id123;]Test warning']);
+                '##vso[task.issue type=warning;source=TaskInternal;correlationId=test_id123;]Test warning']);
 
         var output = stdStream.getContents();
 
@@ -150,7 +150,7 @@ describe('Task Issue command test with correlation ID', function () {
 
         var expected = testutil.buildOutput(
             ['##vso[task.issue type=error;source=TaskInternal;correlationId=test_id123;]Test error',
-             '##vso[task.issue type=warning;source=TaskInternal;correlationId=test_id123;]Test warning']);
+                '##vso[task.issue type=warning;source=TaskInternal;correlationId=test_id123;]Test warning']);
 
         var output = stdStream.getContents();
 
@@ -168,8 +168,8 @@ describe('Task Issue command test with correlation ID', function () {
 
         var expected = testutil.buildOutput(
             ['##vso[task.debug]task result: Failed',
-             '##vso[task.issue type=error;source=TaskInternal;correlationId=test_id123;]failed msg',
-             '##vso[task.complete result=Failed;]failed msg']);
+                '##vso[task.issue type=error;source=TaskInternal;correlationId=test_id123;]failed msg',
+                '##vso[task.complete result=Failed;]failed msg']);
 
         var output = stdStream.getContents();
 

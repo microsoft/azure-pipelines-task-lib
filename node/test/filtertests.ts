@@ -10,27 +10,24 @@ describe('Filter Tests', function () {
     before(function (done) {
         try {
             testutil.initialize();
-        }
-        catch (err) {
+        } catch (err) {
             assert.fail('Failed to load task lib: ' + err.message);
         }
-        done();
-    });
 
-    after(function () {
+        done();
     });
 
     it('applies default option nobrace true', (done) => {
         this.timeout(1000);
 
-        let list = [
+        const list = [
             '/brace-test/brace_{hello,world}.txt',
             '/brace-test/brace_hello.txt',
             '/brace-test/brace_world.txt',
         ];
-        let pattern = '/brace-test/brace_{hello,world}.txt';
-        let actual: string[] = list.filter(tl.filter(pattern));
-        let expected: string[] = [
+        const pattern = '/brace-test/brace_{hello,world}.txt';
+        const actual: string[] = list.filter(tl.filter(pattern));
+        const expected: string[] = [
             '/brace-test/brace_{hello,world}.txt'
         ];
         assert.deepEqual(actual, expected);
@@ -41,14 +38,14 @@ describe('Filter Tests', function () {
     it('applies default option noglobstar false', (done) => {
         this.timeout(1000);
 
-        let list = [
+        const list = [
             '/glob-star-test/hello/world/hello-world.txt',
             '/glob-star-test/hello/hello.txt',
             '/glob-star-test/glob-star-test.txt',
         ];
-        let pattern = '/glob-star-test/**';
-        let actual: string[] = list.filter(tl.filter(pattern));
-        let expected = [
+        const pattern = '/glob-star-test/**';
+        const actual: string[] = list.filter(tl.filter(pattern));
+        const expected = [
             '/glob-star-test/hello/world/hello-world.txt',
             '/glob-star-test/hello/hello.txt',
             '/glob-star-test/glob-star-test.txt',
@@ -61,13 +58,13 @@ describe('Filter Tests', function () {
     it('applies default option dot true', (done) => {
         this.timeout(1000);
 
-        let list = [
+        const list = [
             '/dot-test/.hello/.world.txt',
             '/dot-test/.hello/other.zzz',
         ];
-        let pattern = '/dot-test/*/*.txt';
-        let actual: string[] = list.filter(tl.filter(pattern));
-        let expected = [
+        const pattern = '/dot-test/*/*.txt';
+        const actual: string[] = list.filter(tl.filter(pattern));
+        const expected = [
             '/dot-test/.hello/.world.txt',
         ];
         assert.deepEqual(actual, expected);
@@ -78,14 +75,14 @@ describe('Filter Tests', function () {
     it('applies default option noext false', (done) => {
         this.timeout(1000);
 
-        let list = [
+        const list = [
             '/ext-glob-test/@(hello|world).txt',
             '/ext-glob-test/hello.txt',
             '/ext-glob-test/world.txt',
         ];
-        let pattern = '/ext-glob-test/@(hello|world).txt';
-        let actual: string[] = list.filter(tl.filter(pattern));
-        let expected = [
+        const pattern = '/ext-glob-test/@(hello|world).txt';
+        const actual: string[] = list.filter(tl.filter(pattern));
+        const expected = [
             '/ext-glob-test/hello.txt',
             '/ext-glob-test/world.txt',
         ];
@@ -97,13 +94,13 @@ describe('Filter Tests', function () {
     it('applies default option nocase based on platform', (done) => {
         this.timeout(1000);
 
-        let list = [
+        const list = [
             '/case-test/hello.txt',
             '/case-test/world.TXT',
         ];
-        let pattern = '/case-test/*.txt';
-        let actual: string[] = list.filter(tl.filter(pattern));
-        let expected: string[] = [];
+        const pattern = '/case-test/*.txt';
+        const actual: string[] = list.filter(tl.filter(pattern));
+        const expected: string[] = [];
         expected.push('/case-test/hello.txt');
         if (process.platform == 'win32') {
             expected.push('/case-test/world.TXT');
@@ -117,13 +114,13 @@ describe('Filter Tests', function () {
     it('applies default option matchBase false', (done) => {
         this.timeout(1000);
 
-        let list = [
+        const list = [
             '/match-base-test/match-base-file.txt',
             'match-base-file.txt',
         ];
-        let pattern = 'match-base-file.txt';
-        let actual: string[] = list.filter(tl.filter(pattern));
-        let expected = [
+        const pattern = 'match-base-file.txt';
+        const actual: string[] = list.filter(tl.filter(pattern));
+        const expected = [
             'match-base-file.txt',
         ];
         assert.deepEqual(actual, expected);
@@ -134,12 +131,12 @@ describe('Filter Tests', function () {
     it('applies default option nocomment false', (done) => {
         this.timeout(1000);
 
-        let list = [
+        const list = [
             '#comment-test',
         ];
-        let pattern = '#comment-test';
-        let actual: string[] = list.filter(tl.filter(pattern));
-        let expected = [];
+        const pattern = '#comment-test';
+        const actual: string[] = list.filter(tl.filter(pattern));
+        const expected: string[] = [];
         assert.deepEqual(actual, expected);
 
         done();
@@ -148,13 +145,13 @@ describe('Filter Tests', function () {
     it('applies default option nonegate false', (done) => {
         this.timeout(1000);
 
-        let list = [
+        const list = [
             '/negate-test/hello.txt',
             '/negate-test/world.txt',
         ];
-        let pattern = '!/negate-test/hello.txt';
-        let actual: string[] = list.filter(tl.filter(pattern));
-        let expected = [
+        const pattern = '!/negate-test/hello.txt';
+        const actual: string[] = list.filter(tl.filter(pattern));
+        const expected = [
             '/negate-test/world.txt',
         ];
         assert.deepEqual(actual, expected);
@@ -165,14 +162,14 @@ describe('Filter Tests', function () {
     it('supports custom options', (done) => {
         this.timeout(1000);
 
-        let list = [
+        const list = [
             '/brace-test/brace_{hello,world}.txt',
             '/brace-test/brace_hello.txt',
             '/brace-test/brace_world.txt',
         ];
-        let pattern = '/brace-test/brace_{hello,world}.txt';
-        let actual: string[] = list.filter(tl.filter(pattern, <tl.MatchOptions>{ nobrace: false }));
-        let expected = [
+        const pattern = '/brace-test/brace_{hello,world}.txt';
+        const actual: string[] = list.filter(tl.filter(pattern, <tl.MatchOptions>{ nobrace: false }));
+        const expected = [
             '/brace-test/brace_hello.txt',
             '/brace-test/brace_world.txt',
         ];

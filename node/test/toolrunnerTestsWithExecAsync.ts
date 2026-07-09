@@ -7,31 +7,27 @@ import fs = require('fs');
 import path = require('path');
 import os = require('os');
 import stream = require('stream');
+
 import * as tl from '../_build/task';
 import * as trm from '../_build/toolrunner';
 
 import testutil = require('./testutil');
 
 describe('Toolrunner Tests With ExecAsync', function () {
-
     before(function (done) {
         try {
             testutil.initialize();
-        }
-        catch (err) {
+        } catch (err) {
             assert.fail('Failed to load task lib: ' + err.message);
         }
+
         done();
-    });
-
-    after(function () {
-
     });
 
     it('Exec convenience with stdout', function (done) {
         this.timeout(10000);
 
-        var _testExecOptions = <trm.IExecOptions>{
+        const _testExecOptions = <trm.IExecOptions>{
             cwd: __dirname,
             env: {},
             silent: false,
@@ -50,8 +46,7 @@ describe('Toolrunner Tests With ExecAsync', function () {
                 .catch(function (err) {
                     done(err);
                 });
-        }
-        else {
+        } else {
             tl.execAsync('ls', '-l -a', _testExecOptions)
                 .then(function (code) {
                     assert.equal(code, 0, 'return code of ls should be 0');
@@ -61,14 +56,15 @@ describe('Toolrunner Tests With ExecAsync', function () {
                     done(err);
                 });
         }
-    })
+    });
+
     it('ToolRunner writes debug', function (done) {
         this.timeout(10000);
 
-        var stdStream = testutil.createStringStream();
+        const stdStream = testutil.createStringStream();
         tl.setStdStream(stdStream);
 
-        var _testExecOptions = <trm.IExecOptions>{
+        const _testExecOptions = <trm.IExecOptions>{
             cwd: __dirname,
             env: {},
             silent: false,
@@ -79,13 +75,13 @@ describe('Toolrunner Tests With ExecAsync', function () {
         };
 
         if (os.platform() === 'win32') {
-            var cmdPath = tl.which('cmd', true);
-            var cmd = tl.tool(cmdPath);
+            const cmdPath = tl.which('cmd', true);
+            const cmd = tl.tool(cmdPath);
             cmd.arg('/c echo \'azure-pipelines-task-lib\'');
 
             cmd.execAsync(_testExecOptions)
                 .then(function (code) {
-                    var contents = stdStream.getContents();
+                    const contents = stdStream.getContents();
                     assert(contents.indexOf('exec tool: ' + cmdPath) >= 0, 'should exec cmd');
                     assert.equal(code, 0, 'return code of cmd should be 0');
                     done();
@@ -93,15 +89,14 @@ describe('Toolrunner Tests With ExecAsync', function () {
                 .catch(function (err) {
                     done(err);
                 });
-        }
-        else {
-            var ls = tl.tool(tl.which('ls', true));
+        } else {
+            const ls = tl.tool(tl.which('ls', true));
             ls.arg('-l');
             ls.arg('-a');
 
             ls.execAsync(_testExecOptions)
                 .then(function (code) {
-                    var contents = stdStream.getContents();
+                    const contents = stdStream.getContents();
                     const usr = os.platform() === 'linux' ? '/usr' : '';
                     assert(contents.indexOf(`exec tool: ${usr}/bin/ls`) >= 0, 'should exec ls');
                     assert.equal(code, 0, 'return code of ls should be 0');
@@ -111,14 +106,15 @@ describe('Toolrunner Tests With ExecAsync', function () {
                     done(err);
                 });
         }
-    })
+    });
+
     it('Writes correct output line events', async function () {
         const scriptPath = path.join(__dirname, 'scripts', 'write-bufferedoutput.js');
         const node = tl.tool(tl.which('node', true));
         node.arg(scriptPath);
 
-        const stdlines = [];
-        const errlines = [];
+        const stdlines: string[] = [];
+        const errlines: string[] = [];
 
         node.on('stdline', function (line) {
             stdlines.push(line);
@@ -141,11 +137,12 @@ describe('Toolrunner Tests With ExecAsync', function () {
         assert.deepStrictEqual(code, 0, 'return code of cmd should be 0');
         assert.deepStrictEqual(stdlines, ['stdline 1', 'stdline 2', 'stdline 3'], 'should have emitted stdlines');
         assert.deepStrictEqual(errlines, ['errline 1', 'errline 2', 'errline 3'], 'should have emitted errlines');
-    })
+    });
+
     it('Execs with stdout', function (done) {
         this.timeout(10000);
 
-        var _testExecOptions = <trm.IExecOptions>{
+        const _testExecOptions = <trm.IExecOptions>{
             cwd: __dirname,
             env: {},
             silent: false,
@@ -155,9 +152,9 @@ describe('Toolrunner Tests With ExecAsync', function () {
             errStream: testutil.getNullStream()
         };
 
-        var output = '';
+        let output = '';
         if (os.platform() === 'win32') {
-            var cmd = tl.tool(tl.which('cmd', true))
+            const cmd = tl.tool(tl.which('cmd', true))
                 .arg('/c')
                 .arg('echo \'azure-pipelines-task-lib\'');
 
@@ -174,9 +171,8 @@ describe('Toolrunner Tests With ExecAsync', function () {
                 .catch(function (err) {
                     done(err);
                 });
-        }
-        else {
-            var ls = tl.tool(tl.which('ls', true));
+        } else {
+            const ls = tl.tool(tl.which('ls', true));
             ls.arg('-l');
             ls.arg('-a');
 
@@ -194,11 +190,12 @@ describe('Toolrunner Tests With ExecAsync', function () {
                     done(err);
                 });
         }
-    })
+    });
+
     it('Fails on return code 1 with stderr', function (done) {
         this.timeout(10000);
 
-        var _testExecOptions = <trm.IExecOptions>{
+        const _testExecOptions = <trm.IExecOptions>{
             cwd: __dirname,
             env: {},
             silent: false,
@@ -209,15 +206,15 @@ describe('Toolrunner Tests With ExecAsync', function () {
         };
 
         if (os.platform() === 'win32') {
-            var cmd = tl.tool(tl.which('cmd', true));
+            const cmd = tl.tool(tl.which('cmd', true));
             cmd.arg('/c notExist');
 
-            var output = '';
+            let output = '';
             cmd.on('stderr', (data) => {
                 output = data.toString();
             });
 
-            var succeeded = false;
+            let succeeded = false;
             cmd.execAsync(_testExecOptions)
                 .then(function (code) {
                     succeeded = true;
@@ -236,19 +233,18 @@ describe('Toolrunner Tests With ExecAsync', function () {
                 .catch(function (err) {
                     done(err);
                 });
-        }
-        else {
-            var bash = tl.tool(tl.which('bash', true));
+        } else {
+            const bash = tl.tool(tl.which('bash', true));
             bash.arg('--noprofile');
             bash.arg('--norc');
             bash.arg('-c');
             bash.arg('echo hello from STDERR 1>&2 ; exit 123');
-            var output = '';
+            let output = '';
             bash.on('stderr', (data) => {
                 output = data.toString();
             });
 
-            var succeeded = false;
+            let succeeded = false;
             bash.execAsync(_testExecOptions)
                 .then(function () {
                     succeeded = true;
@@ -268,15 +264,16 @@ describe('Toolrunner Tests With ExecAsync', function () {
                     done(err);
                 });
         }
-    })
+    });
+
     it('Succeeds on stderr by default', function (done) {
         this.timeout(10000);
 
-        var scriptPath = path.join(__dirname, 'scripts', 'stderroutput.js');
-        var ls = tl.tool(tl.which('node', true));
+        const scriptPath = path.join(__dirname, 'scripts', 'stderroutput.js');
+        const ls = tl.tool(tl.which('node', true));
         ls.arg(scriptPath);
 
-        var _testExecOptions = <trm.IExecOptions>{
+        const _testExecOptions = <trm.IExecOptions>{
             cwd: __dirname,
             env: {},
             silent: false,
@@ -293,15 +290,16 @@ describe('Toolrunner Tests With ExecAsync', function () {
             .catch(function (err) {
                 done(new Error('did not succeed on stderr'))
             })
-    })
+    });
+
     it('Fails on stderr if specified', function (done) {
         this.timeout(10000);
 
-        var scriptPath = path.join(__dirname, 'scripts', 'stderroutput.js');
-        var node = tl.tool(tl.which('node', true))
+        const scriptPath = path.join(__dirname, 'scripts', 'stderroutput.js');
+        const node = tl.tool(tl.which('node', true))
             .arg(scriptPath);
 
-        var _testExecOptions = <trm.IExecOptions>{
+        const _testExecOptions = <trm.IExecOptions>{
             cwd: __dirname,
             env: {},
             silent: false,
@@ -311,12 +309,12 @@ describe('Toolrunner Tests With ExecAsync', function () {
             errStream: testutil.getNullStream()
         }
 
-        var output = '';
+        let output = '';
         node.on('stderr', (data) => {
             output = data.toString();
         });
 
-        var succeeded = false;
+        let succeeded = false;
         node.execAsync(_testExecOptions)
             .then(function () {
                 succeeded = true;
@@ -335,12 +333,13 @@ describe('Toolrunner Tests With ExecAsync', function () {
             .catch(function (err) {
                 done(err);
             });
-    })
+    });
+
     it('Fails when process fails to launch', function (done) {
         this.timeout(10000);
 
-        var tool = tl.tool(tl.which('node', true));
-        var _testExecOptions = <trm.IExecOptions>{
+        const tool = tl.tool(tl.which('node', true));
+        const _testExecOptions = <trm.IExecOptions>{
             cwd: path.join(testutil.getTestTemp(), 'nosuchdir'),
             env: {},
             silent: false,
@@ -350,12 +349,12 @@ describe('Toolrunner Tests With ExecAsync', function () {
             errStream: testutil.getNullStream()
         }
 
-        var output = '';
+        let output = '';
         tool.on('stderr', (data) => {
             output = data.toString();
         });
 
-        var succeeded = false;
+        let succeeded = false;
         tool.execAsync(_testExecOptions)
             .then(function () {
                 succeeded = true;
@@ -373,15 +372,16 @@ describe('Toolrunner Tests With ExecAsync', function () {
             .catch(function (err) {
                 done(err);
             });
-    })
+    });
+
     it('Handles child process holding streams open', function (done) {
         this.timeout(10000);
 
-        let semaphorePath = path.join(testutil.getTestTemp(), 'child-process-semaphore.txt');
+        const semaphorePath = path.join(testutil.getTestTemp(), 'child-process-semaphore.txt');
         fs.writeFileSync(semaphorePath, '');
 
-        let nodePath = tl.which('node', true);
-        let scriptPath = path.join(__dirname, 'scripts', 'wait-for-file.js');
+        const nodePath = tl.which('node', true);
+        const scriptPath = path.join(__dirname, 'scripts', 'wait-for-file.js');
         let shell: trm.ToolRunner;
         if (os.platform() == 'win32') {
             shell = tl.tool(tl.which('cmd.exe', true))
@@ -391,21 +391,20 @@ describe('Toolrunner Tests With ExecAsync', function () {
                 .arg('/S') // Will cause first and last quote after /C to be stripped.
                 .arg('/C')
                 .arg(`"start "" /B "${nodePath}" "${scriptPath}" "file=${semaphorePath}""`);
-        }
-        else {
+        } else {
             shell = tl.tool(tl.which('bash', true))
                 .arg('-c')
                 .arg(`node '${scriptPath}' 'file=${semaphorePath}' &`);
         }
 
-        let toolRunnerDebug = [];
+        const toolRunnerDebug: string[] = [];
         shell.on('debug', function (data) {
             toolRunnerDebug.push(data);
         });
 
         process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'] = "500"; // 0.5 seconds
 
-        let options = <trm.IExecOptions>{
+        const options = <trm.IExecOptions>{
             cwd: __dirname,
             env: process.env,
             silent: false,
@@ -428,15 +427,16 @@ describe('Toolrunner Tests With ExecAsync', function () {
                 fs.unlinkSync(semaphorePath);
                 delete process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'];
             });
-    })
+    });
+
     it('Handles child process holding streams open and non-zero exit code', function (done) {
         this.timeout(10000);
 
-        let semaphorePath = path.join(testutil.getTestTemp(), 'child-process-semaphore.txt');
+        const semaphorePath = path.join(testutil.getTestTemp(), 'child-process-semaphore.txt');
         fs.writeFileSync(semaphorePath, '');
 
-        let nodePath = tl.which('node', true);
-        let scriptPath = path.join(__dirname, 'scripts', 'wait-for-file.js');
+        const nodePath = tl.which('node', true);
+        const scriptPath = path.join(__dirname, 'scripts', 'wait-for-file.js');
         let shell: trm.ToolRunner;
         if (os.platform() == 'win32') {
             shell = tl.tool(tl.which('cmd.exe', true))
@@ -446,21 +446,20 @@ describe('Toolrunner Tests With ExecAsync', function () {
                 .arg('/S') // Will cause first and last quote after /C to be stripped.
                 .arg('/C')
                 .arg(`"start "" /B "${nodePath}" "${scriptPath}" "file=${semaphorePath}"" & exit /b 123`);
-        }
-        else {
+        } else {
             shell = tl.tool(tl.which('bash', true))
                 .arg('-c')
                 .arg(`node '${scriptPath}' 'file=${semaphorePath}' & exit 123`);
         }
 
-        let toolRunnerDebug = [];
+        const toolRunnerDebug: string[] = [];
         shell.on('debug', function (data) {
             toolRunnerDebug.push(data);
         });
 
         process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'] = "500"; // 0.5 seconds
 
-        let options = <trm.IExecOptions>{
+        const options = <trm.IExecOptions>{
             cwd: __dirname,
             env: process.env,
             silent: false,
@@ -488,15 +487,16 @@ describe('Toolrunner Tests With ExecAsync', function () {
                 fs.unlinkSync(semaphorePath);
                 delete process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'];
             });
-    })
+    });
+
     it('Handles child process holding streams open and stderr', function (done) {
         this.timeout(10000);
 
-        let semaphorePath = path.join(testutil.getTestTemp(), 'child-process-semaphore.txt');
+        const semaphorePath = path.join(testutil.getTestTemp(), 'child-process-semaphore.txt');
         fs.writeFileSync(semaphorePath, '');
 
-        let nodePath = tl.which('node', true);
-        let scriptPath = path.join(__dirname, 'scripts', 'wait-for-file.js');
+        const nodePath = tl.which('node', true);
+        const scriptPath = path.join(__dirname, 'scripts', 'wait-for-file.js');
         let shell: trm.ToolRunner;
         if (os.platform() == 'win32') {
             shell = tl.tool(tl.which('cmd.exe', true))
@@ -513,14 +513,14 @@ describe('Toolrunner Tests With ExecAsync', function () {
                 .arg(`node '${scriptPath}' 'file=${semaphorePath}' & echo hi 1>&2`);
         }
 
-        let toolRunnerDebug = [];
+        const toolRunnerDebug: string[] = [];
         shell.on('debug', function (data) {
             toolRunnerDebug.push(data);
         });
 
         process.env['TASKLIB_TEST_TOOLRUNNER_EXITDELAY'] = "500"; // 0.5 seconds
 
-        let options = <trm.IExecOptions>{
+        const options = <trm.IExecOptions>{
             cwd: __dirname,
             env: process.env,
             silent: false,
@@ -552,7 +552,7 @@ describe('Toolrunner Tests With ExecAsync', function () {
     it('Exec pipe output to another tool, succeeds if both tools succeed', function (done) {
         this.timeout(30000);
 
-        var _testExecOptions = <trm.IExecOptions>{
+        const _testExecOptions = <trm.IExecOptions>{
             cwd: __dirname,
             env: {},
             silent: false,
@@ -563,17 +563,17 @@ describe('Toolrunner Tests With ExecAsync', function () {
         };
 
         if (os.platform() === 'win32') {
-            var matchExe = tl.tool(compileMatchExe())
+            const matchExe = tl.tool(compileMatchExe())
                 .arg('0') // exit code
                 .arg('line 2'); // match value
-            var outputExe = tl.tool(compileOutputExe())
+            const outputExe = tl.tool(compileOutputExe())
                 .arg('0') // exit code
                 .arg('line 1')
                 .arg('line 2')
                 .arg('line 3');
             outputExe.pipeExecOutputToTool(matchExe);
 
-            var output = '';
+            let output = '';
             outputExe.on('stdout', (data) => {
                 output += data.toString();
             });
@@ -589,14 +589,14 @@ describe('Toolrunner Tests With ExecAsync', function () {
                 });
         }
         else {
-            var grep = tl.tool(tl.which('grep', true));
+            const grep = tl.tool(tl.which('grep', true));
             grep.arg('node');
 
-            var ps = tl.tool(tl.which('ps', true));
+            const ps = tl.tool(tl.which('ps', true));
             ps.arg('ax');
             ps.pipeExecOutputToTool(grep);
 
-            var output = '';
+            let output = '';
             ps.on('stdout', (data) => {
                 output += data.toString();
             });
@@ -615,7 +615,7 @@ describe('Toolrunner Tests With ExecAsync', function () {
     it('Exec pipe output to another tool, fails if first tool fails', function (done) {
         this.timeout(20000);
 
-        var _testExecOptions = <trm.IExecOptions>{
+        const _testExecOptions = <trm.IExecOptions>{
             cwd: __dirname,
             env: {},
             silent: false,
@@ -626,22 +626,22 @@ describe('Toolrunner Tests With ExecAsync', function () {
         };
 
         if (os.platform() === 'win32') {
-            var matchExe = tl.tool(compileMatchExe())
+            const matchExe = tl.tool(compileMatchExe())
                 .arg('0') // exit code
                 .arg('line 2'); // match value
-            var outputExe = tl.tool(compileOutputExe())
+            const outputExe = tl.tool(compileOutputExe())
                 .arg('1') // exit code
                 .arg('line 1')
                 .arg('line 2')
                 .arg('line 3');
             outputExe.pipeExecOutputToTool(matchExe);
 
-            var output = '';
+            let output = '';
             outputExe.on('stdout', (data) => {
                 output += data.toString();
             });
 
-            var succeeded = false;
+            let succeeded = false;
             outputExe.execAsync(_testExecOptions)
                 .then(function () {
                     succeeded = true;
@@ -661,19 +661,19 @@ describe('Toolrunner Tests With ExecAsync', function () {
                 });
         }
         else {
-            var grep = tl.tool(tl.which('grep', true));
+            const grep = tl.tool(tl.which('grep', true));
             grep.arg('ssh');
 
-            var ps = tl.tool(tl.which('ps', true));
+            const ps = tl.tool(tl.which('ps', true));
             ps.arg('bad');
             ps.pipeExecOutputToTool(grep);
 
-            var output = '';
+            let output = '';
             ps.on('stdout', (data) => {
                 output += data.toString();
             });
 
-            var succeeded = false;
+            let succeeded = false;
             ps.execAsync(_testExecOptions)
                 .then(function () {
                     succeeded = true;
@@ -697,7 +697,7 @@ describe('Toolrunner Tests With ExecAsync', function () {
     it('Exec pipe output to another tool, fails if second tool fails', function (done) {
         this.timeout(20000);
 
-        var _testExecOptions = <trm.IExecOptions>{
+        const _testExecOptions = <trm.IExecOptions>{
             cwd: __dirname,
             env: {},
             silent: false,
@@ -708,28 +708,28 @@ describe('Toolrunner Tests With ExecAsync', function () {
         };
 
         if (os.platform() === 'win32') {
-            var matchExe = tl.tool(compileMatchExe())
+            const matchExe = tl.tool(compileMatchExe())
                 .arg('1') // exit code
                 .arg('line 2') // match value
                 .arg('some error message'); // error
-            var outputExe = tl.tool(compileOutputExe())
+            const outputExe = tl.tool(compileOutputExe())
                 .arg('0') // exit code
                 .arg('line 1')
                 .arg('line 2')
                 .arg('line 3');
             outputExe.pipeExecOutputToTool(matchExe);
 
-            var output = '';
+            let output = '';
             outputExe.on('stdout', (data) => {
                 output += data.toString();
             });
 
-            var errOut = '';
+            let errOut = '';
             outputExe.on('stderr', (data) => {
                 errOut += data.toString();
             });
 
-            var succeeded = false;
+            let succeeded = false;
             outputExe.execAsync(_testExecOptions)
                 .then(function (code) {
                     succeeded = true;
@@ -750,25 +750,25 @@ describe('Toolrunner Tests With ExecAsync', function () {
                 });
         }
         else {
-            var grep = tl.tool(tl.which('grep', true));
+            const grep = tl.tool(tl.which('grep', true));
             grep.arg('--?');
 
-            var node = tl.tool(tl.which('node', true))
+            const node = tl.tool(tl.which('node', true))
                 .arg('-e')
                 .arg('console.log("line1"); setTimeout(function () { console.log("line2"); }, 200);'); // allow long enough to hook up stdout to stdin
             node.pipeExecOutputToTool(grep);
 
-            var output = '';
+            let output = '';
             node.on('stdout', (data) => {
                 output += data.toString();
             });
 
-            var errOut = '';
+            let errOut = '';
             node.on('stderr', (data) => {
                 errOut += data.toString();
             })
 
-            var succeeded = false;
+            let succeeded = false;
             node.execAsync(_testExecOptions)
                 .then(function (code) {
                     succeeded = true;
@@ -793,7 +793,7 @@ describe('Toolrunner Tests With ExecAsync', function () {
     it('Exec pipe output to file and another tool, succeeds if both tools succeed', function (done) {
         this.timeout(20000);
 
-        var _testExecOptions = <trm.IExecOptions>{
+        const _testExecOptions = <trm.IExecOptions>{
             cwd: __dirname,
             env: {},
             silent: false,
@@ -806,17 +806,17 @@ describe('Toolrunner Tests With ExecAsync', function () {
         const testFile = path.join(testutil.getTestTemp(), 'BothToolsSucceed.log');
 
         if (os.platform() === 'win32') {
-            var matchExe = tl.tool(compileMatchExe())
+            const matchExe = tl.tool(compileMatchExe())
                 .arg('0') // exit code
                 .arg('line 2'); // match value
-            var outputExe = tl.tool(compileOutputExe())
+            const outputExe = tl.tool(compileOutputExe())
                 .arg('0') // exit code
                 .arg('line 1')
                 .arg('line 2')
                 .arg('line 3');
             outputExe.pipeExecOutputToTool(matchExe, testFile);
 
-            var output = '';
+            let output = '';
             outputExe.on('stdout', (data) => {
                 output += data.toString();
             });
@@ -835,14 +835,14 @@ describe('Toolrunner Tests With ExecAsync', function () {
                 });
         }
         else {
-            var grep = tl.tool(tl.which('grep', true));
+            const grep = tl.tool(tl.which('grep', true));
             grep.arg('node');
 
-            var ps = tl.tool(tl.which('ps', true));
+            const ps = tl.tool(tl.which('ps', true));
             ps.arg('ax');
             ps.pipeExecOutputToTool(grep, testFile);
 
-            var output = '';
+            let output = '';
             ps.on('stdout', (data) => {
                 output += data.toString();
             });
@@ -864,7 +864,7 @@ describe('Toolrunner Tests With ExecAsync', function () {
     it('Exec pipe output to file and another tool, fails if first tool fails', function (done) {
         this.timeout(20000);
 
-        var _testExecOptions = <trm.IExecOptions>{
+        const _testExecOptions = <trm.IExecOptions>{
             cwd: __dirname,
             env: {},
             silent: false,
@@ -877,22 +877,22 @@ describe('Toolrunner Tests With ExecAsync', function () {
         const testFile = path.join(testutil.getTestTemp(), 'FirstToolFails.log');
 
         if (os.platform() === 'win32') {
-            var matchExe = tl.tool(compileMatchExe())
+            const matchExe = tl.tool(compileMatchExe())
                 .arg('0') // exit code
                 .arg('line 2'); // match value
-            var outputExe = tl.tool(compileOutputExe())
+            const outputExe = tl.tool(compileOutputExe())
                 .arg('1') // exit code
                 .arg('line 1')
                 .arg('line 2')
                 .arg('line 3');
             outputExe.pipeExecOutputToTool(matchExe, testFile);
 
-            var output = '';
+            let output = '';
             outputExe.on('stdout', (data) => {
                 output += data.toString();
             });
 
-            var succeeded = false;
+            let succeeded = false;
             outputExe.execAsync(_testExecOptions)
                 .then(function () {
                     succeeded = true;
@@ -915,19 +915,19 @@ describe('Toolrunner Tests With ExecAsync', function () {
                 });
         }
         else {
-            var grep = tl.tool(tl.which('grep', true));
+            const grep = tl.tool(tl.which('grep', true));
             grep.arg('ssh');
 
-            var ps = tl.tool(tl.which('ps', true));
+            const ps = tl.tool(tl.which('ps', true));
             ps.arg('bad');
             ps.pipeExecOutputToTool(grep, testFile);
 
-            var output = '';
+            let output = '';
             ps.on('stdout', (data) => {
                 output += data.toString();
             });
 
-            var succeeded = false;
+            let succeeded = false;
             ps.execAsync(_testExecOptions)
                 .then(function () {
                     succeeded = true;
@@ -954,7 +954,7 @@ describe('Toolrunner Tests With ExecAsync', function () {
     it.skip('Exec pipe output to file and another tool, fails if second tool fails', function (done) {
         this.timeout(20000);
 
-        var _testExecOptions = <trm.IExecOptions>{
+        const _testExecOptions = <trm.IExecOptions>{
             cwd: __dirname,
             env: {},
             silent: false,
@@ -967,28 +967,28 @@ describe('Toolrunner Tests With ExecAsync', function () {
         const testFile = path.join(testutil.getTestTemp(), 'SecondToolFails.log');
 
         if (os.platform() === 'win32') {
-            var matchExe = tl.tool(compileMatchExe())
+            const matchExe = tl.tool(compileMatchExe())
                 .arg('1') // exit code
                 .arg('line 2') // match value
                 .arg('some error message'); // error
-            var outputExe = tl.tool(compileOutputExe())
+            const outputExe = tl.tool(compileOutputExe())
                 .arg('0') // exit code
                 .arg('line 1')
                 .arg('line 2')
                 .arg('line 3');
             outputExe.pipeExecOutputToTool(matchExe, testFile);
 
-            var output = '';
+            let output = '';
             outputExe.on('stdout', (data) => {
                 output += data.toString();
             });
 
-            var errOut = '';
+            let errOut = '';
             outputExe.on('stderr', (data) => {
                 errOut += data.toString();
             });
 
-            var succeeded = false;
+            let succeeded = false;
             outputExe.execAsync(_testExecOptions)
                 .then(function (code) {
                     succeeded = true;
@@ -1012,24 +1012,24 @@ describe('Toolrunner Tests With ExecAsync', function () {
                 });
         }
         else {
-            var grep = tl.tool(tl.which('grep', true));
+            const grep = tl.tool(tl.which('grep', true));
             grep.arg('--?');
 
-            var ps = tl.tool(tl.which('ps', true));
+            const ps = tl.tool(tl.which('ps', true));
             ps.arg('ax');
             ps.pipeExecOutputToTool(grep, testFile);
 
-            var output = '';
+            let output = '';
             ps.on('stdout', (data) => {
                 output += data.toString();
             });
 
-            var errOut = '';
+            let errOut = '';
             ps.on('stderr', (data) => {
                 errOut += data.toString();
             })
 
-            var succeeded = false;
+            let succeeded = false;
             ps.execAsync(_testExecOptions)
                 .then(function (code) {
                     succeeded = true;
@@ -1054,17 +1054,17 @@ describe('Toolrunner Tests With ExecAsync', function () {
                 });
         }
     })
-    
+
     if (process.platform != 'win32') {
         it('exec prints [command] (OSX/Linux)', function (done) {
             this.timeout(10000);
-            let bash = tl.tool(tl.which('bash'))
+            const bash = tl.tool(tl.which('bash'))
                 .arg('--norc')
                 .arg('--noprofile')
                 .arg('-c')
                 .arg('echo hello    world');
-            let outStream = testutil.createStringStream();
-            let options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream, windowsVerbatimArguments: true };
+            const outStream = testutil.createStringStream();
+            const options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream, windowsVerbatimArguments: true };
             let output = '';
             bash.on('stdout', (data) => {
                 output += data.toString();
@@ -1097,14 +1097,14 @@ describe('Toolrunner Tests With ExecAsync', function () {
             this.timeout(10000);
 
             // the echo built-in is a good tool for this test
-            let exePath = process.env.ComSpec;
-            let exeRunner = tl.tool(exePath)
+            const exePath = process.env['ComSpec']!;
+            const exeRunner = tl.tool(exePath)
                 .arg('/c')
                 .arg('echo')
                 .arg('helloworld')
                 .arg('hello:"world again"');
-            let outStream = testutil.createStringStream();
-            let options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream, windowsVerbatimArguments: true };
+            const outStream = testutil.createStringStream();
+            const options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream, windowsVerbatimArguments: true };
             let output = '';
             exeRunner.on('stdout', (data) => {
                 output += data.toString();
@@ -1131,16 +1131,16 @@ describe('Toolrunner Tests With ExecAsync', function () {
             this.timeout(10000);
 
             // the echo built-in is a good tool for this test
-            let exePath = process.env.ComSpec;
-            let exeRunner = tl.tool(exePath)
+            const exePath = process.env['ComSpec']!;
+            const exeRunner = tl.tool(exePath)
                 .arg('/c')
                 .arg('echo')
                 .arg('helloworld')
                 .arg('hello world')
                 .arg('hello:"world again"')
                 .arg('hello,world'); // "," should not be quoted for .exe (should be for .cmd)
-            let outStream = testutil.createStringStream();
-            let options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream };
+            const outStream = testutil.createStringStream();
+            const options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream };
             let output = '';
             exeRunner.on('stdout', (data) => {
                 output += data.toString();
@@ -1176,11 +1176,11 @@ describe('Toolrunner Tests With ExecAsync', function () {
             // this test validates the quoting that tool runner adds around the tool path
             // when using the windowsVerbatimArguments option. otherwise the target process
             // interprets the args as starting after the first space in the tool path.
-            let exePath = compileArgsExe('print args exe with spaces.exe');
-            let exeRunner = tl.tool(exePath)
+            const exePath = compileArgsExe('print args exe with spaces.exe');
+            const exeRunner = tl.tool(exePath)
                 .arg('myarg1 myarg2');
-            let outStream = testutil.createStringStream();
-            let options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream, windowsVerbatimArguments: true };
+            const outStream = testutil.createStringStream();
+            const options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream, windowsVerbatimArguments: true };
             let output = '';
             exeRunner.on('stdout', (data) => {
                 output += data.toString();
@@ -1213,12 +1213,12 @@ describe('Toolrunner Tests With ExecAsync', function () {
 
             // this test validates the quoting that tool runner adds around the script path.
             // otherwise cmd.exe will not be able to resolve the path to the script.
-            let cmdPath = path.join(__dirname, 'scripts', 'print args cmd with spaces.cmd');
-            let cmdRunner = tl.tool(cmdPath)
+            const cmdPath = path.join(__dirname, 'scripts', 'print args cmd with spaces.cmd');
+            const cmdRunner = tl.tool(cmdPath)
                 .arg('arg1 arg2')
                 .arg('arg3');
-            let outStream = testutil.createStringStream();
-            let options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream, windowsVerbatimArguments: true };
+            const outStream = testutil.createStringStream();
+            const options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream, windowsVerbatimArguments: true };
             let output = '';
             cmdRunner.on('stdout', (data) => {
                 output += data.toString();
@@ -1229,7 +1229,7 @@ describe('Toolrunner Tests With ExecAsync', function () {
                     // validate the [command] header
                     assert.equal(
                         outStream.getContents().split(os.EOL)[0],
-                        `[command]${process.env.ComSpec} /D /S /C ""${cmdPath}" arg1 arg2 arg3"`);
+                        `[command]${process.env['ComSpec']} /D /S /C ""${cmdPath}" arg1 arg2 arg3"`);
                     // validate stdout
                     assert.equal(
                         output.trim(),
@@ -1249,12 +1249,12 @@ describe('Toolrunner Tests With ExecAsync', function () {
             // this test validates the command is wrapped in quotes (i.e. cmd.exe /S /C "<COMMAND>").
             // otherwise the leading quote (around the script with space path) would be stripped
             // and cmd.exe would not be able to resolve the script path.
-            let cmdPath = path.join(__dirname, 'scripts', 'print args cmd with spaces.cmd');
-            let cmdRunner = tl.tool(cmdPath)
+            const cmdPath = path.join(__dirname, 'scripts', 'print args cmd with spaces.cmd');
+            const cmdRunner = tl.tool(cmdPath)
                 .arg('my arg 1')
                 .arg('my arg 2');
-            let outStream = testutil.createStringStream();
-            let options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream };
+            const outStream = testutil.createStringStream();
+            const options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream };
             let output = '';
             cmdRunner.on('stdout', (data) => {
                 output += data.toString();
@@ -1265,7 +1265,7 @@ describe('Toolrunner Tests With ExecAsync', function () {
                     // validate the [command] header
                     assert.equal(
                         outStream.getContents().split(os.EOL)[0],
-                        `[command]${process.env.ComSpec} /D /S /C ""${cmdPath}" "my arg 1" "my arg 2""`);
+                        `[command]${process.env['ComSpec']} /D /S /C ""${cmdPath}" "my arg 1" "my arg 2""`);
                     // validate stdout
                     assert.equal(
                         output.trim(),
@@ -1282,8 +1282,8 @@ describe('Toolrunner Tests With ExecAsync', function () {
             this.timeout(10000);
 
             // this test validates .cmd quoting rules are applied, not the default libuv rules
-            let cmdPath = path.join(__dirname, 'scripts', 'print args cmd with spaces.cmd');
-            let cmdRunner = tl.tool(cmdPath)
+            const cmdPath = path.join(__dirname, 'scripts', 'print args cmd with spaces.cmd');
+            const cmdRunner = tl.tool(cmdPath)
                 .arg('helloworld')
                 .arg('hello world')
                 .arg('hello\tworld')
@@ -1308,8 +1308,8 @@ describe('Toolrunner Tests With ExecAsync', function () {
                 .arg('hello>world')
                 .arg('hello:"world again"')
                 .arg('hello world\\');
-            let outStream = testutil.createStringStream();
-            let options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream };
+            const outStream = testutil.createStringStream();
+            const options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream };
             let output = '';
             cmdRunner.on('stdout', (data) => {
                 output += data.toString();
@@ -1320,7 +1320,7 @@ describe('Toolrunner Tests With ExecAsync', function () {
                     // validate the [command] header
                     assert.equal(
                         outStream.getContents().split(os.EOL)[0],
-                        '[command]' + process.env.ComSpec + ' /D /S /C ""' + cmdPath + '"'
+                        '[command]' + process.env['ComSpec'] + ' /D /S /C ""' + cmdPath + '"'
                         + ' helloworld'
                         + ' "hello world"'
                         + ' "hello\tworld"'
@@ -1387,16 +1387,16 @@ describe('Toolrunner Tests With ExecAsync', function () {
         it('exec pipe .cmd to .exe AND arg quoting (Windows)', function (done) {
             this.timeout(10000);
 
-            let cmdPath = path.join(__dirname, 'scripts', 'print args cmd with spaces.cmd');
-            let cmdRunner = tl.tool(cmdPath)
+            const cmdPath = path.join(__dirname, 'scripts', 'print args cmd with spaces.cmd');
+            const cmdRunner = tl.tool(cmdPath)
                 .arg('"hello world"');
 
-            let exePath = path.join(process.env.windir, 'System32', 'find.exe');
-            let exeRunner = tl.tool(exePath)
+            const exePath = path.join(process.env['windir']!, 'System32', 'find.exe');
+            const exeRunner = tl.tool(exePath)
                 .arg('hello world');
 
-            let outStream = testutil.createStringStream();
-            let options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream };
+            const outStream = testutil.createStringStream();
+            const options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream };
             let output = '';
             cmdRunner.on('stdout', (data) => {
                 output += data.toString();
@@ -1408,7 +1408,7 @@ describe('Toolrunner Tests With ExecAsync', function () {
                     // validate the [command] header
                     assert.equal(
                         outStream.getContents().split(os.EOL)[0],
-                        '[command]' + process.env.ComSpec + ' /D /S /C ""' + cmdPath + '" """hello world""""'
+                        '[command]' + process.env['ComSpec'] + ' /D /S /C ""' + cmdPath + '" """hello world""""'
                         + ' | ' + exePath + ' "hello world"');
                     // validate stdout
                     assert.equal(
@@ -1424,16 +1424,16 @@ describe('Toolrunner Tests With ExecAsync', function () {
         it('exec pipe .cmd to .exe AND verbatim args (Windows)', function (done) {
             this.timeout(10000);
 
-            let cmdPath = path.join(__dirname, 'scripts', 'print args cmd with spaces.cmd');
-            let cmdRunner = tl.tool(cmdPath)
+            const cmdPath = path.join(__dirname, 'scripts', 'print args cmd with spaces.cmd');
+            const cmdRunner = tl.tool(cmdPath)
                 .arg('hello world');
 
-            let exePath = path.join(process.env.windir, 'System32', 'find.exe');
-            let exeRunner = tl.tool(exePath)
+            const exePath = path.join(process.env['windir']!, 'System32', 'find.exe');
+            const exeRunner = tl.tool(exePath)
                 .arg('"world"');
 
-            let outStream = testutil.createStringStream();
-            let options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream, windowsVerbatimArguments: true };
+            const outStream = testutil.createStringStream();
+            const options = <trm.IExecOptions>{ outStream: <stream.Writable>outStream, windowsVerbatimArguments: true };
             let output = '';
             cmdRunner.on('stdout', (data) => {
                 output += data.toString();
@@ -1445,7 +1445,7 @@ describe('Toolrunner Tests With ExecAsync', function () {
                     // validate the [command] header
                     assert.equal(
                         outStream.getContents().split(os.EOL)[0],
-                        '[command]' + process.env.ComSpec + ' /D /S /C ""' + cmdPath + '" hello world"'
+                        '[command]' + process.env['ComSpec'] + ' /D /S /C ""' + cmdPath + '" hello world"'
                         + ' | "' + exePath + '" "world"');
                     // validate stdout
                     assert.equal(
@@ -1460,24 +1460,23 @@ describe('Toolrunner Tests With ExecAsync', function () {
     }
 
     // function to compile a .NET program on Windows.
-    let compileExe = (sourceFileName: string, targetFileName: string): string => {
-        let directory = path.join(testutil.getTestTemp(), sourceFileName);
+    const compileExe = (sourceFileName: string, targetFileName: string): string => {
+        const directory = path.join(testutil.getTestTemp(), sourceFileName);
         tl.mkdirP(directory);
-        let exePath = path.join(directory, targetFileName);
+        const exePath = path.join(directory, targetFileName);
 
         // short-circuit if already compiled
         try {
             fs.statSync(exePath);
             return exePath;
-        }
-        catch (err) {
+        } catch (err) {
             if (err.code != 'ENOENT') {
                 throw err;
             }
         }
 
-        let sourceFile = path.join(__dirname, 'scripts', sourceFileName);
-        let cscPath = 'C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe';
+        const sourceFile = path.join(__dirname, 'scripts', sourceFileName);
+        const cscPath = 'C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe';
         fs.statSync(cscPath);
         child_process.execFileSync(
             cscPath,
@@ -1491,7 +1490,7 @@ describe('Toolrunner Tests With ExecAsync', function () {
 
     describe('Executing inside shell', function () {
 
-        let tempPath: string = testutil.getTestTemp();
+        const tempPath: string = testutil.getTestTemp();
         let _testExecOptions: trm.IExecOptions;
 
         before (function () {
@@ -1518,8 +1517,8 @@ describe('Toolrunner Tests With ExecAsync', function () {
 
             let output: string = '';
             if (os.platform() === 'win32') {
-                let exePath = compileArgsExe('print args with spaces.exe');
-                let exeRunner = tl.tool(exePath);
+                const exePath = compileArgsExe('print args with spaces.exe');
+                const exeRunner = tl.tool(exePath);
                 exeRunner.line('%WIN_TEST%');
                 exeRunner.on('stdout', (data) => {
                     output = data.toString();
@@ -1534,7 +1533,7 @@ describe('Toolrunner Tests With ExecAsync', function () {
                 });
             }
             else {
-                let statRunner = tl.tool('stat');
+                const statRunner = tl.tool('stat');
                 statRunner.line('$TESTPATH');
                 statRunner.on('stdout', (data) => {
                     output = data.toString();
@@ -1607,8 +1606,8 @@ describe('Toolrunner Tests With ExecAsync', function () {
 
             let output: string = '';
             if (os.platform() === 'win32') {
-                let exePath = compileArgsExe('print args with spaces.exe');
-                let exeRunner = tl.tool(exePath);
+                const exePath = compileArgsExe('print args with spaces.exe');
+                const exeRunner = tl.tool(exePath);
                 exeRunner.line('-TEST1="space test" "-TEST2=%WIN_TEST%" \'-TEST3=value\'');
                 exeRunner.on('stdout', (data) => {
                     output += data.toString();
@@ -1625,7 +1624,7 @@ describe('Toolrunner Tests With ExecAsync', function () {
                 });
             }
             else {
-                let statRunner = tl.tool('echo');
+                const statRunner = tl.tool('echo');
                 statRunner.line('-TEST1="$TEST;test" "-TEST2=/one/two/three" \'-TEST3=out:$TEST\'');
                 statRunner.on('stdout', (data) => {
                     output = data.toString();
@@ -1644,19 +1643,19 @@ describe('Toolrunner Tests With ExecAsync', function () {
 
     // function to compile a .NET program that prints the command line args.
     // the helper program is used to validate that command line args are passed correctly.
-    let compileArgsExe = (targetFileName: string): string => {
+    const compileArgsExe = (targetFileName: string): string => {
         return compileExe('print-args-exe.cs', targetFileName);
     }
 
     // function to compile a .NET program that matches input lines.
     // the helper program is used on Windows to validate piping output between tools.
-    let compileMatchExe = (): string => {
+    const compileMatchExe = (): string => {
         return compileExe('match-input-exe.cs', 'match-input.exe');
     }
 
     // function to compile a .NET program that prints lines.
     // the helper program is used on Windows to validate piping output between tools.
-    let compileOutputExe = (): string => {
+    const compileOutputExe = (): string => {
         return compileExe('print-output-exe.cs', 'print-output.exe');
     }
 });

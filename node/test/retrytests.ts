@@ -2,21 +2,19 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 import assert = require('assert');
+
 import * as tl from '../_build/task';
 import testutil = require('./testutil');
 
 describe('Retry Tests', function () {
-
     before(function (done) {
         try {
             testutil.initialize();
         } catch (err) {
             assert.fail('Failed to load task lib: ' + err.message);
         }
-        done();
-    });
 
-    after(function () {
+        done();
     });
 
     it('retries to execute a function', (done) => {

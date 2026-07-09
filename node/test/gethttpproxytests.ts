@@ -1,10 +1,10 @@
 import * as assert from 'assert';
 import * as tl from '../_build/task';
 
-enum ProxyEnvironmentEnum  {
+enum ProxyEnvironmentEnum {
     proxyUrl = 'AGENT_PROXYURL',
     proxyUsername = 'AGENT_PROXYUSERNAME',
-    proxyPassword =  'AGENT_PROXYPASSWORD',
+    proxyPassword = 'AGENT_PROXYPASSWORD',
     proxyBypass = 'AGENT_PROXYBYPASSLIST'
 }
 
@@ -24,8 +24,8 @@ describe('GetHttpProxyConfiguration Tests', () => {
         const expected: tl.ProxyConfiguration = {
             proxyUrl: proxyUrl,
             proxyBypassHosts: proxyByPass,
-            proxyUsername: undefined,
-            proxyPassword: undefined,
+            proxyUsername: '',
+            proxyPassword: '',
             proxyFormattedUrl: formatedUrlWithoutCrednetials
         }
         const result = tl.getHttpProxyConfiguration();

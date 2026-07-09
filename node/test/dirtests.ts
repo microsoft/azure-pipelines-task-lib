@@ -14,15 +14,10 @@ describe('Dir Operation Tests', function () {
     before(function (done) {
         try {
             testutil.initialize();
-        }
-        catch (err) {
+        } catch (err) {
             assert.fail('Failed to load task lib: ' + err.message);
         }
         done();
-    });
-
-    after(function () {
-
     });
 
     // this test verifies the expected version of node is being used to run the tests.
@@ -32,6 +27,7 @@ describe('Dir Operation Tests', function () {
 
         console.log('node version: ' + process.version);
         const supportedNodeVersions = ['v16.13.0'];
+
         if (supportedNodeVersions.indexOf(process.version) === -1) {
             assert.fail(`expected node node version to be one of ${supportedNodeVersions.map(o => o).join(', ')}. actual: ` + process.version);
         }
@@ -47,17 +43,20 @@ describe('Dir Operation Tests', function () {
         let testPath = path.join(testutil.getTestTemp(), 'which-finds-file-name');
         tl.mkdirP(testPath);
         let fileName = 'Which-Test-File';
+
         if (process.platform == 'win32') {
             fileName += '.exe';
         }
 
         let filePath = path.join(testPath, fileName);
         fs.writeFileSync(filePath, '');
+
         if (process.platform != 'win32') {
             testutil.chmod(filePath, '+x');
         }
 
         let originalPath = process.env['PATH'];
+
         try {
             // update the PATH
             process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath;
@@ -78,19 +77,16 @@ describe('Dir Operation Tests', function () {
                 assert.equal(tl.which('which-test-file'), filePath);
                 assert.equal(tl.which('which-test-file', false), filePath);
                 assert.equal(tl.which('which-test-file', true), filePath);
-            }
-            else if (process.platform == 'darwin') {
+            } else if (process.platform == 'darwin') {
                 // not case sensitive on Mac
                 assert.equal(tl.which(fileName.toUpperCase()), path.join(testPath, fileName.toUpperCase()));
                 assert.equal(tl.which(fileName.toUpperCase(), false), path.join(testPath, fileName.toUpperCase()));
                 assert.equal(tl.which(fileName.toUpperCase(), true), path.join(testPath, fileName.toUpperCase()));
-            }
-            else {
+            } else {
                 // case sensitive on Linux
                 assert.equal(tl.which(fileName.toUpperCase()) || '', '');
             }
-        }
-        finally {
+        } finally {
             process.env['PATH'] = originalPath;
         }
 
@@ -103,10 +99,10 @@ describe('Dir Operation Tests', function () {
         assert.equal(tl.which('which-test-no-such-file'), '');
         assert.equal(tl.which('which-test-no-such-file', false), '');
         let failed = false;
+
         try {
             tl.which('which-test-no-such-file', true);
-        }
-        catch (err) {
+        } catch (err) {
             failed = true;
         }
 
@@ -114,6 +110,7 @@ describe('Dir Operation Tests', function () {
 
         done();
     });
+
     it('which() searches path in order', function (done) {
         this.timeout(1000);
 
@@ -121,20 +118,22 @@ describe('Dir Operation Tests', function () {
         let testPath = path.join(testutil.getTestTemp(), 'which-searches-path-in-order');
         tl.mkdirP(testPath);
         let fileName;
+
         if (process.platform == 'win32') {
             fileName = 'chcp.com';
-        }
-        else {
+        } else {
             fileName = 'bash';
         }
 
         let filePath = path.join(testPath, fileName);
         fs.writeFileSync(filePath, '');
+
         if (process.platform != 'win32') {
             testutil.chmod(filePath, '+x');
         }
 
         let originalPath = process.env['PATH'];
+
         try {
             // sanity - regular chcp.com/bash should be found
             let originalWhich = tl.which(fileName);
@@ -145,13 +144,13 @@ describe('Dir Operation Tests', function () {
 
             // override chcp.com/bash should be found
             assert(tl.which(fileName), filePath);
-        }
-        finally {
+        } finally {
             process.env['PATH'] = originalPath;
         }
 
         done();
     });
+
     it('which() requires executable', function (done) {
         this.timeout(1000);
 
@@ -161,6 +160,7 @@ describe('Dir Operation Tests', function () {
         let testPath = path.join(testutil.getTestTemp(), 'which-requires-executable');
         tl.mkdirP(testPath);
         let fileName = 'Which-Test-File';
+
         if (process.platform == 'win32') {
             fileName += '.abc'; // not a valid PATHEXT
         }
@@ -172,14 +172,14 @@ describe('Dir Operation Tests', function () {
         }
 
         let originalPath = process.env['PATH'];
+
         try {
             // modify PATH
             process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath;
 
             // should not be found
             assert.equal(tl.which(fileName) || '', '');
-        }
-        finally {
+        } finally {
             process.env['PATH'] = originalPath;
         }
 
@@ -213,29 +213,32 @@ describe('Dir Operation Tests', function () {
         // create a directory
         let testPath = path.join(testutil.getTestTemp(), 'which-ignores-directory-match');
         let dirPath = path.join(testPath, 'Which-Test-Dir');
+
         if (process.platform == 'win32') {
             dirPath += '.exe';
         }
 
         tl.mkdirP(dirPath);
+
         if (process.platform != 'win32') {
             testutil.chmod(dirPath, '+x');
         }
 
         let originalPath = process.env['PATH'];
+
         try {
             // modify PATH
             process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath;
 
             // should not be found
             assert.equal(tl.which(path.basename(dirPath)) || '', '');
-        }
-        finally {
+        } finally {
             process.env['PATH'] = originalPath;
         }
 
         done();
     });
+
     it('which() allows rooted path', function (done) {
         this.timeout(1000);
 
@@ -243,11 +246,13 @@ describe('Dir Operation Tests', function () {
         let testPath = path.join(testutil.getTestTemp(), 'which-allows-rooted-path');
         tl.mkdirP(testPath);
         let filePath = path.join(testPath, 'Which-Test-File');
+
         if (process.platform == 'win32') {
             filePath += '.exe';
         }
 
         fs.writeFileSync(filePath, '');
+
         if (process.platform != 'win32') {
             testutil.chmod(filePath, '+x');
         }
@@ -259,6 +264,7 @@ describe('Dir Operation Tests', function () {
 
         done();
     });
+
     it('which() requires rooted path to be executable', function (done) {
         this.timeout(1000);
 
@@ -268,11 +274,13 @@ describe('Dir Operation Tests', function () {
         let testPath = path.join(testutil.getTestTemp(), 'which-requires-rooted-path-to-be-executable');
         tl.mkdirP(testPath);
         let filePath = path.join(testPath, 'Which-Test-File');
+
         if (process.platform == 'win32') {
             filePath += '.abc'; // not a valid PATHEXT
         }
 
         fs.writeFileSync(filePath, '');
+
         if (process.platform != 'win32') {
             testutil.chmod(filePath, '-x');
         }
@@ -281,10 +289,10 @@ describe('Dir Operation Tests', function () {
         assert.equal(tl.which(filePath) || '', '');
         assert.equal(tl.which(filePath, false) || '', '');
         let failed = false;
+
         try {
             tl.which(filePath, true);
-        }
-        catch (err) {
+        } catch (err) {
             failed = true;
         }
 
@@ -299,11 +307,13 @@ describe('Dir Operation Tests', function () {
         // create a dir
         let testPath = path.join(testutil.getTestTemp(), 'which-requires-rooted-path-to-be-executable');
         let dirPath = path.join(testPath, 'Which-Test-Dir');
+
         if (process.platform == 'win32') {
             dirPath += '.exe';
         }
 
         tl.mkdirP(dirPath);
+
         if (process.platform != 'win32') {
             testutil.chmod(dirPath, '+x');
         }
@@ -312,10 +322,10 @@ describe('Dir Operation Tests', function () {
         assert.equal(tl.which(dirPath) || '', '');
         assert.equal(tl.which(dirPath) || '', '');
         let failed = false;
+
         try {
             tl.which(dirPath, true);
-        }
-        catch (err) {
+        } catch (err) {
             failed = true;
         }
 
@@ -323,10 +333,12 @@ describe('Dir Operation Tests', function () {
 
         done();
     });
+
     it('which() requires rooted path to exist', function (done) {
         this.timeout(1000);
 
         let filePath = path.join(__dirname, 'no-such-file');
+
         if (process.platform == 'win32') {
             filePath += '.exe';
         }
@@ -334,15 +346,16 @@ describe('Dir Operation Tests', function () {
         assert.equal(tl.which(filePath) || '', '');
         assert.equal(tl.which(filePath, false) || '', '');
         let failed = false;
+
         try {
             tl.which(filePath, true);
-        }
-        catch (err) {
+        } catch (err) {
             failed = true;
         }
 
         done();
     });
+
     it('which() does not allow separators', function (done) {
         this.timeout(1000);
 
@@ -351,17 +364,20 @@ describe('Dir Operation Tests', function () {
         let testPath = path.join(testutil.getTestTemp(), testDirName);
         tl.mkdirP(testPath);
         let fileName = 'Which-Test-File';
+
         if (process.platform == 'win32') {
             fileName += '.exe';
         }
 
         let filePath = path.join(testPath, fileName);
         fs.writeFileSync(filePath, '');
+
         if (process.platform != 'win32') {
             testutil.chmod(filePath, '+x');
         }
 
         let originalPath = process.env['PATH'];
+
         try {
             // modify PATH
             process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath;
@@ -373,23 +389,24 @@ describe('Dir Operation Tests', function () {
             if (process.platform == 'win32') {
                 assert.equal(tl.which(testDirName + '\\' + fileName) || '', '');
             }
-        }
-        finally {
+        } finally {
             process.env['PATH'] = originalPath;
         }
 
         done();
     });
+
     if (process.platform == 'win32') {
         it('which() resolves actual case file name when extension is applied', function (done) {
             this.timeout(1000);
 
             assert((process.env['ComSpec'] || '') != '', 'Expected %ComSpec% to have a value');
-            assert.equal(tl.which('CmD.eXe'), path.join(path.dirname(process.env['ComSpec']), 'CmD.eXe'));
+            assert.equal(tl.which('CmD.eXe'), path.join(path.dirname(process.env['ComSpec']!), 'CmD.eXe'));
             assert.equal(tl.which('CmD'), process.env['ComSpec']);
 
             done();
         });
+
         it('which() appends ext on windows', function (done) {
             this.timeout(2000);
 
@@ -397,33 +414,35 @@ describe('Dir Operation Tests', function () {
             let testPath = path.join(testutil.getTestTemp(), 'which-appends-ext-on-windows');
             tl.mkdirP(testPath);
             // PATHEXT=.COM;.EXE;.BAT;.CMD...
-            let files = {
+            let files: Record<string, string> = {
                 "which-test-file-1": path.join(testPath, "which-test-file-1.com"),
                 "which-test-file-2": path.join(testPath, "which-test-file-2.exe"),
                 "which-test-file-3": path.join(testPath, "which-test-file-3.bat"),
                 "which-test-file-4": path.join(testPath, "which-test-file-4.cmd"),
                 "which-test-file-5.txt": path.join(testPath, "which-test-file-5.txt.com")
             };
-            for (let fileName of Object.keys(files)) {
-                fs.writeFileSync(files[fileName], '');
+
+            for (let fileName of Object.keys(files) as Array<keyof typeof files>) {
+                fs.writeFileSync(files[fileName]!, '');
             }
 
             let originalPath = process.env['PATH'];
+
             try {
                 // modify PATH
                 process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath;
 
                 // find each file
-                for (let fileName of Object.keys(files)) {
+                for (let fileName of Object.keys(files) as Array<keyof typeof files>) {
                     assert.equal(tl.which(fileName), files[fileName]);
                 }
-            }
-            finally {
+            } finally {
                 process.env['PATH'] = originalPath;
             }
 
             done();
         });
+
         it('which() appends ext on windows when rooted', function (done) {
             this.timeout(2000);
 
@@ -431,23 +450,25 @@ describe('Dir Operation Tests', function () {
             let testPath = path.join(testutil.getTestTemp(), 'which-appends-ext-on-windows-when-rooted');
             tl.mkdirP(testPath);
             // PATHEXT=.COM;.EXE;.BAT;.CMD...
-            let files = { };
+            let files: Record<string, string> = {};
             files[path.join(testPath, "which-test-file-1")] = path.join(testPath, "which-test-file-1.com");
             files[path.join(testPath, "which-test-file-2")] = path.join(testPath, "which-test-file-2.exe");
             files[path.join(testPath, "which-test-file-3")] = path.join(testPath, "which-test-file-3.bat");
             files[path.join(testPath, "which-test-file-4")] = path.join(testPath, "which-test-file-4.cmd");
             files[path.join(testPath, "which-test-file-5.txt")] = path.join(testPath, "which-test-file-5.txt.com");
-            for (let fileName of Object.keys(files)) {
-                fs.writeFileSync(files[fileName], '');
+
+            for (let fileName of Object.keys(files) as Array<keyof typeof files>) {
+                fs.writeFileSync(files[fileName]!, '');
             }
 
             // find each file
-            for (let fileName of Object.keys(files)) {
+            for (let fileName of Object.keys(files) as Array<keyof typeof files>) {
                 assert.equal(tl.which(fileName), files[fileName]);
             }
 
             done();
         });
+
         it('which() prefer exact match on windows', function (done) {
             this.timeout(1000);
 
@@ -467,16 +488,17 @@ describe('Dir Operation Tests', function () {
             fs.writeFileSync(expectedFilePath, '');
             fs.writeFileSync(notExpectedFilePath, '');
             let originalPath = process.env['PATH'];
+
             try {
                 process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath;
                 assert.equal(tl.which(fileName), expectedFilePath);
-            }
-            finally {
+            } finally {
                 process.env['PATH'] = originalPath;
             }
 
             done();
         });
+
         it('which() prefer exact match on windows when rooted', function (done) {
             this.timeout(1000);
 
@@ -499,6 +521,7 @@ describe('Dir Operation Tests', function () {
 
             done();
         });
+
         it('which() searches ext in order', function (done) {
             this.timeout(1000);
 
@@ -552,8 +575,7 @@ describe('Dir Operation Tests', function () {
                 // test .CMD
                 process.env['PATH'] = cmdTestPath + path.delimiter + originalPath;
                 assert.equal(tl.which(fileNameWithoutExtension), path.join(cmdTestPath, fileNameWithoutExtension + '.cmd'));
-            }
-            finally {
+            } finally {
                 process.env['PATH'] = originalPath;
             }
 
@@ -642,7 +664,7 @@ describe('Dir Operation Tests', function () {
         fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
         testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
 
-        let itemPaths: string[] = tl.find(path.join(root, 'symDir'), <tl.FindOptions>{ });
+        let itemPaths: string[] = tl.find(path.join(root, 'symDir'), <tl.FindOptions>{});
         assert.equal(itemPaths.length, 1);
         assert.equal(itemPaths[0], path.join(root, 'symDir'));
 
@@ -706,7 +728,7 @@ describe('Dir Operation Tests', function () {
         fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
         testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
 
-        let itemPaths: string[] = tl.find(root, <tl.FindOptions>{ });
+        let itemPaths: string[] = tl.find(root, <tl.FindOptions>{});
         assert.equal(itemPaths.length, 4);
         assert.equal(itemPaths[0], root);
         assert.equal(itemPaths[1], path.join(root, 'realDir'));
@@ -783,7 +805,7 @@ describe('Dir Operation Tests', function () {
         fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
         testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
 
-        let itemPaths: string[] = tl.find(root, <tl.FindOptions>{ });
+        let itemPaths: string[] = tl.find(root, <tl.FindOptions>{});
         assert.equal(itemPaths.length, 5);
         assert.equal(itemPaths[0], root);
         assert.equal(itemPaths[1], path.join(root, 'brokenSym'));
@@ -805,7 +827,7 @@ describe('Dir Operation Tests', function () {
         let brokenSymPath = path.join(root, 'brokenSym');
         testutil.createSymlinkDir(path.join(root, 'noSuch'), brokenSymPath);
 
-        let itemPaths: string[] = tl.find(brokenSymPath, <tl.FindOptions>{ });
+        let itemPaths: string[] = tl.find(brokenSymPath, <tl.FindOptions>{});
         assert.equal(itemPaths.length, 1);
         assert.equal(itemPaths[0], brokenSymPath);
 
@@ -879,8 +901,7 @@ describe('Dir Operation Tests', function () {
         try {
             tl.find(brokenSymPath, options);
             throw new Error('Expected tl.find to throw');
-        }
-        catch (err) {
+        } catch (err) {
             assert(err.message.match(/ENOENT.*brokenSym/), `Expected broken symlink error message, actual: '${err.message}'`);
         }
 
@@ -902,8 +923,7 @@ describe('Dir Operation Tests', function () {
         try {
             tl.find(root, options);
             throw new Error('Expected tl.find to throw');
-        }
-        catch (err) {
+        } catch (err) {
             assert(err.message.match(/ENOENT.*brokenSym/), `Expected broken symlink error message, actual: '${err.message}'`);
         }
 
@@ -927,8 +947,7 @@ describe('Dir Operation Tests', function () {
         try {
             tl.find(brokenSymPath, options);
             throw new Error('Expected tl.find to throw');
-        }
-        catch (err) {
+        } catch (err) {
             assert(err.message.match(/ENOENT.*brokenSym/), `Expected broken symlink error message, actual: '${err.message}'`);
         }
 
@@ -1113,8 +1132,7 @@ describe('Dir Operation Tests', function () {
         try {
             tl.find(root);
             throw new Error('Expected tl.find to throw');
-        }
-        catch (err) {
+        } catch (err) {
             assert(err.message.match(/ENOENT.*broken_symlink/), `Expected broken symlink error message, actual: '${err.message}'`);
         }
 
@@ -1154,7 +1172,7 @@ describe('Dir Operation Tests', function () {
     it('creates folder with mkdirP', function (done) {
         this.timeout(1000);
 
-        var testPath = path.join(testutil.getTestTemp(), 'mkdirTest');
+        const testPath = path.join(testutil.getTestTemp(), 'mkdirTest');
         tl.mkdirP(testPath);
         assert(shell.test('-d', testPath), 'directory created');
 
@@ -1164,7 +1182,7 @@ describe('Dir Operation Tests', function () {
     it('creates nested folders with mkdirP', function (done) {
         this.timeout(1000);
 
-        var testPath = path.join(testutil.getTestTemp(), 'mkdir1', 'mkdir2');
+        const testPath = path.join(testutil.getTestTemp(), 'mkdir1', 'mkdir2');
         tl.mkdirP(testPath);
         assert(shell.test('-d', testPath), 'directory created');
 
@@ -1174,13 +1192,13 @@ describe('Dir Operation Tests', function () {
     it('fails if mkdirP with illegal chars', function (done) {
         this.timeout(1000);
 
-        var testPath = path.join(testutil.getTestTemp(), 'mkdir\0');
-        var worked: boolean = false;
+        const testPath = path.join(testutil.getTestTemp(), 'mkdir\0');
+        let worked = false;
+
         try {
             tl.mkdirP(testPath);
             worked = true;
-        }
-        catch (err) {
+        } catch (err) {
             // asserting failure
             assert(!shell.test('-d', testPath), 'directory should not be created');
         }
@@ -1193,12 +1211,13 @@ describe('Dir Operation Tests', function () {
     it('fails if mkdirP with null path', function (done) {
         this.timeout(1000);
 
-        var worked: boolean = false;
+        let worked = false;
+
         try {
+            // @ts-ignore we are testing invalid input, so ignore the type error
             tl.mkdirP(null);
             worked = true;
-        }
-        catch (err) { }
+        } catch (err) { }
 
         assert(!worked, 'mkdirP with null should have not have worked');
 
@@ -1208,12 +1227,12 @@ describe('Dir Operation Tests', function () {
     it('fails if mkdirP with empty path', function (done) {
         this.timeout(1000);
 
-        var worked: boolean = false;
+        let worked = false;
+
         try {
             tl.mkdirP('');
             worked = true;
-        }
-        catch (err) { }
+        } catch (err) { }
 
         assert(!worked, 'mkdirP with empty string should have not have worked');
 
@@ -1226,12 +1245,12 @@ describe('Dir Operation Tests', function () {
         let testPath = path.join(testutil.getTestTemp(), 'mkdirP_conflicting_file_path');
         shell.mkdir('-p', testutil.getTestTemp());
         fs.writeFileSync(testPath, '');
-        let worked: boolean = false;
+        let worked = false;
+
         try {
             tl.mkdirP(testPath);
             worked = true;
-        }
-        catch (err) { }
+        } catch (err) { }
 
         assert(!worked, 'mkdirP with conflicting file path should not have worked');
 
@@ -1244,12 +1263,11 @@ describe('Dir Operation Tests', function () {
         let testPath = path.join(testutil.getTestTemp(), 'mkdirP_conflicting_parent_file_path', 'dir');
         shell.mkdir('-p', testutil.getTestTemp());
         fs.writeFileSync(path.dirname(testPath), '');
-        let worked: boolean = false;
+        let worked = false;
         try {
             tl.mkdirP(testPath);
             worked = true;
-        }
-        catch (err) { }
+        } catch (err) { }
 
         assert(!worked, 'mkdirP with conflicting file path should not have worked');
 
@@ -1328,8 +1346,7 @@ describe('Dir Operation Tests', function () {
         try {
             tl.mkdirP(testPath);
             throw new Error("directory should not have been created");
-        }
-        catch (err) {
+        } catch (err) {
             delete process.env['TASKLIB_TEST_MKDIRP_FAILSAFE'];
 
             // ENOENT is expected, all other errors are not
@@ -1345,7 +1362,7 @@ describe('Dir Operation Tests', function () {
     it('removes single folder with rmRF', function (done) {
         this.timeout(1000);
 
-        var testPath = path.join(testutil.getTestTemp(), 'testFolder');
+        const testPath = path.join(testutil.getTestTemp(), 'testFolder');
 
         tl.mkdirP(testPath);
         assert(shell.test('-d', testPath), 'directory created');
@@ -1360,8 +1377,8 @@ describe('Dir Operation Tests', function () {
     it('removes recursive folders with rmRF', function (done) {
         this.timeout(1000);
 
-        var testPath = path.join(testutil.getTestTemp(), 'testDir1');
-        var testPath2 = path.join(testPath, 'testDir2');
+        const testPath = path.join(testutil.getTestTemp(), 'testDir1');
+        const testPath2 = path.join(testPath, 'testDir2');
         tl.mkdirP(testPath2);
 
         assert(shell.test('-d', testPath), '1 directory created');
@@ -1377,18 +1394,18 @@ describe('Dir Operation Tests', function () {
     it('removes folder with locked file with rmRF', function (done) {
         this.timeout(2000);
 
-        var testPath = path.join(testutil.getTestTemp(), 'testFolder');
+        const testPath = path.join(testutil.getTestTemp(), 'testFolder');
         tl.mkdirP(testPath);
         assert(shell.test('-d', testPath), 'directory created');
 
         // starting from windows-2022,
         // can remove folder with locked file on windows as well,
         // using the command `rd /s /q <path>`
-        var filePath = path.join(testPath, 'file.txt');
+        const filePath = path.join(testPath, 'file.txt');
         fs.appendFileSync(filePath, 'some data');
         assert(shell.test('-e', filePath), 'file exists');
 
-        var fd = fs.openSync(filePath, 'r');
+        const fd = fs.openSync(filePath, 'r');
 
         tl.rmRF(testPath);
         assert(!shell.test('-e', testPath), 'directory removed');
@@ -1401,16 +1418,16 @@ describe('Dir Operation Tests', function () {
     it('removes folder that doesnt exist with rmRF', function (done) {
         this.timeout(1000);
 
-        var testFolder = 'testDir';
-        var start = __dirname;
-        var testPath = path.join(__dirname, testFolder);
+        const testFolder = 'testDir';
+        const start = __dirname;
+        const testPath = path.join(__dirname, testFolder);
         tl.cd(start);
         assert(process.cwd() == start, 'starting in right directory');
 
         assert(!shell.test('-d', testPath), 'directory created');
         assert(!shell.test('-e', testPath), 'directory exists');
 
-        var errStream = testutil.createStringStream();
+        const errStream = testutil.createStringStream();
         tl.setErrStream(errStream);
 
         tl.rmRF(testPath);
@@ -1521,13 +1538,14 @@ describe('Dir Operation Tests', function () {
 
             // remove the symlink file
             tl.rmRF(symlinkFile);
-            let errcode: string;
+            let errcode = '';
+
             try {
                 fs.lstatSync(symlinkFile);
-            }
-            catch (err) {
+            } catch (err) {
                 errcode = err.code;
             }
+
             assert.equal(errcode, 'ENOENT');
 
             done();
@@ -1619,7 +1637,7 @@ describe('Dir Operation Tests', function () {
 
     it('removes symlink folder with missing source using rmRF', (done) => {
         this.timeout(1000);
-    
+
         // create the following layout:
         //   real_directory
         //   real_directory/real_file
@@ -1632,23 +1650,24 @@ describe('Dir Operation Tests', function () {
         fs.writeFileSync(realFile, 'test file content');
         testutil.createSymlinkDir(realDirectory, symlinkDirectory);
         assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'symlink directory should be created correctly');
-    
+
         // remove the real directory
         fs.unlinkSync(realFile);
         fs.rmdirSync(realDirectory);
         assert.throws(() => { fs.statSync(symlinkDirectory) }, (err: NodeJS.ErrnoException) => err.code == 'ENOENT', 'stat should throw');
-    
+
         // remove the symlink directory
         tl.rmRF(symlinkDirectory);
-        let errcode: string;
+        let errcode = '';
+
         try {
             fs.lstatSync(symlinkDirectory);
-        }
-        catch (err) {
+        } catch (err) {
             errcode = err.code;
         }
+
         assert.equal(errcode, 'ENOENT');
-    
+
         done();
     });
 
@@ -1670,10 +1689,10 @@ describe('Dir Operation Tests', function () {
         testutil.createSymlinkDir(realDirectory, symlinkDirectory);
         testutil.createSymlinkDir(symlinkDirectory, symlinkLevel2Directory);
         assert.equal(fs.readFileSync(path.join(symlinkDirectory, 'real_file')), 'test file content');
+
         if (os.platform() == 'win32') {
             assert.equal(fs.readlinkSync(symlinkLevel2Directory), symlinkDirectory + '\\');
-        }
-        else {
+        } else {
             assert.equal(fs.readlinkSync(symlinkLevel2Directory), symlinkDirectory);
         }
 
@@ -1759,11 +1778,11 @@ describe('Dir Operation Tests', function () {
     it('move to non existant destination', function (done) {
         this.timeout(1000);
 
-        var sourceFile = 'sourceFile';
-        var destFile = 'destFile';
-        var start = __dirname;
-        var testPath = path.join(__dirname, sourceFile);
-        var destPath = path.join(__dirname, destFile);
+        const sourceFile = 'sourceFile';
+        const destFile = 'destFile';
+        const start = __dirname;
+        const testPath = path.join(__dirname, sourceFile);
+        const destPath = path.join(__dirname, destFile);
         tl.cd(start);
         assert(process.cwd() == start, 'did not start in right directory');
 
@@ -1775,7 +1794,7 @@ describe('Dir Operation Tests', function () {
         fs.writeFileSync(sourceFile, "test move");
         assert(shell.test('-e', sourceFile), 'source file does not exist');
 
-        var errStream = testutil.createStringStream();
+        const errStream = testutil.createStringStream();
         tl.setErrStream(errStream);
 
         tl.mv(sourceFile, destFile);
@@ -1788,11 +1807,11 @@ describe('Dir Operation Tests', function () {
     it('move to existing destination should fail if no-clobber is enabled', function (done) {
         this.timeout(1000);
 
-        var sourceFile = 'sourceFile';
-        var destFile = 'destFile';
-        var start = __dirname;
-        var testPath = path.join(__dirname, sourceFile);
-        var destPath = path.join(__dirname, destFile);
+        const sourceFile = 'sourceFile';
+        const destFile = 'destFile';
+        const start = __dirname;
+        const testPath = path.join(__dirname, sourceFile);
+        const destPath = path.join(__dirname, destFile);
         tl.cd(start);
         assert(process.cwd() == start, 'did not start in right directory');
 
@@ -1805,15 +1824,15 @@ describe('Dir Operation Tests', function () {
         assert(shell.test('-e', sourceFile), 'source file does not exist');
         assert(shell.test('-e', destFile), 'destination does not file exists');
 
-        var errStream = testutil.createStringStream();
+        const errStream = testutil.createStringStream();
         tl.setErrStream(errStream);
 
-        var worked: boolean = false;
+        let worked = false;
+
         try {
             tl.mv(sourceFile, destFile, "-n");
             worked = true;
-        }
-        catch (err) {
+        } catch (err) {
             // this should fail
             assert(shell.test('-e', sourceFile), 'source file does not exist');
             assert(shell.test('-e', destFile), 'dest file does not exist');
@@ -1846,7 +1865,7 @@ describe('Dir Operation Tests', function () {
     });
 });
 
-function findsExecutableWithScopedPermissions(chmodOptions) {
+function findsExecutableWithScopedPermissions(chmodOptions: string) {
     // create a executable file
     let testPath = path.join(testutil.getTestTemp(), 'which-finds-file-name');
     tl.mkdirP(testPath);

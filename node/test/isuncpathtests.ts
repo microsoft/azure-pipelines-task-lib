@@ -13,10 +13,8 @@ describe('Is UNC-path Tests', function () {
         } catch (err) {
             assert.fail('Failed to load task lib: ' + err.message);
         }
-        done();
-    });
 
-    after(function () {
+        done();
     });
 
     it('checks if path is unc path', (done) => {
@@ -32,7 +30,7 @@ describe('Is UNC-path Tests', function () {
             { inputPath: '', isUNC: false }
         ];
 
-        for (let path of paths) {
+        for (const path of paths) {
             assert.deepEqual(im._isUncPath(path.inputPath), path.isUNC);
         }
 
