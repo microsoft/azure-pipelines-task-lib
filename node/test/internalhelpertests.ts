@@ -59,7 +59,7 @@ describe('Internal Path Helper Tests', function () {
             `expected ensureRooted for input <${path}> to yield <${expected}>`);
     }
 
-    it('ensureRooted roots paths', (done) => {
+    it('ensureRooted roots paths', function (done) {
         this.timeout(1000);
 
         if (process.platform == 'win32') {
@@ -147,7 +147,7 @@ describe('Internal Path Helper Tests', function () {
             `expected getDirectoryName for input <${path}> to yield <${expected}>`);
     }
 
-    it('getDirectoryName interprets directory name from paths', (done) => {
+    it('getDirectoryName interprets directory name from paths', function (done) {
         this.timeout(1000);
 
         assertDirectoryName(null, '');
@@ -271,7 +271,7 @@ describe('Internal Path Helper Tests', function () {
             `expected isRooted for input <${path}> to yield <${expected}>`);
     }
 
-    it('isRooted detects root', (done) => {
+    it('isRooted detects root', function (done) {
         this.timeout(1000);
 
         if (process.platform == 'win32') {
@@ -362,7 +362,7 @@ describe('Internal Path Helper Tests', function () {
             `expected normalizeSeparators for input <${path}> to yield <${expected}>`);
     }
 
-    it('normalizeSeparators', (done) => {
+    it('normalizeSeparators', function (done) {
         this.timeout(1000);
 
         if (process.platform == 'win32') {

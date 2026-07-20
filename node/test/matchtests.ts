@@ -20,7 +20,7 @@ describe('Match Tests', function () {
     after(function () {
     });
 
-    it('single pattern', (done) => {
+    it('single pattern', function (done) {
         this.timeout(1000);
 
         let list: string[] = [
@@ -38,7 +38,7 @@ describe('Match Tests', function () {
         done();
     });
 
-    it('aggregates matches', (done) => {
+    it('aggregates matches', function (done) {
         this.timeout(1000);
 
         let list: string[] = [
@@ -59,7 +59,7 @@ describe('Match Tests', function () {
         done();
     });
 
-    it('does not duplicate matches', (done) => {
+    it('does not duplicate matches', function (done) {
         this.timeout(1000);
 
         let list: string[] = [
@@ -83,7 +83,7 @@ describe('Match Tests', function () {
         done();
     });
 
-    it('preserves order', (done) => {
+    it('preserves order', function (done) {
         this.timeout(1000);
 
         let list: string[] = [
@@ -112,7 +112,7 @@ describe('Match Tests', function () {
         done();
     });
 
-    it('supports interleaved exclude patterns', (done) => {
+    it('supports interleaved exclude patterns', function (done) {
         this.timeout(1000);
 
         let list: string[] = [
@@ -144,7 +144,7 @@ describe('Match Tests', function () {
         done();
     });
 
-    it('applies default options', (done) => {
+    it('applies default options', function (done) {
         this.timeout(1000);
 
         let list: string[] = [
@@ -200,7 +200,7 @@ describe('Match Tests', function () {
         done();
     });
 
-    it('trims patterns', (done) => {
+    it('trims patterns', function (done) {
         this.timeout(1000);
 
         let list: string[] = [
@@ -219,7 +219,7 @@ describe('Match Tests', function () {
         done();
     });
 
-    it('skips empty patterns', (done) => {
+    it('skips empty patterns', function (done) {
         this.timeout(1000);
 
         let list: string[] = [
@@ -241,7 +241,7 @@ describe('Match Tests', function () {
         done();
     });
 
-    it('supports nocomment true', (done) => {
+    it('supports nocomment true', function (done) {
         this.timeout(1000);
 
         let list: string[] = [
@@ -260,7 +260,7 @@ describe('Match Tests', function () {
         done();
     });
 
-    it('supports nonegate true', (done) => {
+    it('supports nonegate true', function (done) {
         this.timeout(1000);
 
         let list: string[] = [
@@ -279,7 +279,7 @@ describe('Match Tests', function () {
         done();
     });
 
-    it('supports flipNegate true', (done) => {
+    it('supports flipNegate true', function (done) {
         this.timeout(1000);
 
         let list: string[] = [
@@ -298,7 +298,7 @@ describe('Match Tests', function () {
         done();
     });
 
-    it('counts leading negate markers', (done) => {
+    it('counts leading negate markers', function (done) {
         this.timeout(1000);
 
         let list: string[] = [
@@ -327,7 +327,7 @@ describe('Match Tests', function () {
         done();
     });
 
-    it('trims whitespace after trimming negate markers', (done) => {
+    it('trims whitespace after trimming negate markers', function (done) {
         this.timeout(1000);
 
         let list: string[] = [
@@ -347,7 +347,7 @@ describe('Match Tests', function () {
         done();
     });
 
-    it('evaluates comments before negation', (done) => {
+    it('evaluates comments before negation', function (done) {
         this.timeout(1000);
 
         let list: string[] = [
@@ -369,7 +369,7 @@ describe('Match Tests', function () {
         done();
     });
 
-    it('applies pattern root for include patterns', (done) => {
+    it('applies pattern root for include patterns', function (done) {
         this.timeout(1000);
 
         let list: string[] = [
@@ -394,7 +394,7 @@ describe('Match Tests', function () {
         done();
     });
 
-    it('applies pattern root for exclude patterns', (done) => {
+    it('applies pattern root for exclude patterns', function (done) {
         this.timeout(1000);
 
         let list: string[] = [
@@ -421,7 +421,7 @@ describe('Match Tests', function () {
         done();
     });
 
-    it('does not apply pattern root for basename matchBase include patterns', (done) => {
+    it('does not apply pattern root for basename matchBase include patterns', function (done) {
         this.timeout(1000);
 
         let list: string[] = [
@@ -448,7 +448,7 @@ describe('Match Tests', function () {
         done();
     });
 
-    it('does not apply pattern root for basename matchBase exclude patterns', (done) => {
+    it('does not apply pattern root for basename matchBase exclude patterns', function (done) {
         this.timeout(1000);
 
         let list: string[] = [
