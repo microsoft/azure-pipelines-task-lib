@@ -44,6 +44,44 @@ describe('Loc Tests', function () {
 
         done();
     })
+    it('generated library resources match localization source files', function (done) {
+        var generatedResources = require('../_build/lib-resource');
+        var sourceResources = require('../lib.json');
+        assert.deepStrictEqual(generatedResources.messages, sourceResources.messages);
+
+        var stringsPath = path.join(__dirname, '../Strings/resources.resjson');
+        fs.readdirSync(stringsPath).forEach(function (culture) {
+            var sourcePath = path.join(stringsPath, culture, 'resources.resjson');
+            var sourceLocalization = JSON.parse(fs.readFileSync(sourcePath, 'utf8'));
+            assert.deepStrictEqual(generatedResources.localizedMessages[culture], sourceLocalization);
+        });
+
+        done();
+    })
+    it('loads task-lib strings from generated resources', function (done) {
+        var tempFolder = path.join(testutil.getTestTemp(), 'embedded-task-lib-resources');
+        shell.mkdir('-p', tempFolder);
+        var jsonPath = path.join(tempFolder, 'task.json');
+        fs.writeFileSync(jsonPath, '{"messages":{}}');
+        process.env['SYSTEM_CULTURE'] = 'en-US';
+
+        tl.setResourcePath(jsonPath);
+
+        assert.equal(tl.loc('LIB_InputRequired', 'inputName'), 'Input required: inputName');
+        done();
+    })
+    it('loads localized task-lib strings from generated resources', function (done) {
+        var tempFolder = path.join(testutil.getTestTemp(), 'embedded-localized-task-lib-resources');
+        shell.mkdir('-p', tempFolder);
+        var jsonPath = path.join(tempFolder, 'task.json');
+        fs.writeFileSync(jsonPath, '{"messages":{}}');
+        process.env['SYSTEM_CULTURE'] = 'zh-CN';
+
+        tl.setResourcePath(jsonPath);
+
+        assert.equal(tl.loc('LIB_InputRequired', 'inputName'), '输入必需项: inputName');
+        done();
+    })
     it('get loc string from loc resources.json', function (done) {
         this.timeout(1000);
 
