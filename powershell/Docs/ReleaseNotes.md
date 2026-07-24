@@ -1,5 +1,21 @@
 # Release Notes
 
+## 0.21.4
+
+- Fixed console color fallback handling for invalid host values [#1168](https://github.com/microsoft/azure-pipelines-task-lib/pull/1168)
+
+## 0.21.3
+
+- Fixed glob package vulnerability [#1138](https://github.com/microsoft/azure-pipelines-task-lib/pull/1138)
+
+## 0.21.2
+
+- Fixed process invocation for the PowerShell handler [#1080](https://github.com/microsoft/azure-pipelines-task-lib/pull/1080)
+
+## 0.21.1
+
+- Removed the `deasync` dependency [#1038](https://github.com/microsoft/azure-pipelines-task-lib/pull/1038)
+
 ## 0.21.0
 
 - Added audit action for task.issue [#1033](https://github.com/microsoft/azure-pipelines-task-lib/pull/1033)
