@@ -20,7 +20,7 @@ describe('Filter Tests', function () {
     after(function () {
     });
 
-    it('applies default option nobrace true', (done) => {
+    it('applies default option nobrace true', function (done) {
         this.timeout(1000);
 
         let list = [
@@ -38,7 +38,7 @@ describe('Filter Tests', function () {
         done();
     });
 
-    it('applies default option noglobstar false', (done) => {
+    it('applies default option noglobstar false', function (done) {
         this.timeout(1000);
 
         let list = [
@@ -58,7 +58,7 @@ describe('Filter Tests', function () {
         done();
     });
 
-    it('applies default option dot true', (done) => {
+    it('applies default option dot true', function (done) {
         this.timeout(1000);
 
         let list = [
@@ -75,7 +75,7 @@ describe('Filter Tests', function () {
         done();
     });
 
-    it('applies default option noext false', (done) => {
+    it('applies default option noext false', function (done) {
         this.timeout(1000);
 
         let list = [
@@ -94,7 +94,7 @@ describe('Filter Tests', function () {
         done();
     });
 
-    it('applies default option nocase based on platform', (done) => {
+    it('applies default option nocase based on platform', function (done) {
         this.timeout(1000);
 
         let list = [
@@ -114,7 +114,7 @@ describe('Filter Tests', function () {
         done();
     });
 
-    it('applies default option matchBase false', (done) => {
+    it('applies default option matchBase false', function (done) {
         this.timeout(1000);
 
         let list = [
@@ -131,7 +131,7 @@ describe('Filter Tests', function () {
         done();
     });
 
-    it('applies default option nocomment false', (done) => {
+    it('applies default option nocomment false', function (done) {
         this.timeout(1000);
 
         let list = [
@@ -145,7 +145,7 @@ describe('Filter Tests', function () {
         done();
     });
 
-    it('applies default option nonegate false', (done) => {
+    it('applies default option nonegate false', function (done) {
         this.timeout(1000);
 
         let list = [
@@ -162,7 +162,7 @@ describe('Filter Tests', function () {
         done();
     });
 
-    it('supports custom options', (done) => {
+    it('supports custom options', function (done) {
         this.timeout(1000);
 
         let list = [

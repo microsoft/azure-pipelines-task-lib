@@ -24,7 +24,7 @@ describe('Legacy Find Files Tests', function () {
     after(function () {
     });
 
-    it('supports directory name single char wildcard', (done) => {
+    it('supports directory name single char wildcard', function (done) {
         this.timeout(1000);
 
         // create the following layout:
@@ -55,7 +55,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports directory name wildcard', (done) => {
+    it('supports directory name wildcard', function (done) {
         this.timeout(1000);
 
         // create the following layout:
@@ -86,7 +86,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports exclude patterns', (done) => {
+    it('supports exclude patterns', function (done) {
         this.timeout(1000);
 
         // create the following layout:
@@ -127,7 +127,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports file name single char wildcard', (done) => {
+    it('supports file name single char wildcard', function (done) {
         this.timeout(1000);
 
         // create the following layout:
@@ -154,7 +154,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports file name wildcard', (done) => {
+    it('supports file name wildcard', function (done) {
         this.timeout(1000);
 
         // create the following layout:
@@ -181,7 +181,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports globstar', (done) => {
+    it('supports globstar', function (done) {
         this.timeout(1000);
 
         // create the following layout:
@@ -214,7 +214,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports include directories', (done) => {
+    it('supports include directories', function (done) {
         this.timeout(1000);
 
         // create the following layout:
@@ -243,7 +243,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports include directories only', (done) => {
+    it('supports include directories only', function (done) {
         this.timeout(1000);
 
         // create the following layout:
@@ -270,7 +270,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports inter-segment wildcard', (done) => {
+    it('supports inter-segment wildcard', function (done) {
         this.timeout(1000);
 
         // create the following layout:
@@ -310,7 +310,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('unions matches', (done) => {
+    it('unions matches', function (done) {
         this.timeout(1000);
 
         // create the following layout:
@@ -338,7 +338,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('has platform-specific case sensitivity', (done) => {
+    it('has platform-specific case sensitivity', function (done) {
         this.timeout(1000);
 
         // create the following layout:
@@ -373,7 +373,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports literal ; in pattern', (done) => {
+    it('supports literal ; in pattern', function (done) {
         this.timeout(1000);
 
         // create the following layout:
@@ -395,7 +395,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports literal ; in rootDirectory', (done) => {
+    it('supports literal ; in rootDirectory', function (done) {
         this.timeout(1000);
 
         // create the following layout:
@@ -419,7 +419,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports pattern is ;', (done) => {
+    it('supports pattern is ;', function (done) {
         this.timeout(1000);
 
         // create the following layout:
@@ -441,7 +441,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('does not support pattern with trailing slash', (done) => {
+    it('does not support pattern with trailing slash', function (done) {
         this.timeout(1000);
 
         let pattern = path.join(__dirname, 'hello', 'world') + '/';
@@ -455,7 +455,7 @@ describe('Legacy Find Files Tests', function () {
         }
     });
 
-    it('has platform-specific support for pattern with trailing backslash', (done) => {
+    it('has platform-specific support for pattern with trailing backslash', function (done) {
         this.timeout(1000);
 
         if (process.platform == 'win32') {
@@ -493,7 +493,7 @@ describe('Legacy Find Files Tests', function () {
         }
     });
 
-    it('follows symlink dirs', (done) => {
+    it('follows symlink dirs', function (done) {
         this.timeout(1000);
 
         // create the following layout:
@@ -528,7 +528,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports alternate include syntax', (done) => {
+    it('supports alternate include syntax', function (done) {
         this.timeout(1000);
 
         // create the following layout:
@@ -556,7 +556,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('appends root directory', (done) => {
+    it('appends root directory', function (done) {
         this.timeout(1000);
 
         // create the following layout:
@@ -584,7 +584,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports hidden files', (done) => {
+    it('supports hidden files', function (done) {
         this.timeout(1000);
 
         // create the following layout:
@@ -611,7 +611,7 @@ describe('Legacy Find Files Tests', function () {
         done();
     });
 
-    it('supports hidden folders', (done) => {
+    it('supports hidden folders', function (done) {
         this.timeout(1000);
 
         // create the following layout:

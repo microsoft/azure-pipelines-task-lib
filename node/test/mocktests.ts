@@ -358,7 +358,7 @@ describe('Mock Tests', function () {
         await Promise.resolve()
     })
 
-    it('MockTest handles node tasks correctly by async call', async () => {
+    it('MockTest handles node tasks correctly by async call', async function () {
         this.timeout(30000);
         const runner = await (new mtm.MockTestRunner).LoadAsync(path.join(__dirname, 'fakeTasks', 'node16task', 'entry.js'));
         const nodePath = runner.nodePath;
