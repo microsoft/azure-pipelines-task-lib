@@ -223,6 +223,16 @@ extends:
                     artifactName: npm-packages
                     targetPath: $(Pipeline.Workspace)/npm-packages
               steps:
+                # 1ES release jobs (templateContext.type: releaseJob) do NOT
+                # check out the repository by default, unlike the regular CI jobs
+                # in azure-pipelines.yml which rely on the template's implicit
+                # `checkout: self`. We check out self here for the SAME reason CI
+                # does: the internal-feed .npmrc must be on disk so NpmAuthenticate
+                # can inject credentials and the idempotency `npm view` below can
+                # resolve the registry. Without this, .npmrc is missing and the
+                # feed auth step fails.
+                - checkout: self
+
                 - task: NodeTool@0
                   displayName: 'Use Node $(nodeVersion)'
                   inputs:
