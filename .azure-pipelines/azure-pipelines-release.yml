@@ -1,0 +1,144 @@
+# =============================================================================
+# Release pipeline: publish azure-pipelines-task-lib to npmjs.org via ESRP
+# =============================================================================
+#
+# This pipeline's ONLY job is to run the ESRP Release task. It does NOT build,
+# test, pack, or check out the repository -- by design (and because 1ES release
+# jobs are not allowed to check out sources: https://aka.ms/1espt/release-deps).
+#
+# HOW IT WORKS (read before editing):
+#   * The pre-built .tgz is produced by the BUILD pipeline
+#     (.azure-pipelines/azure-pipelines-build.yml), which publishes it as the
+#     'npm-packages' artifact.
+#   * This pipeline references that build pipeline via `resources.pipelines`
+#     and consumes its 'npm-packages' artifact as a 1ES pipelineArtifact INPUT
+#     (a declarative download performed by the 1ES template -- NOT a task/step
+#     in the job). That is what keeps the job body down to a single ESRP task.
+#   * npm package publication is performed by the ESRP Release task (signing,
+#     provenance, approval/notification workflow), NOT by `npm publish`. ESRP
+#     only distributes the pre-built .tgz; it never runs `npm pack`.
+#   * The npm dist-tag is inferred by ESRP from the package's
+#     `publishConfig.tag` in package.json (default `latest`; this package has
+#     no publishConfig, so releases go out as `latest`).
+#
+# Trigger: MANUAL only. Queue this pipeline and, under "Resources", pick the
+# build run whose .tgz you want to release.
+#
+# Onboarding, required variables, and troubleshooting live in the team's
+# internal ESRP npm release runbook (maintained outside this repo).
+# =============================================================================
+
+name: $(Date:yyyyMMdd)$(Rev:.r)
+
+trigger: none
+pr: none
+
+variables:
+  # ---------------------------------------------------------------------------
+  # ESRP wiring. The per-environment/identity values live in a variable group
+  # so nothing environment-specific is hard-coded here. Create the group in
+  # Pipelines > Library named 'esrp-npm-release' with these variables:
+  #   EsrpServiceConnection - name of the ESRP AzureRM (WIF/OIDC) service connection
+  #   EsrpKeyVault          - Key Vault holding the ESRP signing certificate
+  #   EsrpSignCert          - signing certificate name in that Key Vault
+  #   EsrpClientId          - client id of the ESRP-approved publisher identity
+  #   EsrpOwners            - comma-separated notification owner emails
+  #   EsrpApprovers         - comma-separated notification approver emails
+  # See the internal ESRP npm release runbook for how to obtain each value.
+  # ---------------------------------------------------------------------------
+  - group: esrp-npm-release
+
+  # Non-secret ESRP constants for public-npm (OSS) publishing. These are the
+  # well-known values for the ESRPRELPACMAN OSS publisher; override in the
+  # variable group only if your ESRP onboarding differs.
+  - name: EsrpMainPublisher
+    value: 'ESRPRELPACMAN'
+  - name: EsrpServiceEndpointUrl
+    value: 'https://api.esrp.microsoft.com'
+  # Tenant id for the ESRPRELPACMAN OSS publisher.
+  - name: EsrpDomainTenantId
+    value: '975f013f-7f24-47e8-a7d3-abc4752bf346'
+
+resources:
+  # Reference to the BUILD pipeline that produces the .tgz. `source` MUST match
+  # the build pipeline's name as registered in Azure DevOps (the pipeline built
+  # from .azure-pipelines/azure-pipelines-build.yml). The most recent successful
+  # run's 'npm-packages' artifact is used by default; a specific run can be
+  # selected at queue time under "Resources".
+  pipelines:
+    - pipeline: build
+      source: azure-pipelines-task-lib.Build
+      project: AzureDevOps
+      trigger: none
+  # The ESRP release runs in the mseng org and must be produced by the 1ES
+  # Official pipeline template (same as the CI pipeline in azure-pipelines.yml).
+  repositories:
+    - repository: 1ESPipelineTemplates
+      type: git
+      name: 1ESPipelineTemplates/1ESPipelineTemplates
+      ref: refs/tags/release
+
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    settings:
+      networkIsolationMode: Audit
+    sdl:
+      sourceAnalysisPool:
+        name: 1ES-ABTT-Shared-Pool
+        image: abtt-windows-2025
+        os: windows
+    stages:
+      - stage: PublishToNpmViaESRP
+        displayName: Publish to npm via ESRP
+        jobs:
+          - job: esrp
+            displayName: ESRP Release (npm)
+            pool:
+              name: 1ES-ABTT-Shared-Pool
+              image: abtt-windows-2025
+              os: windows
+            templateContext:
+              # 1ES: mark this as a production release job. Required for a job
+              # that publishes externally (via ESRP) so 1ES treats it as an
+              # official, isProduction release. Release jobs do NOT check out
+              # the repo -- inputs below provide everything the job needs.
+              type: releaseJob
+              isProduction: true
+              inputs:
+                # Download the .tgz produced by the 'build' pipeline resource.
+                # This is a declarative 1ES input (the template performs the
+                # download), so the job body stays a single ESRP task.
+                - input: pipelineArtifact
+                  pipeline: build
+                  artifactName: npm-packages
+                  targetPath: $(Pipeline.Workspace)/npm-packages
+            steps:
+              # The ONLY step in this pipeline: ESRP performs the ACTUAL publish
+              # to npmjs.org.
+              #   intent=PackageDistribution + contenttype=npm -> npm publish
+              #   contentsource=Folder + folderlocation         -> folder of .tgz
+              #   waitforreleasecompletion=true                 -> block until done
+              # ESRP does NOT run npm pack; it distributes the .tgz downloaded
+              # above. The dist-tag is inferred from publishConfig.tag (latest).
+              # NOTE: EsrpRelease@12 also accepts `productstate: <tag>` to pin the
+              # npm dist-tag explicitly (e.g. 'latest' or 'beta'); we intentionally
+              # omit it and let publishConfig.tag drive the tag per requirements.
+              - task: EsrpRelease@12
+                displayName: 'Publish package to npm via ESRP'
+                inputs:
+                  connectedservicename: '$(EsrpServiceConnection)'
+                  usemanagedidentity: true
+                  keyvaultname: '$(EsrpKeyVault)'
+                  signcertname: '$(EsrpSignCert)'
+                  clientid: '$(EsrpClientId)'
+                  intent: 'PackageDistribution'
+                  contenttype: 'npm'
+                  contentsource: 'Folder'
+                  folderlocation: '$(Pipeline.Workspace)/npm-packages'
+                  waitforreleasecompletion: true
+                  owners: '$(EsrpOwners)'
+                  approvers: '$(EsrpApprovers)'
+                  serviceendpointurl: '$(EsrpServiceEndpointUrl)'
+                  mainpublisher: '$(EsrpMainPublisher)'
+                  domaintenantid: '$(EsrpDomainTenantId)'
