@@ -25,8 +25,8 @@
 # Trigger: MANUAL only. PR/CI validation lives in azure-pipelines.yml; this
 # pipeline never runs on PRs or automatically on push.
 #
-# Onboarding, required variables, and troubleshooting: see
-#   docs/esrp-npm-release.md
+# Onboarding, required variables, and troubleshooting live in the team's
+# internal ESRP npm release runbook (maintained outside this repo).
 # =============================================================================
 
 name: $(Date:yyyyMMdd)$(Rev:.r)
@@ -57,7 +57,7 @@ variables:
   #   EsrpClientId          - client id of the ESRP-approved publisher identity
   #   EsrpOwners            - comma-separated notification owner emails
   #   EsrpApprovers         - comma-separated notification approver emails
-  # See docs/esrp-npm-release.md for how to obtain each value.
+  # See the internal ESRP npm release runbook for how to obtain each value.
   # ---------------------------------------------------------------------------
   - group: esrp-npm-release
 
@@ -169,6 +169,14 @@ extends:
                 inputs:
                   versionSpec: $(nodeVersion)
 
+              # Authenticate to the internal ADO npm feed defined in .npmrc so the
+              # idempotency `npm view` at the end of this job resolves against that
+              # feed (this agent cannot reach the public npm registry).
+              - task: NpmAuthenticate@0
+                displayName: 'Authenticate npm (.npmrc)'
+                inputs:
+                  workingFile: .npmrc
+
               # Guard: ESRP (and npm) cannot publish a package marked private.
               # Fail early and clearly if package.json has "private": true.
               - script: |
@@ -236,6 +244,32 @@ extends:
                   echo "OK: no _manifest/ entries found inside the tarball(s)."
                 displayName: 'Verify tarball has no _manifest (SBOM) inside'
 
+              # Idempotency: record whether this exact name@version is already
+              # available so the ESRP stage can skip re-publishing. Preserves the
+              # old pipeline's tolerant "npm publish || true" behavior (a re-run
+              # for an already-published version is a no-op, not a hard failure).
+              #
+              # This check lives in the Package (build) job -- NOT the ESRP release
+              # job -- because release jobs cannot check out the repo/.npmrc and
+              # this agent cannot reach the public npm registry, so the lookup must
+              # go through the internal ADO feed configured in .npmrc (authenticated
+              # above). The result is exported as an output variable that the
+              # PublishToNpmViaESRP stage consumes.
+              - script: |
+                  set -e
+                  id=$(node -e "const p=require('$(Pipeline.Workspace)/build-output/package.json'); process.stdout.write(p.name + '@' + p.version)")
+                  echo "Checking ADO feed for $id ..."
+                  if published=$(npm view "$id" version 2>/dev/null) && [ -n "$published" ]; then
+                    echo "$id already available on the ADO feed; ESRP publish will be skipped (idempotent re-run)."
+                    echo "##vso[task.setvariable variable=npmAlreadyPublished;isOutput=true]true"
+                  else
+                    echo "$id not found on the ADO feed; will publish via ESRP."
+                    echo "##vso[task.setvariable variable=npmAlreadyPublished;isOutput=true]false"
+                  fi
+                name: idempotency
+                displayName: 'Check whether version already published (ADO feed)'
+                workingDirectory: $(Build.SourcesDirectory)
+
       # =======================================================================
       # Stage 3: PublishToNpmViaESRP - hand the .tgz files to ESRP Release.
       # Skipped entirely when the pipeline is queued with dryRun = true.
@@ -244,6 +278,12 @@ extends:
         - stage: PublishToNpmViaESRP
           displayName: Publish to npm via ESRP
           dependsOn: Package
+          # Surface the Package stage's idempotency result so the ESRP task below
+          # can skip publishing a version that already exists on the feed. The
+          # check runs in the Package (build) job because 1ES release jobs cannot
+          # check out the repo/.npmrc needed to query the ADO npm feed.
+          variables:
+            npmAlreadyPublished: $[ stageDependencies.Package.pack.outputs['idempotency.npmAlreadyPublished'] ]
           jobs:
             - job: esrp
               displayName: ESRP Release (npm)
@@ -262,32 +302,17 @@ extends:
                     artifactName: npm-packages
                     targetPath: $(Pipeline.Workspace)/npm-packages
               steps:
-                # 1ES release jobs (templateContext.type: releaseJob) do NOT
-                # check out the repository by default, unlike the regular CI jobs
-                # in azure-pipelines.yml which rely on the template's implicit
-                # `checkout: self`. We check out self here for the SAME reason CI
-                # does: the internal-feed .npmrc must be on disk so NpmAuthenticate
-                # can inject credentials and the idempotency `npm view` below can
-                # resolve the registry. Without this, .npmrc is missing and the
-                # feed auth step fails.
-                - checkout: self
-
-                - task: NodeTool@0
-                  displayName: 'Use Node $(nodeVersion)'
-                  inputs:
-                    versionSpec: $(nodeVersion)
-
-                # Authenticate to the internal ADO npm feed defined in .npmrc.
-                # This agent CANNOT reach the public npm registry, so the
-                # idempotency check below queries the ADO feed, never npmjs.
-                - task: NpmAuthenticate@0
-                  displayName: 'Authenticate to ADO npm feed (.npmrc)'
-                  inputs:
-                    workingFile: .npmrc
+                # This is a 1ES release job (templateContext.type: releaseJob),
+                # which by design does NOT check out the repository. It needs no
+                # source, no npm feed, and no Node: its only job is to distribute
+                # the pre-built .tgz that the Package stage produced and handed
+                # over as the 'npm-packages' pipeline artifact input above. ESRP
+                # authenticates to npmjs.org itself via the ESRP service
+                # connection + Key Vault, so nothing from the repo is required.
 
                 # Final guard before invoking ESRP: at least one .tgz must be
-                # present, otherwise fail the release rather than submit an
-                # empty ESRP request.
+                # present in the downloaded artifact, otherwise fail the release
+                # rather than submit an empty ESRP request.
                 - pwsh: |
                     $pkgs = @(Get-ChildItem "$(Pipeline.Workspace)/npm-packages" -Filter *.tgz -ErrorAction SilentlyContinue)
                     Write-Host "Found $($pkgs.Count) .tgz file(s) to release:"
@@ -297,37 +322,6 @@ extends:
                       exit 1
                     }
                   displayName: 'Verify packages exist before ESRP'
-
-                # Idempotency: skip ESRP if this exact name@version is already
-                # available. Preserves the old pipeline's tolerant
-                # "npm publish || true" behavior so a re-run for an already-
-                # published version is a no-op instead of a hard failure.
-                #
-                # IMPORTANT: this agent cannot reach the public npm registry, so
-                # the lookup goes through the internal ADO feed configured in the
-                # repo .npmrc (which proxies npmjs upstream). Running npm from the
-                # sources directory makes it pick up that .npmrc for both the
-                # registry URL and the auth token injected by NpmAuthenticate.
-                - pwsh: |
-                    $pkg = Get-ChildItem "$(Pipeline.Workspace)/npm-packages" -Filter *.tgz | Select-Object -First 1
-                    # Read name+version straight from the tarball's package.json.
-                    $json = tar -xOf $pkg.FullName package/package.json | ConvertFrom-Json
-                    $id = "$($json.name)@$($json.version)"
-                    Write-Host "Checking ADO feed for $id ..."
-                    $published = & npm view $id version 2>$null
-                    $exit = $LASTEXITCODE
-                    # npm view returns non-zero (E404) when the version is not
-                    # found; reset so this lookup does not fail the step.
-                    $global:LASTEXITCODE = 0
-                    if ($exit -eq 0 -and -not [string]::IsNullOrWhiteSpace($published)) {
-                      Write-Host "$id already available on the ADO feed; skipping ESRP release (idempotent re-run)."
-                      Write-Host "##vso[task.setvariable variable=npmAlreadyPublished]true"
-                    } else {
-                      Write-Host "$id not found on the ADO feed; will publish."
-                      Write-Host "##vso[task.setvariable variable=npmAlreadyPublished]false"
-                    }
-                  workingDirectory: $(Build.SourcesDirectory)
-                  displayName: 'Check whether version already published (ADO feed)'
 
                 # ESRP Release: performs the ACTUAL publish to npmjs.org.
                 #   intent=PackageDistribution + contenttype=npm -> npm publish

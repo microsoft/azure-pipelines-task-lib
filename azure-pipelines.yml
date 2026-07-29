@@ -49,7 +49,7 @@ extends:
           image: abtt-windows-2025
           os: windows
         steps:
-        - template: /azure-pipelines-steps-node.yml@self
+        - template: /.azure-pipelines/azure-pipelines-steps-node.yml@self
           parameters:
             os: Windows_NT  
 
@@ -67,7 +67,7 @@ extends:
             artifactType: 'pipeline'
             artifactName: 'npm-package'
         steps:
-        - template: /azure-pipelines-steps-node.yml@self
+        - template: /.azure-pipelines/azure-pipelines-steps-node.yml@self
           parameters:
             os: Linux
 
@@ -79,6 +79,6 @@ extends:
           image: macOS-latest
           os: macOS
         steps:
-        - template: /azure-pipelines-steps-node.yml@self
+        - template: /.azure-pipelines/azure-pipelines-steps-node.yml@self
           parameters:
             os: Darwin
