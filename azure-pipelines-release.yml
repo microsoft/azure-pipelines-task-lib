@@ -178,6 +178,28 @@ extends:
 
               # Produce the .tgz that ESRP will publish. ESRP does not pack; we
               # stage the tarball into $(Build.ArtifactStagingDirectory)/npm-packages.
+              #
+              # IMPORTANT: the build-output artifact we downloaded was published
+              # under 1ES, which auto-injects an SBOM folder named `_manifest`
+              # into every pipeline artifact. Because this package has no `files`
+              # allowlist in package.json and no .npmignore, `npm pack` would
+              # otherwise sweep that `_manifest` folder INTO the tarball, shipping
+              # SBOM/signing files (_manifest/**) inside the published npm package
+              # -- files the historical `npm publish` output never contained.
+              # Remove it (and npm's own pack log, if any) so the tarball matches
+              # exactly what `npm publish` produced from a clean _build.
+              - script: |
+                  set -e
+                  if [ -d "_manifest" ]; then
+                    echo "Removing 1ES-injected _manifest (SBOM) folder before packing:"
+                    ls -la _manifest || true
+                    rm -rf _manifest
+                  else
+                    echo "No _manifest folder present; nothing to strip."
+                  fi
+                displayName: 'Strip 1ES SBOM (_manifest) before pack'
+                workingDirectory: $(Pipeline.Workspace)/build-output
+
               - script: |
                   set -e
                   mkdir -p "$(Build.ArtifactStagingDirectory)/npm-packages"
@@ -196,6 +218,23 @@ extends:
                     exit 1
                   fi
                 displayName: 'Verify at least one .tgz exists'
+
+              # Guard against SBOM/pipeline files leaking INTO the tarball. The
+              # historical `npm publish` output only contained the package's own
+              # files; nothing under `package/_manifest/`. If the 1ES SBOM (or any
+              # other injected artifact) ever ends up inside the tarball again,
+              # fail loudly here instead of shipping a polluted package to npm.
+              - script: |
+                  set -e
+                  for tgz in "$(Build.ArtifactStagingDirectory)/npm-packages"/*.tgz; do
+                    echo "Inspecting $tgz for stray _manifest/ entries..."
+                    if tar -tzf "$tgz" | grep -E '(^|/)_manifest/' ; then
+                      echo "ERROR: '$tgz' contains an SBOM/_manifest folder. It must not be published inside the npm package."
+                      exit 1
+                    fi
+                  done
+                  echo "OK: no _manifest/ entries found inside the tarball(s)."
+                displayName: 'Verify tarball has no _manifest (SBOM) inside'
 
       # =======================================================================
       # Stage 3: PublishToNpmViaESRP - hand the .tgz files to ESRP Release.
