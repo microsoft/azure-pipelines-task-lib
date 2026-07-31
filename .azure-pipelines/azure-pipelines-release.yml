@@ -108,7 +108,10 @@ extends:
               inputs:
                 # Download the .tgz produced by the 'build' pipeline resource.
                 # This is a declarative 1ES input (the template performs the
-                # download), so the job body stays a single ESRP task.
+                # download), so the job body stays a single ESRP task. The
+                # artifact contains packages/<name>.tgz plus a 1ES-injected
+                # SBOM `_manifest/` folder at its root; ESRP is pointed at the
+                # `packages/` subfolder below so it only ever sees the .tgz.
                 - input: pipelineArtifact
                   pipeline: build
                   artifactName: npm-packages
@@ -121,6 +124,13 @@ extends:
               #   waitforreleasecompletion=true                 -> block until done
               # ESRP does NOT run npm pack; it distributes the .tgz downloaded
               # above. The dist-tag is inferred from publishConfig.tag (latest).
+              #
+              # folderlocation points at the `packages/` SUBFOLDER of the
+              # downloaded artifact -- NOT its root. The build stages the .tgz
+              # there so it is isolated from the 1ES-injected SBOM `_manifest/`
+              # folder (which lands at the artifact root). ESRP must see ONLY
+              # .tgz files here; any non-.tgz sibling makes it fail deriving npm
+              # name@version ("...Received undefined" at release-request submit).
               # NOTE: EsrpRelease@12 also accepts `productstate: <tag>` to pin the
               # npm dist-tag explicitly (e.g. 'latest' or 'beta'); we intentionally
               # omit it and let publishConfig.tag drive the tag per requirements.
@@ -135,7 +145,7 @@ extends:
                   intent: 'PackageDistribution'
                   contenttype: 'npm'
                   contentsource: 'Folder'
-                  folderlocation: '$(Pipeline.Workspace)/npm-packages'
+                  folderlocation: '$(Pipeline.Workspace)/npm-packages/packages'
                   waitforreleasecompletion: true
                   owners: '$(EsrpOwners)'
                   approvers: '$(EsrpApprovers)'
