@@ -117,8 +117,36 @@ extends:
                   artifactName: npm-packages
                   targetPath: $(Pipeline.Workspace)/npm-packages
             steps:
-              # The ONLY step in this pipeline: ESRP performs the ACTUAL publish
-              # to npmjs.org.
+              # 1ES release jobs cannot check out the repo, but a script step IS
+              # allowed. Read the npm package name + version out of the downloaded
+              # .tgz so they can be passed to ESRP explicitly: EsrpRelease@12 leaves
+              # productname/productversion/releasetitle UNSET when not provided,
+              # and submitting the release request with those undefined has been
+              # observed to crash the task ("...Received undefined").
+              - powershell: |
+                  $ErrorActionPreference = 'Stop'
+                  $pkgDir = "$(Pipeline.Workspace)/npm-packages/packages"
+                  $tgz = Get-ChildItem -Path $pkgDir -Filter *.tgz -File | Select-Object -First 1
+                  if (-not $tgz) { Write-Error "No .tgz found in $pkgDir"; exit 1 }
+                  Write-Host "Reading package metadata from $($tgz.Name)"
+                  # npm tarballs store every file under a top-level 'package/' dir.
+                  $work = Join-Path $env:AGENT_TEMPDIRECTORY ("esrp_pkg_" + [guid]::NewGuid().ToString('N'))
+                  New-Item -ItemType Directory -Path $work -Force | Out-Null
+                  tar -xzf "$($tgz.FullName)" -C "$work" package/package.json
+                  if ($LASTEXITCODE -ne 0) { Write-Error "Failed to extract package.json from $($tgz.Name)"; exit 1 }
+                  $pkg = Get-Content (Join-Path $work 'package/package.json') -Raw | ConvertFrom-Json
+                  $name = $pkg.name; $version = $pkg.version
+                  if ([string]::IsNullOrWhiteSpace($name) -or [string]::IsNullOrWhiteSpace($version)) {
+                    Write-Error "Could not read name/version from package.json (name='$name' version='$version')."; exit 1
+                  }
+                  Remove-Item $work -Recurse -Force -ErrorAction SilentlyContinue
+                  Write-Host "Releasing $name@$version"
+                  Write-Host "##vso[task.setvariable variable=EsrpProductName]$name"
+                  Write-Host "##vso[task.setvariable variable=EsrpProductVersion]$version"
+                  Write-Host "##vso[task.setvariable variable=EsrpReleaseTitle]$name $version"
+                displayName: 'Read package name/version from .tgz'
+
+              # ESRP performs the ACTUAL publish to npmjs.org.
               #   intent=PackageDistribution + contenttype=npm -> npm publish
               #   contentsource=Folder + folderlocation         -> folder of .tgz
               #   waitforreleasecompletion=true                 -> block until done
@@ -126,11 +154,10 @@ extends:
               # above. The dist-tag is inferred from publishConfig.tag (latest).
               #
               # folderlocation points at the `packages/` SUBFOLDER of the
-              # downloaded artifact -- NOT its root. The build stages the .tgz
-              # there so it is isolated from the 1ES-injected SBOM `_manifest/`
-              # folder (which lands at the artifact root). ESRP must see ONLY
-              # .tgz files here; any non-.tgz sibling makes it fail deriving npm
-              # name@version ("...Received undefined" at release-request submit).
+              # downloaded artifact so ESRP sees ONLY the .tgz (the 1ES-injected
+              # SBOM `_manifest/` folder is a sibling at the artifact root).
+              # productname/productversion/releasetitle come from the script step
+              # above; leaving them undefined crashes ESRP's release-request submit.
               # NOTE: EsrpRelease@12 also accepts `productstate: <tag>` to pin the
               # npm dist-tag explicitly (e.g. 'latest' or 'beta'); we intentionally
               # omit it and let publishConfig.tag drive the tag per requirements.
@@ -152,3 +179,8 @@ extends:
                   serviceendpointurl: '$(EsrpServiceEndpointUrl)'
                   mainpublisher: '$(EsrpMainPublisher)'
                   domaintenantid: '$(EsrpDomainTenantId)'
+                  # Explicit product metadata (see script step) so ESRP does not
+                  # submit the release request with undefined values.
+                  productname: '$(EsrpProductName)'
+                  productversion: '$(EsrpProductVersion)'
+                  releasetitle: '$(EsrpReleaseTitle)'
