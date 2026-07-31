@@ -119,20 +119,30 @@ extends:
                 workingDirectory: node
 
               # Produce the .tgz that ESRP will publish. ESRP does not pack; we
-              # stage the tarball into $(Build.ArtifactStagingDirectory)/npm-packages
-              # and publish it as the 'npm-packages' artifact (see outputs above).
+              # stage the tarball into a `packages/` SUBFOLDER of the artifact
+              # ($(Build.ArtifactStagingDirectory)/npm-packages/packages) and
+              # publish the parent as the 'npm-packages' artifact (see outputs).
+              #
+              # WHY THE SUBFOLDER: 1ES injects an SBOM `_manifest/` folder at the
+              # ROOT of every published pipeline artifact. If the .tgz sat at the
+              # artifact root next to `_manifest/`, the release pipeline's ESRP
+              # `folderlocation` would enumerate those non-.tgz SBOM files and
+              # fail trying to derive npm name@version from them (ESRP crashes
+              # with "...Received undefined" while submitting the release request).
+              # Keeping the .tgz in `packages/` leaves `_manifest/` a sibling, so
+              # the release points ESRP at `.../npm-packages/packages` (only .tgz).
               - script: |
                   set -e
-                  mkdir -p "$(Build.ArtifactStagingDirectory)/npm-packages"
-                  npm pack --pack-destination "$(Build.ArtifactStagingDirectory)/npm-packages"
+                  mkdir -p "$(Build.ArtifactStagingDirectory)/npm-packages/packages"
+                  npm pack --pack-destination "$(Build.ArtifactStagingDirectory)/npm-packages/packages"
                   echo "Packed contents:"
-                  ls -l "$(Build.ArtifactStagingDirectory)/npm-packages"
+                  ls -l "$(Build.ArtifactStagingDirectory)/npm-packages/packages"
                 displayName: 'npm pack -> staging'
                 workingDirectory: node/_build
 
               # Fail the build if npm pack produced no package files.
               - script: |
-                  count=$(ls -1 "$(Build.ArtifactStagingDirectory)/npm-packages"/*.tgz 2>/dev/null | wc -l)
+                  count=$(ls -1 "$(Build.ArtifactStagingDirectory)/npm-packages/packages"/*.tgz 2>/dev/null | wc -l)
                   echo "Found $count .tgz file(s)."
                   if [ "$count" -eq 0 ]; then
                     echo "ERROR: npm pack produced no .tgz files; nothing to release."
@@ -146,7 +156,7 @@ extends:
               # tarball, fail here rather than shipping a polluted npm package.
               - script: |
                   set -e
-                  for tgz in "$(Build.ArtifactStagingDirectory)/npm-packages"/*.tgz; do
+                  for tgz in "$(Build.ArtifactStagingDirectory)/npm-packages/packages"/*.tgz; do
                     echo "Inspecting $tgz for stray _manifest/ entries..."
                     if tar -tzf "$tgz" | grep -E '(^|/)_manifest/' ; then
                       echo "ERROR: '$tgz' contains an SBOM/_manifest folder; refusing to publish it inside the npm package."
