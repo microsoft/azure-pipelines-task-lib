@@ -64,17 +64,6 @@ variables:
   # ---------------------------------------------------------------------------
   - group: esrp-npm-release
 
-  # Non-secret ESRP constants for public-npm (OSS) publishing. These are the
-  # well-known values for the ESRPRELPACMAN OSS publisher; override in the
-  # variable group only if your ESRP onboarding differs.
-  - name: EsrpMainPublisher
-    value: 'ESRPRELPACMAN'
-  - name: EsrpServiceEndpointUrl
-    value: 'https://api.esrp.microsoft.com'
-  # Tenant id for the ESRPRELPACMAN OSS publisher.
-  - name: EsrpDomainTenantId
-    value: '975f013f-7f24-47e8-a7d3-abc4752bf346'
-
   # Node version for the build stage.
   - name: nodeVersion
     value: '16.13.0'
