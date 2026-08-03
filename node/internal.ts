@@ -7,6 +7,7 @@ import tcm = require('./taskcommand');
 import vm = require('./vault');
 import semver = require('semver');
 import crypto = require('crypto');
+const libResource = require('./lib-resource');
 
 /**
  * Hash table of known variable info. The formatted env var name is the lookup key.
@@ -98,6 +99,23 @@ let _resourceFiles: { [key: string]: string } = {};
 let _libResourceFileLoaded: boolean = false;
 let _resourceCulture: string = 'en-US';
 
+function _getLocStrings(resourceJson: any, locResourceJson?: any): { [key: string]: string; } {
+    var locStrings: { [key: string]: string; } = {};
+
+    if (resourceJson && resourceJson.hasOwnProperty('messages')) {
+        for (var key in resourceJson.messages) {
+            if (locResourceJson && locResourceJson.hasOwnProperty('loc.messages.' + key)) {
+                locStrings[key] = locResourceJson['loc.messages.' + key];
+            }
+            else {
+                locStrings[key] = resourceJson.messages[key];
+            }
+        }
+    }
+
+    return locStrings;
+}
+
 function _loadResJson(resjsonFile: string): any {
     var resJson: any;
     if (_exist(resjsonFile)) {
@@ -122,9 +140,7 @@ function _loadResJson(resjsonFile: string): any {
 }
 
 function _loadLocStrings(resourceFile: string, culture: string): { [key: string]: string; } {
-    var locStrings: {
-        [key: string]: string
-    } = {};
+    var locStrings: { [key: string]: string; } = {};
 
     if (_exist(resourceFile)) {
         var resourceJson = require(resourceFile);
@@ -148,14 +164,7 @@ function _loadLocStrings(resourceFile: string, culture: string): { [key: string]
                 }
             }
 
-            for (var key in resourceJson.messages) {
-                if (locResourceJson && locResourceJson.hasOwnProperty('loc.messages.' + key)) {
-                    locStrings[key] = locResourceJson['loc.messages.' + key];
-                }
-                else {
-                    locStrings[key] = resourceJson.messages[key];
-                }
-            }
+            locStrings = _getLocStrings(resourceJson, locResourceJson);
         }
     }
     else {
@@ -163,6 +172,21 @@ function _loadLocStrings(resourceFile: string, culture: string): { [key: string]
     }
 
     return locStrings;
+}
+
+function _loadEmbeddedLocStrings(resourceData: any, culture: string): { [key: string]: string; } {
+    var localizedResource: any;
+    var upperCulture = culture.toUpperCase();
+    var localizedResources = resourceData.localizedMessages || {};
+
+    for (var localizedCulture in localizedResources) {
+        if (localizedCulture.toUpperCase() == upperCulture) {
+            localizedResource = localizedResources[localizedCulture];
+            break;
+        }
+    }
+
+    return _getLocStrings(resourceData, localizedResource);
 }
 
 /**
@@ -212,8 +236,7 @@ export function _setResourcePath(path: string, ignoreWarnings: boolean = false):
 export function _loc(key: string, ...param: any[]): string {
     if (!_libResourceFileLoaded) {
         // merge loc strings from azure-pipelines-task-lib.
-        var libResourceFile = path.join(__dirname, 'lib.json');
-        var libLocStrs = _loadLocStrings(libResourceFile, _resourceCulture);
+        var libLocStrs = _loadEmbeddedLocStrings(libResource, _resourceCulture);
         for (var libKey in libLocStrs) {
             //cache azure-pipelines-task-lib loc string
             _locStringCache[libKey] = libLocStrs[libKey];

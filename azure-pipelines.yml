@@ -7,7 +7,9 @@ trigger:
 - releases/*
 
 variables:
-- group: npm-tokens
+# npm publishing has moved to the dedicated ESRP release pipeline
+# (azure-pipelines-release.yml), so the npm-tokens variable group and the
+# npm-automation.token secret are no longer consumed by CI.
 - name: nodeVersion
   value: '16.13.0'
 - name: nodeVersionForPowershell
@@ -47,7 +49,7 @@ extends:
           image: abtt-windows-2025
           os: windows
         steps:
-        - template: /azure-pipelines-steps-node.yml@self
+        - template: /.azure-pipelines/azure-pipelines-steps-node.yml@self
           parameters:
             os: Windows_NT  
 
@@ -65,7 +67,7 @@ extends:
             artifactType: 'pipeline'
             artifactName: 'npm-package'
         steps:
-        - template: /azure-pipelines-steps-node.yml@self
+        - template: /.azure-pipelines/azure-pipelines-steps-node.yml@self
           parameters:
             os: Linux
 
@@ -77,6 +79,6 @@ extends:
           image: macOS-latest
           os: macOS
         steps:
-        - template: /azure-pipelines-steps-node.yml@self
+        - template: /.azure-pipelines/azure-pipelines-steps-node.yml@self
           parameters:
             os: Darwin

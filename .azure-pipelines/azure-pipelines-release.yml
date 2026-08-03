@@ -1,0 +1,278 @@
+# =============================================================================
+# Release pipeline: build, pack, and publish azure-pipelines-task-lib to
+# npmjs.org via ESRP -- a SINGLE pipeline with two stages.
+# =============================================================================
+#
+#   Stage 1  BuildAndPack        - build, test, and `npm pack` the package into
+#                                  a .tgz, published as the 'npm-packages'
+#                                  pipeline artifact.
+#   Stage 2  PublishToNpmViaESRP - a 1ES release job (no checkout) that downloads
+#                                  that SAME-RUN artifact and runs the ESRP
+#                                  Release task to publish it to npmjs.org.
+#
+# WHY ONE PIPELINE:
+#   Every run builds a fresh .tgz and immediately releases exactly what it built,
+#   guaranteeing build<->release consistency with no cross-pipeline artifact
+#   wiring (no `resources.pipelines`, no second pipeline registration).
+#
+# TRIGGER: MANUAL only. Day-to-day PR/CI validation lives in azure-pipelines.yml.
+#   Every run builds, tests, and packs the npm package. By default it also
+#   publishes to npm; set dryRun=true to build and validate without publishing.
+#
+# KEY FACTS (read before editing):
+#   * `npm pack` runs in Stage 1, NOT in ESRP. ESRP only distributes the
+#     pre-built .tgz; it never runs `npm pack`.
+#   * npm package publication is performed by the ESRP Release task (signing,
+#     provenance, approval/notification workflow), NOT by `npm publish`.
+#   * The npm dist-tag is inferred by ESRP from the package's `publishConfig.tag`
+#     in package.json (default `latest`; this package has no publishConfig, so
+#     releases go out as `latest`).
+#   * 1ES release jobs cannot check out sources
+#     (https://aka.ms/1espt/release-deps); Stage 2 gets everything it needs from
+#     the Stage 1 artifact.
+#   * The agent cannot reach the public npm registry, so all npm operations in
+#     Stage 1 go through the internal ADO feed configured in .npmrc (via
+#     NpmAuthenticate). ESRP does the actual npmjs publish out-of-band.
+#
+# Onboarding, required variables, and troubleshooting live in the team's
+# internal ESRP npm release runbook (maintained outside this repo).
+# =============================================================================
+
+name: $(Date:yyyyMMdd)$(Rev:.r)
+
+trigger: none
+pr: none
+
+parameters:
+  - name: dryRun
+    displayName: Build and validate without publishing
+    type: boolean
+    default: false
+
+variables:
+  # ---------------------------------------------------------------------------
+  # ESRP wiring (used by Stage 2). The per-environment/identity values live in a
+  # variable group so nothing environment-specific is hard-coded here. Create the
+  # group in Pipelines > Library named 'esrp-npm-release' with these variables:
+  #   EsrpServiceConnection - name of the ESRP AzureRM (WIF/OIDC) service connection
+  #   EsrpKeyVault          - Key Vault holding the ESRP signing certificate
+  #   EsrpSignCert          - signing certificate name in that Key Vault
+  #   EsrpClientId          - client id of the ESRP-approved publisher identity
+  #   EsrpOwners            - comma-separated notification owner emails
+  #   EsrpApprovers         - comma-separated notification approver emails
+  # See the internal ESRP npm release runbook for how to obtain each value.
+  # ---------------------------------------------------------------------------
+  - group: esrp-npm-release
+
+  # Node version for the build stage.
+  - name: nodeVersion
+    value: '16.13.0'
+
+# Built under the 1ES Official template (same as CI) for mseng compliance.
+resources:
+  repositories:
+    - repository: 1ESPipelineTemplates
+      type: git
+      name: 1ESPipelineTemplates/1ESPipelineTemplates
+      ref: refs/tags/release
+
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    settings:
+      networkIsolationMode: Audit
+    sdl:
+      sourceAnalysisPool:
+        name: 1ES-ABTT-Shared-Pool
+        image: abtt-windows-2025
+        os: windows
+    stages:
+      # =======================================================================
+      # STAGE 1 -- Build, test, and pack into a .tgz.
+      # Packing from the freshly built node/_build in the SAME job (no
+      # intermediate artifact round-trip) avoids the 1ES SBOM (_manifest) folder
+      # that 1ES injects into published pipeline artifacts -- which would
+      # otherwise be swept into the tarball by `npm pack` (this package has no
+      # `files` allowlist in package.json).
+      # =======================================================================
+      - stage: BuildAndPack
+        displayName: Build, test, and pack
+        jobs:
+          - job: pack
+            displayName: Build & pack task-lib
+            pool:
+              name: 1ES-ABTT-Shared-Pool
+              image: abtt-ubuntu-2404
+              os: linux
+            templateContext:
+              outputs:
+                - output: pipelineArtifact
+                  displayName: 'Publish npm package (.tgz)'
+                  targetPath: $(Build.ArtifactStagingDirectory)/npm-packages
+                  artifactName: npm-packages
+            steps:
+              - task: NodeTool@0
+                displayName: 'Use Node $(nodeVersion)'
+                inputs:
+                  versionSpec: $(nodeVersion)
+
+              # Authenticate to the internal ADO npm feed referenced by .npmrc so
+              # `npm ci` (and the idempotency `npm view` below) can reach it. The
+              # agent cannot reach the public npm registry directly.
+              - task: NpmAuthenticate@0
+                displayName: 'Authenticate npm (.npmrc)'
+                inputs:
+                  workingFile: .npmrc
+
+              - script: npm ci
+                displayName: 'npm ci'
+                workingDirectory: node
+
+              - script: npm run build
+                displayName: 'npm run build'
+                workingDirectory: node
+
+              - script: npm test
+                displayName: 'npm test'
+                workingDirectory: node
+
+              # Guard: ESRP (and npm) cannot publish a package marked private.
+              # Fail early and clearly if the built package.json has "private": true.
+              - script: |
+                  node -e "const p=require('./package.json'); if (p.private===true){console.error('ERROR: package.json is marked private; refusing to pack for release.');process.exit(1);} console.log('OK: '+p.name+'@'+p.version+' is publishable (private is not true).');"
+                displayName: 'Validate package.json is publishable'
+                workingDirectory: node/_build
+
+              # Informational idempotency check against the internal ADO feed
+              # (the agent cannot reach public npmjs). NON-FATAL: it logs a
+              # warning if this exact name@version already exists so a duplicate
+              # release is surfaced in the build logs before ESRP is ever run.
+              - script: |
+                  set -e
+                  id=$(node -e "const p=require('./_build/package.json'); process.stdout.write(p.name+'@'+p.version)")
+                  echo "Checking ADO feed for $id ..."
+                  if published=$(npm view "$id" version 2>/dev/null) && [ -n "$published" ]; then
+                    echo "##vso[task.logissue type=warning]$id already exists on the ADO feed; releasing it again will fail in ESRP. Bump the version before releasing."
+                  else
+                    echo "$id not found on the ADO feed; OK to release."
+                  fi
+                displayName: 'Check whether version already published (ADO feed)'
+                workingDirectory: node
+
+              # Produce the .tgz that ESRP will publish. ESRP does not pack; we
+              # stage the tarball into a `packages/` SUBFOLDER of the artifact
+              # ($(Build.ArtifactStagingDirectory)/npm-packages/packages) and
+              # publish the parent as the 'npm-packages' artifact (see outputs).
+              #
+              # WHY THE SUBFOLDER: 1ES injects an SBOM `_manifest/` folder at the
+              # ROOT of every published pipeline artifact. ESRP discovers .tgz
+              # files recursively under its `folderlocation` (and ignores non-.tgz
+              # files), so keeping the tarball(s) in a `packages/` subfolder and
+              # pointing ESRP at `.../npm-packages/packages` keeps the release
+              # folder tarball-only and the `_manifest/` SBOM cleanly out of scope.
+              - script: |
+                  set -e
+                  mkdir -p "$(Build.ArtifactStagingDirectory)/npm-packages/packages"
+                  npm pack --pack-destination "$(Build.ArtifactStagingDirectory)/npm-packages/packages"
+                  echo "Packed contents:"
+                  ls -l "$(Build.ArtifactStagingDirectory)/npm-packages/packages"
+                displayName: 'npm pack -> staging'
+                workingDirectory: node/_build
+
+              # Fail the build if npm pack produced no package files.
+              - script: |
+                  count=$(ls -1 "$(Build.ArtifactStagingDirectory)/npm-packages/packages"/*.tgz 2>/dev/null | wc -l)
+                  echo "Found $count .tgz file(s)."
+                  if [ "$count" -eq 0 ]; then
+                    echo "ERROR: npm pack produced no .tgz files; nothing to release."
+                    exit 1
+                  fi
+                displayName: 'Verify at least one .tgz exists'
+
+              # Defense in depth: the historical `npm publish` output only ever
+              # contained the package's own files -- nothing under `_manifest/`.
+              # If the 1ES SBOM (or any injected artifact) ever lands INSIDE the
+              # tarball, fail here rather than shipping a polluted npm package.
+              - script: |
+                  set -e
+                  for tgz in "$(Build.ArtifactStagingDirectory)/npm-packages/packages"/*.tgz; do
+                    echo "Inspecting $tgz for stray _manifest/ entries..."
+                    if tar -tzf "$tgz" | grep -E '(^|/)_manifest/' ; then
+                      echo "ERROR: '$tgz' contains an SBOM/_manifest folder; refusing to publish it inside the npm package."
+                      exit 1
+                    fi
+                  done
+                  echo "OK: no _manifest/ entries found inside the tarball(s)."
+                displayName: 'Verify tarball has no _manifest (SBOM) inside'
+
+      # =======================================================================
+      # STAGE 2 -- Publish the Stage 1 .tgz to npm via ESRP.
+      # A 1ES release job (no checkout). It downloads the SAME-RUN 'npm-packages'
+      # artifact produced by Stage 1 and runs only the ESRP Release task.
+      # =======================================================================
+      - ${{ if eq(parameters.dryRun, false) }}:
+          - stage: PublishToNpmViaESRP
+            displayName: Publish to npm via ESRP
+            dependsOn: BuildAndPack
+            jobs:
+              - job: esrp
+                displayName: ESRP Release (npm)
+                pool:
+                  name: 1ES-ABTT-Shared-Pool
+                  image: abtt-windows-2025
+                  os: windows
+                templateContext:
+                  # 1ES: mark this as a production release job. Required for a job
+                  # that publishes externally (via ESRP) so 1ES treats it as an
+                  # official, isProduction release. Release jobs do NOT check out the
+                  # repo -- the input below provides everything the job needs.
+                  type: releaseJob
+                  isProduction: true
+                  inputs:
+                    # Download the .tgz produced by Stage 1 in THIS SAME run. Because
+                    # the artifact comes from an earlier stage of the CURRENT pipeline
+                    # (not a separate `resources.pipelines` pipeline), there is NO
+                    # `pipeline:` alias -- just the artifact name. The artifact
+                    # contains packages/*.tgz (one or more) plus a 1ES-injected SBOM
+                    # `_manifest/` folder at its root; ESRP is pointed at the
+                    # `packages/` subfolder below so it only enumerates the .tgz files.
+                    - input: pipelineArtifact
+                      artifactName: npm-packages
+                      targetPath: $(Pipeline.Workspace)/npm-packages
+                steps:
+                  # ESRP performs the ACTUAL publish to npmjs.org.
+                  #   intent=PackageDistribution + contenttype=npm -> npm publish
+                  #   contentsource=Folder + folderlocation         -> folder of .tgz
+                  #   waitforreleasecompletion=true                 -> block until done
+                  # ESRP does NOT run npm pack; it distributes the .tgz downloaded
+                  # above. The dist-tag is inferred from publishConfig.tag (latest).
+                  #
+                  # folderlocation points at the `packages/` SUBFOLDER of the
+                  # downloaded artifact. ESRP recursively discovers every .tgz under it
+                  # -- multiple packages and nested folders are supported -- and
+                  # ignores non-.tgz files, so the 1ES-injected SBOM `_manifest/`
+                  # folder (a sibling at the artifact ROOT, outside `packages/`) is
+                  # never in scope. ESRP derives the release metadata
+                  # (productname/productversion/releasetitle) itself from the release
+                  # request context, so we intentionally do NOT set them here.
+                  # NOTE: EsrpRelease@12 also accepts `productstate: <tag>` to pin the
+                  # npm dist-tag explicitly (e.g. 'latest' or 'beta'); we intentionally
+                  # omit it and let publishConfig.tag drive the tag per requirements.
+                  - task: EsrpRelease@12
+                    displayName: 'Publish package to npm via ESRP'
+                    inputs:
+                      connectedservicename: '$(EsrpServiceConnection)'
+                      usemanagedidentity: true
+                      keyvaultname: '$(EsrpKeyVault)'
+                      signcertname: '$(EsrpSignCert)'
+                      clientid: '$(EsrpClientId)'
+                      intent: 'PackageDistribution'
+                      contenttype: 'npm'
+                      contentsource: 'Folder'
+                      folderlocation: '$(Pipeline.Workspace)/npm-packages/packages'
+                      waitforreleasecompletion: true
+                      owners: '$(EsrpOwners)'
+                      approvers: '$(EsrpApprovers)'
+                      serviceendpointurl: '$(EsrpServiceEndpointUrl)'
+                      mainpublisher: '$(EsrpMainPublisher)'
+                      domaintenantid: '$(EsrpDomainTenantId)'
