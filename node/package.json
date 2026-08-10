@@ -43,5 +43,8 @@
     "@types/shelljs": "^0.10.0",
     "mocha": "^11.7.6",
     "typescript": "^4.9.5"
+  },
+  "overrides": {
+    "serialize-javascript": "7.0.5"
   }
 }
