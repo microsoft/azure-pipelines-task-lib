@@ -12,6 +12,7 @@ import ncp = require('child_process');
 import os = require('os');
 import path = require('path');
 import semver = require('semver');
+import stream = require('stream');
 import testutil = require('./testutil');
 
 describe('Mock Tests', function () {
@@ -45,6 +46,25 @@ describe('Mock Tests', function () {
         }
 
         done();
+    });
+
+    it('task and mock-task export the immutable default VSO allowlist', () => {
+        assert.strictEqual(mt.defaultAllowedVsoCommands, tl.defaultAllowedVsoCommands);
+        assert.deepStrictEqual(tl.defaultAllowedVsoCommands, ['task.debug', 'task.setprogress']);
+        assert(Object.isFrozen(tl.defaultAllowedVsoCommands));
+    });
+
+    it('task and mock-task delegate external output filtering', () => {
+        for (const taskLib of [tl, mt]) {
+            const destination = new stream.PassThrough();
+            let output = '';
+            destination.on('data', (chunk) => { output += chunk.toString('utf8'); });
+            taskLib.writeExternalOutput('a ##vso[task.complete]b', {
+                source: 'repository',
+                destination
+            });
+            assert.strictEqual(output, 'a ##_vso[task.complete]b');
+        }
     });
 
     it('Mocks which and returns path on exists', (done) => {

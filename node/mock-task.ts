@@ -4,6 +4,7 @@ import fs = require('fs');
 import task = require('./task');
 import tcm = require('./taskcommand');
 import trm = require('./mock-toolrunner');
+import eom = require('./externaloutput');
 import ma = require('./mock-answer');
 
 let mock: ma.MockAnswers = new ma.MockAnswers();
@@ -528,6 +529,21 @@ exports.updateReleaseName = task.updateReleaseName;
 exports.TaskCommand = tcm.TaskCommand;
 exports.commandFromString = tcm.commandFromString;
 exports.ToolRunner = trm.ToolRunner;
+
+//-----------------------------------------------------
+// External Output Filtering
+//-----------------------------------------------------
+export type ExternalOutputOptions = eom.ExternalOutputOptions;
+
+export function createExternalOutputStream(options: eom.ExternalOutputOptions): eom.ExternalOutputStream {
+    return eom.createExternalOutputStream(options);
+}
+
+export function writeExternalOutput(data: string | Buffer, options: eom.ExternalOutputOptions): void {
+    eom.writeExternalOutput(data, options);
+}
+
+export const defaultAllowedVsoCommands = eom.defaultAllowedVsoCommands;
 
 //-----------------------------------------------------
 // Http Proxy Helper
