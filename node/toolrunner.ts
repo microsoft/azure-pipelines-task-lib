@@ -1152,7 +1152,7 @@ export class ToolRunner extends events.EventEmitter {
         // it is possible for the child process to end its last line without a new line.
         // because stdout is buffered, this causes the last line to not get sent to the parent
         // stream. Adding this event forces a flush before the child streams are closed.
-        cp.stdout?.on('finish', () => {
+        cp.stdout?.on('end', () => {
             if (!optionsNonNull.silent) {
                 if (df) { df.stdout(Buffer.from(os.EOL)); } else { optionsNonNull.outStream!.write(os.EOL); }
             }
@@ -1285,7 +1285,7 @@ export class ToolRunner extends events.EventEmitter {
         // it is possible for the child process to end its last line without a new line.
         // because stdout is buffered, this causes the last line to not get sent to the parent
         // stream. Adding this event forces a flush before the child streams are closed.
-        cp.stdout?.on('finish', () => {
+        cp.stdout?.on('end', () => {
             if (!optionsNonNull.silent) {
                 if (df) { df.stdout(Buffer.from(os.EOL)); } else { optionsNonNull.outStream!.write(os.EOL); }
             }
