@@ -202,7 +202,12 @@ export class MarkerFilter {
         if (out.length === 0) {
             return EMPTY;
         }
-        return out.length === 1 ? out[0] : Buffer.concat(out);
+        if (out.length === 1) {
+            const only = out[0];
+            // Never expose module-level buffers that callers could mutate globally.
+            return only === NEUTRALIZED || only === MARKER ? Buffer.from(only) : only;
+        }
+        return Buffer.concat(out);
     }
 
     public flush(): Buffer {

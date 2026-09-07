@@ -55,6 +55,16 @@ describe('External Output Filter', function () {
             assert.strictEqual(filter.push(input), input);
         });
 
+        it('does not expose shared marker buffers to callers', function () {
+            const options: eom.ExternalOutputOptions = { source: 'repository' };
+            const first = eom.filterExternalOutput('##vso[', options);
+            const second = eom.filterExternalOutput('##vso[', options);
+
+            assert.notStrictEqual(first, second);
+            first.write('##_zzz[');
+            assert.strictEqual(eom.filterExternalOutput('##vso[', options).toString('utf8'), '##_vso[');
+        });
+
         it('does not match wrong case or near-misses', function () {
             assert.strictEqual(run(['##VSO[task.debug] ##vs0[x] #vso[y]']), '##VSO[task.debug] ##vs0[x] #vso[y]');
         });
