@@ -2834,6 +2834,17 @@ export function writeExternalOutput(data: string | Buffer, options: eom.External
     eom.writeExternalOutput(data, options);
 }
 
+/**
+ * Filters a complete piece of external output and returns its bytes without writing them.
+ *
+ * @param data      The external output to filter.
+ * @param options   External output options. See ExternalOutputOptions.
+ * @returns         The filtered output.
+ */
+export function filterExternalOutput(data: string | Buffer, options: eom.ExternalOutputOptions): Buffer {
+    return eom.filterExternalOutput(data, options);
+}
+
 /** Commands allowed when VSO commands are enabled without an explicit allowlist. */
 export const defaultAllowedVsoCommands = eom.defaultAllowedVsoCommands;
 

@@ -543,6 +543,10 @@ export function writeExternalOutput(data: string | Buffer, options: eom.External
     eom.writeExternalOutput(data, options);
 }
 
+export function filterExternalOutput(data: string | Buffer, options: eom.ExternalOutputOptions): Buffer {
+    return eom.filterExternalOutput(data, options);
+}
+
 export const defaultAllowedVsoCommands = eom.defaultAllowedVsoCommands;
 
 //-----------------------------------------------------

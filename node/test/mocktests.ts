@@ -56,6 +56,11 @@ describe('Mock Tests', function () {
 
     it('task and mock-task delegate external output filtering', () => {
         for (const taskLib of [tl, mt]) {
+            const filtered = taskLib.filterExternalOutput('a ##vso[task.complete]b', {
+                source: 'repository'
+            });
+            assert.strictEqual(filtered.toString('utf8'), 'a ##_vso[task.complete]b');
+
             const destination = new stream.PassThrough();
             let output = '';
             destination.on('data', (chunk) => { output += chunk.toString('utf8'); });
