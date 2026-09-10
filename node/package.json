@@ -1,6 +1,6 @@
 {
   "name": "azure-pipelines-task-lib",
-  "version": "5.279.0",
+  "version": "5.280.0",
   "description": "Azure Pipelines Task SDK",
   "main": "./task.js",
   "typings": "./task.d.ts",
@@ -47,7 +47,7 @@
   "overrides": {
     "brace-expansion@1.x": { ".": "1.1.18" },
     "brace-expansion@2.x": { ".": "2.1.4" },
-    "js-yaml": "4.3.1",
+    "js-yaml": "4.3.2",
     "serialize-javascript": "7.0.5"
   }
 }
