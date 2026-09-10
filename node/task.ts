@@ -474,7 +474,7 @@ export function getEndpointUrlRequired(id: string): string {
     return getEndpointUrl(id, false)!;
 }
 
-/*
+/**
  * Gets the endpoint data parameter value with specified key for a service endpoint
  * If the endpoint data parameter was not set and is not optional, it will throw.
  *
@@ -494,7 +494,7 @@ export function getEndpointDataParameter(id: string, key: string, optional: bool
     return dataParamVal;
 }
 
-/*
+/**
  * Gets the endpoint data parameter value with specified key for a service endpoint
  * If the endpoint data parameter was not set, it will throw.
  *
