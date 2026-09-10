@@ -1,6 +1,6 @@
 {
   "name": "vsts-task-sdk",
-  "version": "0.21.6",
+  "version": "0.21.7",
   "private": true,
   "scripts": {
     "build": "node make.js build",
@@ -21,7 +21,7 @@
   },
   "overrides": {
     "brace-expansion@2.x": { ".": "2.1.4" },
-    "js-yaml": "4.3.1",
+    "js-yaml": "^4.3.2",
     "serialize-javascript": "7.0.5"
   }
 }
