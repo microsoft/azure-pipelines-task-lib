@@ -1,4 +1,5 @@
 {
+  "loc.messages.LIB_CopyDirectoryWithoutRecursiveOption": "cp: cannot copy a directory '%s' without the recursive option",
   "loc.messages.LIB_CopyFileFailed": "Error al copiar el archivo. Intentos restantes: %s",
   "loc.messages.LIB_DirectoryStackEmpty": "La pila de directorios está vacía",
   "loc.messages.LIB_EndpointAuthNotExist": "Los datos de autenticación del punto de conexión no existen: %s.",
