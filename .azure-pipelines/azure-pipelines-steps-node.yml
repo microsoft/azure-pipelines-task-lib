@@ -3,10 +3,10 @@ parameters:
   type: string
 
 steps:
-- task: NodeTool@0
+- task: UseNode@1
   displayName: use node $(nodeVersion)
   inputs:
-    versionSpec: $(nodeVersion)
+    version: $(nodeVersion)
 
 - task: NpmAuthenticate@0
   inputs:
@@ -48,10 +48,10 @@ steps:
       projects: 'powershell/CompiledHelpers/VstsTaskSdk.csproj'
       arguments: '--configuration Release --no-restore'
 
-  - task: NodeTool@0
+  - task: UseNode@1
     displayName: use node $(nodeVersionForPowershell) for PowerShell SDK
     inputs:
-      versionSpec: $(nodeVersionForPowershell)
+      version: $(nodeVersionForPowershell)
 
   - task: NpmAuthenticate@0
     inputs:
