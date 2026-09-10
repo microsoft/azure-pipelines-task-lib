@@ -6,7 +6,7 @@ A [cross platform agent](https://github.com/Microsoft/vso-agent) OR a TFS 2015 U
 ## Importing
 For now, the built azure-pipelines-task-lib (in _build) should be packaged with your task in a node_modules folder
 
-The build generates a azure-pipelines-task-lib.d.ts file for use when compiling tasks
+The build generates an azure-pipelines-task-lib.d.ts file for use when compiling tasks
 In the example below, it is in a folder named definitions above the tasks lib
 
 ```
