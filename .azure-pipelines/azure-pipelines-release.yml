@@ -111,10 +111,11 @@ extends:
                   targetPath: $(Build.ArtifactStagingDirectory)/npm-packages
                   artifactName: npm-packages
             steps:
-              - task: NodeTool@0
-                displayName: 'Use Node $(nodeVersion)'
-                inputs:
-                  versionSpec: $(nodeVersion)
+              # Failing network isolation so commenting out.
+              # - task: NodeTool@0
+              #   displayName: 'Use Node $(nodeVersion)'
+              #   inputs:
+              #     versionSpec: $(nodeVersion)
 
               # Authenticate to the internal ADO npm feed referenced by .npmrc so
               # `npm ci` (and the idempotency `npm view` below) can reach it. The

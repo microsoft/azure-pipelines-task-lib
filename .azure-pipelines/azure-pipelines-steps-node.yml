@@ -3,10 +3,11 @@ parameters:
   type: string
 
 steps:
-- task: UseNode@1
-  displayName: use node $(nodeVersion)
-  inputs:
-    version: $(nodeVersion)
+# Failing network isolation so commenting out
+# - task: UseNode@1
+#   displayName: use node $(nodeVersion)
+#   inputs:
+#     version: $(nodeVersion)
 
 - task: NpmAuthenticate@0
   inputs:
@@ -48,10 +49,11 @@ steps:
       projects: 'powershell/CompiledHelpers/VstsTaskSdk.csproj'
       arguments: '--configuration Release --no-restore'
 
-  - task: UseNode@1
-    displayName: use node $(nodeVersionForPowershell) for PowerShell SDK
-    inputs:
-      version: $(nodeVersionForPowershell)
+  # Failing network isolation so commenting out
+  # - task: UseNode@1
+  #   displayName: use node $(nodeVersionForPowershell) for PowerShell SDK
+  #   inputs:
+  #     version: $(nodeVersionForPowershell)
 
   - task: NpmAuthenticate@0
     inputs:
