@@ -12,6 +12,7 @@ import ncp = require('child_process');
 import os = require('os');
 import path = require('path');
 import semver = require('semver');
+import stream = require('stream');
 import testutil = require('./testutil');
 
 describe('Mock Tests', function () {
@@ -45,6 +46,30 @@ describe('Mock Tests', function () {
         }
 
         done();
+    });
+
+    it('task and mock-task export the immutable default VSO allowlist', () => {
+        assert.strictEqual(mt.defaultAllowedVsoCommands, tl.defaultAllowedVsoCommands);
+        assert.deepStrictEqual(tl.defaultAllowedVsoCommands, ['task.debug', 'task.setprogress']);
+        assert(Object.isFrozen(tl.defaultAllowedVsoCommands));
+    });
+
+    it('task and mock-task delegate external output filtering', () => {
+        for (const taskLib of [tl, mt]) {
+            const filtered = taskLib.filterExternalOutput('a ##vso[task.complete]b', {
+                source: 'repository'
+            });
+            assert.strictEqual(filtered.toString('utf8'), 'a ##_vso[task.complete]b');
+
+            const destination = new stream.PassThrough();
+            let output = '';
+            destination.on('data', (chunk) => { output += chunk.toString('utf8'); });
+            taskLib.writeExternalOutput('a ##vso[task.complete]b', {
+                source: 'repository',
+                destination
+            });
+            assert.strictEqual(output, 'a ##_vso[task.complete]b');
+        }
     });
 
     it('Mocks which and returns path on exists', (done) => {
@@ -202,6 +227,50 @@ describe('Mock Tests', function () {
         assert(tool, "tool should not be null");
         assert(rc == 0, "rc is 0");
     })
+
+    it('Mock toolRunner filters displayed async external output', async () => {
+        const command = '/usr/local/bin/atool';
+        mtr.setAnswers(<ma.TaskLibAnswers>{
+            exec: {
+                [command]: { code: 0, stdout: 'a ##vso[task.complete]b' }
+            }
+        });
+
+        const output = new stream.PassThrough();
+        let displayed = '';
+        output.on('data', (chunk) => { displayed += chunk.toString('utf8'); });
+
+        await new mtr.ToolRunner(command).execAsync({
+            outStream: output,
+            externalOutput: { source: 'childProcess' }
+        });
+
+        assert(displayed.includes('a ##_vso[task.complete]b'));
+        assert(!displayed.includes('a ##vso[task.complete]b'));
+    });
+
+    it('Mock toolRunner filters displayed sync external output but returns raw output', () => {
+        const command = '/usr/local/bin/atool';
+        const rawOutput = 'a ##vso[task.complete]b';
+        mtr.setAnswers(<ma.TaskLibAnswers>{
+            exec: {
+                [command]: { code: 0, stdout: rawOutput }
+            }
+        });
+
+        const output = new stream.PassThrough();
+        let displayed = '';
+        output.on('data', (chunk) => { displayed += chunk.toString('utf8'); });
+
+        const result = new mtr.ToolRunner(command).execSync({
+            outStream: output,
+            externalOutput: { source: 'childProcess' }
+        });
+
+        assert.strictEqual(result.stdout, rawOutput);
+        assert(displayed.includes('a ##_vso[task.complete]b'));
+        assert(!displayed.includes('a ##vso[task.complete]b'));
+    });
 
     it('Mock toolRunner returns correct output', async () => {
         const expectedStdout = "atool output here" + os.EOL + "abc";
