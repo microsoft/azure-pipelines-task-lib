@@ -10,6 +10,8 @@ import trm = require('./toolrunner');
 import eom = require('./externaloutput');
 import semver = require('semver');
 
+export { extractZipSecure } from './secureZip';
+
 type OptionCases<T extends string> = `-${Uppercase<T> | Lowercase<T>}`;
 
 type OptionsPermutations<T extends string, U extends string = ''> =
