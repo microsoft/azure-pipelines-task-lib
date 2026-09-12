@@ -114,10 +114,11 @@ $scriptText = @"
 # Load the SDK resource strings.
 Import-LocStrings "$PSScriptRoot\lib.json"
 
-# Load the module that contains ConvertTo-SecureString.
+# Load the bundled module that contains ConvertTo-SecureString. An import by name
+# can select a Windows PowerShell module and trigger compatibility-mode proxies.
 if (!(Get-Module -Name Microsoft.PowerShell.Security)) {
     Write-Verbose "Importing the module 'Microsoft.PowerShell.Security'."
-    Import-Module -Name Microsoft.PowerShell.Security 2>&1 |
+    Import-Module -Name "$PSHOME\Modules\Microsoft.PowerShell.Security\Microsoft.PowerShell.Security.psd1" 2>&1 |
         ForEach-Object {
             if (`$_ -is [System.Management.Automation.ErrorRecord]) {
                 Write-Verbose `$_.Exception.Message
