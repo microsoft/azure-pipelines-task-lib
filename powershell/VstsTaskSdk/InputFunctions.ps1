@@ -278,6 +278,11 @@ Sets a task variable.
 Sets a task variable in the current task context as well as in the current job context. This allows the task variable to retrieved by subsequent tasks within the same job.
 #>
 function Set-TaskVariable {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+        'PSAvoidUsingConvertToSecureStringWithPlainText',
+        '',
+        Justification = 'Task variables enter the SDK as strings and PSCredential requires a SecureString for in-memory vault storage.'
+    )]
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -355,6 +360,11 @@ function Get-PipelineFeature {
 # Private functions.
 ########################################
 function Get-VaultValue {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+        'PSAvoidUsingConvertToSecureStringWithPlainText',
+        '',
+        Justification = 'Interactive input is returned as a string by this API and PSCredential requires a SecureString for in-memory vault storage.'
+    )]
     [CmdletBinding(DefaultParameterSetName = 'Require')]
     param(
         [Parameter(Mandatory = $true)]
@@ -455,6 +465,13 @@ function Get-Value {
 }
 
 function Initialize-Inputs {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+        'PSAvoidUsingConvertToSecureStringWithPlainText',
+        '',
+        Justification = 'The agent supplies task secrets as environment-variable strings; they are converted for PSCredential storage and removed from the environment immediately.'
+    )]
+    param()
+
     # Store endpoints, inputs, and secret variables in the vault.
     foreach ($variable in (Get-ChildItem -Path Env:ENDPOINT_?*, Env:INPUT_?*, Env:SECRET_?*, Env:SECUREFILE_?*)) {
         # Record the secret variable metadata. This is required by Get-TaskVariable to
