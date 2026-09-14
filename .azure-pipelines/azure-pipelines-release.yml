@@ -80,7 +80,7 @@ extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
     settings:
-      networkIsolationMode: Audit
+      networkIsolationPolicy: Monitored.Unrestricted,CFSClean,CFSClean2,CFSClean3,GitHub,NodeTool,NodeJsOrg
     sdl:
       sourceAnalysisPool:
         name: 1ES-ABTT-Shared-Pool
@@ -111,10 +111,11 @@ extends:
                   targetPath: $(Build.ArtifactStagingDirectory)/npm-packages
                   artifactName: npm-packages
             steps:
-              - task: NodeTool@0
-                displayName: 'Use Node $(nodeVersion)'
-                inputs:
-                  versionSpec: $(nodeVersion)
+              # Failing network isolation so commenting out.
+              # - task: NodeTool@0
+              #   displayName: 'Use Node $(nodeVersion)'
+              #   inputs:
+              #     versionSpec: $(nodeVersion)
 
               # Authenticate to the internal ADO npm feed referenced by .npmrc so
               # `npm ci` (and the idempotency `npm view` below) can reach it. The
