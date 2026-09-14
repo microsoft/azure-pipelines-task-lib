@@ -7,6 +7,7 @@ import minimatch = require('minimatch');
 import im = require('./internal');
 import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
+import eom = require('./externaloutput');
 import semver = require('semver');
 
 type OptionCases<T extends string> = `-${Uppercase<T> | Lowercase<T>}`;
@@ -2792,6 +2793,60 @@ export function updateReleaseName(name: string) {
 exports.TaskCommand = tcm.TaskCommand;
 exports.commandFromString = tcm.commandFromString;
 exports.ToolRunner = trm.ToolRunner;
+
+//-----------------------------------------------------
+// External Output
+//-----------------------------------------------------
+
+/**
+ * Options controlling how external (untrusted) output is filtered before it is written to
+ * the log. See {@link eom.ExternalOutputOptions}.
+ */
+export type ExternalOutputOptions = eom.ExternalOutputOptions;
+
+/**
+ * Creates a filtering stream for external output and pipes it to the destination
+ * (default process.stdout). Pipe untrusted output (a remote response, a child process's
+ * stdout, etc.) into the returned stream so that any "##vso[" command markers it contains
+ * are neutralized instead of executed by the agent.
+ *
+ * By default every marker is blocked. Set enableVsoCommands to true (optionally with an
+ * explicit allowedVsoCommands list) to permit a small set of command names on a
+ * compatibility-sensitive path.
+ *
+ * @param options   External output options. See ExternalOutputOptions.
+ * @returns         A writable/readable stream to pipe untrusted output into.
+ */
+export function createExternalOutputStream(options: eom.ExternalOutputOptions): eom.ExternalOutputStream {
+    return eom.createExternalOutputStream(options);
+}
+
+/**
+ * Filters a complete piece of external output and writes it to the destination
+ * (default process.stdout). Use this for output already held in a string or Buffer; for
+ * output that streams in chunks that may split a marker, use createExternalOutputStream.
+ *
+ * @param data      The external output to write.
+ * @param options   External output options. See ExternalOutputOptions.
+ * @returns         void
+ */
+export function writeExternalOutput(data: string | Buffer, options: eom.ExternalOutputOptions): void {
+    eom.writeExternalOutput(data, options);
+}
+
+/**
+ * Filters a complete piece of external output and returns its bytes without writing them.
+ *
+ * @param data      The external output to filter.
+ * @param options   External output options. See ExternalOutputOptions.
+ * @returns         The filtered output.
+ */
+export function filterExternalOutput(data: string | Buffer, options: eom.ExternalOutputOptions): Buffer {
+    return eom.filterExternalOutput(data, options);
+}
+
+/** Commands allowed when VSO commands are enabled without an explicit allowlist. */
+export const defaultAllowedVsoCommands = eom.defaultAllowedVsoCommands;
 
 //-----------------------------------------------------
 // Validation Checks

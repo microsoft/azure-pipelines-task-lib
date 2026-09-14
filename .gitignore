@@ -41,6 +41,7 @@ node/docs/vsotask.json
 
 # tests
 node/.taskKey
+/.taskkey
 
 # powershell compiled helper
 powershell/CompiledHelpers/bin
@@ -48,3 +49,6 @@ powershell/CompiledHelpers/obj
 
 # generate third party notice script
 !generate-third-party-notice.js
+.vscode/
+
+node/*.tgz
