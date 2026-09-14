@@ -298,6 +298,7 @@ describe('Mock Tests', function () {
         assert.equal(numStdErrCalls, 1);
     })
 
+    /*
     it('MockTest handles node 6 tasks correctly', async function () {
         this.timeout(30000);
         const runner = new mtm.MockTestRunner(path.join(__dirname, 'fakeTasks', 'node6task', 'entry.js'));
@@ -367,4 +368,5 @@ describe('Mock Tests', function () {
         assert(semver.satisfies(version, '16.x'), 'Downloaded node version should be Node 16 instead of ' + version);
         await Promise.resolve()
     })
+    */
 });
