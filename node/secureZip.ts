@@ -2,6 +2,7 @@ import fs = require('fs');
 import path = require('path');
 import stream = require('stream');
 import util = require('util');
+import im = require('./internal');
 
 
 interface ZipEntry {
@@ -31,7 +32,7 @@ function isWithinDirectory(root: string, candidate: string): boolean {
 function getEntryPath(root: string, entryName: string): string {
     const entryPath = path.resolve(root, ...entryName.split('/'));
     if (!isWithinDirectory(root, entryPath)) {
-        throw new Error(`Archive entry is outside the destination directory: ${entryName}`);
+        throw new Error(im._loc('LIB_ArchiveEntryOutsideDestination', entryName));
     }
 
     return entryPath;
@@ -44,7 +45,7 @@ async function ensureExistingAncestorIsSafe(root: string, candidate: string): Pr
         try {
             const realPath = await fs.promises.realpath(existingPath);
             if (!isWithinDirectory(root, realPath)) {
-                throw new Error(`Archive path resolves outside the destination directory: ${candidate}`);
+                throw new Error(im._loc('LIB_ArchivePathOutsideDestination', candidate));
             }
             return;
         }
@@ -68,7 +69,7 @@ async function ensureSafeDirectory(root: string, directoryPath: string, mode?: n
 
     const realDirectoryPath = await fs.promises.realpath(directoryPath);
     if (!isWithinDirectory(root, realDirectoryPath)) {
-        throw new Error(`Archive directory resolves outside the destination directory: ${directoryPath}`);
+        throw new Error(im._loc('LIB_ArchiveDirectoryOutsideDestination', directoryPath));
     }
 }
 
@@ -76,7 +77,7 @@ async function ensureDestinationIsNotSymlink(entryPath: string): Promise<void> {
     try {
         const stats = await fs.promises.lstat(entryPath);
         if (stats.isSymbolicLink()) {
-            throw new Error(`Archive entry would overwrite a symbolic link: ${entryPath}`);
+            throw new Error(im._loc('LIB_ArchiveEntryWouldOverwriteSymlink', entryPath));
         }
     }
     catch (error) {
@@ -129,13 +130,13 @@ async function extractEntry(zipFile: ZipFile, root: string, entry: ZipEntry): Pr
     if (isSymbolicLink(entry)) {
         const linkTarget = (await readEntry(zipFile, entry)).toString();
         if (path.posix.isAbsolute(linkTarget) || path.win32.isAbsolute(linkTarget)) {
-            throw new Error(`Archive symlink has an absolute target: ${entry.fileName}`);
+            throw new Error(im._loc('LIB_ArchiveSymlinkAbsoluteTarget', entry.fileName));
         }
 
         const normalizedTarget = linkTarget.replace(/\\/g, '/');
         const resolvedTarget = path.resolve(path.dirname(destinationPath), ...normalizedTarget.split('/'));
         if (!isWithinDirectory(root, resolvedTarget)) {
-            throw new Error(`Archive symlink target is outside the destination directory: ${entry.fileName}`);
+            throw new Error(im._loc('LIB_ArchiveSymlinkTargetOutsideDestination', entry.fileName));
         }
         await ensureExistingAncestorIsSafe(root, resolvedTarget);
 
@@ -158,10 +159,10 @@ async function extractEntry(zipFile: ZipFile, root: string, entry: ZipEntry): Pr
  */
 export async function extractZipSecure(file: string, destination: string): Promise<string> {
     if (!file) {
-        throw new Error("parameter 'file' is required");
+        throw new Error(im._loc('LIB_ArchiveFileRequired'));
     }
     if (!destination || !path.isAbsolute(destination)) {
-        throw new Error('Target directory is expected to be absolute');
+        throw new Error(im._loc('LIB_ArchiveDestinationAbsolute'));
     }
 
     await fs.promises.mkdir(destination, { recursive: true });
