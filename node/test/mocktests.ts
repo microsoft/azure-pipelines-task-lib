@@ -54,12 +54,9 @@ describe('Mock Tests', function () {
         assert(Object.isFrozen(tl.defaultAllowedVsoCommands));
     });
 
-    it('task and mock-task delegate external output filtering', () => {
+    it('task and mock-task expose external output writers without exposing the raw filter', () => {
         for (const taskLib of [tl, mt]) {
-            const filtered = taskLib.filterExternalOutput('a ##vso[task.complete]b', {
-                source: 'repository'
-            });
-            assert.strictEqual(filtered.toString('utf8'), 'a ##_vso[task.complete]b');
+            assert.strictEqual(Object.keys(taskLib).indexOf('filterExternalOutput'), -1);
 
             const destination = new stream.PassThrough();
             let output = '';
@@ -69,6 +66,32 @@ describe('Mock Tests', function () {
                 destination
             });
             assert.strictEqual(output, 'a ##_vso[task.complete]b');
+        }
+    });
+
+    it('task and mock-task filter external messages before using existing log APIs', () => {
+        for (const taskLib of [tl, mt]) {
+            const stdStream = testutil.createStringStream();
+            tl.setStdStream(stdStream);
+
+            taskLib.logExternalOutput('a ##vso[task.complete]b', {
+                source: 'remote',
+                type: 'debug'
+            });
+            taskLib.logExternalOutput('a ##vso[task.complete]b', {
+                source: 'remote',
+                type: 'warning'
+            });
+            taskLib.logExternalOutput('a ##vso[task.complete]b', {
+                source: 'remote',
+                type: 'error'
+            });
+
+            assert.strictEqual(stdStream.getContents(), testutil.buildOutput([
+                '##vso[task.debug]a ##_vso[task.complete]b',
+                '##vso[task.issue type=warning;source=TaskInternal;]a ##_vso[task.complete]b',
+                '##vso[task.issue type=error;source=TaskInternal;]a ##_vso[task.complete]b'
+            ]));
         }
     });
 

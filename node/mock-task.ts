@@ -534,6 +534,8 @@ exports.ToolRunner = trm.ToolRunner;
 // External Output Filtering
 //-----------------------------------------------------
 export type ExternalOutputOptions = eom.ExternalOutputOptions;
+export type ExternalOutputLogType = task.ExternalOutputLogType;
+export type ExternalOutputLogOptions = task.ExternalOutputLogOptions;
 
 export function createExternalOutputStream(options: eom.ExternalOutputOptions): eom.ExternalOutputStream {
     return eom.createExternalOutputStream(options);
@@ -543,8 +545,8 @@ export function writeExternalOutput(data: string | Buffer, options: eom.External
     eom.writeExternalOutput(data, options);
 }
 
-export function filterExternalOutput(data: string | Buffer, options: eom.ExternalOutputOptions): Buffer {
-    return eom.filterExternalOutput(data, options);
+export function logExternalOutput(message: string, options: task.ExternalOutputLogOptions): void {
+    task.logExternalOutput(message, options);
 }
 
 export const defaultAllowedVsoCommands = eom.defaultAllowedVsoCommands;

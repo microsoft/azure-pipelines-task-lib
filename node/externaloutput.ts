@@ -286,11 +286,11 @@ export function createExternalOutputStream(options: ExternalOutputOptions): Exte
  */
 export function writeExternalOutput(data: string | Buffer, options: ExternalOutputOptions): void {
     const destination = options.destination || process.stdout;
-    destination.write(filterExternalOutput(data, options));
+    destination.write(_filterExternalOutput(data, options));
 }
 
-/** Filters one complete value and returns its bytes without writing them. */
-export function filterExternalOutput(data: string | Buffer, options: ExternalOutputOptions): Buffer {
+/** Internal helper for consumers that must pass filtered text to another task-lib API. */
+export function _filterExternalOutput(data: string | Buffer, options: ExternalOutputOptions): Buffer {
     const filter = new MarkerFilter(!!options.enableVsoCommands, resolveAllowed(options));
     const buf = Buffer.isBuffer(data) ? data : Buffer.from(String(data), 'utf8');
     const filtered = filter.push(buf);

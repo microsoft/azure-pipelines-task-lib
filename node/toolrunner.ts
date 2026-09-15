@@ -607,7 +607,7 @@ export class ToolRunner extends events.EventEmitter {
             ? stdoutWriter
             : eom.createFilteredWriter(ext, errDest);
         return {
-            commandLine: (text: string) => { outStream.write(eom.filterExternalOutput(text, ext)); },
+            commandLine: (text: string) => { outStream.write(eom._filterExternalOutput(text, ext)); },
             stdout: (data: Buffer) => stdoutWriter.write(data),
             stderr: (data: Buffer) => stderrWriter.write(data),
             finalize: () => {
@@ -1368,17 +1368,17 @@ export class ToolRunner extends events.EventEmitter {
 
         if (!options.silent) {
             const cmdLine = this._getCommandString(options as IExecOptions) + os.EOL;
-            options.outStream!.write(ext ? eom.filterExternalOutput(cmdLine, ext) : cmdLine);
+            options.outStream!.write(ext ? eom._filterExternalOutput(cmdLine, ext) : cmdLine);
         }
 
         var r = child.spawnSync(this._getSpawnFileName(options), this._getSpawnArgs(options as IExecOptions), this._getSpawnSyncOptions(options));
 
         if (!options.silent && r.stdout && r.stdout.length > 0) {
-            options.outStream!.write(ext ? eom.filterExternalOutput(r.stdout, ext) : r.stdout);
+            options.outStream!.write(ext ? eom._filterExternalOutput(r.stdout, ext) : r.stdout);
         }
 
         if (!options.silent && r.stderr && r.stderr.length > 0) {
-            options.errStream!.write(ext ? eom.filterExternalOutput(r.stderr, ext) : r.stderr);
+            options.errStream!.write(ext ? eom._filterExternalOutput(r.stderr, ext) : r.stderr);
         }
 
         var res: IExecSyncResult = <IExecSyncResult>{ code: r.status, error: r.error };
