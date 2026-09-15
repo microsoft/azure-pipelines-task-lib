@@ -2804,6 +2804,18 @@ exports.ToolRunner = trm.ToolRunner;
  */
 export type ExternalOutputOptions = eom.ExternalOutputOptions;
 
+/** The existing task-lib logging path to use after external output is filtered. */
+export type ExternalOutputLogType = 'debug' | 'warning' | 'error';
+
+export type ExternalOutputLogOptions = eom.ExternalOutputOptions & (
+    { type: 'debug' } |
+    {
+        type: 'warning' | 'error';
+        issueSource?: im.IssueSource;
+        auditAction?: im.IssueAuditAction;
+    }
+);
+
 /**
  * Creates a filtering stream for external output and pipes it to the destination
  * (default process.stdout). Pipe untrusted output (a remote response, a child process's
@@ -2835,14 +2847,27 @@ export function writeExternalOutput(data: string | Buffer, options: eom.External
 }
 
 /**
- * Filters a complete piece of external output and returns its bytes without writing them.
+ * Filters an external log message and submits it through the existing task-lib logging
+ * path so debug-mode checks, issue metadata, and command formatting are preserved.
  *
- * @param data      The external output to filter.
- * @param options   External output options. See ExternalOutputOptions.
- * @returns         The filtered output.
+ * @param message   The external log message.
+ * @param options   External output and log options.
+ * @returns         void
  */
-export function filterExternalOutput(data: string | Buffer, options: eom.ExternalOutputOptions): Buffer {
-    return eom.filterExternalOutput(data, options);
+export function logExternalOutput(message: string, options: ExternalOutputLogOptions): void {
+    const filtered = eom._filterExternalOutput(message, options).toString('utf8');
+
+    switch (options.type) {
+        case 'debug':
+            debug(filtered);
+            break;
+        case 'warning':
+            warning(filtered, options.issueSource, options.auditAction);
+            break;
+        case 'error':
+            error(filtered, options.issueSource, options.auditAction);
+            break;
+    }
 }
 
 /** Commands allowed when VSO commands are enabled without an explicit allowlist. */
@@ -2884,4 +2909,3 @@ function safeFind<T>(arr: T[], predicate: (v: T) => boolean): T | undefined {
   }
   return undefined;
 }
-

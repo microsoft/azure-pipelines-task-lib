@@ -56,13 +56,14 @@ describe('External Output Filter', function () {
         });
 
         it('does not expose shared marker buffers to callers', function () {
-            const options: eom.ExternalOutputOptions = { source: 'repository' };
-            const first = eom.filterExternalOutput('##vso[', options);
-            const second = eom.filterExternalOutput('##vso[', options);
+            const firstFilter = new eom.MarkerFilter(false, new Set<string>());
+            const secondFilter = new eom.MarkerFilter(false, new Set<string>());
+            const first = Buffer.concat([firstFilter.push(Buffer.from('##vso[')), firstFilter.flush()]);
+            const second = Buffer.concat([secondFilter.push(Buffer.from('##vso[')), secondFilter.flush()]);
 
             assert.notStrictEqual(first, second);
             first.write('##_zzz[');
-            assert.strictEqual(eom.filterExternalOutput('##vso[', options).toString('utf8'), '##_vso[');
+            assert.strictEqual(second.toString('utf8'), '##_vso[');
         });
 
         it('does not match wrong case or near-misses', function () {
@@ -219,12 +220,10 @@ describe('External Output Filter', function () {
             assert.strictEqual(got, 'a ##_vso[task.setvariable x=1]b');
         });
 
-        it('filterExternalOutput handles incomplete markers as a complete value', function () {
-            const output = eom.filterExternalOutput('a ##vso[task.deb', {
-                source: 'repository',
-                enableVsoCommands: true
-            });
-            assert.strictEqual(output.toString('utf8'), 'a ##_vso[task.deb');
+        it('handles incomplete markers as a complete value', function () {
+            assert.strictEqual(
+                run(['a ##vso[task.deb'], true, eom.defaultAllowedVsoCommands),
+                'a ##_vso[task.deb');
         });
 
         it('createFilteredWriter filters markers split across writes and flushes once', function () {

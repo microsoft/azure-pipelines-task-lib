@@ -208,7 +208,7 @@ export class ToolRunner extends events.EventEmitter {
             }
 
             const commandLine = '[command]' + cmdString + os.EOL;
-            ops.outStream!.write(ops.externalOutput ? eom.filterExternalOutput(commandLine, ops.externalOutput) : commandLine);
+            ops.outStream!.write(ops.externalOutput ? eom._filterExternalOutput(commandLine, ops.externalOutput) : commandLine);
         }
 
         // TODO: filter process.env
@@ -217,7 +217,7 @@ export class ToolRunner extends events.EventEmitter {
             this.emit('stdout', res.stdout);
             if (!ops.silent) {
                 const stdout = res.stdout + os.EOL;
-                ops.outStream!.write(ops.externalOutput ? eom.filterExternalOutput(stdout, ops.externalOutput) : stdout);
+                ops.outStream!.write(ops.externalOutput ? eom._filterExternalOutput(stdout, ops.externalOutput) : stdout);
             }
             const stdLineArray = res.stdout.split(os.EOL);
             for (const line of stdLineArray.slice(0, -1)) {
@@ -235,7 +235,7 @@ export class ToolRunner extends events.EventEmitter {
             if (!ops.silent) {
                 var s = ops.failOnStdErr ? ops.errStream : ops.outStream;
                 const stderr = res.stderr + os.EOL;
-                s!.write(ops.externalOutput ? eom.filterExternalOutput(stderr, ops.externalOutput) : stderr);
+                s!.write(ops.externalOutput ? eom._filterExternalOutput(stderr, ops.externalOutput) : stderr);
             }
             const stdErrArray = res.stderr.split(os.EOL);
             for (const line of stdErrArray.slice(0, -1)) {
@@ -322,7 +322,7 @@ export class ToolRunner extends events.EventEmitter {
             }
 
             const commandLine = '[command]' + cmdString + os.EOL;
-            ops.outStream!.write(ops.externalOutput ? eom.filterExternalOutput(commandLine, ops.externalOutput) : commandLine);
+            ops.outStream!.write(ops.externalOutput ? eom._filterExternalOutput(commandLine, ops.externalOutput) : commandLine);
         }
 
         // TODO: filter process.env
@@ -331,7 +331,7 @@ export class ToolRunner extends events.EventEmitter {
             this.emit('stdout', res.stdout);
             if (!ops.silent) {
                 const stdout = res.stdout + os.EOL;
-                ops.outStream!.write(ops.externalOutput ? eom.filterExternalOutput(stdout, ops.externalOutput) : stdout);
+                ops.outStream!.write(ops.externalOutput ? eom._filterExternalOutput(stdout, ops.externalOutput) : stdout);
             }
             const stdLineArray = res.stdout.split(os.EOL);
             for (const line of stdLineArray.slice(0, -1)) {
@@ -349,7 +349,7 @@ export class ToolRunner extends events.EventEmitter {
             if (!ops.silent) {
                 var s = ops.failOnStdErr ? ops.errStream : ops.outStream;
                 const stderr = res.stderr + os.EOL;
-                s!.write(ops.externalOutput ? eom.filterExternalOutput(stderr, ops.externalOutput) : stderr);
+                s!.write(ops.externalOutput ? eom._filterExternalOutput(stderr, ops.externalOutput) : stderr);
             }
             const stdErrArray = res.stderr.split(os.EOL);
             for (const line of stdErrArray.slice(0, -1)) {
@@ -421,16 +421,16 @@ export class ToolRunner extends events.EventEmitter {
 
         if (!ops.silent) {
             const commandLine = '[command]' + cmdString + os.EOL;
-            ops.outStream!.write(ops.externalOutput ? eom.filterExternalOutput(commandLine, ops.externalOutput) : commandLine);
+            ops.outStream!.write(ops.externalOutput ? eom._filterExternalOutput(commandLine, ops.externalOutput) : commandLine);
         }
 
         var r = mock.getResponse('exec', cmdString, debug);
         if (!ops.silent && r.stdout && r.stdout.length > 0) {
-            ops.outStream!.write(ops.externalOutput ? eom.filterExternalOutput(r.stdout, ops.externalOutput) : r.stdout);
+            ops.outStream!.write(ops.externalOutput ? eom._filterExternalOutput(r.stdout, ops.externalOutput) : r.stdout);
         }
 
         if (!ops.silent && r.stderr && r.stderr.length > 0) {
-            ops.errStream!.write(ops.externalOutput ? eom.filterExternalOutput(r.stderr, ops.externalOutput) : r.stderr);
+            ops.errStream!.write(ops.externalOutput ? eom._filterExternalOutput(r.stderr, ops.externalOutput) : r.stderr);
         }
 
         return <IExecSyncResult>{
