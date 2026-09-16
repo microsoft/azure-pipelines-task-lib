@@ -6,6 +6,16 @@ import im = require('./internal');
 import fs = require('fs');
 import eom = require('./externaloutput');
 
+function writeFilteredOutput(
+    data: string | Buffer,
+    options: eom.ExternalOutputOptions,
+    destination: NodeJS.WritableStream
+): void {
+    const writer = eom.createExternalOutputStream({ ...options, destination });
+    writer.write(data);
+    writer.end();
+}
+
 /**
  * Interface for exec options
  */
@@ -602,12 +612,12 @@ export class ToolRunner extends events.EventEmitter {
         }
         const outStream = options.outStream!;
         const errDest = options.failOnStdErr ? options.errStream! : options.outStream!;
-        const stdoutWriter = eom.createFilteredWriter(ext, outStream);
+        const stdoutWriter = eom.createExternalOutputStream({ ...ext, destination: outStream });
         const stderrWriter = errDest === outStream
             ? stdoutWriter
-            : eom.createFilteredWriter(ext, errDest);
+            : eom.createExternalOutputStream({ ...ext, destination: errDest });
         return {
-            commandLine: (text: string) => { outStream.write(eom._filterExternalOutput(text, ext)); },
+            commandLine: (text: string) => stdoutWriter.write(text),
             stdout: (data: Buffer) => stdoutWriter.write(data),
             stderr: (data: Buffer) => stderrWriter.write(data),
             finalize: () => {
@@ -1368,17 +1378,29 @@ export class ToolRunner extends events.EventEmitter {
 
         if (!options.silent) {
             const cmdLine = this._getCommandString(options as IExecOptions) + os.EOL;
-            options.outStream!.write(ext ? eom._filterExternalOutput(cmdLine, ext) : cmdLine);
+            if (ext) {
+                writeFilteredOutput(cmdLine, ext, options.outStream!);
+            } else {
+                options.outStream!.write(cmdLine);
+            }
         }
 
         var r = child.spawnSync(this._getSpawnFileName(options), this._getSpawnArgs(options as IExecOptions), this._getSpawnSyncOptions(options));
 
         if (!options.silent && r.stdout && r.stdout.length > 0) {
-            options.outStream!.write(ext ? eom._filterExternalOutput(r.stdout, ext) : r.stdout);
+            if (ext) {
+                writeFilteredOutput(r.stdout, ext, options.outStream!);
+            } else {
+                options.outStream!.write(r.stdout);
+            }
         }
 
         if (!options.silent && r.stderr && r.stderr.length > 0) {
-            options.errStream!.write(ext ? eom._filterExternalOutput(r.stderr, ext) : r.stderr);
+            if (ext) {
+                writeFilteredOutput(r.stderr, ext, options.errStream!);
+            } else {
+                options.errStream!.write(r.stderr);
+            }
         }
 
         var res: IExecSyncResult = <IExecSyncResult>{ code: r.status, error: r.error };

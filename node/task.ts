@@ -2804,17 +2804,7 @@ exports.ToolRunner = trm.ToolRunner;
  */
 export type ExternalOutputOptions = eom.ExternalOutputOptions;
 
-/** The existing task-lib logging path to use after external output is filtered. */
-export type ExternalOutputLogType = 'debug' | 'warning' | 'error';
-
-export type ExternalOutputLogOptions = eom.ExternalOutputOptions & (
-    { type: 'debug' } |
-    {
-        type: 'warning' | 'error';
-        issueSource?: im.IssueSource;
-        auditAction?: im.IssueAuditAction;
-    }
-);
+export type ExternalOutputIssueOptions = eom.ExternalOutputIssueOptions;
 
 /**
  * Creates a filtering stream for external output and pipes it to the destination
@@ -2833,41 +2823,24 @@ export function createExternalOutputStream(options: eom.ExternalOutputOptions): 
     return eom.createExternalOutputStream(options);
 }
 
-/**
- * Filters a complete piece of external output and writes it to the destination
- * (default process.stdout). Use this for output already held in a string or Buffer; for
- * output that streams in chunks that may split a marker, use createExternalOutputStream.
- *
- * @param data      The external output to write.
- * @param options   External output options. See ExternalOutputOptions.
- * @returns         void
- */
-export function writeExternalOutput(data: string | Buffer, options: eom.ExternalOutputOptions): void {
-    eom.writeExternalOutput(data, options);
+/** Filters external output and writes it directly to the configured destination. */
+export function writeExternalOutput(message: string | Buffer, options: ExternalOutputOptions): void {
+    eom.writeExternalOutput(message, options);
 }
 
-/**
- * Filters an external log message and submits it through the existing task-lib logging
- * path so debug-mode checks, issue metadata, and command formatting are preserved.
- *
- * @param message   The external log message.
- * @param options   External output and log options.
- * @returns         void
- */
-export function logExternalOutput(message: string, options: ExternalOutputLogOptions): void {
-    const filtered = eom._filterExternalOutput(message, options).toString('utf8');
+/** Filters external output and submits it through the existing task-lib debug logger. */
+export function debugExternalOutput(message: string | Buffer, options: ExternalOutputOptions): void {
+    eom.debugExternalOutput(message, options);
+}
 
-    switch (options.type) {
-        case 'debug':
-            debug(filtered);
-            break;
-        case 'warning':
-            warning(filtered, options.issueSource, options.auditAction);
-            break;
-        case 'error':
-            error(filtered, options.issueSource, options.auditAction);
-            break;
-    }
+/** Filters external output and submits it through the existing task-lib warning logger. */
+export function warningExternalOutput(message: string | Buffer, options: ExternalOutputIssueOptions): void {
+    eom.warningExternalOutput(message, options);
+}
+
+/** Filters external output and submits it through the existing task-lib error logger. */
+export function errorExternalOutput(message: string | Buffer, options: ExternalOutputIssueOptions): void {
+    eom.errorExternalOutput(message, options);
 }
 
 /** Commands allowed when VSO commands are enabled without an explicit allowlist. */

@@ -54,7 +54,7 @@ describe('Mock Tests', function () {
         assert(Object.isFrozen(tl.defaultAllowedVsoCommands));
     });
 
-    it('task and mock-task expose external output writers without exposing the raw filter', () => {
+    it('task and mock-task expose friendly wrappers without exposing the raw filter', () => {
         for (const taskLib of [tl, mt]) {
             assert.strictEqual(Object.keys(taskLib).indexOf('filterExternalOutput'), -1);
 
@@ -74,18 +74,9 @@ describe('Mock Tests', function () {
             const stdStream = testutil.createStringStream();
             tl.setStdStream(stdStream);
 
-            taskLib.logExternalOutput('a ##vso[task.complete]b', {
-                source: 'remote',
-                type: 'debug'
-            });
-            taskLib.logExternalOutput('a ##vso[task.complete]b', {
-                source: 'remote',
-                type: 'warning'
-            });
-            taskLib.logExternalOutput('a ##vso[task.complete]b', {
-                source: 'remote',
-                type: 'error'
-            });
+            taskLib.debugExternalOutput('a ##vso[task.complete]b', { source: 'remote' });
+            taskLib.warningExternalOutput('a ##vso[task.complete]b', { source: 'remote' });
+            taskLib.errorExternalOutput('a ##vso[task.complete]b', { source: 'remote' });
 
             assert.strictEqual(stdStream.getContents(), testutil.buildOutput([
                 '##vso[task.debug]a ##_vso[task.complete]b',

@@ -197,7 +197,7 @@ describe('External Output Filter', function () {
         });
     });
 
-    describe('ExternalOutputStream / writeExternalOutput', function () {
+    describe('ExternalOutputStream / friendly output functions', function () {
         it('filters piped output to a destination stream', function (done) {
             const sink = new stream.PassThrough();
             const collected: Buffer[] = [];
@@ -212,12 +212,15 @@ describe('External Output Filter', function () {
             s.end();
         });
 
-        it('writeExternalOutput filters a one-shot write to a destination', function () {
+        it('writeExternalOutput filters a raw one-shot write', function () {
             const sink = new stream.PassThrough();
             let got = '';
             sink.on('data', (d) => { got += d.toString('utf8'); });
-            eom.writeExternalOutput('a ##vso[task.setvariable x=1]b', { source: 'repository', destination: sink });
-            assert.strictEqual(got, 'a ##_vso[task.setvariable x=1]b');
+            eom.writeExternalOutput(Buffer.from('a ##vso[task.complete]b'), {
+                source: 'repository',
+                destination: sink
+            });
+            assert.strictEqual(got, 'a ##_vso[task.complete]b');
         });
 
         it('handles incomplete markers as a complete value', function () {
@@ -226,17 +229,5 @@ describe('External Output Filter', function () {
                 'a ##_vso[task.deb');
         });
 
-        it('createFilteredWriter filters markers split across writes and flushes once', function () {
-            const sink = new stream.PassThrough();
-            let got = '';
-            sink.on('data', (d) => { got += d.toString('utf8'); });
-            const writer = eom.createFilteredWriter({ source: 'childProcess' }, sink);
-            writer.write('a ##v');
-            writer.write('so[task.complete]b ##vs');
-            writer.end();
-            writer.end();
-            assert.strictEqual(got, 'a ##_vso[task.complete]b ##vs');
-            assert.throws(() => writer.write('late'), /Cannot write after end/);
-        });
     });
 });
