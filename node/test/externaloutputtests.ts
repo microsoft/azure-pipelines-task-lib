@@ -229,5 +229,18 @@ describe('External Output Filter', function () {
                 'a ##_vso[task.deb');
         });
 
+        it('createFilteredWriter filters markers split across writes and flushes once', function () {
+            const sink = new stream.PassThrough();
+            let got = '';
+            sink.on('data', (d) => { got += d.toString('utf8'); });
+            const writer = eom.createFilteredWriter({ source: 'childProcess' }, sink);
+            writer.write('a ##v');
+            writer.write('so[task.complete]b ##vs');
+            writer.end();
+            writer.end();
+            assert.strictEqual(got, 'a ##_vso[task.complete]b ##vs');
+            assert.throws(() => writer.write('late'), /Cannot write after end/);
+        });
+
     });
 });

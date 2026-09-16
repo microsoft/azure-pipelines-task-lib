@@ -6,21 +6,6 @@ import eom = require('./externaloutput');
 
 let mock: ma.MockAnswers = new ma.MockAnswers();
 
-function writeOutput(
-    data: string | Buffer,
-    options: eom.ExternalOutputOptions | undefined,
-    destination: NodeJS.WritableStream
-): void {
-    if (!options) {
-        destination.write(data);
-        return;
-    }
-
-    const writer = eom.createExternalOutputStream({ ...options, destination });
-    writer.write(data);
-    writer.end();
-}
-
 export function setAnswers(answers: ma.TaskLibAnswers) {
     mock.initialize(answers);
 }
@@ -223,7 +208,7 @@ export class ToolRunner extends events.EventEmitter {
             }
 
             const commandLine = '[command]' + cmdString + os.EOL;
-            writeOutput(commandLine, ops.externalOutput, ops.outStream!);
+            ops.outStream!.write(ops.externalOutput ? eom.filterExternalOutput(commandLine, ops.externalOutput) : commandLine);
         }
 
         // TODO: filter process.env
@@ -232,7 +217,7 @@ export class ToolRunner extends events.EventEmitter {
             this.emit('stdout', res.stdout);
             if (!ops.silent) {
                 const stdout = res.stdout + os.EOL;
-                writeOutput(stdout, ops.externalOutput, ops.outStream!);
+                ops.outStream!.write(ops.externalOutput ? eom.filterExternalOutput(stdout, ops.externalOutput) : stdout);
             }
             const stdLineArray = res.stdout.split(os.EOL);
             for (const line of stdLineArray.slice(0, -1)) {
@@ -250,7 +235,7 @@ export class ToolRunner extends events.EventEmitter {
             if (!ops.silent) {
                 var s = ops.failOnStdErr ? ops.errStream : ops.outStream;
                 const stderr = res.stderr + os.EOL;
-                writeOutput(stderr, ops.externalOutput, s!);
+                s!.write(ops.externalOutput ? eom.filterExternalOutput(stderr, ops.externalOutput) : stderr);
             }
             const stdErrArray = res.stderr.split(os.EOL);
             for (const line of stdErrArray.slice(0, -1)) {
@@ -337,7 +322,7 @@ export class ToolRunner extends events.EventEmitter {
             }
 
             const commandLine = '[command]' + cmdString + os.EOL;
-            writeOutput(commandLine, ops.externalOutput, ops.outStream!);
+            ops.outStream!.write(ops.externalOutput ? eom.filterExternalOutput(commandLine, ops.externalOutput) : commandLine);
         }
 
         // TODO: filter process.env
@@ -346,7 +331,7 @@ export class ToolRunner extends events.EventEmitter {
             this.emit('stdout', res.stdout);
             if (!ops.silent) {
                 const stdout = res.stdout + os.EOL;
-                writeOutput(stdout, ops.externalOutput, ops.outStream!);
+                ops.outStream!.write(ops.externalOutput ? eom.filterExternalOutput(stdout, ops.externalOutput) : stdout);
             }
             const stdLineArray = res.stdout.split(os.EOL);
             for (const line of stdLineArray.slice(0, -1)) {
@@ -364,7 +349,7 @@ export class ToolRunner extends events.EventEmitter {
             if (!ops.silent) {
                 var s = ops.failOnStdErr ? ops.errStream : ops.outStream;
                 const stderr = res.stderr + os.EOL;
-                writeOutput(stderr, ops.externalOutput, s!);
+                s!.write(ops.externalOutput ? eom.filterExternalOutput(stderr, ops.externalOutput) : stderr);
             }
             const stdErrArray = res.stderr.split(os.EOL);
             for (const line of stdErrArray.slice(0, -1)) {
@@ -436,16 +421,16 @@ export class ToolRunner extends events.EventEmitter {
 
         if (!ops.silent) {
             const commandLine = '[command]' + cmdString + os.EOL;
-            writeOutput(commandLine, ops.externalOutput, ops.outStream!);
+            ops.outStream!.write(ops.externalOutput ? eom.filterExternalOutput(commandLine, ops.externalOutput) : commandLine);
         }
 
         var r = mock.getResponse('exec', cmdString, debug);
         if (!ops.silent && r.stdout && r.stdout.length > 0) {
-            writeOutput(r.stdout, ops.externalOutput, ops.outStream!);
+            ops.outStream!.write(ops.externalOutput ? eom.filterExternalOutput(r.stdout, ops.externalOutput) : r.stdout);
         }
 
         if (!ops.silent && r.stderr && r.stderr.length > 0) {
-            writeOutput(r.stderr, ops.externalOutput, ops.errStream!);
+            ops.errStream!.write(ops.externalOutput ? eom.filterExternalOutput(r.stderr, ops.externalOutput) : r.stderr);
         }
 
         return <IExecSyncResult>{

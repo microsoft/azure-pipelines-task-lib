@@ -280,12 +280,47 @@ export function createExternalOutputStream(options: ExternalOutputOptions): Exte
     return filterStream;
 }
 
-function filterExternalOutput(data: string | Buffer, options: ExternalOutputOptions): Buffer {
+/** Filters one complete value for internal task-lib consumers. */
+export function filterExternalOutput(data: string | Buffer, options: ExternalOutputOptions): Buffer {
     const filter = new MarkerFilter(!!options.enableVsoCommands, resolveAllowed(options));
     const buf = Buffer.isBuffer(data) ? data : Buffer.from(String(data), 'utf8');
     const filtered = filter.push(buf);
     const pending = filter.flush();
     return pending.length ? Buffer.concat([filtered, pending]) : filtered;
+}
+
+export interface FilteredWriter {
+    write(data: string | Buffer): void;
+    end(): void;
+}
+
+/** Creates a stateful writer for internal consumers that receive output in chunks. */
+export function createFilteredWriter(options: ExternalOutputOptions, destination: NodeJS.WritableStream): FilteredWriter {
+    const filter = new MarkerFilter(!!options.enableVsoCommands, resolveAllowed(options));
+    let ended = false;
+
+    return {
+        write(data: string | Buffer): void {
+            if (ended) {
+                throw new Error('Cannot write after end');
+            }
+            const buf = Buffer.isBuffer(data) ? data : Buffer.from(String(data), 'utf8');
+            const filtered = filter.push(buf);
+            if (filtered.length) {
+                destination.write(filtered);
+            }
+        },
+        end(): void {
+            if (ended) {
+                return;
+            }
+            ended = true;
+            const pending = filter.flush();
+            if (pending.length) {
+                destination.write(pending);
+            }
+        }
+    };
 }
 
 /** The task-lib logging path to use after external output is filtered. */
