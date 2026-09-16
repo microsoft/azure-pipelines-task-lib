@@ -342,22 +342,20 @@ export type ExternalOutputIssueOptions = ExternalOutputOptions & {
 
 /** Filters external output before writing it or submitting it through a task-lib logger. */
 function logExternalOutput(message: string | Buffer, options: ExternalOutputLogOptions): void {
-    if (options.type === 'raw') {
-        const destination = options.destination || process.stdout;
-        destination.write(filterExternalOutput(message, options));
-        return;
-    }
-
-    const filtered = filterExternalOutput(message, options).toString('utf8');
+    const filtered = filterExternalOutput(message, options);
     switch (options.type) {
+        case 'raw':
+            const destination = options.destination || process.stdout;
+            destination.write(filtered);
+            break;
         case 'debug':
-            im._debug(filtered);
+            im._debug(filtered.toString('utf8'));
             break;
         case 'warning':
-            im._warning(filtered, options.issueSource, options.auditAction);
+            im._warning(filtered.toString('utf8'), options.issueSource, options.auditAction);
             break;
         case 'error':
-            im._error(filtered, options.issueSource, options.auditAction);
+            im._error(filtered.toString('utf8'), options.issueSource, options.auditAction);
             break;
     }
 }
