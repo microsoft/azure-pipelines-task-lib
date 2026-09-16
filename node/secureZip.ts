@@ -150,6 +150,10 @@ async function extractEntry(zipFile: ZipFile, root: string, entry: ZipEntry): Pr
     await pipeline(readStream, fs.createWriteStream(destinationPath, { mode: getMode(entry, false) }));
 }
 
+function isMacOSMetadataEntry(entry: ZipEntry): boolean {
+    return entry.fileName.startsWith('__MACOSX/');
+}
+
 /**
  * Extracts a ZIP archive while preventing entries and symbolic links from escaping the destination.
  *
@@ -172,6 +176,9 @@ export async function extractZipSecure(file: string, destination: string): Promi
 
     try {
         for await (const entry of zipFile.eachEntry()) {
+            if (isMacOSMetadataEntry(entry)) {
+                continue;
+            }
             await extractEntry(zipFile, root, entry);
         }
     }
