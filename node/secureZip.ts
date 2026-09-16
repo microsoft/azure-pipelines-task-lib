@@ -6,15 +6,15 @@ import im = require('./internal');
 
 
 interface ZipEntry {
-    externalFileAttributes: number; // metadata about the file, including Unix permissions and file type
-    fileName: string; // the name of the file within the ZIP archive
-    versionMadeBy: number; // the version of the software that made the ZIP entry
+    externalFileAttributes: number;
+    fileName: string;
+    versionMadeBy: number;
 }
 
 interface ZipFile {
     close(): void;
-    eachEntry(): AsyncIterable<ZipEntry>; // iterates over each entry in the ZIP archive asynchronously
-    openReadStreamPromise(entry: ZipEntry): Promise<NodeJS.ReadableStream>; // opens a readable stream for the specified ZIP entry
+    eachEntry(): AsyncIterable<ZipEntry>;
+    openReadStreamPromise(entry: ZipEntry): Promise<NodeJS.ReadableStream>;
 }
 
 interface Yauzl {
@@ -154,13 +154,6 @@ function isMacOSMetadataEntry(entry: ZipEntry): boolean {
     return entry.fileName.startsWith('__MACOSX/');
 }
 
-/**
- * Extracts a ZIP archive while preventing entries and symbolic links from escaping the destination.
- *
- * @param file Path to the ZIP archive.
- * @param destination Absolute path to the extraction directory.
- * @returns The canonical path to the extraction directory.
- */
 export async function extractZipSecure(file: string, destination: string): Promise<string> {
     if (!file) {
         throw new Error(im._loc('LIB_ArchiveFileRequired'));
