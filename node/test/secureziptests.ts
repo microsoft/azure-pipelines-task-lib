@@ -99,7 +99,7 @@ describe('extractZipSecure', () => {
         assert.strictEqual(fs.existsSync(path.join(destination, 'links', 'escape')), false);
     });
 
-    it('rejects an absolute symbolic-link target', async function () {
+    it('rejects a POSIX absolute symbolic-link target', async function () {
         if (process.platform === 'win32') {
             this.skip();
         }
@@ -112,6 +112,22 @@ describe('extractZipSecure', () => {
             tl.extractZipSecure(archivePath, destination),
             /Archive symlink has an absolute target/
         );
+    });
+
+    it('rejects a Windows-style absolute symbolic-link target', async function () {
+        if (process.platform === 'win32') {
+            this.skip();
+        }
+
+        createZip(archivePath, [
+            { name: 'links/escape', content: 'C:\\Windows\\System32\\malformed', symbolicLink: true }
+        ]);
+
+        await assert.rejects(
+            tl.extractZipSecure(archivePath, destination),
+            /Archive symlink has an absolute target/
+        );
+        assert.strictEqual(fs.existsSync(path.join(destination, 'links', 'escape')), false);
     });
 
     it('rejects writes through an existing directory symlink', async function () {
