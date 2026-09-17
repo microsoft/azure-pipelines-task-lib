@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 import stream = require('stream');
+import im = require('./internal');
 
 //
 // External output filtering.
@@ -279,17 +280,7 @@ export function createExternalOutputStream(options: ExternalOutputOptions): Exte
     return filterStream;
 }
 
-/**
- * Filters a complete piece of external output and writes it to the destination
- * (default process.stdout). Each call is self-contained; for output that arrives in
- * chunks that may split a marker, use createExternalOutputStream instead.
- */
-export function writeExternalOutput(data: string | Buffer, options: ExternalOutputOptions): void {
-    const destination = options.destination || process.stdout;
-    destination.write(filterExternalOutput(data, options));
-}
-
-/** Filters one complete value and returns its bytes without writing them. */
+/** Filters one complete value for internal task-lib consumers. */
 export function filterExternalOutput(data: string | Buffer, options: ExternalOutputOptions): Buffer {
     const filter = new MarkerFilter(!!options.enableVsoCommands, resolveAllowed(options));
     const buf = Buffer.isBuffer(data) ? data : Buffer.from(String(data), 'utf8');
@@ -303,7 +294,7 @@ export interface FilteredWriter {
     end(): void;
 }
 
-/** Creates a stateful writer that filters markers split across writes. */
+/** Creates a stateful writer for internal consumers that receive output in chunks. */
 export function createFilteredWriter(options: ExternalOutputOptions, destination: NodeJS.WritableStream): FilteredWriter {
     const filter = new MarkerFilter(!!options.enableVsoCommands, resolveAllowed(options));
     let ended = false;
@@ -330,4 +321,61 @@ export function createFilteredWriter(options: ExternalOutputOptions, destination
             }
         }
     };
+}
+
+/** The task-lib logging path to use after external output is filtered. */
+type ExternalOutputLogType = 'raw' | 'debug' | 'warning' | 'error';
+
+type ExternalOutputLogOptions = ExternalOutputOptions & (
+    { type: 'raw' | 'debug' } |
+    {
+        type: 'warning' | 'error';
+        issueSource?: im.IssueSource;
+        auditAction?: im.IssueAuditAction;
+    }
+);
+
+export type ExternalOutputIssueOptions = ExternalOutputOptions & {
+    issueSource?: im.IssueSource;
+    auditAction?: im.IssueAuditAction;
+};
+
+/** Filters external output before writing it or submitting it through a task-lib logger. */
+function logExternalOutput(message: string | Buffer, options: ExternalOutputLogOptions): void {
+    const filtered = filterExternalOutput(message, options);
+    switch (options.type) {
+        case 'raw':
+            const destination = options.destination || process.stdout;
+            destination.write(filtered);
+            break;
+        case 'debug':
+            im._debug(filtered.toString('utf8'));
+            break;
+        case 'warning':
+            im._warning(filtered.toString('utf8'), options.issueSource, options.auditAction);
+            break;
+        case 'error':
+            im._error(filtered.toString('utf8'), options.issueSource, options.auditAction);
+            break;
+    }
+}
+
+/** Filters external output and writes it directly to the configured destination. */
+export function writeExternalOutput(message: string | Buffer, options: ExternalOutputOptions): void {
+    logExternalOutput(message, { ...options, type: 'raw' });
+}
+
+/** Filters external output and submits it through the task-lib debug logger. */
+export function debugExternalOutput(message: string | Buffer, options: ExternalOutputOptions): void {
+    logExternalOutput(message, { ...options, type: 'debug' });
+}
+
+/** Filters external output and submits it through the task-lib warning logger. */
+export function warningExternalOutput(message: string | Buffer, options: ExternalOutputIssueOptions): void {
+    logExternalOutput(message, { ...options, type: 'warning' });
+}
+
+/** Filters external output and submits it through the task-lib error logger. */
+export function errorExternalOutput(message: string | Buffer, options: ExternalOutputIssueOptions): void {
+    logExternalOutput(message, { ...options, type: 'error' });
 }
