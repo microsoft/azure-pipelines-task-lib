@@ -33,6 +33,7 @@ module.exports.setStdStream = task.setStdStream;
 module.exports.setErrStream = task.setErrStream;
 module.exports.setResult = task.setResult;
 module.exports.setSanitizedResult = task.setSanitizedResult;
+module.exports.extractZipSecure = task.extractZipSecure;
 
 //-----------------------------------------------------
 // Loc Helpers
