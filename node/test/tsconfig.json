@@ -14,6 +14,7 @@
         "cp.ts",
         "dirtests.ts",
         "disktests.ts",
+        "externaloutputtests.ts",
         "fakeModules/fakemodule1.ts",
         "fakeModules/fakemodule2.ts",
         "filtertests.ts",
@@ -37,6 +38,7 @@
         "rm.ts",
         "taskissuecommandtests.ts",
         "toolrunnertests.ts",
+        "toolrunnerexternaloutputtests.ts",
         "toolrunnerTestsWithExecAsync.ts",
         "vaulttests.ts"
     ]

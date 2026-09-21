@@ -2,6 +2,7 @@ import Q = require('q');
 import os = require('os');
 import events = require('events');
 import ma = require('./mock-answer');
+import eom = require('./externaloutput');
 
 let mock: ma.MockAnswers = new ma.MockAnswers();
 
@@ -18,9 +19,11 @@ export interface IExecSyncOptions {
     cwd?: string;
     env?: { [key: string]: string | undefined };
     silent?: boolean;
-    outStream: NodeJS.WritableStream;
-    errStream: NodeJS.WritableStream;
+    outStream?: NodeJS.WritableStream;
+    errStream?: NodeJS.WritableStream;
     windowsVerbatimArguments?: boolean;
+    shell?: boolean;
+    externalOutput?: eom.ExternalOutputOptions;
 };
 
 export interface IExecSyncResult {
@@ -179,7 +182,9 @@ export class ToolRunner extends events.EventEmitter {
             errStream: options.errStream || process.stderr,
             failOnStdErr: options.failOnStdErr || false,
             ignoreReturnCode: options.ignoreReturnCode || false,
-            windowsVerbatimArguments: options.windowsVerbatimArguments
+            windowsVerbatimArguments: options.windowsVerbatimArguments,
+            shell: options.shell,
+            externalOutput: options.externalOutput
         };
 
         var argString = this.args.join(' ') || '';
@@ -202,7 +207,8 @@ export class ToolRunner extends events.EventEmitter {
                 cmdString += ' | ' + pipeToolCmdString;
             }
 
-            ops.outStream.write('[command]' + cmdString + os.EOL);
+            const commandLine = '[command]' + cmdString + os.EOL;
+            ops.outStream!.write(ops.externalOutput ? eom.filterExternalOutput(commandLine, ops.externalOutput) : commandLine);
         }
 
         // TODO: filter process.env
@@ -210,7 +216,8 @@ export class ToolRunner extends events.EventEmitter {
         if (res.stdout) {
             this.emit('stdout', res.stdout);
             if (!ops.silent) {
-                ops.outStream.write(res.stdout + os.EOL);
+                const stdout = res.stdout + os.EOL;
+                ops.outStream!.write(ops.externalOutput ? eom.filterExternalOutput(stdout, ops.externalOutput) : stdout);
             }
             const stdLineArray = res.stdout.split(os.EOL);
             for (const line of stdLineArray.slice(0, -1)) {
@@ -227,7 +234,8 @@ export class ToolRunner extends events.EventEmitter {
             success = !ops.failOnStdErr;
             if (!ops.silent) {
                 var s = ops.failOnStdErr ? ops.errStream : ops.outStream;
-                s.write(res.stderr + os.EOL);
+                const stderr = res.stderr + os.EOL;
+                s!.write(ops.externalOutput ? eom.filterExternalOutput(stderr, ops.externalOutput) : stderr);
             }
             const stdErrArray = res.stderr.split(os.EOL);
             for (const line of stdErrArray.slice(0, -1)) {
@@ -242,7 +250,7 @@ export class ToolRunner extends events.EventEmitter {
         var code = res.code;
 
         if (!ops.silent) {
-            ops.outStream.write('rc:' + res.code + os.EOL);
+            ops.outStream!.write('rc:' + res.code + os.EOL);
         }
 
         if (code != 0 && !ops.ignoreReturnCode) {
@@ -250,7 +258,7 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         if (!ops.silent) {
-            ops.outStream.write('success:' + success + os.EOL);
+            ops.outStream!.write('success:' + success + os.EOL);
         }
 
         return new Promise((resolve, reject) => {
@@ -288,7 +296,9 @@ export class ToolRunner extends events.EventEmitter {
             errStream: options.errStream || process.stderr,
             failOnStdErr: options.failOnStdErr || false,
             ignoreReturnCode: options.ignoreReturnCode || false,
-            windowsVerbatimArguments: options.windowsVerbatimArguments
+            windowsVerbatimArguments: options.windowsVerbatimArguments,
+            shell: options.shell,
+            externalOutput: options.externalOutput
         };
 
         var argString = this.args.join(' ') || '';
@@ -311,7 +321,8 @@ export class ToolRunner extends events.EventEmitter {
                 cmdString += ' | ' + pipeToolCmdString;
             }
 
-            ops.outStream.write('[command]' + cmdString + os.EOL);
+            const commandLine = '[command]' + cmdString + os.EOL;
+            ops.outStream!.write(ops.externalOutput ? eom.filterExternalOutput(commandLine, ops.externalOutput) : commandLine);
         }
 
         // TODO: filter process.env
@@ -319,7 +330,8 @@ export class ToolRunner extends events.EventEmitter {
         if (res.stdout) {
             this.emit('stdout', res.stdout);
             if (!ops.silent) {
-                ops.outStream.write(res.stdout + os.EOL);
+                const stdout = res.stdout + os.EOL;
+                ops.outStream!.write(ops.externalOutput ? eom.filterExternalOutput(stdout, ops.externalOutput) : stdout);
             }
             const stdLineArray = res.stdout.split(os.EOL);
             for (const line of stdLineArray.slice(0, -1)) {
@@ -336,7 +348,8 @@ export class ToolRunner extends events.EventEmitter {
             success = !ops.failOnStdErr;
             if (!ops.silent) {
                 var s = ops.failOnStdErr ? ops.errStream : ops.outStream;
-                s.write(res.stderr + os.EOL);
+                const stderr = res.stderr + os.EOL;
+                s!.write(ops.externalOutput ? eom.filterExternalOutput(stderr, ops.externalOutput) : stderr);
             }
             const stdErrArray = res.stderr.split(os.EOL);
             for (const line of stdErrArray.slice(0, -1)) {
@@ -351,7 +364,7 @@ export class ToolRunner extends events.EventEmitter {
         var code = res.code;
 
         if (!ops.silent) {
-            ops.outStream.write('rc:' + res.code + os.EOL);
+            ops.outStream!.write('rc:' + res.code + os.EOL);
         }
 
         if (code != 0 && !ops.ignoreReturnCode) {
@@ -359,7 +372,7 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         if (!ops.silent) {
-            ops.outStream.write('success:' + success + os.EOL);
+            ops.outStream!.write('success:' + success + os.EOL);
         }
         if (success) {
             defer.resolve(code);
@@ -392,6 +405,8 @@ export class ToolRunner extends events.EventEmitter {
             outStream: options.outStream || process.stdout,
             errStream: options.errStream || process.stderr,
             windowsVerbatimArguments: options.windowsVerbatimArguments,
+            shell: options.shell,
+            externalOutput: options.externalOutput
         };
 
         var argString = this.args.join(' ') || '';
@@ -405,16 +420,17 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         if (!ops.silent) {
-            ops.outStream.write('[command]' + cmdString + os.EOL);
+            const commandLine = '[command]' + cmdString + os.EOL;
+            ops.outStream!.write(ops.externalOutput ? eom.filterExternalOutput(commandLine, ops.externalOutput) : commandLine);
         }
 
         var r = mock.getResponse('exec', cmdString, debug);
         if (!ops.silent && r.stdout && r.stdout.length > 0) {
-            ops.outStream.write(r.stdout);
+            ops.outStream!.write(ops.externalOutput ? eom.filterExternalOutput(r.stdout, ops.externalOutput) : r.stdout);
         }
 
         if (!ops.silent && r.stderr && r.stderr.length > 0) {
-            ops.errStream.write(r.stderr);
+            ops.errStream!.write(ops.externalOutput ? eom.filterExternalOutput(r.stderr, ops.externalOutput) : r.stderr);
         }
 
         return <IExecSyncResult>{

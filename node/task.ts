@@ -7,6 +7,7 @@ import minimatch = require('minimatch');
 import im = require('./internal');
 import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
+import eom = require('./externaloutput');
 import semver = require('semver');
 
 type OptionCases<T extends string> = `-${Uppercase<T> | Lowercase<T>}`;
@@ -2794,6 +2795,58 @@ exports.commandFromString = tcm.commandFromString;
 exports.ToolRunner = trm.ToolRunner;
 
 //-----------------------------------------------------
+// External Output
+//-----------------------------------------------------
+
+/**
+ * Options controlling how external (untrusted) output is filtered before it is written to
+ * the log. See {@link eom.ExternalOutputOptions}.
+ */
+export type ExternalOutputOptions = eom.ExternalOutputOptions;
+
+export type ExternalOutputIssueOptions = eom.ExternalOutputIssueOptions;
+
+/**
+ * Creates a filtering stream for external output and pipes it to the destination
+ * (default process.stdout). Pipe untrusted output (a remote response, a child process's
+ * stdout, etc.) into the returned stream so that any "##vso[" command markers it contains
+ * are neutralized instead of executed by the agent.
+ *
+ * By default every marker is blocked. Set enableVsoCommands to true (optionally with an
+ * explicit allowedVsoCommands list) to permit a small set of command names on a
+ * compatibility-sensitive path.
+ *
+ * @param options   External output options. See ExternalOutputOptions.
+ * @returns         A writable/readable stream to pipe untrusted output into.
+ */
+export function createExternalOutputStream(options: eom.ExternalOutputOptions): eom.ExternalOutputStream {
+    return eom.createExternalOutputStream(options);
+}
+
+/** Filters external output and writes it directly to the configured destination. */
+export function writeExternalOutput(message: string | Buffer, options: ExternalOutputOptions): void {
+    eom.writeExternalOutput(message, options);
+}
+
+/** Filters external output and submits it through the existing task-lib debug logger. */
+export function debugExternalOutput(message: string | Buffer, options: ExternalOutputOptions): void {
+    eom.debugExternalOutput(message, options);
+}
+
+/** Filters external output and submits it through the existing task-lib warning logger. */
+export function warningExternalOutput(message: string | Buffer, options: ExternalOutputIssueOptions): void {
+    eom.warningExternalOutput(message, options);
+}
+
+/** Filters external output and submits it through the existing task-lib error logger. */
+export function errorExternalOutput(message: string | Buffer, options: ExternalOutputIssueOptions): void {
+    eom.errorExternalOutput(message, options);
+}
+
+/** Commands allowed when VSO commands are enabled without an explicit allowlist. */
+export const defaultAllowedVsoCommands = eom.defaultAllowedVsoCommands;
+
+//-----------------------------------------------------
 // Validation Checks
 //-----------------------------------------------------
 
@@ -2829,4 +2882,3 @@ function safeFind<T>(arr: T[], predicate: (v: T) => boolean): T | undefined {
   }
   return undefined;
 }
-

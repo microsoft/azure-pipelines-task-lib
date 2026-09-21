@@ -4,6 +4,7 @@ import fs = require('fs');
 import task = require('./task');
 import tcm = require('./taskcommand');
 import trm = require('./mock-toolrunner');
+import eom = require('./externaloutput');
 import ma = require('./mock-answer');
 
 let mock: ma.MockAnswers = new ma.MockAnswers();
@@ -528,6 +529,34 @@ exports.updateReleaseName = task.updateReleaseName;
 exports.TaskCommand = tcm.TaskCommand;
 exports.commandFromString = tcm.commandFromString;
 exports.ToolRunner = trm.ToolRunner;
+
+//-----------------------------------------------------
+// External Output Filtering
+//-----------------------------------------------------
+export type ExternalOutputOptions = eom.ExternalOutputOptions;
+export type ExternalOutputIssueOptions = task.ExternalOutputIssueOptions;
+
+export function createExternalOutputStream(options: eom.ExternalOutputOptions): eom.ExternalOutputStream {
+    return eom.createExternalOutputStream(options);
+}
+
+export function writeExternalOutput(message: string | Buffer, options: task.ExternalOutputOptions): void {
+    task.writeExternalOutput(message, options);
+}
+
+export function debugExternalOutput(message: string | Buffer, options: task.ExternalOutputOptions): void {
+    task.debugExternalOutput(message, options);
+}
+
+export function warningExternalOutput(message: string | Buffer, options: task.ExternalOutputIssueOptions): void {
+    task.warningExternalOutput(message, options);
+}
+
+export function errorExternalOutput(message: string | Buffer, options: task.ExternalOutputIssueOptions): void {
+    task.errorExternalOutput(message, options);
+}
+
+export const defaultAllowedVsoCommands = eom.defaultAllowedVsoCommands;
 
 //-----------------------------------------------------
 // Http Proxy Helper

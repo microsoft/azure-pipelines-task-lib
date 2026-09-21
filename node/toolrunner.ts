@@ -4,6 +4,7 @@ import events = require('events');
 import child = require('child_process');
 import im = require('./internal');
 import fs = require('fs');
+import eom = require('./externaloutput');
 
 /**
  * Interface for exec options
@@ -40,6 +41,14 @@ export interface IExecSyncOptions {
 
     /** optional. Run command inside of the shell.  Defaults to false. */
     shell?: boolean;
+
+    /**
+     * Optional. When set, the tool's *displayed* output (the command line, stdout and stderr
+     * copies written to the log) is passed through the external-output marker filter so that
+     * "##vso[" commands emitted by the child process are neutralized. Raw stdout/stderr/stdline/
+     * errline events and bytes piped to another tool are NOT affected. See ExternalOutputOptions.
+     */
+    externalOutput?: eom.ExternalOutputOptions;
 }
 
 /**
@@ -572,11 +581,42 @@ export class ToolRunner extends events.EventEmitter {
             failOnStdErr: options.failOnStdErr || false,
             ignoreReturnCode: options.ignoreReturnCode || false,
             windowsVerbatimArguments: options.windowsVerbatimArguments || false,
-            shell: options.shell || false
+            shell: options.shell || false,
+            externalOutput: options.externalOutput
         };
         result.outStream = options.outStream || process.stdout;
         result.errStream = options.errStream || process.stderr;
         return result;
+    }
+
+    /** Builds one filtered writer per display destination. */
+    private _createDisplayFilter(options: IExecOptions): {
+        commandLine(text: string): void;
+        stdout(data: Buffer): void;
+        stderr(data: Buffer): void;
+        finalize(): void;
+    } | null {
+        const ext = options.externalOutput;
+        if (!ext) {
+            return null;
+        }
+        const outStream = options.outStream!;
+        const errDest = options.failOnStdErr ? options.errStream! : options.outStream!;
+        const stdoutWriter = eom.createFilteredWriter(ext, outStream);
+        const stderrWriter = errDest === outStream
+            ? stdoutWriter
+            : eom.createFilteredWriter(ext, errDest);
+        return {
+            commandLine: (text: string) => { outStream.write(eom.filterExternalOutput(text, ext)); },
+            stdout: (data: Buffer) => stdoutWriter.write(data),
+            stderr: (data: Buffer) => stderrWriter.write(data),
+            finalize: () => {
+                stdoutWriter.end();
+                if (stderrWriter !== stdoutWriter) {
+                    stderrWriter.end();
+                }
+            }
+        };
     }
 
     private _getSpawnOptions(options?: IExecOptions): child.SpawnOptions {
@@ -608,9 +648,10 @@ export class ToolRunner extends events.EventEmitter {
 
         let success = true;
         const optionsNonNull = this._cloneExecOptions(options);
+        const df = this._createDisplayFilter(optionsNonNull);
 
         if (!optionsNonNull.silent) {
-            optionsNonNull.outStream!.write(this._getCommandString(optionsNonNull) + os.EOL);
+            if (df) { df.commandLine(this._getCommandString(optionsNonNull) + os.EOL); } else { optionsNonNull.outStream!.write(this._getCommandString(optionsNonNull) + os.EOL); }
         }
 
         let cp: child.ChildProcess;
@@ -644,30 +685,30 @@ export class ToolRunner extends events.EventEmitter {
         fileStream = this.pipeOutputToFile ? fs.createWriteStream(this.pipeOutputToFile) : null;
 
         return new Promise((resolve, reject) => {
+            const complete = () => {
+                if (waitingEvents != 0) {
+                    return;
+                }
+                if (df) { df.finalize(); }
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(returnCode);
+                }
+            };
+
             if (fileStream) {
                 waitingEvents++;
                 fileStream.on('finish', () => {
                     waitingEvents--; //file write is complete
                     fileStream = null;
-                    if (waitingEvents == 0) {
-                        if (error) {
-                            reject(error);
-                        } else {
-                            resolve(returnCode);
-                        }
-                    }
+                    complete();
                 });
                 fileStream.on('error', (err: Error) => {
                     waitingEvents--; //there were errors writing to the file, write is done
                     this._debug(`Failed to pipe output of ${toolPathFirst} to file ${this.pipeOutputToFile}. Error = ${err}`);
                     fileStream = null;
-                    if (waitingEvents == 0) {
-                        if (error) {
-                            reject(error);
-                        } else {
-                            resolve(returnCode);
-                        }
-                    }
+                    complete();
                 });
             }
 
@@ -691,8 +732,7 @@ export class ToolRunner extends events.EventEmitter {
                 }
                 successFirst = !optionsNonNull.failOnStdErr;
                 if (!optionsNonNull.silent) {
-                    var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream! : optionsNonNull.outStream!;
-                    s.write(data);
+                    if (df) { df.stderr(data); } else { var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream! : optionsNonNull.outStream!; s.write(data); }
                 }
             });
             cpFirst.on('error', (err: Error) => {
@@ -702,9 +742,7 @@ export class ToolRunner extends events.EventEmitter {
                 }
                 cp.stdin?.end();
                 error = new Error(toolPathFirst + ' failed. ' + err.message);
-                if (waitingEvents == 0) {
-                    reject(error);
-                }
+                complete();
             });
             cpFirst.on('close', (code: number, signal: any) => {
                 waitingEvents--; //first process is complete
@@ -718,13 +756,7 @@ export class ToolRunner extends events.EventEmitter {
                     fileStream.end();
                 }
                 cp.stdin?.end();
-                if (waitingEvents == 0) {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve(returnCode);
-                    }
-                }
+                complete();
             });
 
             let stdLineBuffer = '';
@@ -732,7 +764,7 @@ export class ToolRunner extends events.EventEmitter {
                 this.emit('stdout', data);
 
                 if (!optionsNonNull.silent) {
-                    optionsNonNull.outStream!.write(data);
+                    if (df) { df.stdout(data); } else { optionsNonNull.outStream!.write(data); }
                 }
 
                 stdLineBuffer = this._processLineBuffer(data, stdLineBuffer, (line: string) => {
@@ -746,8 +778,7 @@ export class ToolRunner extends events.EventEmitter {
 
                 success = !optionsNonNull.failOnStdErr;
                 if (!optionsNonNull.silent) {
-                    var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream! : optionsNonNull.outStream!;
-                    s.write(data);
+                    if (df) { df.stderr(data); } else { var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream! : optionsNonNull.outStream!; s.write(data); }
                 }
 
                 errLineBuffer = this._processLineBuffer(data, errLineBuffer, (line: string) => {
@@ -758,9 +789,7 @@ export class ToolRunner extends events.EventEmitter {
             cp.on('error', (err: Error) => {
                 waitingEvents--; //process is done with errors
                 error = new Error(toolPath + ' failed. ' + err.message);
-                if (waitingEvents == 0) {
-                    reject(error);
-                }
+                complete();
             });
 
             cp.on('close', (code: number, signal: any) => {
@@ -788,13 +817,7 @@ export class ToolRunner extends events.EventEmitter {
                     error = new Error(toolPath + ' failed with return code: ' + code);
                 }
 
-                if (waitingEvents == 0) {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve(returnCode);
-                    }
-                }
+                complete();
             });
         });
     }
@@ -810,9 +833,10 @@ export class ToolRunner extends events.EventEmitter {
 
         let success = true;
         const optionsNonNull = this._cloneExecOptions(options);
+        const df = this._createDisplayFilter(optionsNonNull);
 
         if (!optionsNonNull.silent) {
-            optionsNonNull.outStream!.write(this._getCommandString(optionsNonNull) + os.EOL);
+            if (df) { df.commandLine(this._getCommandString(optionsNonNull) + os.EOL); } else { optionsNonNull.outStream!.write(this._getCommandString(optionsNonNull) + os.EOL); }
         }
 
         let cp: child.ChildProcess;
@@ -844,30 +868,30 @@ export class ToolRunner extends events.EventEmitter {
             pipeOutputToTool._getSpawnOptions(optionsNonNull));
 
         fileStream = this.pipeOutputToFile ? fs.createWriteStream(this.pipeOutputToFile) : null;
+        const complete = () => {
+            if (waitingEvents != 0) {
+                return;
+            }
+            if (df) { df.finalize(); }
+            if (error) {
+                defer.reject(error);
+            } else {
+                defer.resolve(returnCode);
+            }
+        };
+
         if (fileStream) {
             waitingEvents++;
             fileStream.on('finish', () => {
                 waitingEvents--; //file write is complete
                 fileStream = null;
-                if (waitingEvents == 0) {
-                    if (error) {
-                        defer.reject(error);
-                    } else {
-                        defer.resolve(returnCode);
-                    }
-                }
+                complete();
             });
             fileStream.on('error', (err: Error) => {
                 waitingEvents--; //there were errors writing to the file, write is done
                 this._debug(`Failed to pipe output of ${toolPathFirst} to file ${this.pipeOutputToFile}. Error = ${err}`);
                 fileStream = null;
-                if (waitingEvents == 0) {
-                    if (error) {
-                        defer.reject(error);
-                    } else {
-                        defer.resolve(returnCode);
-                    }
-                }
+                complete();
             });
         }
 
@@ -889,8 +913,7 @@ export class ToolRunner extends events.EventEmitter {
             }
             successFirst = !optionsNonNull.failOnStdErr;
             if (!optionsNonNull.silent) {
-                var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream! : optionsNonNull.outStream!;
-                s.write(data);
+                if (df) { df.stderr(data); } else { var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream! : optionsNonNull.outStream!; s.write(data); }
             }
         });
         cpFirst.on('error', (err: Error) => {
@@ -900,9 +923,7 @@ export class ToolRunner extends events.EventEmitter {
             }
             cp.stdin?.end();
             error = new Error(toolPathFirst + ' failed. ' + err.message);
-            if (waitingEvents == 0) {
-                defer.reject(error);
-            }
+            complete();
         });
         cpFirst.on('close', (code: number, signal: any) => {
             waitingEvents--; //first process is complete
@@ -916,13 +937,7 @@ export class ToolRunner extends events.EventEmitter {
                 fileStream.end();
             }
             cp.stdin?.end();
-            if (waitingEvents == 0) {
-                if (error) {
-                    defer.reject(error);
-                } else {
-                    defer.resolve(returnCode);
-                }
-            }
+            complete();
         });
 
         let stdLineBuffer = '';
@@ -930,7 +945,7 @@ export class ToolRunner extends events.EventEmitter {
             this.emit('stdout', data);
 
             if (!optionsNonNull.silent) {
-                optionsNonNull.outStream!.write(data);
+                if (df) { df.stdout(data); } else { optionsNonNull.outStream!.write(data); }
             }
 
             stdLineBuffer = this._processLineBuffer(data, stdLineBuffer, (line: string) => {
@@ -944,8 +959,7 @@ export class ToolRunner extends events.EventEmitter {
 
             success = !optionsNonNull.failOnStdErr;
             if (!optionsNonNull.silent) {
-                var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream! : optionsNonNull.outStream!;
-                s.write(data);
+                if (df) { df.stderr(data); } else { var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream! : optionsNonNull.outStream!; s.write(data); }
             }
 
             errLineBuffer = this._processLineBuffer(data, errLineBuffer, (line: string) => {
@@ -956,9 +970,7 @@ export class ToolRunner extends events.EventEmitter {
         cp.on('error', (err: Error) => {
             waitingEvents--; //process is done with errors
             error = new Error(toolPath + ' failed. ' + err.message);
-            if (waitingEvents == 0) {
-                defer.reject(error);
-            }
+            complete();
         });
 
         cp.on('close', (code: number, signal: any) => {
@@ -986,13 +998,7 @@ export class ToolRunner extends events.EventEmitter {
                 error = new Error(toolPath + ' failed with return code: ' + code);
             }
 
-            if (waitingEvents == 0) {
-                if (error) {
-                    defer.reject(error);
-                } else {
-                    defer.resolve(returnCode);
-                }
-            }
+            complete();
         });
 
         return <Q.Promise<number>>defer.promise;
@@ -1090,8 +1096,9 @@ export class ToolRunner extends events.EventEmitter {
         });
 
         const optionsNonNull = this._cloneExecOptions(options);
+        const df = this._createDisplayFilter(optionsNonNull);
         if (!optionsNonNull.silent) {
-            optionsNonNull.outStream!.write(this._getCommandString(optionsNonNull) + os.EOL);
+            if (df) { df.commandLine(this._getCommandString(optionsNonNull) + os.EOL); } else { optionsNonNull.outStream!.write(this._getCommandString(optionsNonNull) + os.EOL); }
         }
 
         let state = new ExecState(optionsNonNull, this.toolPath);
@@ -1145,9 +1152,9 @@ export class ToolRunner extends events.EventEmitter {
         // it is possible for the child process to end its last line without a new line.
         // because stdout is buffered, this causes the last line to not get sent to the parent
         // stream. Adding this event forces a flush before the child streams are closed.
-        cp.stdout?.on('finish', () => {
+        cp.stdout?.on('end', () => {
             if (!optionsNonNull.silent) {
-                optionsNonNull.outStream!.write(os.EOL);
+                if (df) { df.stdout(Buffer.from(os.EOL)); } else { optionsNonNull.outStream!.write(os.EOL); }
             }
         });
 
@@ -1155,7 +1162,7 @@ export class ToolRunner extends events.EventEmitter {
             this.emit('stdout', data);
 
             if (!optionsNonNull.silent) {
-                optionsNonNull.outStream!.write(data);
+                if (df) { df.stdout(data); } else { optionsNonNull.outStream!.write(data); }
             }
 
             stdLineBuffer = this._processLineBuffer(data, stdLineBuffer, (line: string) => {
@@ -1168,8 +1175,7 @@ export class ToolRunner extends events.EventEmitter {
             this.emit('stderr', data);
 
             if (!optionsNonNull.silent) {
-                var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream! : optionsNonNull.outStream!;
-                s.write(data);
+                if (df) { df.stderr(data); } else { var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream! : optionsNonNull.outStream!; s.write(data); }
             }
 
             errLineBuffer = this._processLineBuffer(data, errLineBuffer, (line: string) => {
@@ -1193,6 +1199,7 @@ export class ToolRunner extends events.EventEmitter {
         });
 
         cp.on('close', (code: number | null, signal: NodeJS.Signals | null) => {
+            if (df) { df.finalize(); }
             state.processCloseCode = code;
             state.processCloseSignal = signal;
             state.processClosed = true;
@@ -1227,8 +1234,9 @@ export class ToolRunner extends events.EventEmitter {
         });
 
         const optionsNonNull = this._cloneExecOptions(options);
+        const df = this._createDisplayFilter(optionsNonNull);
         if (!optionsNonNull.silent) {
-            optionsNonNull.outStream!.write(this._getCommandString(optionsNonNull) + os.EOL);
+            if (df) { df.commandLine(this._getCommandString(optionsNonNull) + os.EOL); } else { optionsNonNull.outStream!.write(this._getCommandString(optionsNonNull) + os.EOL); }
         }
 
         let state = new ExecState(optionsNonNull, this.toolPath);
@@ -1277,9 +1285,9 @@ export class ToolRunner extends events.EventEmitter {
         // it is possible for the child process to end its last line without a new line.
         // because stdout is buffered, this causes the last line to not get sent to the parent
         // stream. Adding this event forces a flush before the child streams are closed.
-        cp.stdout?.on('finish', () => {
+        cp.stdout?.on('end', () => {
             if (!optionsNonNull.silent) {
-                optionsNonNull.outStream!.write(os.EOL);
+                if (df) { df.stdout(Buffer.from(os.EOL)); } else { optionsNonNull.outStream!.write(os.EOL); }
             }
         });
 
@@ -1287,7 +1295,7 @@ export class ToolRunner extends events.EventEmitter {
             this.emit('stdout', data);
 
             if (!optionsNonNull.silent) {
-                optionsNonNull.outStream!.write(data);
+                if (df) { df.stdout(data); } else { optionsNonNull.outStream!.write(data); }
             }
 
             stdLineBuffer = this._processLineBuffer(data, stdLineBuffer, (line: string) => {
@@ -1301,8 +1309,7 @@ export class ToolRunner extends events.EventEmitter {
             this.emit('stderr', data);
 
             if (!optionsNonNull.silent) {
-                var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream! : optionsNonNull.outStream!;
-                s.write(data);
+                if (df) { df.stderr(data); } else { var s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream! : optionsNonNull.outStream!; s.write(data); }
             }
 
             errLineBuffer = this._processLineBuffer(data, errLineBuffer, (line: string) => {
@@ -1326,6 +1333,7 @@ export class ToolRunner extends events.EventEmitter {
         });
 
         cp.on('close', (code: number | null, signal: NodeJS.Signals | null) => {
+            if (df) { df.finalize(); }
             state.processCloseCode = code;
             state.processCloseSignal = signal;
             state.processClosed = true;
@@ -1356,18 +1364,21 @@ export class ToolRunner extends events.EventEmitter {
         var success = true;
         options = this._cloneExecOptions(options as IExecOptions);
 
+        const ext = options.externalOutput;
+
         if (!options.silent) {
-            options.outStream!.write(this._getCommandString(options as IExecOptions) + os.EOL);
+            const cmdLine = this._getCommandString(options as IExecOptions) + os.EOL;
+            options.outStream!.write(ext ? eom.filterExternalOutput(cmdLine, ext) : cmdLine);
         }
 
         var r = child.spawnSync(this._getSpawnFileName(options), this._getSpawnArgs(options as IExecOptions), this._getSpawnSyncOptions(options));
 
         if (!options.silent && r.stdout && r.stdout.length > 0) {
-            options.outStream!.write(r.stdout);
+            options.outStream!.write(ext ? eom.filterExternalOutput(r.stdout, ext) : r.stdout);
         }
 
         if (!options.silent && r.stderr && r.stderr.length > 0) {
-            options.errStream!.write(r.stderr);
+            options.errStream!.write(ext ? eom.filterExternalOutput(r.stderr, ext) : r.stderr);
         }
 
         var res: IExecSyncResult = <IExecSyncResult>{ code: r.status, error: r.error };
