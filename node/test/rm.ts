@@ -47,6 +47,29 @@ describe('rm cases', () => {
     done();
   });
 
+  it('Remove a file with command metacharacters in its name', (done) => {
+    const filePath = path.join(TEMP_DIR, 'file&example');
+    fs.writeFileSync(filePath, 'test');
+
+    assert.ok(fs.existsSync(filePath));
+    assert.doesNotThrow(() => tl.rmRF(filePath));
+    assert.ok(!fs.existsSync(filePath));
+
+    done();
+  });
+
+  it('Remove a directory with command metacharacters in its name', (done) => {
+    const directoryPath = path.join(TEMP_DIR, 'directory&example');
+    fs.mkdirSync(directoryPath, { recursive: true });
+    fs.writeFileSync(path.join(directoryPath, 'file'), 'test');
+
+    assert.ok(fs.existsSync(directoryPath));
+    assert.doesNotThrow(() => tl.rmRF(directoryPath));
+    assert.ok(!fs.existsSync(directoryPath));
+
+    done();
+  });
+
   it('Remove subdirectory recursive at TEMP_NESTED_DIR_LEVEL_1', (done) => {
     tl.mkdirP(TEMP_NESTED_DIR_FULL_TREE);
 
@@ -136,6 +159,22 @@ describe('rm cases', () => {
   it('Removing symbolic link to a directory and its contents', (done) => {
     const dirPath = path.join(TEMP_DIR, 'dir');
     const linkPath = path.join(TEMP_DIR, 'link_to_dir');
+
+    fs.mkdirSync(dirPath, { recursive: true });
+    fs.writeFileSync(path.join(dirPath, 'file_in_dir'), 'test');
+    fs.symlinkSync(dirPath, linkPath, 'dir');
+    assert.ok(fs.existsSync(linkPath));
+
+    assert.doesNotThrow(() => tl.rmRF(linkPath));
+
+    assert.ok(!fs.existsSync(linkPath));
+    assert.ok(!fs.existsSync(dirPath));
+    done();
+  });
+
+  it('Removing symbolic link to a directory with command metacharacters in its target', (done) => {
+    const dirPath = path.join(TEMP_DIR, 'dir&example');
+    const linkPath = path.join(TEMP_DIR, 'link_to_dir_with_metacharacters');
 
     fs.mkdirSync(dirPath, { recursive: true });
     fs.writeFileSync(path.join(dirPath, 'file_in_dir'), 'test');

@@ -1796,6 +1796,25 @@ function _legacyFindFiles_getMatchingItems(
     return Object.keys(allFiles).sort();
 }
 
+// Node only quotes arguments containing a space, tab or quote, so anything outside
+// this allow list could reach cmd.exe as command syntax rather than as a path.
+const _cmdSafePathRegExp = /^[\w .+~#@'$\-\\\/:\[\]{}\u0080-\uFFFF]+$/;
+
+/**
+ * Removes a file or directory on Windows. Paths cmd.exe cannot misinterpret use
+ * rd/del, which can delete entries another program holds open. Anything else
+ * goes straight to the filesystem API.
+ */
+function _rmWindows(targetPath: string, isDirectory: boolean): void {
+    if (_cmdSafePathRegExp.test(targetPath)) {
+        const args = isDirectory ? ['/c', 'rd', '/s', '/q'] : ['/c', 'del', '/f', '/a'];
+        childProcess.execFileSync('cmd.exe', args.concat(im._normalizeSeparators(targetPath)));
+    } else {
+        debug(`removing '${targetPath}' without cmd.exe, path contains characters cmd.exe would reinterpret`);
+        fs.rmSync(targetPath, { recursive: isDirectory, force: true, maxRetries: 5, retryDelay: 100 });
+    }
+}
+
 /**
  * Remove a path recursively with force
  *
@@ -1806,21 +1825,18 @@ function _legacyFindFiles_getMatchingItems(
 export function rmRF(inputPath: string): void {
     debug('rm -rf ' + inputPath);
     if (getPlatform() == Platform.Windows) {
-        // Node doesn't provide a delete operation, only an unlink function. This means that if the file is being used by another
-        // program (e.g. antivirus), it won't be deleted. To address this, we shell out the work to rd/del.
         try {
             const lstats = fs.lstatSync(inputPath);
             if (lstats.isDirectory() && !lstats.isSymbolicLink()) {
                 debug('removing directory ' + inputPath);
-                childProcess.execFileSync("cmd.exe", ["/c", "rd", "/s", "/q", im._normalizeSeparators(inputPath)]);
-
+                _rmWindows(inputPath, true);
             } else if (lstats.isSymbolicLink()) {
                 debug('removing symbolic link ' + inputPath);
                 const realPath = fs.readlinkSync(inputPath);
                 if (fs.existsSync(realPath)) {
                     const stats = fs.statSync(realPath);
                     if (stats.isDirectory()) {
-                        childProcess.execFileSync("cmd.exe", ["/c", "rd", "/s", "/q", im._normalizeSeparators(realPath)]);
+                        _rmWindows(realPath, true);
                         fs.unlinkSync(inputPath);
                     } else {
                         fs.unlinkSync(inputPath);
@@ -1831,7 +1847,7 @@ export function rmRF(inputPath: string): void {
                 }
             } else {
                 debug('removing file ' + inputPath);
-                childProcess.execFileSync("cmd.exe", ["/c", "del", "/f", "/a", im._normalizeSeparators(inputPath)]);
+                _rmWindows(inputPath, false);
             }
         } catch (err) {
             debug('Error: ' + err.message);
