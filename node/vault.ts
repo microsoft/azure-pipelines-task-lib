@@ -80,6 +80,18 @@ export class Vault {
     }
 
     private genKey(): void {
-        fs.writeFileSync(this._keyFile, crypto.randomUUID(), { encoding: 'utf8' });
+        let key;
+
+        if (crypto.randomUUID) {
+            key = crypto.randomUUID();
+        } else {
+            var bytes = crypto.randomBytes(16);
+            bytes[6] = (bytes[6] & 0x0f) | 0x40;
+            bytes[8] = (bytes[8] & 0x3f) | 0x80;
+            var hex = bytes.toString('hex');
+            key = hex.slice(0, 8) + '-' + hex.slice(8, 12) + '-' + hex.slice(12, 16) + '-' + hex.slice(16, 20) + '-' + hex.slice(20);
+        }
+
+        fs.writeFileSync(this._keyFile, key, { encoding: 'utf8' });
     }
 }
