@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 import assert = require('assert');
+import crypto = require('crypto');
+import fs = require('fs');
 import * as vm from '../_build/vault';
 import * as trm from '../_build/toolrunner';
 
@@ -29,6 +31,20 @@ describe('Vault Tests', function () {
         assert(vault, 'should have created a vault object');
 
         done();
+    })
+    it('Can create vault when randomUUID is unavailable', function () {
+        var originalRandomUUID = crypto.randomUUID;
+        try {
+            (crypto as any).randomUUID = undefined;
+            var vault: vm.Vault = new vm.Vault(process.cwd());
+            var key = fs.readFileSync('.taskkey', 'utf8');
+            assert(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(key));
+            assert(vault.storeSecret('name', 'value'));
+            assert.equal(vault.retrieveSecret('name'), 'value');
+        }
+        finally {
+            (crypto as any).randomUUID = originalRandomUUID;
+        }
     })
     it('Can store and retrieve a basic value', function (done) {
         var vault: vm.Vault = new vm.Vault(process.cwd());
