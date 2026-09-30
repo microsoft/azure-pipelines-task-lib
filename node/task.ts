@@ -1803,16 +1803,14 @@ function _quoteWindowsCmdPath(value: string): string {
 
 function _rmWindows(targetPath: string, isDirectory: boolean): void {
     const quotedPath = _quoteWindowsCmdPath(im._normalizeSeparators(targetPath));
-    const command = isDirectory ? `rd /s /q ${quotedPath}` : `del /f /a ${quotedPath}`;
+    const args = isDirectory
+        ? ['/c', 'rd', '/s', '/q', quotedPath]
+        : ['/c', 'del', '/f', '/a', quotedPath];
     const options: childProcess.ExecFileSyncOptions & Pick<childProcess.SpawnOptions, 'windowsVerbatimArguments'> = {
         windowsVerbatimArguments: true
     };
 
-    childProcess.execFileSync(
-        'cmd.exe',
-        ['/d', '/v:off', '/s', '/c', command],
-        options
-    );
+    childProcess.execFileSync('cmd.exe', args, options);
 }
 
 /**
