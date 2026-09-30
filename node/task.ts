@@ -1796,23 +1796,23 @@ function _legacyFindFiles_getMatchingItems(
     return Object.keys(allFiles).sort();
 }
 
-// Node only quotes arguments containing a space, tab or quote, so anything outside
-// this allow list could reach cmd.exe as command syntax rather than as a path.
-const _cmdSafePathRegExp = /^[\w .+~#@'$\-\\\/:\[\]{}\u0080-\uFFFF]+$/;
+function _quoteWindowsCmdPath(value: string): string {
+    // Percent expansion remains active inside quotes, so quote each literal percent separately.
+    return `"${value.replace(/%/g, '"^%"')}"`;
+}
 
-/**
- * Removes a file or directory on Windows. Paths cmd.exe cannot misinterpret use
- * rd/del, which can delete entries another program holds open. Anything else
- * goes straight to the filesystem API.
- */
 function _rmWindows(targetPath: string, isDirectory: boolean): void {
-    if (_cmdSafePathRegExp.test(targetPath)) {
-        const args = isDirectory ? ['/c', 'rd', '/s', '/q'] : ['/c', 'del', '/f', '/a'];
-        childProcess.execFileSync('cmd.exe', args.concat(im._normalizeSeparators(targetPath)));
-    } else {
-        debug(`removing '${targetPath}' without cmd.exe, path contains characters cmd.exe would reinterpret`);
-        fs.rmSync(targetPath, { recursive: isDirectory, force: true, maxRetries: 5, retryDelay: 100 });
-    }
+    const quotedPath = _quoteWindowsCmdPath(im._normalizeSeparators(targetPath));
+    const command = isDirectory ? `rd /s /q ${quotedPath}` : `del /f /a ${quotedPath}`;
+    const options: childProcess.ExecFileSyncOptions & Pick<childProcess.SpawnOptions, 'windowsVerbatimArguments'> = {
+        windowsVerbatimArguments: true
+    };
+
+    childProcess.execFileSync(
+        'cmd.exe',
+        ['/d', '/v:off', '/s', '/c', command],
+        options
+    );
 }
 
 /**
