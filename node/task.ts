@@ -2814,7 +2814,9 @@ export type ExternalOutputIssueOptions = eom.ExternalOutputIssueOptions;
  *
  * By default every marker is blocked. Set enableVsoCommands to true (optionally with an
  * explicit allowedVsoCommands list) to permit a small set of command names on a
- * compatibility-sensitive path.
+ * compatibility-sensitive path. Set vsoCommandMode to control blocking and Kusto telemetry
+ * independently. Telemetry includes only the output source, canonical command name, and
+ * whether the command was blocked; command properties and data are never included.
  *
  * @param options   External output options. See ExternalOutputOptions.
  * @returns         A writable/readable stream to pipe untrusted output into.
