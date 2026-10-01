@@ -1796,6 +1796,34 @@ function _legacyFindFiles_getMatchingItems(
     return Object.keys(allFiles).sort();
 }
 
+function _quoteWindowsCmdPath(value: string): string {
+    // Percent expansion remains active inside quotes, so quote each literal percent separately.
+    return `"${value.replace(/%/g, '"^%"')}"`;
+}
+
+function _rmWindows(targetPath: string, isDirectory: boolean): void {
+    const normalizedPath = im._normalizeSeparators(targetPath);
+
+    if (!getPipelineFeature('EnableRmRFCommandPathQuoting')) {
+        const legacyArgs = isDirectory
+            ? ['/c', 'rd', '/s', '/q', normalizedPath]
+            : ['/c', 'del', '/f', '/a', normalizedPath];
+
+        childProcess.execFileSync('cmd.exe', legacyArgs);
+        return;
+    }
+
+    const quotedPath = _quoteWindowsCmdPath(normalizedPath);
+    const args = isDirectory
+        ? ['/c', 'rd', '/s', '/q', quotedPath]
+        : ['/c', 'del', '/f', '/a', quotedPath];
+    const options: childProcess.ExecFileSyncOptions & Pick<childProcess.SpawnOptions, 'windowsVerbatimArguments'> = {
+        windowsVerbatimArguments: true
+    };
+
+    childProcess.execFileSync('cmd.exe', args, options);
+}
+
 /**
  * Remove a path recursively with force
  *
@@ -1806,21 +1834,18 @@ function _legacyFindFiles_getMatchingItems(
 export function rmRF(inputPath: string): void {
     debug('rm -rf ' + inputPath);
     if (getPlatform() == Platform.Windows) {
-        // Node doesn't provide a delete operation, only an unlink function. This means that if the file is being used by another
-        // program (e.g. antivirus), it won't be deleted. To address this, we shell out the work to rd/del.
         try {
             const lstats = fs.lstatSync(inputPath);
             if (lstats.isDirectory() && !lstats.isSymbolicLink()) {
                 debug('removing directory ' + inputPath);
-                childProcess.execFileSync("cmd.exe", ["/c", "rd", "/s", "/q", im._normalizeSeparators(inputPath)]);
-
+                _rmWindows(inputPath, true);
             } else if (lstats.isSymbolicLink()) {
                 debug('removing symbolic link ' + inputPath);
                 const realPath = fs.readlinkSync(inputPath);
                 if (fs.existsSync(realPath)) {
                     const stats = fs.statSync(realPath);
                     if (stats.isDirectory()) {
-                        childProcess.execFileSync("cmd.exe", ["/c", "rd", "/s", "/q", im._normalizeSeparators(realPath)]);
+                        _rmWindows(realPath, true);
                         fs.unlinkSync(inputPath);
                     } else {
                         fs.unlinkSync(inputPath);
@@ -1831,7 +1856,7 @@ export function rmRF(inputPath: string): void {
                 }
             } else {
                 debug('removing file ' + inputPath);
-                childProcess.execFileSync("cmd.exe", ["/c", "del", "/f", "/a", im._normalizeSeparators(inputPath)]);
+                _rmWindows(inputPath, false);
             }
         } catch (err) {
             debug('Error: ' + err.message);

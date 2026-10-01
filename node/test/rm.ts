@@ -9,6 +9,23 @@ const DIRNAME = __dirname;
 
 import * as testutil from './testutil';
 
+const RM_RF_PATH_QUOTING_FEATURE = 'DISTRIBUTEDTASK_TASKS_ENABLERMRFCOMMANDPATHQUOTING';
+
+function rmRFWithPathQuoting(inputPath: string): void {
+  const previousValue = process.env[RM_RF_PATH_QUOTING_FEATURE];
+  process.env[RM_RF_PATH_QUOTING_FEATURE] = 'true';
+
+  try {
+    tl.rmRF(inputPath);
+  } finally {
+    if (previousValue === undefined) {
+      delete process.env[RM_RF_PATH_QUOTING_FEATURE];
+    } else {
+      process.env[RM_RF_PATH_QUOTING_FEATURE] = previousValue;
+    }
+  }
+}
+
 describe('rm cases', () => {
   const TEMP_DIR = fs.mkdtempSync(DIRNAME + path.sep);
   const TEMP_NESTED_DIR_LEVEL_1 = path.join(TEMP_DIR, 'a');
@@ -45,6 +62,72 @@ describe('rm cases', () => {
     assert.ok(!fs.existsSync(TEMP_FILE_1));
 
     done();
+  });
+
+  it('Remove a file with command metacharacters in its name', (done) => {
+    const filePath = path.join(TEMP_DIR, 'file&example');
+    fs.writeFileSync(filePath, 'test');
+
+    assert.ok(fs.existsSync(filePath));
+    assert.doesNotThrow(() => rmRFWithPathQuoting(filePath));
+    assert.ok(!fs.existsSync(filePath));
+
+    done();
+  });
+
+  it('Remove a file with environment variable syntax in its name', (done) => {
+    const filePath = path.join(TEMP_DIR, 'file%USERNAME%example');
+    fs.writeFileSync(filePath, 'test');
+
+    assert.ok(fs.existsSync(filePath));
+    assert.doesNotThrow(() => rmRFWithPathQuoting(filePath));
+    assert.ok(!fs.existsSync(filePath));
+
+    done();
+  });
+
+  it('Remove a directory with command metacharacters in its name', (done) => {
+    const directoryPath = path.join(TEMP_DIR, 'directory&example');
+    fs.mkdirSync(directoryPath, { recursive: true });
+    fs.writeFileSync(path.join(directoryPath, 'file'), 'test');
+
+    assert.ok(fs.existsSync(directoryPath));
+    assert.doesNotThrow(() => rmRFWithPathQuoting(directoryPath));
+    assert.ok(!fs.existsSync(directoryPath));
+
+    done();
+  });
+
+  it('Remove a directory with caret, delayed expansion, spaces and parentheses in its name', (done) => {
+    const directoryPath = path.join(TEMP_DIR, 'directory ^!USERNAME! (example)');
+    fs.mkdirSync(directoryPath, { recursive: true });
+    fs.writeFileSync(path.join(directoryPath, 'file'), 'test');
+
+    assert.ok(fs.existsSync(directoryPath));
+    assert.doesNotThrow(() => rmRFWithPathQuoting(directoryPath));
+    assert.ok(!fs.existsSync(directoryPath));
+
+    done();
+  });
+
+  [
+    'safe^example',
+    'safe!USERNAME!example',
+    'safe (example)',
+    'safe%example',
+    'safe%%example',
+  ].forEach((directoryName) => {
+    it(`Remove a directory named ${directoryName}`, (done) => {
+      const directoryPath = path.join(TEMP_DIR, directoryName);
+      fs.mkdirSync(directoryPath, { recursive: true });
+      fs.writeFileSync(path.join(directoryPath, 'file'), 'test');
+
+      assert.ok(fs.existsSync(directoryPath));
+      assert.doesNotThrow(() => rmRFWithPathQuoting(directoryPath));
+      assert.ok(!fs.existsSync(directoryPath));
+
+      done();
+    });
   });
 
   it('Remove subdirectory recursive at TEMP_NESTED_DIR_LEVEL_1', (done) => {
@@ -143,6 +226,38 @@ describe('rm cases', () => {
     assert.ok(fs.existsSync(linkPath));
 
     assert.doesNotThrow(() => tl.rmRF(linkPath));
+
+    assert.ok(!fs.existsSync(linkPath));
+    assert.ok(!fs.existsSync(dirPath));
+    done();
+  });
+
+  it('Removing symbolic link to a directory with command metacharacters in its target', (done) => {
+    const dirPath = path.join(TEMP_DIR, 'dir&example');
+    const linkPath = path.join(TEMP_DIR, 'link_to_dir_with_metacharacters');
+
+    fs.mkdirSync(dirPath, { recursive: true });
+    fs.writeFileSync(path.join(dirPath, 'file_in_dir'), 'test');
+    fs.symlinkSync(dirPath, linkPath, 'dir');
+    assert.ok(fs.existsSync(linkPath));
+
+    assert.doesNotThrow(() => rmRFWithPathQuoting(linkPath));
+
+    assert.ok(!fs.existsSync(linkPath));
+    assert.ok(!fs.existsSync(dirPath));
+    done();
+  });
+
+  it('Removing symbolic link to a directory with environment variable syntax in its target', (done) => {
+    const dirPath = path.join(TEMP_DIR, 'dir%USERNAME%example');
+    const linkPath = path.join(TEMP_DIR, 'link_to_dir_with_environment_variable_syntax');
+
+    fs.mkdirSync(dirPath, { recursive: true });
+    fs.writeFileSync(path.join(dirPath, 'file_in_dir'), 'test');
+    fs.symlinkSync(dirPath, linkPath, 'dir');
+    assert.ok(fs.existsSync(linkPath));
+
+    assert.doesNotThrow(() => rmRFWithPathQuoting(linkPath));
 
     assert.ok(!fs.existsSync(linkPath));
     assert.ok(!fs.existsSync(dirPath));
