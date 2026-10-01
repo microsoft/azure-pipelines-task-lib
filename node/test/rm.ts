@@ -9,6 +9,23 @@ const DIRNAME = __dirname;
 
 import * as testutil from './testutil';
 
+const RM_RF_PATH_QUOTING_FEATURE = 'DISTRIBUTEDTASK_TASKS_ENABLERMRFCOMMANDPATHQUOTING';
+
+function rmRFWithPathQuoting(inputPath: string): void {
+  const previousValue = process.env[RM_RF_PATH_QUOTING_FEATURE];
+  process.env[RM_RF_PATH_QUOTING_FEATURE] = 'true';
+
+  try {
+    tl.rmRF(inputPath);
+  } finally {
+    if (previousValue === undefined) {
+      delete process.env[RM_RF_PATH_QUOTING_FEATURE];
+    } else {
+      process.env[RM_RF_PATH_QUOTING_FEATURE] = previousValue;
+    }
+  }
+}
+
 describe('rm cases', () => {
   const TEMP_DIR = fs.mkdtempSync(DIRNAME + path.sep);
   const TEMP_NESTED_DIR_LEVEL_1 = path.join(TEMP_DIR, 'a');
@@ -52,7 +69,7 @@ describe('rm cases', () => {
     fs.writeFileSync(filePath, 'test');
 
     assert.ok(fs.existsSync(filePath));
-    assert.doesNotThrow(() => tl.rmRF(filePath));
+    assert.doesNotThrow(() => rmRFWithPathQuoting(filePath));
     assert.ok(!fs.existsSync(filePath));
 
     done();
@@ -63,7 +80,7 @@ describe('rm cases', () => {
     fs.writeFileSync(filePath, 'test');
 
     assert.ok(fs.existsSync(filePath));
-    assert.doesNotThrow(() => tl.rmRF(filePath));
+    assert.doesNotThrow(() => rmRFWithPathQuoting(filePath));
     assert.ok(!fs.existsSync(filePath));
 
     done();
@@ -75,7 +92,7 @@ describe('rm cases', () => {
     fs.writeFileSync(path.join(directoryPath, 'file'), 'test');
 
     assert.ok(fs.existsSync(directoryPath));
-    assert.doesNotThrow(() => tl.rmRF(directoryPath));
+    assert.doesNotThrow(() => rmRFWithPathQuoting(directoryPath));
     assert.ok(!fs.existsSync(directoryPath));
 
     done();
@@ -87,7 +104,7 @@ describe('rm cases', () => {
     fs.writeFileSync(path.join(directoryPath, 'file'), 'test');
 
     assert.ok(fs.existsSync(directoryPath));
-    assert.doesNotThrow(() => tl.rmRF(directoryPath));
+    assert.doesNotThrow(() => rmRFWithPathQuoting(directoryPath));
     assert.ok(!fs.existsSync(directoryPath));
 
     done();
@@ -106,7 +123,7 @@ describe('rm cases', () => {
       fs.writeFileSync(path.join(directoryPath, 'file'), 'test');
 
       assert.ok(fs.existsSync(directoryPath));
-      assert.doesNotThrow(() => tl.rmRF(directoryPath));
+      assert.doesNotThrow(() => rmRFWithPathQuoting(directoryPath));
       assert.ok(!fs.existsSync(directoryPath));
 
       done();
@@ -224,7 +241,7 @@ describe('rm cases', () => {
     fs.symlinkSync(dirPath, linkPath, 'dir');
     assert.ok(fs.existsSync(linkPath));
 
-    assert.doesNotThrow(() => tl.rmRF(linkPath));
+    assert.doesNotThrow(() => rmRFWithPathQuoting(linkPath));
 
     assert.ok(!fs.existsSync(linkPath));
     assert.ok(!fs.existsSync(dirPath));
@@ -240,7 +257,7 @@ describe('rm cases', () => {
     fs.symlinkSync(dirPath, linkPath, 'dir');
     assert.ok(fs.existsSync(linkPath));
 
-    assert.doesNotThrow(() => tl.rmRF(linkPath));
+    assert.doesNotThrow(() => rmRFWithPathQuoting(linkPath));
 
     assert.ok(!fs.existsSync(linkPath));
     assert.ok(!fs.existsSync(dirPath));

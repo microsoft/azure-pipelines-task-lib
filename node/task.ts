@@ -1802,7 +1802,18 @@ function _quoteWindowsCmdPath(value: string): string {
 }
 
 function _rmWindows(targetPath: string, isDirectory: boolean): void {
-    const quotedPath = _quoteWindowsCmdPath(im._normalizeSeparators(targetPath));
+    const normalizedPath = im._normalizeSeparators(targetPath);
+
+    if (!getPipelineFeature('EnableRmRFCommandPathQuoting')) {
+        const legacyArgs = isDirectory
+            ? ['/c', 'rd', '/s', '/q', normalizedPath]
+            : ['/c', 'del', '/f', '/a', normalizedPath];
+
+        childProcess.execFileSync('cmd.exe', legacyArgs);
+        return;
+    }
+
+    const quotedPath = _quoteWindowsCmdPath(normalizedPath);
     const args = isDirectory
         ? ['/c', 'rd', '/s', '/q', quotedPath]
         : ['/c', 'del', '/f', '/a', quotedPath];
