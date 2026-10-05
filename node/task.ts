@@ -1840,8 +1840,8 @@ function _rmWindows(targetPath: string, isDirectory: boolean): void {
 
     const quotedPath = _quoteWindowsCmdPath(normalizedPath);
     const args = isDirectory
-        ? ['/c', 'rd', '/s', '/q', quotedPath]
-        : ['/c', 'del', '/f', '/a', quotedPath];
+        ? ['/d', '/v:off', '/c', 'rd', '/s', '/q', quotedPath]
+        : ['/d', '/v:off', '/c', 'del', '/f', '/a', quotedPath];
     const options: childProcess.ExecFileSyncOptions & Pick<childProcess.SpawnOptions, 'windowsVerbatimArguments'> = {
         windowsVerbatimArguments: true
     };

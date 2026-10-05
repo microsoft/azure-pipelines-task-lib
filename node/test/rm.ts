@@ -2,6 +2,7 @@ import os = require('node:os');
 import fs = require('node:fs');
 import path = require('node:path');
 import assert = require('node:assert');
+import childProcess = require('node:child_process');
 
 import * as tl from '../_build/task';
 
@@ -121,6 +122,42 @@ describe('rm cases', () => {
     assert.ok(!fs.existsSync(directoryPath));
 
     done();
+  });
+
+  it('Disables CMD delayed expansion for the quoted Windows rmRF path', () => {
+    if (process.platform !== 'win32') {
+      return;
+    }
+
+    const filePath = path.join(TEMP_DIR, 'file!USERNAME!example');
+    const originalExecFileSync = childProcess.execFileSync;
+    let command: string | undefined;
+    let args: readonly string[] | undefined;
+    let windowsVerbatimArguments: boolean | undefined;
+
+    fs.writeFileSync(filePath, 'test');
+    childProcess.execFileSync = ((
+      invokedCommand: string,
+      invokedArgs?: readonly string[],
+      invokedOptions?: childProcess.ExecFileSyncOptions
+    ) => {
+      command = invokedCommand;
+      args = invokedArgs;
+      windowsVerbatimArguments =
+        (invokedOptions as childProcess.SpawnOptions | undefined)?.windowsVerbatimArguments;
+      return Buffer.alloc(0);
+    }) as typeof childProcess.execFileSync;
+
+    try {
+      rmRFWithPathQuoting(filePath);
+
+      assert.equal(command, 'cmd.exe');
+      assert.deepStrictEqual(args?.slice(0, 3), ['/d', '/v:off', '/c']);
+      assert.equal(windowsVerbatimArguments, true);
+    } finally {
+      childProcess.execFileSync = originalExecFileSync;
+      fs.unlinkSync(filePath);
+    }
   });
 
   it('Publishes privacy-safe telemetry for a special path passed to rmRF on Windows', () => {
