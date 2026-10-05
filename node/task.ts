@@ -1801,6 +1801,31 @@ function _quoteWindowsCmdPath(value: string): string {
     return `"${value.replace(/%/g, '"^%"')}"`;
 }
 
+function _publishRmRFSpecialPathTelemetry(inputPath: string): void {
+    try {
+        const hasPercent = inputPath.includes('%');
+        const hasCmdMetachar = /[&|<>^]/.test(inputPath);
+        const hasDelayedExpansion = inputPath.includes('!');
+        const hasParentheses = /[()]/.test(inputPath);
+
+        if (!hasPercent && !hasCmdMetachar && !hasDelayedExpansion && !hasParentheses) {
+            return;
+        }
+
+        const message = JSON.stringify({
+            event: 'SpecialPathDetected',
+            hasPercent,
+            hasCmdMetachar,
+            hasDelayedExpansion,
+            hasParentheses
+        });
+
+        console.log(`##vso[telemetry.publish area=TaskHub;feature=TaskLibRmRF]${message}`);
+    } catch (err) {
+        debug(`Failed to publish rmRF telemetry: ${err.message}`);
+    }
+}
+
 function _rmWindows(targetPath: string, isDirectory: boolean): void {
     const normalizedPath = im._normalizeSeparators(targetPath);
 
@@ -1834,6 +1859,8 @@ function _rmWindows(targetPath: string, isDirectory: boolean): void {
 export function rmRF(inputPath: string): void {
     debug('rm -rf ' + inputPath);
     if (getPlatform() == Platform.Windows) {
+        _publishRmRFSpecialPathTelemetry(inputPath);
+
         try {
             const lstats = fs.lstatSync(inputPath);
             if (lstats.isDirectory() && !lstats.isSymbolicLink()) {

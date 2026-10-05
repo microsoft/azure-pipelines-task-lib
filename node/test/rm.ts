@@ -26,6 +26,19 @@ function rmRFWithPathQuoting(inputPath: string): void {
   }
 }
 
+function captureRmRFTelemetry(inputPath: string): string {
+  const output: string[] = [];
+  const originalConsoleLog = console.log;
+  console.log = (message?: any) => output.push(String(message));
+
+  try {
+    tl.rmRF(inputPath);
+    return output.join(os.EOL);
+  } finally {
+    console.log = originalConsoleLog;
+  }
+}
+
 describe('rm cases', () => {
   const TEMP_DIR = fs.mkdtempSync(DIRNAME + path.sep);
   const TEMP_NESTED_DIR_LEVEL_1 = path.join(TEMP_DIR, 'a');
@@ -108,6 +121,56 @@ describe('rm cases', () => {
     assert.ok(!fs.existsSync(directoryPath));
 
     done();
+  });
+
+  it('Publishes privacy-safe telemetry for a special path passed to rmRF on Windows', () => {
+    if (process.platform !== 'win32') {
+      return;
+    }
+
+    const inputPath = path.join(TEMP_DIR, 'missing%&^!()example');
+    const output = captureRmRFTelemetry(inputPath);
+    const payload = {
+      event: 'SpecialPathDetected',
+      hasPercent: true,
+      hasCmdMetachar: true,
+      hasDelayedExpansion: true,
+      hasParentheses: true
+    };
+    const telemetryLine =
+      `##vso[telemetry.publish area=TaskHub;feature=TaskLibRmRF]${JSON.stringify(payload)}`;
+
+    assert.ok(output.split(os.EOL).includes(telemetryLine), 'Expected rmRF telemetry to be published');
+    assert.ok(!telemetryLine.includes(inputPath), 'Telemetry must not contain the path');
+  });
+
+  it('Does not publish telemetry for an ordinary path passed to rmRF on Windows', () => {
+    if (process.platform !== 'win32') {
+      return;
+    }
+
+    const inputPath = path.join(TEMP_DIR, 'missing-safe-example');
+    const output = captureRmRFTelemetry(inputPath);
+
+    assert.ok(!output.includes('##vso[telemetry.publish'), 'Ordinary paths should not emit rmRF telemetry');
+  });
+
+  it('Does not fail rmRF when telemetry publishing fails on Windows', () => {
+    if (process.platform !== 'win32') {
+      return;
+    }
+
+    const originalConsoleLog = console.log;
+    console.log = () => {
+      throw new Error('Telemetry write failed');
+    };
+
+    try {
+      const inputPath = path.join(TEMP_DIR, 'missing&telemetry-failure');
+      assert.doesNotThrow(() => tl.rmRF(inputPath));
+    } finally {
+      console.log = originalConsoleLog;
+    }
   });
 
   [
