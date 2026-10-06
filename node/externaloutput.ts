@@ -109,10 +109,14 @@ function resolveVsoCommandMode(mode: VsoCommandMode | undefined): ResolvedVsoCom
 }
 
 function publishVsoCommandTelemetry(event: VsoCommandTelemetryEvent): void {
-    im._command(
-        'telemetry.publish',
-        { area: 'TaskLib', feature: 'ExternalOutputVsoCommand' },
-        JSON.stringify(event));
+    try {
+        im._command(
+            'telemetry.publish',
+            { area: 'TaskLib', feature: 'ExternalOutputVsoCommand' },
+            JSON.stringify(event));
+    } catch (_err) {
+        // Telemetry is best effort and must not interrupt external-output handling.
+    }
 }
 
 function createMarkerFilter(options: ExternalOutputOptions): MarkerFilter {
