@@ -43,31 +43,93 @@ const MAX_HEADER = 256;
 /** Commands allowed by default once VSO commands are enabled for a path. */
 export const defaultAllowedVsoCommands: readonly string[] = Object.freeze(['task.debug', 'task.setprogress']);
 
+/** Controls whether VSO commands are blocked, reported through telemetry, both, or neither. */
+export type VsoCommandMode = 'disabled' | 'telemetryOnly' | 'blockOnly' | 'blockAndTelemetry';
+
 /**
  * Where the external output originates. Used for documentation and telemetry only; it does
  * NOT select an automatic allowlist. A task must explicitly enable VSO commands when needed.
  */
 export type ExternalOutputSource = 'remote' | 'childProcess' | 'repository';
 
+export interface VsoCommandTelemetryEvent {
+    source: ExternalOutputSource;
+    commandName: string;
+    blocked: boolean;
+}
+
+export type VsoCommandTelemetrySink = (event: VsoCommandTelemetryEvent) => void;
+
 export interface ExternalOutputOptions {
     /** Origin of the output. Documentation/telemetry only. */
     source: ExternalOutputSource;
 
     /**
-     * When false or omitted, every "##vso[" marker is blocked. When true, markers whose
-     * command name is in the effective allowlist pass through unchanged.
+        * Controls VSO command blocking and telemetry.
+        * @defaultValue 'blockOnly'
+     */
+    vsoCommandMode?: VsoCommandMode;
+
+    /**
+        * When blocking is active, false or omitted blocks every "##vso[" marker. When true,
+        * markers whose command name is in the effective allowlist pass through unchanged.
      */
     enableVsoCommands?: boolean;
 
     /**
      * The allowlist of "area.event" command names to permit when enableVsoCommands is true.
      * Replaces (does not extend) the default list. An explicit empty array allows nothing.
-     * Has no effect when enableVsoCommands is false.
+    * Has no effect when enableVsoCommands is false or blocking is inactive.
      */
     allowedVsoCommands?: readonly string[];
 
     /** Destination for filtered output. Defaults to process.stdout. */
     destination?: NodeJS.WritableStream;
+}
+
+interface ResolvedVsoCommandMode {
+    block: boolean;
+    telemetry: boolean;
+}
+
+function resolveVsoCommandMode(mode: VsoCommandMode | undefined): ResolvedVsoCommandMode {
+    switch (mode || 'blockOnly') {
+        case 'disabled':
+            return { block: false, telemetry: false };
+        case 'telemetryOnly':
+            return { block: false, telemetry: true };
+        case 'blockAndTelemetry':
+            return { block: true, telemetry: true };
+        case 'blockOnly':
+            return { block: true, telemetry: false };
+        default:
+            // JavaScript callers can bypass the TypeScript union. Preserve the secure default.
+            return { block: true, telemetry: false };
+    }
+}
+
+function publishVsoCommandTelemetry(event: VsoCommandTelemetryEvent): void {
+    try {
+        im._command(
+            'telemetry.publish',
+            { area: 'TaskLib', feature: 'ExternalOutputVsoCommand' },
+            JSON.stringify(event));
+    } catch (_err) {
+        // Telemetry is best effort and must not interrupt external-output handling.
+    }
+}
+
+function createMarkerFilter(options: ExternalOutputOptions): MarkerFilter {
+    const mode = resolveVsoCommandMode(options.vsoCommandMode);
+    const telemetry = mode.telemetry
+        ? (event: VsoCommandTelemetryEvent) => publishVsoCommandTelemetry(event)
+        : undefined;
+    return new MarkerFilter(
+        !!options.enableVsoCommands,
+        resolveAllowed(options),
+        mode.block,
+        options.source,
+        telemetry);
 }
 
 function resolveAllowed(options: ExternalOutputOptions): Set<string> {
@@ -133,7 +195,12 @@ function scanHeader(buf: Buffer, start: number): { term: number; newline: boolea
 export class MarkerFilter {
     private pending: Buffer = EMPTY;
 
-    constructor(private readonly enabled: boolean, private readonly allowed: Set<string>) {}
+    constructor(
+        private readonly enabled: boolean,
+        private readonly allowed: Set<string>,
+        private readonly block: boolean = true,
+        private readonly source?: ExternalOutputSource,
+        private readonly telemetry?: VsoCommandTelemetrySink) {}
 
     public push(chunk: Buffer): Buffer {
         let buf = this.pending.length ? Buffer.concat([this.pending, chunk]) : chunk;
@@ -163,20 +230,26 @@ export class MarkerFilter {
 
             const afterMarker = idx + MARKER.length;
 
-            if (!this.enabled) {
+            if (this.block && !this.enabled && !this.telemetry) {
                 out.push(NEUTRALIZED);
                 pos = afterMarker;
                 continue;
             }
 
-            // Enabled: read the command name (up to the first space or ']') and allow the marker
-            // only when that name is allowlisted.
+            if (!this.block && !this.telemetry) {
+                out.push(MARKER);
+                pos = afterMarker;
+                continue;
+            }
+
+            // Read the command name (up to the first space or ']') for telemetry and, when
+            // blocking, to determine whether the marker is allowlisted.
             const { term, newline } = scanHeader(buf, afterMarker);
 
             if (term === -1) {
                 if (buf.length - afterMarker >= MAX_HEADER) {
                     // No terminator within the bound: fail closed.
-                    out.push(NEUTRALIZED);
+                    out.push(this.block ? NEUTRALIZED : MARKER);
                     pos = afterMarker;
                     continue;
                 }
@@ -188,15 +261,19 @@ export class MarkerFilter {
             // A CR/LF before the terminator means the agent (which parses per line) would never
             // treat this as a command, so we fail closed and neutralize.
             if (newline) {
-                out.push(NEUTRALIZED);
+                out.push(this.block ? NEUTRALIZED : MARKER);
                 pos = afterMarker;
                 continue;
             }
 
             const name = canonicalCommandName(buf.toString('utf8', afterMarker, term));
+            const blocked = this.block && !(this.enabled && name && this.allowed.has(name));
+            if (this.telemetry && name && this.source) {
+                this.telemetry({ source: this.source, commandName: name, blocked });
+            }
             // Allowlisted markers pass unchanged; the header/data after them flow through as
             // ordinary bytes and any later markers are evaluated independently.
-            out.push(name && this.allowed.has(name) ? MARKER : NEUTRALIZED);
+            out.push(blocked ? NEUTRALIZED : MARKER);
             pos = afterMarker;
         }
 
@@ -218,7 +295,7 @@ export class MarkerFilter {
             return EMPTY;
         }
         // An incomplete command candidate that begins with the full marker is neutralized.
-        if (this.enabled && p.length >= MARKER.length && p.subarray(0, MARKER.length).equals(MARKER)) {
+        if (this.block && p.length >= MARKER.length && p.subarray(0, MARKER.length).equals(MARKER)) {
             return Buffer.concat([NEUTRALIZED, p.subarray(MARKER.length)]);
         }
         // A partial marker (fewer than the full bytes) cannot be executed by the agent, so it
@@ -237,7 +314,7 @@ export class ExternalOutputStream extends stream.Transform {
 
     constructor(options: ExternalOutputOptions) {
         super();
-        this.markerFilter = new MarkerFilter(!!options.enableVsoCommands, resolveAllowed(options));
+        this.markerFilter = createMarkerFilter(options);
     }
 
     _transform(chunk: any, _encoding: string, callback: (error?: Error | null) => void): void {
@@ -282,7 +359,7 @@ export function createExternalOutputStream(options: ExternalOutputOptions): Exte
 
 /** Filters one complete value for internal task-lib consumers. */
 export function filterExternalOutput(data: string | Buffer, options: ExternalOutputOptions): Buffer {
-    const filter = new MarkerFilter(!!options.enableVsoCommands, resolveAllowed(options));
+    const filter = createMarkerFilter(options);
     const buf = Buffer.isBuffer(data) ? data : Buffer.from(String(data), 'utf8');
     const filtered = filter.push(buf);
     const pending = filter.flush();
@@ -296,7 +373,7 @@ export interface FilteredWriter {
 
 /** Creates a stateful writer for internal consumers that receive output in chunks. */
 export function createFilteredWriter(options: ExternalOutputOptions, destination: NodeJS.WritableStream): FilteredWriter {
-    const filter = new MarkerFilter(!!options.enableVsoCommands, resolveAllowed(options));
+    const filter = createMarkerFilter(options);
     let ended = false;
 
     return {
