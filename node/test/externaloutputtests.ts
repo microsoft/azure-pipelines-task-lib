@@ -57,10 +57,37 @@ describe('External Output Filter', function () {
         });
 
         it('supports telemetry-only mode without blocking', function () {
-            const result = filter('telemetryOnly');
-            assert.strictEqual(result.output, '##vso[task.complete result=Failed]x');
-            assert.match(result.telemetry, /^##vso\[telemetry\.publish area=TaskLib;feature=ExternalOutputVsoCommand;\]/);
-            assert.match(result.telemetry, /"source":"childProcess","commandName":"task\.complete","blocked":false/);
+            const variableNames = [
+                'SYSTEM_TASKINSTANCEID',
+                'SYSTEM_TASKINSTANCENAME',
+                'SYSTEM_JOBID',
+                'SYSTEM_PLANID'
+            ];
+            const originalValues = variableNames.map((name) => process.env[name]);
+            variableNames.forEach((name, index) => { process.env[name] = `test-value-${index}`; });
+            try {
+                const result = filter('telemetryOnly');
+                assert.strictEqual(result.output, '##vso[task.complete result=Failed]x');
+                const telemetryEvent = result.telemetry.match(/##vso\[telemetry\.publish[^\]]*\](\{[^\r\n]*\})/);
+                assert.ok(telemetryEvent);
+                assert.deepStrictEqual(JSON.parse(telemetryEvent[1]), {
+                    source: 'childProcess',
+                    commandName: 'task.complete',
+                    blocked: false,
+                    SYSTEM_TASKINSTANCEID: 'test-value-0',
+                    SYSTEM_TASKINSTANCENAME: 'test-value-1',
+                    SYSTEM_JOBID: 'test-value-2',
+                    SYSTEM_PLANID: 'test-value-3'
+                });
+            } finally {
+                variableNames.forEach((name, index) => {
+                    if (originalValues[index] === undefined) {
+                        delete process.env[name];
+                    } else {
+                        process.env[name] = originalValues[index];
+                    }
+                });
+            }
         });
 
         it('supports blocking with telemetry', function () {
