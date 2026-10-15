@@ -34,6 +34,10 @@ module.exports.setErrStream = task.setErrStream;
 module.exports.setResult = task.setResult;
 module.exports.setSanitizedResult = task.setSanitizedResult;
 
+module.exports.extractZipSecure = task.extractZipSecure;
+module.exports.SecureZipExtractor = task.SecureZipExtractor;
+module.exports.createZipSecure = task.createZipSecure;
+module.exports.SecureZipArchive = task.SecureZipArchive;
 //-----------------------------------------------------
 // Loc Helpers
 //-----------------------------------------------------

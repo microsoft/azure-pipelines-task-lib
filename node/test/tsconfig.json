@@ -36,6 +36,8 @@
         "resulttests.ts",
         "retrytests.ts",
         "rm.ts",
+        "secureZipArchiveTests.ts",
+        "secureZipExtractTests.ts",
         "taskissuecommandtests.ts",
         "toolrunnertests.ts",
         "toolrunnerexternaloutputtests.ts",
