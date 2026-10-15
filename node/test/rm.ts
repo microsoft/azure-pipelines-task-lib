@@ -2,12 +2,43 @@ import os = require('node:os');
 import fs = require('node:fs');
 import path = require('node:path');
 import assert = require('node:assert');
+import childProcess = require('node:child_process');
 
 import * as tl from '../_build/task';
 
 const DIRNAME = __dirname;
 
 import * as testutil from './testutil';
+
+const RM_RF_PATH_QUOTING_FEATURE = 'DISTRIBUTEDTASK_TASKS_ENABLERMRFCOMMANDPATHQUOTING';
+
+function rmRFWithPathQuoting(inputPath: string): void {
+  const previousValue = process.env[RM_RF_PATH_QUOTING_FEATURE];
+  process.env[RM_RF_PATH_QUOTING_FEATURE] = 'true';
+
+  try {
+    tl.rmRF(inputPath);
+  } finally {
+    if (previousValue === undefined) {
+      delete process.env[RM_RF_PATH_QUOTING_FEATURE];
+    } else {
+      process.env[RM_RF_PATH_QUOTING_FEATURE] = previousValue;
+    }
+  }
+}
+
+function captureRmRFTelemetry(inputPath: string): string {
+  const output: string[] = [];
+  const originalConsoleLog = console.log;
+  console.log = (message?: any) => output.push(String(message));
+
+  try {
+    tl.rmRF(inputPath);
+    return output.join(os.EOL);
+  } finally {
+    console.log = originalConsoleLog;
+  }
+}
 
 describe('rm cases', () => {
   const TEMP_DIR = fs.mkdtempSync(DIRNAME + path.sep);
@@ -45,6 +76,158 @@ describe('rm cases', () => {
     assert.ok(!fs.existsSync(TEMP_FILE_1));
 
     done();
+  });
+
+  it('Remove a file with command metacharacters in its name', (done) => {
+    const filePath = path.join(TEMP_DIR, 'file&example');
+    fs.writeFileSync(filePath, 'test');
+
+    assert.ok(fs.existsSync(filePath));
+    assert.doesNotThrow(() => rmRFWithPathQuoting(filePath));
+    assert.ok(!fs.existsSync(filePath));
+
+    done();
+  });
+
+  it('Remove a file with environment variable syntax in its name', (done) => {
+    const filePath = path.join(TEMP_DIR, 'file%USERNAME%example');
+    fs.writeFileSync(filePath, 'test');
+
+    assert.ok(fs.existsSync(filePath));
+    assert.doesNotThrow(() => rmRFWithPathQuoting(filePath));
+    assert.ok(!fs.existsSync(filePath));
+
+    done();
+  });
+
+  it('Remove a directory with command metacharacters in its name', (done) => {
+    const directoryPath = path.join(TEMP_DIR, 'directory&example');
+    fs.mkdirSync(directoryPath, { recursive: true });
+    fs.writeFileSync(path.join(directoryPath, 'file'), 'test');
+
+    assert.ok(fs.existsSync(directoryPath));
+    assert.doesNotThrow(() => rmRFWithPathQuoting(directoryPath));
+    assert.ok(!fs.existsSync(directoryPath));
+
+    done();
+  });
+
+  it('Remove a directory with caret, delayed expansion, spaces and parentheses in its name', (done) => {
+    const directoryPath = path.join(TEMP_DIR, 'directory ^!USERNAME! (example)');
+    fs.mkdirSync(directoryPath, { recursive: true });
+    fs.writeFileSync(path.join(directoryPath, 'file'), 'test');
+
+    assert.ok(fs.existsSync(directoryPath));
+    assert.doesNotThrow(() => rmRFWithPathQuoting(directoryPath));
+    assert.ok(!fs.existsSync(directoryPath));
+
+    done();
+  });
+
+  it('Disables CMD delayed expansion for the quoted Windows rmRF path', () => {
+    if (process.platform !== 'win32') {
+      return;
+    }
+
+    const filePath = path.join(TEMP_DIR, 'file!USERNAME!example');
+    const originalExecFileSync = childProcess.execFileSync;
+    let command: string | undefined;
+    let args: readonly string[] | undefined;
+    let windowsVerbatimArguments: boolean | undefined;
+
+    fs.writeFileSync(filePath, 'test');
+    childProcess.execFileSync = ((
+      invokedCommand: string,
+      invokedArgs?: readonly string[],
+      invokedOptions?: childProcess.ExecFileSyncOptions
+    ) => {
+      command = invokedCommand;
+      args = invokedArgs;
+      windowsVerbatimArguments =
+        (invokedOptions as childProcess.SpawnOptions | undefined)?.windowsVerbatimArguments;
+      return Buffer.alloc(0);
+    }) as typeof childProcess.execFileSync;
+
+    try {
+      rmRFWithPathQuoting(filePath);
+
+      assert.equal(command, 'cmd.exe');
+      assert.deepStrictEqual(args?.slice(0, 3), ['/d', '/v:off', '/c']);
+      assert.equal(windowsVerbatimArguments, true);
+    } finally {
+      childProcess.execFileSync = originalExecFileSync;
+      fs.unlinkSync(filePath);
+    }
+  });
+
+  it('Publishes privacy-safe telemetry for a special path passed to rmRF on Windows', () => {
+    if (process.platform !== 'win32') {
+      return;
+    }
+
+    const inputPath = path.join(TEMP_DIR, 'missing%&^!()example');
+    const output = captureRmRFTelemetry(inputPath);
+    const payload = {
+      event: 'SpecialPathDetected',
+      hasPercent: true,
+      hasCmdMetachar: true,
+      hasDelayedExpansion: true,
+      hasParentheses: true
+    };
+    const telemetryLine =
+      `##vso[telemetry.publish area=TaskHub;feature=TaskLibRmRF]${JSON.stringify(payload)}`;
+
+    assert.ok(output.split(os.EOL).includes(telemetryLine), 'Expected rmRF telemetry to be published');
+    assert.ok(!telemetryLine.includes(inputPath), 'Telemetry must not contain the path');
+  });
+
+  it('Does not publish telemetry for an ordinary path passed to rmRF on Windows', () => {
+    if (process.platform !== 'win32') {
+      return;
+    }
+
+    const inputPath = path.join(TEMP_DIR, 'missing-safe-example');
+    const output = captureRmRFTelemetry(inputPath);
+
+    assert.ok(!output.includes('##vso[telemetry.publish'), 'Ordinary paths should not emit rmRF telemetry');
+  });
+
+  it('Does not fail rmRF when telemetry publishing fails on Windows', () => {
+    if (process.platform !== 'win32') {
+      return;
+    }
+
+    const originalConsoleLog = console.log;
+    console.log = () => {
+      throw new Error('Telemetry write failed');
+    };
+
+    try {
+      const inputPath = path.join(TEMP_DIR, 'missing&telemetry-failure');
+      assert.doesNotThrow(() => tl.rmRF(inputPath));
+    } finally {
+      console.log = originalConsoleLog;
+    }
+  });
+
+  [
+    'safe^example',
+    'safe!USERNAME!example',
+    'safe (example)',
+    'safe%example',
+    'safe%%example',
+  ].forEach((directoryName) => {
+    it(`Remove a directory named ${directoryName}`, (done) => {
+      const directoryPath = path.join(TEMP_DIR, directoryName);
+      fs.mkdirSync(directoryPath, { recursive: true });
+      fs.writeFileSync(path.join(directoryPath, 'file'), 'test');
+
+      assert.ok(fs.existsSync(directoryPath));
+      assert.doesNotThrow(() => rmRFWithPathQuoting(directoryPath));
+      assert.ok(!fs.existsSync(directoryPath));
+
+      done();
+    });
   });
 
   it('Remove subdirectory recursive at TEMP_NESTED_DIR_LEVEL_1', (done) => {
@@ -143,6 +326,38 @@ describe('rm cases', () => {
     assert.ok(fs.existsSync(linkPath));
 
     assert.doesNotThrow(() => tl.rmRF(linkPath));
+
+    assert.ok(!fs.existsSync(linkPath));
+    assert.ok(!fs.existsSync(dirPath));
+    done();
+  });
+
+  it('Removing symbolic link to a directory with command metacharacters in its target', (done) => {
+    const dirPath = path.join(TEMP_DIR, 'dir&example');
+    const linkPath = path.join(TEMP_DIR, 'link_to_dir_with_metacharacters');
+
+    fs.mkdirSync(dirPath, { recursive: true });
+    fs.writeFileSync(path.join(dirPath, 'file_in_dir'), 'test');
+    fs.symlinkSync(dirPath, linkPath, 'dir');
+    assert.ok(fs.existsSync(linkPath));
+
+    assert.doesNotThrow(() => rmRFWithPathQuoting(linkPath));
+
+    assert.ok(!fs.existsSync(linkPath));
+    assert.ok(!fs.existsSync(dirPath));
+    done();
+  });
+
+  it('Removing symbolic link to a directory with environment variable syntax in its target', (done) => {
+    const dirPath = path.join(TEMP_DIR, 'dir%USERNAME%example');
+    const linkPath = path.join(TEMP_DIR, 'link_to_dir_with_environment_variable_syntax');
+
+    fs.mkdirSync(dirPath, { recursive: true });
+    fs.writeFileSync(path.join(dirPath, 'file_in_dir'), 'test');
+    fs.symlinkSync(dirPath, linkPath, 'dir');
+    assert.ok(fs.existsSync(linkPath));
+
+    assert.doesNotThrow(() => rmRFWithPathQuoting(linkPath));
 
     assert.ok(!fs.existsSync(linkPath));
     assert.ok(!fs.existsSync(dirPath));
