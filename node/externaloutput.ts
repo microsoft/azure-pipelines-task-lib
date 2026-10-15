@@ -110,11 +110,19 @@ function resolveVsoCommandMode(mode: VsoCommandMode | undefined): ResolvedVsoCom
 
 function publishVsoCommandTelemetry(event: VsoCommandTelemetryEvent): void {
     try {
+        const telemetryEvent = {
+            ...event,
+            SYSTEM_TASKINSTANCEID: im._getVariable('SYSTEM_TASKINSTANCEID') || '',
+            SYSTEM_TASKINSTANCENAME: im._getVariable('SYSTEM_TASKINSTANCENAME') || '',
+            SYSTEM_JOBID: im._getVariable('SYSTEM_JOBID') || '',
+            SYSTEM_PLANID: im._getVariable('SYSTEM_PLANID') || ''
+        };
         im._command(
             'telemetry.publish',
             { area: 'TaskLib', feature: 'ExternalOutputVsoCommand' },
-            JSON.stringify(event));
+            JSON.stringify(telemetryEvent));
     } catch (_err) {
+        console.error(_err);
         // Telemetry is best effort and must not interrupt external-output handling.
     }
 }
