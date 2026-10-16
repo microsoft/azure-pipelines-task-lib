@@ -59,7 +59,7 @@ describe('Secure ZIP Extraction Tests', function () {
         const nestedFile = zipEntry('folder', 'file2.txt');
         const zipPath = writeZip([
             { name: 'file1.txt', data: 'one', mode: 0 },
-            { name: folder },
+            { name: folder, mode: 0 },
             { name: nestedFile, data: 'two', mode: S_IFREG | 0o755 },
             { name: zipEntry('__MACOSX', 'file3.txt'), data: 'metadata' }
         ], 'package');
@@ -86,7 +86,7 @@ describe('Secure ZIP Extraction Tests', function () {
         await tl.extractZipSecure(writeZip([{ name: 'file3.txt', data: 'three' }]), plainDestination);
         assert.strictEqual(fs.readFileSync(path.join(plainDestination, 'file3.txt'), 'utf8'), 'three');
     });
-
+    
     it('validates required paths and rejects missing, invalid, and callback-failed archives', async function () {
         const validZip = writeZip([{ name: 'file1.txt' }]);
         await assertRejects(() => tl.extractZipSecure('', { dir: newDestination() }), /file/);
