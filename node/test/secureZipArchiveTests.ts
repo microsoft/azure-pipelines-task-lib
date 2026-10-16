@@ -42,6 +42,25 @@ describe('Secure ZIP Archive Tests', function () {
         tl.rmRF(workDir);
     });
 
+    it('round-trips the same files and contents through createZipSecure and extractZipSecure', async function () {
+        const source = createSource(workDir, 'source', {
+            'file1.txt': 'first file',
+            'empty.txt': '',
+            [zipEntry('folder', 'file2.txt')]: 'second file',
+            [zipEntry('folder', 'nested', 'file3.txt')]: 'third file'
+        });
+        const expected = readTree(source);
+        const zipFile = path.join(workDir, 'archive.zip');
+        const destination = newPath('output');
+
+        await tl.createZipSecure(source, zipFile);
+        assert(fs.statSync(zipFile).isFile());
+
+        await tl.extractZipSecure(zipFile, { dir: destination });
+
+        assert.deepStrictEqual(readTree(destination), expected);
+    });
+
     it('creates filtered folder archives with nested output paths, ZIP paths, empty folders, and any extension', async function () {
         const source = createSource(workDir, 'source1', {
             'file1.txt': 'one',
