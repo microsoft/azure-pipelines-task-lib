@@ -10,6 +10,9 @@ import trm = require('./toolrunner');
 import eom = require('./externaloutput');
 import semver = require('semver');
 
+export { extractZipSecure, SecureZipExtractor, ExtractZipOptions, ExtractedEntry, ZipExtractorOptions } from './secureZipExtract';
+export { createZipSecure, SecureZipArchive, AddFileOptions, CreateZipOptions, ZipArchiveOptions, ZipEntryFilter, ZipSymlinkMode } from './secureZipArchive';
+
 type OptionCases<T extends string> = `-${Uppercase<T> | Lowercase<T>}`;
 
 type OptionsPermutations<T extends string, U extends string = ''> =
