@@ -4,6 +4,8 @@
 import assert = require('assert');
 import stream = require('stream');
 import * as eom from '../_build/externaloutput';
+import * as tl from '../_build/task';
+import * as testutil from './testutil';
 
 // Runs a sequence of string/Buffer chunks through a fresh MarkerFilter and returns the
 // concatenated filtered output as a UTF-8 string. Splitting the input into multiple chunks
@@ -31,6 +33,91 @@ function allSplits(input: string): string[] {
 }
 
 describe('External Output Filter', function () {
+
+    describe('VSO command modes', function () {
+        function filter(mode: eom.VsoCommandMode, enableVsoCommands?: boolean): { output: string; telemetry: string } {
+            const telemetry = testutil.createStringStream();
+            tl.setStdStream(telemetry);
+            try {
+                const output = eom.filterExternalOutput('##vso[task.complete result=Failed]x', {
+                    source: 'childProcess',
+                    vsoCommandMode: mode,
+                    enableVsoCommands
+                });
+                return { output: output.toString('utf8'), telemetry: telemetry.getContents() };
+            } finally {
+                tl.setStdStream(testutil.getNullStream());
+            }
+        }
+
+        it('supports disabled mode without blocking or telemetry', function () {
+            const result = filter('disabled');
+            assert.strictEqual(result.output, '##vso[task.complete result=Failed]x');
+            assert.strictEqual(result.telemetry, '');
+        });
+
+        it('supports telemetry-only mode without blocking', function () {
+            const variableNames = [
+                'SYSTEM_TASKINSTANCEID',
+                'SYSTEM_TASKINSTANCENAME',
+                'SYSTEM_JOBID',
+                'SYSTEM_PLANID'
+            ];
+            const originalValues = variableNames.map((name) => process.env[name]);
+            variableNames.forEach((name, index) => { process.env[name] = `test-value-${index}`; });
+            try {
+                const result = filter('telemetryOnly');
+                assert.strictEqual(result.output, '##vso[task.complete result=Failed]x');
+                const telemetryEvent = result.telemetry.match(/##vso\[telemetry\.publish[^\]]*\](\{[^\r\n]*\})/);
+                assert.ok(telemetryEvent);
+                assert.deepStrictEqual(JSON.parse(telemetryEvent[1]), {
+                    source: 'childProcess',
+                    commandName: 'task.complete',
+                    blocked: false,
+                    SYSTEM_TASKINSTANCEID: 'test-value-0',
+                    SYSTEM_TASKINSTANCENAME: 'test-value-1',
+                    SYSTEM_JOBID: 'test-value-2',
+                    SYSTEM_PLANID: 'test-value-3'
+                });
+            } finally {
+                variableNames.forEach((name, index) => {
+                    if (originalValues[index] === undefined) {
+                        delete process.env[name];
+                    } else {
+                        process.env[name] = originalValues[index];
+                    }
+                });
+            }
+        });
+
+        it('supports blocking with telemetry', function () {
+            const result = filter('blockAndTelemetry');
+            assert.strictEqual(result.output, '##_vso[task.complete result=Failed]x');
+            assert.match(result.telemetry, /"source":"childProcess","commandName":"task\.complete","blocked":true/);
+        });
+
+        it('supports blocking without telemetry', function () {
+            const result = filter('blockOnly');
+            assert.strictEqual(result.output, '##_vso[task.complete result=Failed]x');
+            assert.strictEqual(result.telemetry, '');
+        });
+
+        it('reports allowlisted commands as not blocked', function () {
+            const telemetry = testutil.createStringStream();
+            tl.setStdStream(telemetry);
+            try {
+                const output = eom.filterExternalOutput('##vso[task.debug]x', {
+                    source: 'remote',
+                    vsoCommandMode: 'blockAndTelemetry',
+                    enableVsoCommands: true
+                });
+                assert.strictEqual(output.toString('utf8'), '##vso[task.debug]x');
+                assert.match(telemetry.getContents(), /"source":"remote","commandName":"task\.debug","blocked":false/);
+            } finally {
+                tl.setStdStream(testutil.getNullStream());
+            }
+        });
+    });
 
     describe('disabled (block-all default)', function () {
         it('neutralizes a single marker', function () {
