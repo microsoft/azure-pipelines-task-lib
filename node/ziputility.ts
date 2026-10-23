@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 import type AdmZip = require('adm-zip');
+import { _loc } from './internal';
 
 export interface ExtractZipOptions {
     dir: string;
@@ -21,15 +22,14 @@ export interface CreateZipOptions {
 /** Extracts a ZIP synchronously and returns the destination. Requires Node.js 14 or newer. */
 export function extractZipSync(file: string, destination: string | ExtractZipOptions): string {
     if (!file) {
-        throw new Error('Parameter "file" must be set.');
+        throw new Error(_loc('LIB_ParameterIsRequired', 'file'));
     }
     const options: ExtractZipOptions = typeof destination === 'string' ? { dir: destination } : destination;
     if (!options || !options.dir) {
-        throw new Error('Parameter "dir" must be set.');
+        throw new Error(_loc('LIB_ParameterIsRequired', 'dir'));
     }
     const Zip: typeof AdmZip = require('adm-zip');
     const zip = new Zip(file);
-    console.log(`Extracting ZIP file: ${file} to destination: ${options.dir} with overwrite: ${options.overwrite}, keepOriginalPermission: ${options.keepOriginalPermission}`);
     zip.extractAllTo(options.dir, options.overwrite, options.keepOriginalPermission, options.password);
     return options.dir;
 }
@@ -42,14 +42,13 @@ export async function extractZip(file: string, destination: string | ExtractZipO
 /** Archives a folder's contents synchronously and returns the ZIP path. Requires Node.js 14 or newer. */
 export function createZipSync(sourceDirectory: string, destinationZip: string, options?: CreateZipOptions): string {
     if (!sourceDirectory) {
-        throw new Error('Parameter "sourceDirectory" must be set.');
+        throw new Error(_loc('LIB_ParameterIsRequired', 'sourceDirectory'));
     }
     if (!destinationZip) {
-        throw new Error('Parameter "destinationZip" must be set.');
+        throw new Error(_loc('LIB_ParameterIsRequired', 'destinationZip'));
     }
     const Zip: typeof AdmZip = require('adm-zip');
     const zip = new Zip();
-    console.log(`Creating ZIP from source directory: ${sourceDirectory} to destination: ${destinationZip} with zipPath: ${options && options.zipPath}, filter: ${options && options.filter}`);
     zip.addLocalFolder(sourceDirectory, options && options.zipPath, options && options.filter);
     zip.writeZip(destinationZip);
     return destinationZip;
