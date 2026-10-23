@@ -16,7 +16,7 @@ export interface CreateZipOptions {
     filter?: AdmZip.EntryFilter;
 }
 
-/** Extracts a ZIP synchronously and returns the destination. Requires Node.js 14 or newer. */
+/** Extracts a ZIP synchronously and returns the destination.*/
 export function extractZipSync(file: string, destination: string | ExtractZipOptions): string {
     if (!file) {
         throw new Error(_loc('LIB_ParameterIsRequired', 'file'));
@@ -36,7 +36,7 @@ export async function extractZip(file: string, destination: string | ExtractZipO
     return extractZipSync(file, destination);
 }
 
-/** Archives a folder's contents synchronously and returns the ZIP path. Requires Node.js 14 or newer. */
+/** Archives a folder's contents synchronously and returns the ZIP path.*/
 export function createZipSync(sourceDirectory: string, destinationZip: string, options?: CreateZipOptions): string {
     if (!sourceDirectory) {
         throw new Error(_loc('LIB_ParameterIsRequired', 'sourceDirectory'));

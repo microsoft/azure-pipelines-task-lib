@@ -46,30 +46,6 @@ When upgrading your tasks to newer Node versions:
 
 ## Reference Examples
 
-### ZIP utilities
-
-The exported ZIP helpers use `adm-zip@0.6.1` and require Node.js 14 or newer.
-They can also be imported from `azure-pipelines-task-lib/ziputility`.
-
-```typescript
-import { createZip, extractZip } from 'azure-pipelines-task-lib/ziputility';
-
-await createZip(sourceDirectory, zipLocation);
-await extractZip(zipLocation, { dir: unzipLocation, overwrite: true });
-```
-
-`extractZip` returns the destination directory; `createZip` returns the archive
-path. Errors reject the returned Promise. These are Promise wrappers around
-synchronous ZIP processing, not non-blocking implementations.
-
-For synchronous callers, use `extractZipSync` and `createZipSync`; errors throw.
-Extraction accepts either a destination string or options with `dir`,
-`overwrite` (default `false`), `keepOriginalPermission` (default `false`), and
-an optional `password`. Creation accepts optional `zipPath` and `filter` options
-passed to `adm-zip`'s `addLocalFolder`. Dependency errors are propagated unchanged.
-No additional extraction limits or symlink policies are provided by these wrappers.
-
-
 The [ShellScript Task](https://github.com/Microsoft/azure-pipelines-tasks/tree/master/Tasks/ShellScriptV2) and the [XCode Task](https://github.com/Microsoft/azure-pipelines-tasks/tree/master/Tasks/XcodeV5) are good examples.
 
 ## Contributing
