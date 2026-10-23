@@ -9,6 +9,7 @@ import tcm = require('./taskcommand');
 import trm = require('./toolrunner');
 import eom = require('./externaloutput');
 import semver = require('semver');
+export { extractZip, extractZipSync, createZip, createZipSync, ExtractZipOptions, CreateZipOptions } from './ziputility';
 
 type OptionCases<T extends string> = `-${Uppercase<T> | Lowercase<T>}`;
 
