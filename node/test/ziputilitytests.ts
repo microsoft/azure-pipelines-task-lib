@@ -4,6 +4,7 @@
 import assert = require('assert');
 import fs = require('fs');
 import path = require('path');
+import AdmZip = require('adm-zip');
 import * as tl from '../_build/task';
 import * as ziputil from '../_build/ziputility';
 import testutil = require('./testutil');
@@ -64,6 +65,27 @@ describe('ZIP utility tests', function () {
         assert.strictEqual(fs.readFileSync(path.join(destination, 'first.txt'), 'utf8'), 'existing');
         await ziputil.extractZip(archive, { dir: destination, overwrite: true });
         assertExtracted();
+    });
+
+    it('prevents ZIP path traversal during extraction', async function () {
+        const maliciousArchive = path.join(workDir, 'malicious.zip');
+        const outsideFile = path.join(workDir, 'outside.txt');
+        const content = Buffer.from('malicious content');
+        const zip = new AdmZip();
+        zip.addFile('outside.txt', content);
+        // addFile normalizes paths, so set the traversal name directly on the entry.
+        zip.getEntries()[0].entryName = '../outside.txt';
+        zip.writeZip(maliciousArchive);
+        assert.strictEqual(new AdmZip(maliciousArchive).getEntries()[0].entryName, '../outside.txt');
+
+        assert.strictEqual(await ziputil.extractZip(maliciousArchive, destination), destination);
+
+        assert.strictEqual(
+            fs.existsSync(outsideFile),
+            false,
+            'ZIP extraction must not write files outside the destination'
+        );
+        assert.deepStrictEqual(fs.readFileSync(path.join(destination, 'outside.txt')), content);
     });
 
     it('passes archive path prefixes and filters to adm-zip', async function () {
