@@ -1,6 +1,6 @@
 {
   "name": "azure-pipelines-task-lib",
-  "version": "5.281.2",
+  "version": "5.282.0",
   "description": "Azure Pipelines Task SDK",
   "main": "./task.js",
   "typings": "./task.d.ts",
@@ -28,7 +28,7 @@
   "homepage": "https://github.com/Microsoft/azure-pipelines-task-lib",
   "dependencies": {
     "minimatch": "^3.1.5",
-    "nodejs-file-downloader": "^4.11.1",
+    "nodejs-file-downloader": "^4.13.0",
     "q": "^1.5.1",
     "semver": "^5.7.2",
     "shelljs": "^0.10.0"
@@ -45,9 +45,10 @@
     "typescript": "^4.9.5"
   },
   "overrides": {
-    "brace-expansion@1.x": { ".": "1.1.18" },
-    "brace-expansion@2.x": { ".": "2.1.4" },
+    "brace-expansion@1.x": { ".": "^1.1.21" },
+    "brace-expansion@2.x": { ".": "^2.1.7" },
     "js-yaml": "^4.3.2",
-    "serialize-javascript": "7.0.5"
+    "serialize-javascript": "7.0.5",
+    "follow-redirects": "^1.16.1"
   }
 }
