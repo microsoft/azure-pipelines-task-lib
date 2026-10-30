@@ -5,9 +5,16 @@ import { _loc } from './internal';
 
 export interface ExtractZipOptions {
     dir: string;
-    /** Whether existing files are overwritten. Defaults to false. File/directory conflicts always throw. */
+    /**
+     * Whether existing files are overwritten. Defaults to true, matching extract-zip@2.0.1.
+     * Set to false to keep existing files. File/directory conflicts always throw, regardless of this option.
+     */
     overwrite?: boolean;
-    /** Whether archive permissions are restored. Defaults to false. */
+    /**
+     * Whether archived Unix permissions are restored. Defaults to true, matching extract-zip@2.0.1.
+     * Set to false to use adm-zip's default modes. Restored modes bypass umask, and files without
+     * permission metadata fall back to 0o666 in adm-zip@0.6.1. This is not exact mode/umask parity.
+     */
     keepOriginalPermission?: boolean;
     /** Password for encrypted entries. Strings use UTF-8; Buffers supply raw password bytes. */
     password?: string | Buffer;
@@ -22,6 +29,7 @@ export interface CreateZipOptions {
 /**
  * Extracts a ZIP synchronously and returns the destination.
  * Rejects existing non-file paths for file entries before extracting any entries.
+ * Existing files are overwritten unless overwrite is false.
  */
 export function extractZipSync(file: string, destination: string | ExtractZipOptions): string {
     if (!file) {
@@ -48,7 +56,9 @@ export function extractZipSync(file: string, destination: string | ExtractZipOpt
             entry.getData = entry.getData.bind(entry, password);
         }
     }
-    zip.extractAllTo(options.dir, options.overwrite, options.keepOriginalPermission, options.password);
+    // adm-zip creates directories only per entry, so an empty archive would otherwise leave dir missing.
+    fs.mkdirSync(options.dir, { recursive: true });
+    zip.extractAllTo(options.dir, options.overwrite ?? true, options.keepOriginalPermission ?? true, options.password);
     return options.dir;
 }
 

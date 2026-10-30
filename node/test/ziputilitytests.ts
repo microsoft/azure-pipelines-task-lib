@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 import assert = require('assert');
+import childProcess = require('child_process');
 import fs = require('fs');
 import path = require('path');
 import AdmZip = require('adm-zip');
@@ -68,13 +69,33 @@ describe('ZIP utility tests', function () {
         assertExtracted();
     });
 
-    it('does not overwrite by default and supports explicit overwrite', async function () {
+    it('overwrites existing files by default and keeps them with overwrite: false', async function () {
         await ziputil.createZip(source, archive);
         await ziputil.extractZip(archive, destination);
         fs.writeFileSync(path.join(destination, 'first.txt'), 'existing');
-        await ziputil.extractZip(archive, { dir: destination });
+        await ziputil.extractZip(archive, { dir: destination, overwrite: false });
         assert.strictEqual(fs.readFileSync(path.join(destination, 'first.txt'), 'utf8'), 'existing');
-        await ziputil.extractZip(archive, { dir: destination, overwrite: true });
+        await ziputil.extractZip(archive, { dir: destination });
+        assertExtracted();
+    });
+
+    it('replaces stale file content by default when extracting synchronously', function () {
+        ziputil.createZipSync(source, archive);
+        fs.mkdirSync(destination);
+        fs.writeFileSync(path.join(destination, 'first.txt'), 'stale content from an earlier download');
+        ziputil.extractZipSync(archive, { dir: destination, overwrite: false });
+        assert.strictEqual(fs.readFileSync(path.join(destination, 'first.txt'), 'utf8'), 'stale content from an earlier download');
+        ziputil.extractZipSync(archive, { dir: destination });
+        assertExtracted();
+    });
+
+    it('replaces stale file content by default when extracting asynchronously', async function () {
+        await ziputil.createZip(source, archive);
+        fs.mkdirSync(destination);
+        fs.writeFileSync(path.join(destination, 'first.txt'), 'stale content from an earlier download');
+        await ziputil.extractZip(archive, { dir: destination, overwrite: false });
+        assert.strictEqual(fs.readFileSync(path.join(destination, 'first.txt'), 'utf8'), 'stale content from an earlier download');
+        await ziputil.extractZip(archive, { dir: destination });
         assertExtracted();
     });
 
@@ -110,9 +131,9 @@ describe('ZIP utility tests', function () {
             assert.strictEqual(fs.statSync(outputFile).mode & 0o777, 0o644);
         }
         fs.writeFileSync(outputFile, 'existing content');
-        await ziputil.extractZip(archive, options);
+        await ziputil.extractZip(archive, { ...options, overwrite: false });
         assert.strictEqual(fs.readFileSync(outputFile, 'utf8'), 'existing content');
-        await ziputil.extractZip(archive, { ...options, overwrite: true });
+        await ziputil.extractZip(archive, options);
         assert.strictEqual(fs.readFileSync(outputFile, 'utf8'), 'binary password content');
         assert.deepStrictEqual(password, originalPassword);
     });
@@ -182,14 +203,16 @@ describe('ZIP utility tests', function () {
         assert(!fs.existsSync(path.join(destination, 'package', 'contents', 'nested', 'binary.bin')));
     });
 
-    it('round-trips an empty source directory', async function () {
+    it('creates a missing destination, including parent directories, for an empty archive', async function () {
         const emptySource = path.join(workDir, 'empty-source');
         fs.mkdirSync(emptySource);
         await ziputil.createZip(emptySource, archive);
-        // With no entries, adm-zip does not create the extraction destination.
-        fs.mkdirSync(destination);
-        assert.strictEqual(await ziputil.extractZip(archive, destination), destination);
-        assert.deepStrictEqual(fs.readdirSync(destination), []);
+        const nestedDestination = path.join(workDir, 'missing', 'parent', 'output');
+        assert.strictEqual(await ziputil.extractZip(archive, nestedDestination), nestedDestination);
+        assert.deepStrictEqual(fs.readdirSync(nestedDestination), []);
+        const syncDestination = path.join(workDir, 'missing-sync', 'output');
+        assert.strictEqual(ziputil.extractZipSync(archive, { dir: syncDestination }), syncDestination);
+        assert.deepStrictEqual(fs.readdirSync(syncDestination), []);
     });
 
     it('rejects directory destinations before processing the source', async function () {
@@ -261,6 +284,40 @@ describe('ZIP utility tests', function () {
         assert.throws(() => ziputil.createZipSync(missing, archive));
         fs.writeFileSync(archive, 'existing');
         await assert.rejects(ziputil.createZip(source, path.join(archive, 'invalid.zip')));
+    });
+
+    (process.platform === 'win32' ? describe.skip : describe)('Unix permissions', function () {
+        let originalUmask: number;
+
+        beforeEach(function () {
+            // A restrictive umask shows whether restored modes are exact or umask-filtered.
+            originalUmask = process.umask(0o077);
+            const zip = new AdmZip();
+            zip.addFile('bin/tool.sh', Buffer.from('#!/bin/sh\necho tool-ok\n'), '', 0o755);
+            zip.addFile('data.txt', Buffer.from('data'), '', 0o644);
+            zip.writeZip(archive);
+        });
+
+        afterEach(function () {
+            process.umask(originalUmask);
+        });
+
+        function modeOf(file: string): number {
+            return fs.statSync(path.join(destination, file)).mode & 0o777;
+        }
+
+        it('restores archived modes by default, so an extracted tool runs under a restrictive umask', function () {
+            assert.strictEqual(ziputil.extractZipSync(archive, destination), destination);
+            assert.strictEqual(modeOf('bin/tool.sh'), 0o755);
+            assert.strictEqual(modeOf('data.txt'), 0o644);
+            assert.strictEqual(childProcess.execFileSync(path.join(destination, 'bin', 'tool.sh')).toString(), 'tool-ok\n');
+        });
+
+        it('keepOriginalPermission: false uses adm-zip default modes, so the tool is not executable', function () {
+            assert.strictEqual(ziputil.extractZipSync(archive, { dir: destination, keepOriginalPermission: false }), destination);
+            assert.strictEqual(modeOf('bin/tool.sh'), 0o666);
+            assert.throws(() => childProcess.execFileSync(path.join(destination, 'bin', 'tool.sh')), /EACCES/);
+        });
     });
 
 });

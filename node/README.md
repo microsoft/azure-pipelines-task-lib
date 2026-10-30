@@ -74,6 +74,20 @@ Set environment variable TASK_TEST_TRACE=1 to display test output.
 [npm-lib-image]: https://img.shields.io/npm/v/azure-pipelines-task-lib.svg?style=flat
 [npm-lib-url]: https://www.npmjs.com/package/azure-pipelines-task-lib
 
+## ZIP helpers
+
+`tl.extractZip` and `tl.createZip` (Node tasks) wrap `adm-zip`. Migrating from `extract-zip@2.0.1` `extract(file, { dir })`:
+
+* **Overwrite:** existing files are overwritten by default (`overwrite: true`), matching `extract-zip`. Pass `overwrite: false` to keep existing files. A file/directory conflict always throws, regardless of this option.
+* **Unix permissions:** archived modes are restored by default (`keepOriginalPermission: true`), so executables stay executable. Pass `keepOriginalPermission: false` to use `adm-zip`'s default `0o666` modes. Restored modes are applied exactly, not filtered by umask, so check tools that depend on specific modes.
+* **Empty archives:** the destination directory is created, including missing parents.
+
+```ts
+await tl.extractZip(archivePath, { dir: destination });                          // extract-zip parity
+await tl.extractZip(archivePath, { dir: destination, overwrite: false });         // keep existing files
+await tl.extractZip(archivePath, { dir: destination, keepOriginalPermission: false });
+```
+
 ## Powershell
 
 We also maintain a PowerShell library for Windows task development.
