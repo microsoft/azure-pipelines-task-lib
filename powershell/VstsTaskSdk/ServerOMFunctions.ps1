@@ -164,6 +164,28 @@ function Get-TfsClientCredentials {
         }
         [System.AppDomain]::CurrentDomain.add_AssemblyResolve($onAssemblyResolve)
 
+        # Check if the VssClientCredentials type is available (ClientOM 19+).
+        # This type replaced TfsClientCredentials in newer versions of the SDK.
+        if ((Get-OMType -TypeName 'Microsoft.VisualStudio.Services.Client.VssClientCredentials' -OMKind 'WebApi' -OMDirectory $OMDirectory)) {
+            # Check if the VssOAuthAccessTokenCredential type is available.
+            if ((Get-OMType -TypeName 'Microsoft.VisualStudio.Services.OAuth.VssOAuthAccessTokenCredential' -OMKind 'WebApi' -OMDirectory $OMDirectory)) {
+                # Create the federated credential.
+                $federatedCredential = New-Object Microsoft.VisualStudio.Services.OAuth.VssOAuthAccessTokenCredential($endpoint.auth.parameters.AccessToken)
+            } else {
+                # Validate the fallback type can be loaded.
+                $null = Get-OMType -TypeName 'Microsoft.VisualStudio.Services.Client.VssOAuthCredential' -OMKind 'WebApi' -OMDirectory $OMDirectory -Require
+
+                # Create the federated credential.
+                $federatedCredential = New-Object Microsoft.VisualStudio.Services.Client.VssOAuthCredential($endpoint.auth.parameters.AccessToken)
+            }
+
+            # Construct the credentials using VssClientCredentials.
+            $windowsCredential = New-Object Microsoft.VisualStudio.Services.Common.WindowsCredential($false) # Do not use default credentials.
+            $credentials = New-Object Microsoft.VisualStudio.Services.Client.VssClientCredentials($windowsCredential, $federatedCredential, [Microsoft.VisualStudio.Services.Common.CredentialPromptType]::DoNotPrompt)
+            return $credentials
+        }
+
+        # Fall back to TfsClientCredentials for older versions of the SDK.
         # Validate the type can be found.
         $null = Get-OMType -TypeName 'Microsoft.TeamFoundation.Client.TfsClientCredentials' -OMKind 'ExtendedClient' -OMDirectory $OMDirectory -Require
 
