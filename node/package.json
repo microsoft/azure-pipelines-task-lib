@@ -1,6 +1,6 @@
 {
   "name": "azure-pipelines-task-lib",
-  "version": "5.282.0",
+  "version": "5.283.0",
   "description": "Azure Pipelines Task SDK",
   "main": "./task.js",
   "typings": "./task.d.ts",
@@ -49,6 +49,6 @@
     "brace-expansion@2.x": { ".": "^2.1.7" },
     "js-yaml": "^4.3.2",
     "serialize-javascript": "7.0.5",
-    "follow-redirects": "^1.16.1"
+    "follow-redirects": "^1.16.2"
   }
 }
