@@ -6,6 +6,8 @@
   "typings": "./task.d.ts",
   "scripts": {
     "build": "node make.js build",
+    "test:prepare": "node make.js testprepare",
+    "test:run": "node make.js testrun",
     "test": "node make.js test"
   },
   "repository": {
