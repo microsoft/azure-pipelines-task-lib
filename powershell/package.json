@@ -1,6 +1,6 @@
 {
   "name": "vsts-task-sdk",
-  "version": "0.22.1",
+  "version": "0.22.2",
   "private": true,
   "scripts": {
     "build": "node make.js build",
