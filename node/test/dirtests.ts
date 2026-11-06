@@ -1605,7 +1605,7 @@ describe('Dir Operation Tests', function () {
 
     it('removes symlink folder with missing source using rmRF', function (done) {
         this.timeout(1000);
-    
+
         // create the following layout:
         //   real_directory
         //   real_directory/real_file
@@ -1618,12 +1618,12 @@ describe('Dir Operation Tests', function () {
         fs.writeFileSync(realFile, 'test file content');
         testutil.createSymlinkDir(realDirectory, symlinkDirectory);
         assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'symlink directory should be created correctly');
-    
+
         // remove the real directory
         fs.unlinkSync(realFile);
         fs.rmdirSync(realDirectory);
         assert.throws(() => { fs.statSync(symlinkDirectory) }, (err: NodeJS.ErrnoException) => err.code == 'ENOENT', 'stat should throw');
-    
+
         // remove the symlink directory
         tl.rmRF(symlinkDirectory);
         let errcode: string;
@@ -1634,7 +1634,7 @@ describe('Dir Operation Tests', function () {
             errcode = err.code;
         }
         assert.equal(errcode, 'ENOENT');
-    
+
         done();
     });
 
