@@ -22,6 +22,7 @@
   "loc.messages.LIB_ParameterIsRequired": "%s not supplied",
   "loc.messages.LIB_PathHasNullByte": "Path cannot contain null bytes",
   "loc.messages.LIB_PathIsNotADirectory": "Path is not a directory: %s",
+  "loc.messages.LIB_PathIsNotAFile": "Path is not a file: %s",
   "loc.messages.LIB_PathNotFound": "Not found %s: %s",
   "loc.messages.LIB_PlatformNotSupported": "Platform not supported: %s",
   "loc.messages.LIB_ProcessError": "There was an error when attempting to execute the process '%s'. This may indicate the process failed to start. Error: %s",

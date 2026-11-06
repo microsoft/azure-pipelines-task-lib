@@ -23,6 +23,7 @@
     "LIB_ParameterIsRequired": "%s not supplied",
     "LIB_PathHasNullByte": "Path cannot contain null bytes",
     "LIB_PathIsNotADirectory": "Path is not a directory: %s",
+    "LIB_PathIsNotAFile": "Path is not a file: %s",
     "LIB_PathNotFound": "Not found %s: %s",
     "LIB_PlatformNotSupported": "Platform not supported: %s",
     "LIB_ProcessError": "There was an error when attempting to execute the process '%s'. This may indicate the process failed to start. Error: %s",
