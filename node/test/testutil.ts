@@ -6,7 +6,6 @@ import util = require('util');
 import stream = require('stream');
 import os = require('os');
 import child = require('child_process');
-import shell = require('shelljs');
 import fs = require('fs');
 
 import * as tl from '../_build/task';
@@ -85,7 +84,7 @@ export function createHiddenDirectory(dir: string): void {
         throw new Error(`Expected dir '${dir}' to start with '.'.`);
     }
 
-    shell.mkdir('-p', dir);
+    fs.mkdirSync(dir, { recursive: true });
     if (os.platform() == 'win32') {
         let result = child.spawnSync('attrib.exe', [ '+H', dir ]);
         if (result.status != 0) {
@@ -100,7 +99,7 @@ export function createHiddenFile(file: string, content: string): void {
         throw new Error(`Expected dir '${file}' to start with '.'.`);
     }
 
-    shell.mkdir('-p', path.dirname(file));
+    fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, content);
     if (os.platform() == 'win32') {
         let result = child.spawnSync('attrib.exe', [ '+H', file ]);
