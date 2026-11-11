@@ -405,7 +405,17 @@ describe('Mock Tests', function () {
         testutil.createSymlinkDir(outside, path.join(destination, 'linked'));
 
         const server = http.createServer((request, response) => {
-            response.end('downloaded ' + path.posix.basename(request.url || ''));
+            switch (request.url) {
+                case '/v-test/win-x64/node.exe':
+                    response.end('downloaded node.exe');
+                    break;
+                case '/v-test/win-x64/node.lib':
+                    response.end('downloaded node.lib');
+                    break;
+                default:
+                    response.writeHead(404);
+                    response.end();
+            }
         });
         await new Promise<void>((resolve, reject) => {
             server.once('error', reject);
@@ -428,6 +438,17 @@ describe('Mock Tests', function () {
             assert(!fs.existsSync(path.join(destination, 'partial')));
             assert.strictEqual(fs.readFileSync(path.join(outside, 'keep'), 'utf8'), 'keep');
             assert(fs.existsSync(destination + '.completed'));
+
+            const invalidUrl = `${process.env['TASK_NODE_URL']}/${encodeURIComponent('<script>alert(1)</script>')}`;
+            const unexpectedResponse = await new Promise<http.IncomingMessage>((resolve, reject) => {
+                http.get(invalidUrl, resolve).on('error', reject);
+            });
+            let unexpectedBody = '';
+            for await (const chunk of unexpectedResponse) {
+                unexpectedBody += chunk.toString();
+            }
+            assert.strictEqual(unexpectedResponse.statusCode, 404);
+            assert.strictEqual(unexpectedBody, '');
         } finally {
             if (originalUrl === undefined) {
                 delete process.env['TASK_NODE_URL'];
