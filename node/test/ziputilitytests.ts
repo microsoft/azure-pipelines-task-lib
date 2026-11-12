@@ -150,16 +150,23 @@ describe('ZIP utility tests', function () {
             requireSymlinks(this);
             writeArchive([
                 { name: 'target.txt', content: 'target content' },
+                // POSIX requires sub to exist before resolving the following "..".
+                { name: 'sub/' },
                 { name: 'caf\u00e9', link: 'second' },
                 { name: 'second', link: 'sub/../target.txt' },
                 { name: 'dangling', link: 'missing.txt' }
             ]);
+            const syncDestination = path.join(workDir, 'sync-output');
+            assert.strictEqual(ziputil.extractZipSync(archive, syncDestination), syncDestination);
             assert.strictEqual(await tl.extractZip(archive, destination), destination);
-            assert.strictEqual(readLink(path.join(destination, 'caf\u00e9')), 'second');
-            assert.strictEqual(readLink(path.join(destination, 'second')), 'sub/../target.txt');
-            assert.strictEqual(readLink(path.join(destination, 'dangling')), 'missing.txt');
-            assert.strictEqual(fs.readFileSync(path.join(destination, 'caf\u00e9'), 'utf8'), 'target content');
-            assert(!fs.existsSync(path.join(destination, 'missing.txt')));
+            for (const output of [syncDestination, destination]) {
+                assert(fs.statSync(path.join(output, 'sub')).isDirectory());
+                assert.strictEqual(readLink(path.join(output, 'caf\u00e9')), 'second');
+                assert.strictEqual(readLink(path.join(output, 'second')), 'sub/../target.txt');
+                assert.strictEqual(readLink(path.join(output, 'dangling')), 'missing.txt');
+                assert.strictEqual(fs.readFileSync(path.join(output, 'caf\u00e9'), 'utf8'), 'target content');
+                assert(!fs.existsSync(path.join(output, 'missing.txt')));
+            }
         });
 
         const rejected: { name: string, entries: ArchiveEntry[], error: RegExp }[] = [
