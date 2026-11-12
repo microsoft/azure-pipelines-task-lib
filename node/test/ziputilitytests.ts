@@ -69,6 +69,67 @@ describe('ZIP utility tests', function () {
         assertExtracted();
     });
 
+    describe('archived symbolic links', function () {
+        // Stored Unix ZIPs: target.txt is a regular file; link has mode S_IFLNK | 0o777 and target-text data.
+        const fixtures = [
+            {
+                target: 'target.txt',
+                archive: 'UEsDBBQAAAAAAAAAIQD+Ct1ADgAAAA4AAAAKAAAAdGFyZ2V0LnR4dHRhcmdldCBjb250ZW50UEsDBBQAAAAAAAAA' +
+                    'IQBJuqQACgAAAAoAAAAEAAAAbGlua3RhcmdldC50eHRQSwECFAMUAAAAAAAAACEA/grdQA4AAAAOAAAACgAAAAAAAAAAAAAA' +
+                    'pIEAAAAAdGFyZ2V0LnR4dFBLAQIUAxQAAAAAAAAAIQBJuqQACgAAAAoAAAAEAAAAAAAAAAAAAAD/oTYAAABsaW5rUEsFBgAA' +
+                    'AAACAAIAagAAAGIAAAAAAA=='
+            },
+            {
+                target: '../outside.txt',
+                archive: 'UEsDBBQAAAAAAAAAIQD+Ct1ADgAAAA4AAAAKAAAAdGFyZ2V0LnR4dHRhcmdldCBjb250ZW50UEsDBBQAAAAAAAAA' +
+                    'IQDGnafXDgAAAA4AAAAEAAAAbGluay4uL291dHNpZGUudHh0UEsBAhQDFAAAAAAAAAAhAP4K3UAOAAAADgAAAAoAAAAA' +
+                    'AAAAAAAAAKSBAAAAAHRhcmdldC50eHRQSwECFAMUAAAAAAAAACEAxp2n1w4AAAAOAAAABAAAAAAAAAAAAAAA/6E2AAAAbGlua1BL' +
+                    'BQYAAAAAAgACAGoAAABmAAAAAAA='
+            },
+            {
+                target: '/outside.txt',
+                archive: 'UEsDBBQAAAAAAAAAIQD+Ct1ADgAAAA4AAAAKAAAAdGFyZ2V0LnR4dHRhcmdldCBjb250ZW50UEsDBBQAAAAAAAAA' +
+                    'IQBzSK4yDAAAAAwAAAAEAAAAbGluay9vdXRzaWRlLnR4dFBLAQIUAxQAAAAAAAAAIQD+Ct1ADgAAAA4AAAAKAAAAAAAAAAAA' +
+                    'AACkgQAAAAB0YXJnZXQudHh0UEsBAhQDFAAAAAAAAAAhAHNIrjIMAAAADAAAAAQAAAAAAAAAAAAAAP+hNgAAAGxpbmtQSwUG' +
+                    'AAAAAAIAAgBqAAAAZAAAAAAA'
+            }
+        ];
+
+        for (const fixture of fixtures) {
+            for (const existingDestination of [false, true]) {
+                it(`rejects link -> ${fixture.target} before changing ${existingDestination ? 'an existing' : 'a missing'} destination through both APIs`, async function () {
+                    fs.writeFileSync(archive, Buffer.from(fixture.archive, 'base64'));
+                    const entries = new AdmZip(archive).getEntries();
+                    assert.deepStrictEqual(entries.map(entry => entry.entryName), ['target.txt', 'link']);
+                    assert.strictEqual(entries[1].header.made >>> 8, 3);
+                    assert.strictEqual((entries[1].header.attr >>> 16) & 0xf000, 0xa000);
+                    assert.strictEqual(entries[1].getData().toString('utf8'), fixture.target);
+                    const outside = path.join(workDir, 'outside.txt');
+                    fs.writeFileSync(outside, 'outside content');
+                    if (existingDestination) {
+                        fs.mkdirSync(destination);
+                        fs.writeFileSync(path.join(destination, 'target.txt'), 'existing target');
+                        fs.writeFileSync(path.join(destination, 'link'), 'existing link path');
+                    }
+                    const options: ziputil.ExtractZipOptions = existingDestination
+                        ? { dir: destination, overwrite: false, keepOriginalPermission: false }
+                        : { dir: destination };
+                    const error = /ZIP symbolic link entries are not supported: link/;
+                    assert.throws(() => ziputil.extractZipSync(archive, options), error);
+                    await assert.rejects(tl.extractZip(archive, options), error);
+                    if (existingDestination) {
+                        assert.deepStrictEqual(fs.readdirSync(destination).sort(), ['link', 'target.txt']);
+                        assert.strictEqual(fs.readFileSync(path.join(destination, 'target.txt'), 'utf8'), 'existing target');
+                        assert.strictEqual(fs.readFileSync(path.join(destination, 'link'), 'utf8'), 'existing link path');
+                    } else {
+                        assert(!fs.existsSync(destination));
+                    }
+                    assert.strictEqual(fs.readFileSync(outside, 'utf8'), 'outside content');
+                });
+            }
+        }
+    });
+
     describe('attribute-based directories', function () {
         const attributeFormats = [
             { name: 'Unix S_IFDIR', made: 0x0314, attr: 0o40755 * 0x10000 },

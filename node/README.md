@@ -82,10 +82,11 @@ Set environment variable TASK_TEST_TRACE=1 to display test output.
 * **Unix permissions:** archived modes are restored by default (`keepOriginalPermission: true`), so executables stay executable. Pass `keepOriginalPermission: false` to use `adm-zip`'s default `0o666` modes. Restored modes are applied exactly, not filtered by umask, so check tools that depend on specific modes.
 * **Empty archives:** the destination directory is created, including missing parents.
 * **Directories:** Unix `S_IFDIR` and DOS directory attributes are recognized even without a trailing slash, matching `extract-zip@2.0.1`.
+* **Archived symbolic links:** unlike `extract-zip`, archives containing Unix `S_IFLNK` entries are rejected before creating or modifying destination paths. This applies to all link targets and extraction options; links are never materialized as regular files.
 * **Filenames:** extraction honors the ZIP UTF-8 flag, falls back to CP437 for legacy names, and uses Info-ZIP Unicode Path extra fields (`0x7075`) when their version and filename CRC are valid, matching `extract-zip@2.0.1`.
 
 ```ts
-await tl.extractZip(archivePath, { dir: destination });                          // extract-zip parity
+await tl.extractZip(archivePath, { dir: destination });                          // default extraction
 await tl.extractZip(archivePath, { dir: destination, overwrite: false });         // keep existing files
 await tl.extractZip(archivePath, { dir: destination, keepOriginalPermission: false });
 ```
