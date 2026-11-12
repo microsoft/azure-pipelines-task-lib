@@ -52,6 +52,188 @@ function decodeZipEntryName(entry: AdmZip.IZipEntry): string {
     return Array.from(rawName, byte => byte < 128 ? String.fromCharCode(byte) : cp437HighBytes[byte - 128]).join('');
 }
 
+const maxSymlinkDepth = 40;
+
+interface ArchivedSymlink {
+    name: string;
+    /** Destination-relative path segments. */
+    parts: string[];
+    /** Link target, with `/` separators. */
+    target: string;
+    /** Destination-relative segments the target resolves to. */
+    resolved?: string[];
+}
+
+/** Archived links keyed by destination-relative path under one filename comparison rule. */
+interface LinkLookup {
+    key: (parts: string[]) => string;
+    links: Map<string, ArchivedSymlink>;
+}
+
+/** Destination-relative path segments, matching adm-zip's rooted entry normalization. */
+function entryPathParts(name: string): string[] {
+    return path.posix.normalize('/' + name.replace(/\\/g, '/')).split('/').filter(part => part.length > 0);
+}
+
+function exactKey(parts: string[]): string {
+    return parts.join('/');
+}
+
+/** Approximates case- and normalization-insensitive filesystems such as NTFS and APFS. */
+function foldedKey(parts: string[]): string {
+    return parts.join('/').normalize('NFC').toLowerCase();
+}
+
+function isSymlinkOnDisk(filePath: string): boolean {
+    try {
+        return fs.lstatSync(filePath).isSymbolicLink();
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Resolves target relative to start, following archived links and resolving `..` after them (POSIX semantics).
+ * Returns undefined if resolution leaves the destination, loops, or passes through a pre-existing destination symlink.
+ * Every component of start is also checked, so an unresolved or symlinked starting directory is rejected.
+ */
+function resolveInDestination(start: string[], target: string, lookup: LinkLookup, root: string, depth: number = 0): string[] | undefined {
+    if (depth > maxSymlinkDepth) {
+        return undefined;
+    }
+    for (let length = 1; length <= start.length; length++) {
+        const prefix = start.slice(0, length);
+        if (lookup.links.has(lookup.key(prefix)) || isSymlinkOnDisk(path.join(root, ...prefix))) {
+            return undefined;
+        }
+    }
+    const parts = start.slice();
+    for (const part of target.split('/')) {
+        if (!part || part === '.') {
+            continue;
+        }
+        if (part === '..') {
+            if (parts.length === 0) {
+                return undefined;
+            }
+            parts.pop();
+            continue;
+        }
+        parts.push(part);
+        const link = lookup.links.get(lookup.key(parts));
+        if (link) {
+            const resolved = resolveInDestination(parts.slice(0, -1), link.target, lookup, root, depth + 1);
+            if (!resolved) {
+                return undefined;
+            }
+            parts.splice(0, parts.length, ...resolved);
+        } else if (isSymlinkOnDisk(path.join(root, ...parts))) {
+            return undefined;
+        }
+    }
+    return parts;
+}
+
+/** Resolves `.` and `..` textually, as Windows does for relative link targets. Returns undefined if the result leaves the destination. */
+function normalizeLexically(start: string[], target: string): string[] | undefined {
+    const parts = start.slice();
+    for (const part of target.split('/')) {
+        if (!part || part === '.') {
+            continue;
+        }
+        if (part === '..') {
+            if (parts.length === 0) {
+                return undefined;
+            }
+            parts.pop();
+        } else {
+            parts.push(part);
+        }
+    }
+    return parts;
+}
+
+/**
+ * Validates archived links before anything is written: targets must be relative and non-empty, and must stay
+ * inside the destination under POSIX resolution (case-sensitive and case-insensitive) and Windows textual
+ * resolution. No other entry may be at or beneath a link, and no existing directory may occupy a link path.
+ */
+function validateSymlinks(symlinks: ArchivedSymlink[], otherEntries: { name: string, parts: string[] }[], root: string): void {
+    const exact: LinkLookup = { key: exactKey, links: new Map() };
+    const folded: LinkLookup = { key: foldedKey, links: new Map() };
+    for (const link of symlinks) {
+        const key = foldedKey(link.parts);
+        // Links differing only by case or Unicode normalization would collide on Windows and macOS.
+        if (!key || folded.links.has(key)) {
+            throw new Error(_loc('LIB_ZipSymlinkNotAllowed', link.name, link.target));
+        }
+        exact.links.set(exactKey(link.parts), link);
+        folded.links.set(key, link);
+    }
+    // Compared case-insensitively so the result does not depend on the destination filesystem.
+    const checked = otherEntries.map(entry => ({ ...entry, isLink: false }))
+        .concat(symlinks.map(link => ({ name: link.name, parts: link.parts, isLink: true })));
+    for (const entry of checked) {
+        const lastPrefix = entry.isLink ? entry.parts.length - 1 : entry.parts.length;
+        for (let length = 1; length <= lastPrefix; length++) {
+            const owner = folded.links.get(foldedKey(entry.parts.slice(0, length)));
+            if (owner) {
+                throw new Error(_loc('LIB_ZipEntryBeneathSymlink', entry.name, owner.name));
+            }
+        }
+    }
+    for (const link of symlinks) {
+        const target = link.target;
+        const parentParts = link.parts.slice(0, -1);
+        const absolute = target.startsWith('/') || /^[a-zA-Z]:/.test(target);
+        let contained = !absolute && target.length > 0 && !target.includes('\0');
+        // Resolving the link's own parent first also rejects pre-existing destination symlinks above it.
+        for (const lookup of [exact, folded]) {
+            const parent = contained ? resolveInDestination([], parentParts.join('/'), lookup, root) : undefined;
+            contained = !!parent && !!resolveInDestination(parent, target, lookup, root);
+        }
+        const lexical = contained ? normalizeLexically(parentParts, target) : undefined;
+        link.resolved = lexical && resolveInDestination([], lexical.join('/'), folded, root);
+        if (!link.resolved) {
+            throw new Error(_loc('LIB_ZipSymlinkNotAllowed', link.name, target));
+        }
+        const linkPath = path.join(root, ...link.parts);
+        let existing: fs.Stats | undefined;
+        try {
+            existing = fs.lstatSync(linkPath);
+        } catch {
+            existing = undefined;
+        }
+        if (existing && existing.isDirectory()) {
+            throw new Error(_loc('LIB_PathIsNotAFile', linkPath));
+        }
+    }
+}
+
+/** Creates validated links after all other entries are extracted, so nothing is written through them. */
+function createSymlinks(symlinks: ArchivedSymlink[], root: string, overwrite: boolean): void {
+    for (const link of symlinks) {
+        const linkPath = path.join(root, ...link.parts);
+        fs.mkdirSync(path.dirname(linkPath), { recursive: true });
+        if (isSymlinkOnDisk(linkPath) || fs.existsSync(linkPath)) {
+            if (!overwrite) {
+                continue;
+            }
+            fs.unlinkSync(linkPath);
+        }
+        // Windows needs the link type up front; links to missing targets are created as file links.
+        let type: 'dir' | 'file' = 'file';
+        try {
+            if (fs.statSync(path.join(root, ...link.resolved!)).isDirectory()) {
+                type = 'dir';
+            }
+        } catch {
+            type = 'file';
+        }
+        fs.symlinkSync(link.target, linkPath, type);
+    }
+}
+
 export interface ExtractZipOptions {
     dir: string;
     /**
@@ -81,6 +263,10 @@ export interface CreateZipOptions {
  * Existing files are overwritten unless overwrite is false.
  * Decodes UTF-8 and CP437 names, honoring valid Info-ZIP Unicode Path extra fields.
  * Recognizes directory entries by trailing separators or Unix/DOS directory attributes.
+ * Restores Unix symbolic link entries as symbolic links after all other entries are extracted. Before any
+ * destination path is created or modified, rejects archives whose links are empty, absolute, circular, resolve
+ * outside the destination (including through other links or pre-existing destination symlinks), or have other
+ * entries at or beneath them.
  */
 export function extractZipSync(file: string, destination: string | ExtractZipOptions): string {
     if (!file) {
@@ -101,9 +287,33 @@ export function extractZipSync(file: string, destination: string | ExtractZipOpt
     });
     const entries = zip.getEntries();
     const names = new Set<string>();
+    const password = options.password;
+    const root = path.resolve(options.dir);
+    const symlinks: ArchivedSymlink[] = [];
+    const otherEntries: { name: string, parts: string[] }[] = [];
     for (const entry of entries) {
         let name = decodeZipEntryName(entry);
-        const unixDirectory = ((entry.header.attr >>> 16) & 0xf000) === 0x4000;
+        const unixFileType = (entry.header.attr >>> 16) & 0xf000;
+        if (unixFileType === 0xa000) {
+            if (names.has(name)) {
+                throw new Error(_loc('LIB_OperationFailed', 'extract ZIP', `Duplicate entry name "${name}"`));
+            }
+            names.add(name);
+            const data = entry.getData(password);
+            if (!data) {
+                throw new Error(_loc('LIB_OperationFailed', 'extract ZIP', `Unable to read symbolic link entry "${name}"`));
+            }
+            let target = data.toString('utf8');
+            // Backslashes are separators on Windows only; on POSIX they are ordinary filename characters.
+            if (process.platform === 'win32') {
+                target = target.replace(/\\/g, '/');
+            }
+            symlinks.push({ name, parts: entryPathParts(name), target });
+            // Remove before the decoded name is registered: adm-zip's entry table is keyed by the latin1 name.
+            zip.deleteEntry(entry);
+            continue;
+        }
+        const unixDirectory = unixFileType === 0x4000;
         const dosDirectory = (entry.header.made >>> 8) === 0 && entry.header.attr === 0x10;
         if (!entry.isDirectory && (unixDirectory || dosDirectory)) {
             // The setter updates adm-zip's directory flag. Preserve the raw encoding until the name is mapped.
@@ -117,15 +327,16 @@ export function extractZipSync(file: string, destination: string | ExtractZipOpt
         }
         names.add(name);
         decodedNames.set(entry.rawEntryName, name);
+        otherEntries.push({ name, parts: entryPathParts(name) });
     }
-    const password = options.password;
-    for (const entry of entries) {
+    validateSymlinks(symlinks, otherEntries, root);
+    for (const entry of zip.getEntries()) {
         if (entry.isDirectory) {
             continue;
         }
         // Match adm-zip's rooted normalization, including backslashes and traversal segments.
         const entryPath = path.posix.normalize('/' + entry.entryName.replace(/\\/g, '/'));
-        const outputPath = path.join(path.resolve(options.dir), entryPath);
+        const outputPath = path.join(root, entryPath);
         if (fs.existsSync(outputPath) && !fs.statSync(outputPath).isFile()) {
             throw new Error(_loc('LIB_PathIsNotAFile', outputPath));
         }
@@ -133,9 +344,11 @@ export function extractZipSync(file: string, destination: string | ExtractZipOpt
             entry.getData = entry.getData.bind(entry, password);
         }
     }
+    const overwrite = options.overwrite ?? true;
     // adm-zip creates directories only per entry, so an empty archive would otherwise leave dir missing.
     fs.mkdirSync(options.dir, { recursive: true });
-    zip.extractAllTo(options.dir, options.overwrite ?? true, options.keepOriginalPermission ?? true, options.password);
+    zip.extractAllTo(options.dir, overwrite, options.keepOriginalPermission ?? true, options.password);
+    createSymlinks(symlinks, root, overwrite);
     return options.dir;
 }
 

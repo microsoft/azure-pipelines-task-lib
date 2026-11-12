@@ -69,6 +69,222 @@ describe('ZIP utility tests', function () {
         assertExtracted();
     });
 
+    describe('archived symbolic links', function () {
+        // Created on Linux with Info-ZIP Zip 3.0: `zip -X -0 -y -r real.zip target.txt dir nested link dirlink`, where
+        // link -> target.txt, dirlink -> dir and nested/up -> ../target.txt are real symbolic links.
+        const infoZipArchive =
+            'UEsDBAoAAAAAAAAAIVD+Ct1ADgAAAA4AAAAKAAAAdGFyZ2V0LnR4dHRhcmdldCBjb250ZW50UEsDBAoAAAAAAAAAIVAAAAAAAAAAAAAAAAAE' +
+            'AAAAZGlyL1BLAwQKAAAAAAAAACFQ+j2XNg0AAAANAAAADQAAAGRpci9pbm5lci50eHRpbm5lciBjb250ZW50UEsDBAoAAAAAAAAAIVAAAAAA' +
+            'AAAAAAAAAAAHAAAAbmVzdGVkL1BLAwQKAAAAAAAAACFQD6CmQQ0AAAANAAAACQAAAG5lc3RlZC91cC4uL3RhcmdldC50eHRQSwMECgAAAAAA' +
+            'AAAhUEm6pAAKAAAACgAAAAQAAABsaW5rdGFyZ2V0LnR4dFBLAwQKAAAAAAAAACFQEHqrugMAAAADAAAABwAAAGRpcmxpbmtkaXJQSwECHgMK' +
+            'AAAAAAAAACFQ/grdQA4AAAAOAAAACgAAAAAAAAAAAAAApIEAAAAAdGFyZ2V0LnR4dFBLAQIeAwoAAAAAAAAAIVAAAAAAAAAAAAAAAAAEAAAA' +
+            'AAAAAAAAEADtQTYAAABkaXIvUEsBAh4DCgAAAAAAAAAhUPo9lzYNAAAADQAAAA0AAAAAAAAAAAAAAKSBWAAAAGRpci9pbm5lci50eHRQSwEC' +
+            'HgMKAAAAAAAAACFQAAAAAAAAAAAAAAAABwAAAAAAAAAAABAA7UGQAAAAbmVzdGVkL1BLAQIeAwoAAAAAAAAAIVAPoKZBDQAAAA0AAAAJAAAA' +
+            'AAAAAAAAAAD/obUAAABuZXN0ZWQvdXBQSwECHgMKAAAAAAAAACFQSbqkAAoAAAAKAAAABAAAAAAAAAAAAAAA/6HpAAAAbGlua1BLAQIeAwoA' +
+            'AAAAAAAAIVAQequ6AwAAAAMAAAAHAAAAAAAAAAAAAAD/oRUBAABkaXJsaW5rUEsFBgAAAAAHAAcAeAEAAD0BAAAAAA==';
+
+        let canCreateSymlinks: boolean;
+
+        before(function () {
+            const probe = fs.mkdtempSync(path.join(testutil.getTestTemp(), 'symlink-probe-'));
+            try {
+                fs.symlinkSync('missing', path.join(probe, 'link'), 'file');
+                canCreateSymlinks = true;
+            } catch {
+                canCreateSymlinks = false;
+            } finally {
+                tl.rmRF(probe);
+            }
+        });
+
+        function requireSymlinks(context: Mocha.Context): void {
+            if (!canCreateSymlinks) {
+                context.skip();
+            }
+        }
+
+        type ArchiveEntry = { name: string, content?: string, link?: string };
+
+        function writeArchive(archiveEntries: ArchiveEntry[]): void {
+            const zip = new AdmZip({ noSort: true });
+            for (const archiveEntry of archiveEntries) {
+                const added = zip.addFile(archiveEntry.name, Buffer.from(archiveEntry.link ?? archiveEntry.content ?? ''));
+                if (archiveEntry.link !== undefined) {
+                    added.header.made = 0x0314;
+                    added.header.attr = 0o120777 * 0x10000;
+                }
+            }
+            zip.writeZip(archive);
+        }
+
+        function readLink(linkPath: string): string {
+            assert(fs.lstatSync(linkPath).isSymbolicLink(), `${linkPath} is not a symbolic link`);
+            return fs.readlinkSync(linkPath).replace(/\\/g, '/');
+        }
+
+        it('restores links from a real Info-ZIP archive through both APIs', async function () {
+            requireSymlinks(this);
+            fs.writeFileSync(archive, Buffer.from(infoZipArchive, 'base64'));
+            const entries = new AdmZip(archive).getEntries();
+            const linkEntries = entries.filter(entry => ((entry.header.attr >>> 16) & 0xf000) === 0xa000);
+            assert.deepStrictEqual(linkEntries.map(entry => entry.entryName).sort(), ['dirlink', 'link', 'nested/up']);
+            assert(entries.every(entry => (entry.header.made >>> 8) === 3));
+
+            const syncDestination = path.join(workDir, 'sync-output');
+            assert.strictEqual(ziputil.extractZipSync(archive, { dir: syncDestination }), syncDestination);
+            assert.strictEqual(await tl.extractZip(archive, { dir: destination }), destination);
+            for (const output of [syncDestination, destination]) {
+                assert.deepStrictEqual(fs.readdirSync(output).sort(), ['dir', 'dirlink', 'link', 'nested', 'target.txt']);
+                assert.strictEqual(readLink(path.join(output, 'link')), 'target.txt');
+                assert.strictEqual(readLink(path.join(output, 'dirlink')), 'dir');
+                assert.strictEqual(readLink(path.join(output, 'nested', 'up')), '../target.txt');
+                assert.strictEqual(fs.readFileSync(path.join(output, 'link'), 'utf8'), 'target content');
+                assert.strictEqual(fs.readFileSync(path.join(output, 'nested', 'up'), 'utf8'), 'target content');
+                assert(fs.statSync(path.join(output, 'dirlink')).isDirectory());
+                assert.strictEqual(fs.readFileSync(path.join(output, 'dirlink', 'inner.txt'), 'utf8'), 'inner content');
+                assert(fs.lstatSync(path.join(output, 'target.txt')).isFile());
+            }
+        });
+
+        it('restores chained, dangling and non-ASCII contained links', async function () {
+            requireSymlinks(this);
+            writeArchive([
+                { name: 'target.txt', content: 'target content' },
+                { name: 'caf\u00e9', link: 'second' },
+                { name: 'second', link: 'sub/../target.txt' },
+                { name: 'dangling', link: 'missing.txt' }
+            ]);
+            assert.strictEqual(await tl.extractZip(archive, destination), destination);
+            assert.strictEqual(readLink(path.join(destination, 'caf\u00e9')), 'second');
+            assert.strictEqual(readLink(path.join(destination, 'second')), 'sub/../target.txt');
+            assert.strictEqual(readLink(path.join(destination, 'dangling')), 'missing.txt');
+            assert.strictEqual(fs.readFileSync(path.join(destination, 'caf\u00e9'), 'utf8'), 'target content');
+            assert(!fs.existsSync(path.join(destination, 'missing.txt')));
+        });
+
+        const rejected: { name: string, entries: ArchiveEntry[], error: RegExp }[] = [
+            { name: 'a parent-relative escape', entries: [{ name: 'link', link: '../outside.txt' }], error: /'link' -> '..\/outside.txt' is not allowed/ },
+            { name: 'a nested parent-relative escape', entries: [{ name: 'a/link', link: 'b/../../../outside.txt' }], error: /'a\/link' -> .* is not allowed/ },
+            { name: 'a POSIX absolute target', entries: [{ name: 'link', link: '/outside.txt' }], error: /'link' -> '\/outside.txt' is not allowed/ },
+            { name: 'a drive-letter absolute target', entries: [{ name: 'link', link: 'C:/outside.txt' }], error: /is not allowed/ },
+            { name: 'an empty target', entries: [{ name: 'link', link: '' }], error: /'link' -> '' is not allowed/ },
+            {
+                // Lexically a/b/up/../.. is the destination, but a/b/up -> .. resolves to a, so it is the destination's parent.
+                name: 'an escape through another archived link',
+                entries: [{ name: 'a/b/up', link: '..' }, { name: 'esc', link: 'a/b/up/../..' }],
+                error: /'esc' -> 'a\/b\/up\/..\/..' is not allowed/
+            },
+            {
+                // Case-sensitively a/UP is a plain directory, but on case-insensitive filesystems it is the a/up -> .. link.
+                name: 'an escape through a case variant of another archived link',
+                entries: [{ name: 'a/up', link: '..' }, { name: 'esc', link: 'a/UP/../..' }],
+                error: /'esc' -> 'a\/UP\/..\/..' is not allowed/
+            },
+            {
+                // Following d first gives x, but Windows resolves the target's ".." textually to the destination's parent.
+                name: 'an escape under Windows textual parent resolution',
+                entries: [{ name: 'x/y/z/', content: '' }, { name: 'd', link: 'x/y/z' }, { name: 'esc', link: 'd/../..' }],
+                error: /'esc' -> 'd\/..\/..' is not allowed/
+            },
+            { name: 'a link loop', entries: [{ name: 'l1', link: 'l2' }, { name: 'l2', link: 'l1' }], error: /'l1' -> 'l2' is not allowed/ },
+            {
+                name: 'links differing only by case',
+                entries: [{ name: 'link', link: 'target.txt' }, { name: 'LINK', link: 'target.txt' }],
+                error: /'LINK' -> 'target.txt' is not allowed/
+            },
+            {
+                name: 'a file beneath a link',
+                entries: [{ name: 'dir/', content: '' }, { name: 'dirlink', link: 'dir' }, { name: 'dirlink/evil.txt', content: 'evil' }],
+                error: /ZIP entry 'dirlink\/evil.txt' is located beneath the symbolic link entry 'dirlink'/
+            },
+            {
+                name: 'a file beneath a case variant of a link',
+                entries: [{ name: 'dir/', content: '' }, { name: 'dirlink', link: 'dir' }, { name: 'DIRLINK/evil.txt', content: 'evil' }],
+                error: /ZIP entry 'DIRLINK\/evil.txt' is located beneath the symbolic link entry 'dirlink'/
+            },
+            {
+                name: 'a directory at a link path',
+                entries: [{ name: 'link', link: 'target.txt' }, { name: 'link/', content: '' }],
+                error: /ZIP entry 'link\/' is located beneath the symbolic link entry 'link'/
+            },
+            {
+                name: 'a link beneath another link',
+                entries: [{ name: 'dir/', content: '' }, { name: 'dirlink', link: 'dir' }, { name: 'dirlink/inner', link: '../target.txt' }],
+                error: /ZIP entry 'dirlink\/inner' is located beneath the symbolic link entry 'dirlink'/
+            }
+        ];
+
+        for (const rejection of rejected) {
+            for (const existingDestination of [false, true]) {
+                it(`rejects ${rejection.name} before changing ${existingDestination ? 'an existing' : 'a missing'} destination through both APIs`, async function () {
+                    writeArchive([{ name: 'target.txt', content: 'target content' }, ...rejection.entries]);
+                    const outside = path.join(workDir, 'outside.txt');
+                    fs.writeFileSync(outside, 'outside content');
+                    if (existingDestination) {
+                        fs.mkdirSync(destination);
+                        fs.writeFileSync(path.join(destination, 'target.txt'), 'existing target');
+                    }
+                    const options: ziputil.ExtractZipOptions = existingDestination
+                        ? { dir: destination, overwrite: true, keepOriginalPermission: false }
+                        : { dir: destination };
+                    assert.throws(() => ziputil.extractZipSync(archive, options), rejection.error);
+                    await assert.rejects(tl.extractZip(archive, options), rejection.error);
+                    if (existingDestination) {
+                        assert.deepStrictEqual(fs.readdirSync(destination), ['target.txt']);
+                        assert.strictEqual(fs.readFileSync(path.join(destination, 'target.txt'), 'utf8'), 'existing target');
+                    } else {
+                        assert(!fs.existsSync(destination));
+                    }
+                    assert.strictEqual(fs.readFileSync(outside, 'utf8'), 'outside content');
+                });
+            }
+        }
+
+        it('rejects links resolving through a pre-existing destination symlink', async function () {
+            requireSymlinks(this);
+            fs.mkdirSync(destination);
+            fs.symlinkSync(workDir, path.join(destination, 'escape'), 'dir');
+            fs.writeFileSync(path.join(workDir, 'outside.txt'), 'outside content');
+            for (const entries of [
+                [{ name: 'link', link: 'escape/outside.txt' }],
+                [{ name: 'escape/link', link: 'outside.txt' }],
+                // The target itself is harmless; only the link's parent directory is a pre-existing symlink.
+                [{ name: 'escape/link', link: 'target.txt' }],
+                [{ name: 'escape/sub/link', link: '../target.txt' }]
+            ]) {
+                writeArchive([{ name: 'target.txt', content: 'target content' }, ...entries]);
+                assert.throws(() => ziputil.extractZipSync(archive, destination), /is not allowed/);
+                await assert.rejects(tl.extractZip(archive, destination), /is not allowed/);
+                assert.deepStrictEqual(fs.readdirSync(destination), ['escape']);
+                assert.deepStrictEqual(fs.readdirSync(workDir).sort(), ['archive.zip', 'output', 'outside.txt', 'source']);
+            }
+        });
+
+        it('replaces existing files and links at link paths by default and keeps them with overwrite: false', async function () {
+            requireSymlinks(this);
+            writeArchive([{ name: 'target.txt', content: 'target content' }, { name: 'link', link: 'target.txt' }]);
+            fs.mkdirSync(destination);
+            fs.writeFileSync(path.join(destination, 'link'), 'existing link path');
+            await tl.extractZip(archive, { dir: destination, overwrite: false });
+            assert(fs.lstatSync(path.join(destination, 'link')).isFile());
+            assert.strictEqual(fs.readFileSync(path.join(destination, 'link'), 'utf8'), 'existing link path');
+            await tl.extractZip(archive, destination);
+            assert.strictEqual(readLink(path.join(destination, 'link')), 'target.txt');
+            assert.strictEqual(fs.readFileSync(path.join(destination, 'link'), 'utf8'), 'target content');
+            await tl.extractZip(archive, destination);
+            assert.strictEqual(readLink(path.join(destination, 'link')), 'target.txt');
+        });
+
+        it('rejects an existing directory at a link path before extracting', async function () {
+            writeArchive([{ name: 'target.txt', content: 'target content' }, { name: 'link', link: 'target.txt' }]);
+            fs.mkdirSync(path.join(destination, 'link'), { recursive: true });
+            assert.throws(() => ziputil.extractZipSync(archive, destination), /Path is not a file/);
+            await assert.rejects(tl.extractZip(archive, destination), /Path is not a file/);
+            assert.deepStrictEqual(fs.readdirSync(destination), ['link']);
+            assert.deepStrictEqual(fs.readdirSync(path.join(destination, 'link')), []);
+        });
+    });
+
     describe('attribute-based directories', function () {
         const attributeFormats = [
             { name: 'Unix S_IFDIR', made: 0x0314, attr: 0o40755 * 0x10000 },
