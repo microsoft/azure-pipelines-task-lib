@@ -1,8 +1,8 @@
-require('shelljs/make');
 var fs = require('fs');
 var path = require('path');
 var buildutils = require('./buildutils');
 var run = buildutils.run;
+var target = {};
 
 var rp = function (relPath) {
     return path.join(__dirname, relPath);
@@ -12,8 +12,8 @@ var buildPath = path.join(__dirname, '_build');
 var testPath = path.join(__dirname, '_test');
 
 target.clean = function () {
-    rm('-Rf', buildPath);
-    rm('-Rf', testPath);
+    fs.rmSync(buildPath, { recursive: true, force: true });
+    fs.rmSync(testPath, { recursive: true, force: true });
 };
 
 target.build = function() {
@@ -21,18 +21,18 @@ target.build = function() {
     target.loc();
 
     run('npx tsc -v');
-    run('npx tsc --outDir ' + buildPath);
-    cp(rp('package.json'), buildPath);
-    cp(rp('package-lock.json'), buildPath);
-    cp(rp('README.md'), buildPath);
-    cp(rp('../LICENSE'), buildPath);
-    cp(rp('lib.json'), buildPath);
-    cp(rp('ThirdPartyNotice.txt'), buildPath);
-    cp('-Rf', rp('Strings'), buildPath);
+    run('npx tsc --outDir "' + buildPath + '"');
+    ['package.json', 'package-lock.json', 'README.md', '../LICENSE', 'lib.json', 'ThirdPartyNotice.txt'].forEach(function (file) {
+        fs.copyFileSync(rp(file), path.join(buildPath, path.basename(file)));
+    });
+    fs.cpSync(rp('Strings'), path.join(buildPath, 'Strings'), { recursive: true });
     target.generateLibResource();
     // just a bootstrap file to avoid /// in final js and .d.ts file
-    // Use force flag so build doesn't fail if files don't exist
-    rm('-f', path.join(buildPath, 'index.*'));
+    fs.readdirSync(buildPath).filter(function (file) {
+        return file.startsWith('index.');
+    }).forEach(function (file) {
+        fs.rmSync(path.join(buildPath, file), { force: true });
+    });
 }
 
 target.testprepare = async function() {
@@ -40,15 +40,14 @@ target.testprepare = async function() {
 
     await buildutils.getExternalsAsync();
     run('tsc -p ./test');
-    cp('-Rf', rp('test/scripts'), testPath);
-    cp('-Rf', rp('test/fakeTasks'), testPath);
+    fs.cpSync(rp('test/scripts'), path.join(testPath, 'scripts'), { recursive: true });
+    fs.cpSync(rp('test/fakeTasks'), path.join(testPath, 'fakeTasks'), { recursive: true });
 }
 
 target.testrun = function() {
     process.env['SYSTEM_DEBUG'] = 'true';
     process.env['TASKLIB_INPROC_UNITS'] = '1'; // export task-lib internals for internal unit testing
-    set('+e'); // Don't throw an exception when tests fail
-    run('npx mocha ' + testPath);
+    run('"' + process.execPath + '" "' + rp('node_modules/mocha/bin/mocha.js') + '" "' + testPath + '"');
 }
 
 target.test = async function() {
@@ -59,7 +58,7 @@ target.test = async function() {
 target.loc = function() {
     var lib = require('./lib.json');
     var strPath = path.join('Strings', 'resources.resjson', 'en-US')
-    mkdir('-p', strPath);
+    fs.mkdirSync(strPath, { recursive: true });
     var strings = { };
     if (lib.messages) {
         for (var key in lib.messages) {
@@ -101,14 +100,28 @@ target.generateLibResource = function() {
     fs.writeFileSync(path.join(buildPath, 'lib-resource.js'), contents);
 }
 
-process.on('uncaughtException', err => {
-    console.error(`Uncaught exception: ${err.message}`);
-    console.debug(err.stack);
-    exit(1);
-});
+async function runTargets() {
+    var args = process.argv.slice(2);
+    var separator = args.indexOf('--');
+    if (separator !== -1) {
+        args = args.slice(0, separator);
+    }
 
-process.on('unhandledRejection', err => {
-    console.error(`Unhandled rejection: ${err.message}`);
-    console.debug(err.stack);
-    exit(1);
+    if (args.length === 1 && args[0] === '--help') {
+        console.log('Available targets:');
+        Object.keys(target).forEach(function (name) { console.log('  ' + name); });
+        return;
+    }
+
+    for (var name of args) {
+        if (!Object.prototype.hasOwnProperty.call(target, name)) {
+            throw new Error('No such target: ' + name);
+        }
+        await target[name]();
+    }
+}
+
+runTargets().catch(err => {
+    console.error(err);
+    process.exitCode = 1;
 });

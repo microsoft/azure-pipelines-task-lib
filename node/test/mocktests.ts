@@ -9,6 +9,8 @@ import * as ma from '../_build/mock-answer';
 import * as tl from '../_build/task';
 
 import ncp = require('child_process');
+import fs = require('fs');
+import http = require('http');
 import os = require('os');
 import path = require('path');
 import semver = require('semver');
@@ -390,6 +392,120 @@ describe('Mock Tests', function () {
         const version = ncp.execSync(nodePath + ' -v').toString().trim();
         assert(semver.satisfies(version, '6.x'), 'Downloaded node version should be Node 6 instead of ' + version);
     })
+
+    it('replaces an incomplete runtime download without following directory links', async function () {
+        this.timeout(10000);
+        const root = fs.mkdtempSync(path.join(testutil.getTestTemp(), 'node-download-'));
+        const destination = path.join(root, 'nested', 'node');
+        const outside = path.join(root, 'outside');
+        fs.mkdirSync(path.join(destination, 'partial'), { recursive: true });
+        fs.writeFileSync(path.join(destination, 'partial', 'stale'), 'stale');
+        fs.mkdirSync(outside);
+        fs.writeFileSync(path.join(outside, 'keep'), 'keep');
+        testutil.createSymlinkDir(outside, path.join(destination, 'linked'));
+
+        const server = http.createServer((request, response) => {
+            switch (request.url) {
+                case '/v-test/win-x64/node.exe':
+                    response.end('downloaded node.exe');
+                    break;
+                case '/v-test/win-x64/node.lib':
+                    response.end('downloaded node.lib');
+                    break;
+                default:
+                    response.writeHead(404);
+                    response.end();
+            }
+        });
+        await new Promise<void>((resolve, reject) => {
+            server.once('error', reject);
+            server.listen(0, '127.0.0.1', resolve);
+        });
+
+        const originalUrl = process.env['TASK_NODE_URL'];
+        const address = server.address();
+        assert(address && typeof address !== 'string');
+        process.env['TASK_NODE_URL'] = `http://127.0.0.1:${address.port}`;
+
+        try {
+            const runner = new mtm.MockTestRunner();
+            runner['getPlatform'] = () => 'win32';
+            const nodePath = await runner['downloadNode']('v-test', destination);
+
+            assert.strictEqual(nodePath, path.join(destination, 'node.exe'));
+            assert.strictEqual(fs.readFileSync(nodePath, 'utf8'), 'downloaded node.exe');
+            assert.strictEqual(fs.readFileSync(path.join(destination, 'node.lib'), 'utf8'), 'downloaded node.lib');
+            assert(!fs.existsSync(path.join(destination, 'partial')));
+            assert.strictEqual(fs.readFileSync(path.join(outside, 'keep'), 'utf8'), 'keep');
+            assert(fs.existsSync(destination + '.completed'));
+
+            const invalidUrl = `${process.env['TASK_NODE_URL']}/${encodeURIComponent('<script>alert(1)</script>')}`;
+            const unexpectedResponse = await new Promise<http.IncomingMessage>((resolve, reject) => {
+                http.get(invalidUrl, resolve).on('error', reject);
+            });
+            let unexpectedBody = '';
+            for await (const chunk of unexpectedResponse) {
+                unexpectedBody += chunk.toString();
+            }
+            assert.strictEqual(unexpectedResponse.statusCode, 404);
+            assert.strictEqual(unexpectedBody, '');
+        } finally {
+            if (originalUrl === undefined) {
+                delete process.env['TASK_NODE_URL'];
+            } else {
+                process.env['TASK_NODE_URL'] = originalUrl;
+            }
+            await new Promise<void>((resolve, reject) => server.close(err => err ? reject(err) : resolve()));
+            fs.rmSync(root, { recursive: true, force: true });
+        }
+    });
+
+    it('cleans incomplete runtime downloads on older Node versions', async function () {
+        const root = fs.mkdtempSync(path.join(testutil.getTestTemp(), 'legacy-download-'));
+        const destination = path.join(root, 'node');
+        fs.mkdirSync(path.join(destination, 'partial'), { recursive: true });
+        fs.writeFileSync(path.join(destination, 'partial', 'stale'), 'stale');
+
+        const runner = new mtm.MockTestRunner();
+        runner['getPlatform'] = () => 'win32';
+        runner['downloadFile'] = async (_url, directory, fileName) => {
+            fs.mkdirSync(directory, { recursive: true });
+            fs.writeFileSync(path.join(directory, fileName), 'downloaded');
+        };
+
+        const descriptor = Object.getOwnPropertyDescriptor(fs, 'rmSync')!;
+        let download: Promise<string>;
+        try {
+            Object.defineProperty(fs, 'rmSync', { ...descriptor, value: undefined });
+            download = runner['downloadNode']('v-test', destination);
+        } finally {
+            Object.defineProperty(fs, 'rmSync', descriptor);
+        }
+
+        try {
+            await download;
+            assert(!fs.existsSync(path.join(destination, 'partial')));
+            assert(fs.existsSync(path.join(destination, 'node.exe')));
+            assert(fs.existsSync(destination + '.completed'));
+        } finally {
+            fs.rmSync(root, { recursive: true, force: true });
+        }
+    });
+
+    it('reports a file blocking a runtime download directory', async function () {
+        const root = fs.mkdtempSync(path.join(testutil.getTestTemp(), 'blocked-download-'));
+        const destination = path.join(root, 'node');
+        fs.writeFileSync(destination, 'not a directory');
+        try {
+            const runner = new mtm.MockTestRunner();
+            await assert.rejects(
+                runner['downloadFile']('http://127.0.0.1/unused', destination, 'node.exe'),
+                (err: NodeJS.ErrnoException) => err.code === 'EEXIST'
+            );
+        } finally {
+            fs.rmSync(root, { recursive: true, force: true });
+        }
+    });
 
     it('MockTest handles node 10 tasks correctly', async function () {
         this.timeout(30000);
