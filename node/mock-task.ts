@@ -275,7 +275,6 @@ export function checkPath(p: string, name: string): void {
 // Abstract these away so we can
 // - default to good error handling
 // - inject system.debug info
-// - have option to switch internal impl (shelljs now)
 //-----------------------------------------------------
 export function mkdirP(p): void {
     module.exports.debug('creating path: ' + p);

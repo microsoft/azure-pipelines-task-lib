@@ -3,12 +3,53 @@ import fs = require('fs');
 import os = require('os');
 import path = require('path');
 import cmdm = require('./taskcommand');
-import shelljs = require('shelljs');
 const Downloader = require("nodejs-file-downloader");
 
 const COMMAND_TAG = '[command]';
 const COMMAND_LENGTH = COMMAND_TAG.length;
 const downloadDirectory = path.join(process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE as string, 'azure-pipelines-task-lib', '_download');
+
+function removePath(target: string): void {
+    if (typeof fs.rmSync === 'function') {
+        fs.rmSync(target, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+        return;
+    }
+
+    // Older supported Node runtimes do not provide fs.rmSync.
+    let stats: fs.Stats;
+    try {
+        stats = fs.lstatSync(target);
+    } catch (err) {
+        if (err.code === 'ENOENT') {
+            return;
+        }
+        throw err;
+    }
+
+    if (stats.isDirectory()) {
+        for (const entry of fs.readdirSync(target)) {
+            removePath(path.join(target, entry));
+        }
+        fs.rmdirSync(target);
+    } else {
+        fs.unlinkSync(target);
+    }
+}
+
+function createDirectory(directory: string): void {
+    const parent = path.dirname(directory);
+    if (parent !== directory && !fs.existsSync(parent)) {
+        createDirectory(parent);
+    }
+
+    try {
+        fs.mkdirSync(directory);
+    } catch (err) {
+        if (err.code !== 'EEXIST' || !fs.statSync(directory).isDirectory()) {
+            throw err;
+        }
+    }
+}
 
 export class MockTestRunner {
 
@@ -243,7 +284,7 @@ export class MockTestRunner {
 
     // Downloads the specified node version to the download destination. Returns a path to node.exe
     private async downloadNode(nodeVersion: string, downloadDestination: string): Promise<string> {
-        shelljs.rm('-rf', downloadDestination);
+        removePath(downloadDestination);
         let nodeUrl: string = process.env['TASK_NODE_URL'] || 'https://nodejs.org/dist';
         nodeUrl = nodeUrl.replace(/\/$/, '');  // ensure there is no trailing slash on the base URL
         let downloadPath = '';
@@ -277,7 +318,7 @@ export class MockTestRunner {
             throw new Error('Parameter "downloadDestination" must be set.');
         }
         console.log('Downloading file:', url);
-        shelljs.mkdir('-p', downloadDestination);
+        createDirectory(downloadDestination);
 
         const downloader = new Downloader({
             url: url,

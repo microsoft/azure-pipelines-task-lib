@@ -4,7 +4,6 @@
 import assert = require('assert');
 import path = require('path');
 import fs = require('fs');
-import shell = require('shelljs');
 import * as tl from '../_build/task';
 import testutil = require('./testutil');
 
@@ -60,7 +59,7 @@ describe('Loc Tests', function () {
     })
     it('loads task-lib strings from generated resources', function (done) {
         var tempFolder = path.join(testutil.getTestTemp(), 'embedded-task-lib-resources');
-        shell.mkdir('-p', tempFolder);
+        fs.mkdirSync(tempFolder, { recursive: true });
         var jsonPath = path.join(tempFolder, 'task.json');
         fs.writeFileSync(jsonPath, '{"messages":{}}');
         process.env['SYSTEM_CULTURE'] = 'en-US';
@@ -72,7 +71,7 @@ describe('Loc Tests', function () {
     })
     it('loads localized task-lib strings from generated resources', function (done) {
         var tempFolder = path.join(testutil.getTestTemp(), 'embedded-localized-task-lib-resources');
-        shell.mkdir('-p', tempFolder);
+        fs.mkdirSync(tempFolder, { recursive: true });
         var jsonPath = path.join(tempFolder, 'task.json');
         fs.writeFileSync(jsonPath, '{"messages":{}}');
         process.env['SYSTEM_CULTURE'] = 'zh-CN';
@@ -96,7 +95,7 @@ describe('Loc Tests', function () {
 
         try {
             var tempFolder = path.join(testutil.getTestTemp(), 'bundler-no-filesystem-resources');
-            shell.mkdir('-p', tempFolder);
+            fs.mkdirSync(tempFolder, { recursive: true });
             var jsonPath = path.join(tempFolder, 'task.json');
             fs.writeFileSync(jsonPath, '{"messages":{}}');
             process.env['SYSTEM_CULTURE'] = 'zh-CN';
@@ -116,13 +115,13 @@ describe('Loc Tests', function () {
         this.timeout(1000);
 
         var tempFolder = path.join(testutil.getTestTemp(), 'loc-str-from-loc-res-json');
-        shell.mkdir('-p', tempFolder);
+        fs.mkdirSync(tempFolder, { recursive: true });
         var jsonStr = "{\"messages\": {\"key1\" : \"string for key 1.\", \"key2\" : \"string for key %d.\", \"key3\" : \"string for key %%.\"}}";
         var jsonPath = path.join(tempFolder, 'task.json');
         fs.writeFileSync(jsonPath, jsonStr);
 
         var tempLocFolder = path.join(tempFolder, 'Strings', 'resources.resjson', 'zh-CN');
-        shell.mkdir('-p', tempLocFolder);
+        fs.mkdirSync(tempLocFolder, { recursive: true });
         var locJsonStr = "{\"loc.messages.key1\" : \"loc cn-string for key 1.\", \"loc.messages.key2\" : \"loc cn-string for key %d.\", \"loc.messages.key3\" : \"loc cn-string for key %%.\"}";
         var locJsonPath = path.join(tempLocFolder, 'resources.resjson');
         fs.writeFileSync(locJsonPath, locJsonStr);
@@ -145,7 +144,7 @@ describe('Loc Tests', function () {
 
         // Arrange
         var tempFolder = path.join(testutil.getTestTemp(), 'loc-str-from-loc-res-json2');
-        shell.mkdir('-p', tempFolder);
+        fs.mkdirSync(tempFolder, { recursive: true });
 
         // Create first task.json and resources file
         var jsonStr = "{\"messages\": {\"key6\" : \"string for key 6.\"}}";
@@ -153,21 +152,21 @@ describe('Loc Tests', function () {
         fs.writeFileSync(jsonPath, jsonStr);
 
         var tempLocFolder = path.join(tempFolder, 'Strings', 'resources.resjson', 'zh-CN');
-        shell.mkdir('-p', tempLocFolder);
+        fs.mkdirSync(tempLocFolder, { recursive: true });
         var locJsonStr = "{\"loc.messages.key6\" : \"loc cn-string for key 6.\"}";
         var locJsonPath = path.join(tempLocFolder, 'resources.resjson');
         fs.writeFileSync(locJsonPath, locJsonStr);
 
         // Create second task.json and resources file
         var nestedLocFolder = path.join(tempFolder, 'nested');
-        shell.mkdir('-p', nestedLocFolder);
+        fs.mkdirSync(nestedLocFolder, { recursive: true });
 
         var jsonStr2 = "{\"messages\": {\"keySecondFile\" : \"string for keySecondFile.\"}}";
         var jsonPath2 = path.join(nestedLocFolder, 'task.json');
         fs.writeFileSync(jsonPath2, jsonStr2);
 
         var tempLocFolder2 = path.join(nestedLocFolder, 'Strings', 'resources.resjson', 'zh-CN');
-        shell.mkdir('-p', tempLocFolder2);
+        fs.mkdirSync(tempLocFolder2, { recursive: true });
         var locJsonStr2 = "{\"loc.messages.keySecondFile\" : \"loc cn-string for keySecondFile.\"}";
         var locJsonPath2 = path.join(tempLocFolder2, 'resources.resjson');
         fs.writeFileSync(locJsonPath2, locJsonStr2);
@@ -189,7 +188,7 @@ describe('Loc Tests', function () {
         this.timeout(1000);
 
         var tempFolder = path.join(testutil.getTestTemp(), 'loc-fallback-culture-resjson-not-found');
-        shell.mkdir('-p', tempFolder);
+        fs.mkdirSync(tempFolder, { recursive: true });
         var jsonStr = "{\"messages\": {\"key1\" : \"string for key 1.\", \"key2\" : \"string for key %d.\", \"key3\" : \"string for key %%.\"}}";
         var jsonPath = path.join(tempFolder, 'task.json');
         fs.writeFileSync(jsonPath, jsonStr);
@@ -205,13 +204,13 @@ describe('Loc Tests', function () {
         this.timeout(1000);
 
         var tempFolder = path.join(testutil.getTestTemp(), 'loc-fallback-culture-string-not-found');
-        shell.mkdir('-p', tempFolder);
+        fs.mkdirSync(tempFolder, { recursive: true });
         var jsonStr = "{\"messages\": {\"key1\" : \"string for key 1.\", \"key2\" : \"string for key %d.\", \"key3\" : \"string for key %%.\"}}";
         var jsonPath = path.join(tempFolder, 'task.json');
         fs.writeFileSync(jsonPath, jsonStr);
 
         var tempLocFolder = path.join(tempFolder, 'Strings', 'resources.resjson', 'zh-CN');
-        shell.mkdir('-p', tempLocFolder);
+        fs.mkdirSync(tempLocFolder, { recursive: true });
         var locJsonStr = "{\"loc.messages.key1\" : \"loc cn-string for key 1.\", \"loc.messages.key3\" : \"loc cn-string for key %%.\"}";
         var locJsonPath = path.join(tempLocFolder, 'resources.resjson');
         fs.writeFileSync(locJsonPath, locJsonStr);
@@ -227,13 +226,13 @@ describe('Loc Tests', function () {
         this.timeout(1000);
 
         var tempFolder = path.join(testutil.getTestTemp(), 'loc-default-to-en-US');
-        shell.mkdir('-p', tempFolder);
+        fs.mkdirSync(tempFolder, { recursive: true });
         var jsonStr = "{\"messages\": {\"key1\" : \"string for key 1.\", \"key2\" : \"string for key %d.\", \"key3\" : \"string for key %%.\"}}";
         var jsonPath = path.join(tempFolder, 'task.json');
         fs.writeFileSync(jsonPath, jsonStr);
 
         var tempLocFolder = path.join(tempFolder, 'Strings', 'resources.resjson', 'en-US');
-        shell.mkdir('-p', tempLocFolder);
+        fs.mkdirSync(tempLocFolder, { recursive: true });
         var locJsonStr = "{\"loc.messages.key1\" : \"loc en-string for key 1.\", \"loc.messages.key2\" : \"loc en-string for key %d.\", \"loc.messages.key3\" : \"loc en-string for key %%.\"}";
         var locJsonPath = path.join(tempLocFolder, 'resources.resjson');
         fs.writeFileSync(locJsonPath, locJsonStr);
@@ -249,7 +248,7 @@ describe('Loc Tests', function () {
         this.timeout(1000);
 
         var tempFolder = path.join(testutil.getTestTemp(), 'loc-key-not-found-returns-key-plus-args');
-        shell.mkdir('-p', tempFolder);
+        fs.mkdirSync(tempFolder, { recursive: true });
         var jsonStr = "{\"messages\": {\"key1\" : \"string for key 1.\", \"key2\" : \"string for key %d.\"}}";
         var jsonPath = path.join(tempFolder + 'task.json');
         fs.writeFileSync(jsonPath, jsonStr);

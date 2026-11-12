@@ -34,15 +34,14 @@ This Azure Pipelines extension (azure-pipelines-task-lib) is based on or incorpo
 28.	readable-stream (git://github.com/nodejs/readable-stream.git)
 29.	safe-buffer (git://github.com/feross/safe-buffer.git)
 30.	semver (git+https://github.com/npm/node-semver.git)
-31.	shelljs (git://github.com/arturadib/shelljs.git)
-32.	string_decoder (git://github.com/rvagg/string_decoder.git)
-33.	nodejs-file-downloader (git://github.com/ibrod83/nodejs-file-downloader.git)
-34.	then-request (git+https://github.com/then/then-request.git)
-35.	typedarray (git://github.com/substack/typedarray.git)
-36.	typescript (git+https://github.com/Microsoft/TypeScript.git)
-37.	util-deprecate (git://github.com/TooTallNate/util-deprecate.git)
-38.	uuid (git+https://github.com/kelektiv/node-uuid.git)
-39.	wrappy (git+https://github.com/npm/wrappy.git)
+31.	string_decoder (git://github.com/rvagg/string_decoder.git)
+32.	nodejs-file-downloader (git://github.com/ibrod83/nodejs-file-downloader.git)
+33.	then-request (git+https://github.com/then/then-request.git)
+34.	typedarray (git://github.com/substack/typedarray.git)
+35.	typescript (git+https://github.com/Microsoft/TypeScript.git)
+36.	util-deprecate (git://github.com/TooTallNate/util-deprecate.git)
+37.	uuid (git+https://github.com/kelektiv/node-uuid.git)
+38.	wrappy (git+https://github.com/npm/wrappy.git)
 
 
 %% asap NOTICES, INFORMATION, AND LICENSE BEGIN HERE
@@ -806,36 +805,6 @@ IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 =========================================
 END OF semver NOTICES, INFORMATION, AND LICENSE
 
-%% shelljs NOTICES, INFORMATION, AND LICENSE BEGIN HERE
-=========================================
-Copyright (c) 2012, Artur Adib <aadib@mozilla.com>
-All rights reserved.
-
-You may use this project under the terms of the New BSD license as follows:
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of Artur Adib nor the
-      names of the contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-ARE DISCLAIMED. IN NO EVENT SHALL ARTUR ADIB BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
-THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-=========================================
-END OF shelljs NOTICES, INFORMATION, AND LICENSE
 
 %% string_decoder NOTICES, INFORMATION, AND LICENSE BEGIN HERE
 =========================================
