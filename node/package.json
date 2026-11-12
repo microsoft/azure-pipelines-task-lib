@@ -1,6 +1,6 @@
 {
   "name": "azure-pipelines-task-lib",
-  "version": "5.283.2",
+  "version": "5.283.3",
   "description": "Azure Pipelines Task SDK",
   "main": "./task.js",
   "typings": "./task.d.ts",
@@ -9,6 +9,9 @@
     "test:prepare": "node make.js testprepare",
     "test:run": "node make.js testrun",
     "test": "node make.js test"
+  },
+  "engines": {
+    "node": ">=10"
   },
   "repository": {
     "type": "git",
