@@ -81,6 +81,7 @@ Set environment variable TASK_TEST_TRACE=1 to display test output.
 * **Overwrite:** existing files are overwritten by default (`overwrite: true`), matching `extract-zip`. Pass `overwrite: false` to keep existing files. A file/directory conflict always throws, regardless of this option.
 * **Unix permissions:** archived modes are restored by default (`keepOriginalPermission: true`), so executables stay executable. Pass `keepOriginalPermission: false` to use `adm-zip`'s default `0o666` modes. Restored modes are applied exactly, not filtered by umask, so check tools that depend on specific modes.
 * **Empty archives:** the destination directory is created, including missing parents.
+* **Filenames:** extraction honors the ZIP UTF-8 flag, falls back to CP437 for legacy names, and uses Info-ZIP Unicode Path extra fields (`0x7075`) when their version and filename CRC are valid, matching `extract-zip@2.0.1`.
 
 ```ts
 await tl.extractZip(archivePath, { dir: destination });                          // extract-zip parity

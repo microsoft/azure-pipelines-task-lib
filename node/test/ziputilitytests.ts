@@ -69,6 +69,112 @@ describe('ZIP utility tests', function () {
         assertExtracted();
     });
 
+    describe('filename decoding', function () {
+        // Stored ZIP fixtures with explicit central-directory flags, raw names and Unicode Path fields.
+        // Unicode Path fields are central-directory-only, as supported by extract-zip@2.0.1.
+        const fixtures = [
+            {
+                name: 'CP437 names, including byte-distinct names that collide under UTF-8 decoding',
+                archive: 'UEsDBBQAAAAAAAAAIQCpMMX+BwAAAAcAAAAOAAAAY2Fmgi9maXJzdC50eHRjb250ZW50UEsDBBQAAAAAAAAAIQCpMMX+' +
+                    'BwAAAAcAAAAIAAAAY2Fmgi50eHRjb250ZW50UEsDBBQAAAAAAAAAIQCpMMX+BwAAAAcAAAAIAAAAY2Fmgy50eHRjb250ZW50' +
+                    'UEsDBBQAAAAAAAAAIQCpMMX+BwAAAAcAAAAIAAAAnrXg/y50eHRjb250ZW50UEsBAhQAFAAAAAAAAAAhAKkwxf4HAAAABwAA' +
+                    'AA4AAAAAAAAAAAAAAAAAAAAAAGNhZoIvZmlyc3QudHh0UEsBAhQAFAAAAAAAAAAhAKkwxf4HAAAABwAAAAgAAAAAAAAAAAAA' +
+                    'AAAAMwAAAGNhZoIudHh0UEsBAhQAFAAAAAAAAAAhAKkwxf4HAAAABwAAAAgAAAAAAAAAAAAAAAAAYAAAAGNhZoMudHh0UEsB' +
+                    'AhQAFAAAAAAAAAAhAKkwxf4HAAAABwAAAAgAAAAAAAAAAAAAAAAAjQAAAJ614P8udHh0UEsFBgAAAAAEAAQA3gAAALoAAAAAAA==',
+                files: ['caf\u00e9/first.txt', 'caf\u00e9.txt', 'caf\u00e2.txt', '\u20a7\u2561\u03b1\u00a0.txt']
+            },
+            {
+                name: 'UTF-8 names when the language encoding flag is set',
+                archive: 'UEsDBBQAAAgAAAAAIQCpMMX+BwAAAAcAAAAQAAAAY2Fmw6kv5pel5pysLnR4dGNvbnRlbnRQSwECFAAUAAAIAAAA' +
+                    'ACEAqTDF/gcAAAAHAAAAEAAAAAAAAAAAAAAAAAAAAAAAY2Fmw6kv5pel5pysLnR4dFBLBQYAAAAAAQABAD4AAAA1AAAAAAA=',
+                files: ['caf\u00e9/\u65e5\u672c.txt']
+            },
+            {
+                name: 'valid Unicode Path extra fields',
+                archive: 'UEsDBBQAAAAAAAAAIQCpMMX+BwAAAAcAAAAKAAAAbGVnYWN5LnR4dGNvbnRlbnRQSwECFAAUAAAAAAAAACEAqTDF/gcA' +
+                    'AAAHAAAACgAZAAAAAAAAAAAAAAAAAAAAbGVnYWN5LnR4dHVwFQABgAdzEGNhZsOpL+aXpeacrC50eHRQSwUGAAAAAAEAAQBRAAAALwAAAAAA',
+                files: ['caf\u00e9/\u65e5\u672c.txt']
+            },
+            {
+                name: 'CP437 fallback for Unicode Path fields with invalid CRC, version or length',
+                archive: 'UEsDBBQAAAAAAAAAIQCpMMX+BwAAAAcAAAANAAAAYmFkLWNyYy2CLnR4dGNvbnRlbnRQSwMEFAAAAAAAAAAhAKkwxf4H' +
+                    'AAAABwAAABEAAABiYWQtdmVyc2lvbi2CLnR4dGNvbnRlbnRQSwMEFAAAAAAAAAAhAKkwxf4HAAAABwAAAAsAAABlbXB0eS2C' +
+                    'LnR4dGNvbnRlbnRQSwECFAAUAAAAAAAAACEAqTDF/gcAAAAHAAAADQASAAAAAAAAAAAAAAAAAAAAYmFkLWNyYy2CLnR4dHVwDgAB' +
+                    'n7LIandyb25nLnR4dFBLAQIUABQAAAAAAAAAIQCpMMX+BwAAAAcAAAARABIAAAAAAAAAAAAAADIAAABiYWQtdmVyc2lvbi2CLnR4' +
+                    'dHVwDgACmXYeq3dyb25nLnR4dFBLAQIUABQAAAAAAAAAIQCpMMX+BwAAAAcAAAALAAkAAAAAAAAAAAAAAGgAAABlbXB0eS2CLnR4' +
+                    'dHVwBQABUWbbHFBLBQYAAAAAAwADAOAAAACYAAAAAAA=',
+                files: ['bad-crc-\u00e9.txt', 'bad-version-\u00e9.txt', 'empty-\u00e9.txt']
+            },
+            {
+                name: 'Unicode Path precedence over UTF-8 header names',
+                archive: 'UEsDBBQAAAgAAAAAIQCpMMX+BwAAAAcAAAAJAAAAY2Fmw6kudHh0Y29udGVudFBLAQIUABQAAAgAAAAAIQCpMMX+' +
+                    'BwAAAAcAAAAJABMAAAAAAAAAAAAAAAAAAABjYWbDqS50eHR1cA8AAZK/ED7ml6XmnKwudHh0UEsFBgAAAAABAAEASgAAAC4AAAAAAA==',
+                files: ['\u65e5\u672c.txt']
+            }
+        ];
+
+        async function assertDecodedFiles(contents: Buffer, expectedFiles: string[]): Promise<void> {
+            fs.writeFileSync(archive, contents);
+            const syncDestination = path.join(workDir, 'sync-output');
+            assert.strictEqual(ziputil.extractZipSync(archive, { dir: syncDestination }), syncDestination);
+            assert.strictEqual(await tl.extractZip(archive, { dir: destination }), destination);
+            for (const output of [syncDestination, destination]) {
+                const actualFiles: string[] = [];
+                function collectFiles(directory: string, prefix: string = ''): void {
+                    for (const name of fs.readdirSync(directory)) {
+                        const relative = prefix + name;
+                        const fullPath = path.join(directory, name);
+                        if (fs.statSync(fullPath).isDirectory()) {
+                            collectFiles(fullPath, relative + '/');
+                        } else {
+                            actualFiles.push(relative);
+                            assert.strictEqual(fs.readFileSync(fullPath, 'utf8'), 'content');
+                        }
+                    }
+                }
+                collectFiles(output);
+                assert.deepStrictEqual(actualFiles.sort(), expectedFiles.slice().sort());
+            }
+        }
+
+        for (const fixture of fixtures) {
+            it(`extracts ${fixture.name} through both APIs`, async function () {
+                await assertDecodedFiles(Buffer.from(fixture.archive, 'base64'), fixture.files);
+            });
+        }
+
+        it('uses CP437 even for valid UTF-8 bytes when the UTF-8 flag is unset', async function () {
+            const contents = Buffer.from(fixtures[1].archive, 'base64');
+            contents.writeUInt16LE(0, 6);
+            const centralOffset = contents.readUInt32LE(contents.length - 6);
+            contents.writeUInt16LE(0, centralOffset + 8);
+            await assertDecodedFiles(contents, ['caf\u251c\u2310/\u00b5\u00f9\u00d1\u00b5\u00a3\u00bc.txt']);
+        });
+
+        it('validates conflicts against decoded Unicode paths before extraction', async function () {
+            fs.writeFileSync(archive, Buffer.from(fixtures[2].archive, 'base64'));
+            const conflictingPath = path.join(destination, 'caf\u00e9', '\u65e5\u672c.txt');
+            fs.mkdirSync(conflictingPath, { recursive: true });
+            assert.throws(() => ziputil.extractZipSync(archive, { dir: destination }), /Path is not a file/);
+            await assert.rejects(tl.extractZip(archive, { dir: destination }), /Path is not a file/);
+            assert.deepStrictEqual(fs.readdirSync(conflictingPath), []);
+            assert.deepStrictEqual(fs.readdirSync(destination), ['caf\u00e9']);
+        });
+
+        it('continues rejecting genuinely duplicate names after Unicode decoding', async function () {
+            fs.writeFileSync(archive, Buffer.from(
+                'UEsDBBQAAAAAAAAAIQCpMMX+BwAAAAcAAAAIAAAAY2Fmgi50eHRjb250ZW50UEsDBBQAAAAAAAAAIQCpMMX+BwAAAAcAAAAJ' +
+                'AAAAb3RoZXIudHh0Y29udGVudFBLAQIUABQAAAAAAAAAIQCpMMX+BwAAAAcAAAAIAAAAAAAAAAAAAAAAAAAAAABjYWaCLnR4' +
+                'dFBLAQIUABQAAAAAAAAAIQCpMMX+BwAAAAcAAAAJABIAAAAAAAAAAAAAAC0AAABvdGhlci50eHR1cA4AAS+0II1jYWbDqS50' +
+                'eHRQSwUGAAAAAAIAAgB/AAAAWwAAAAAA',
+                'base64'
+            ));
+            assert.throws(() => ziputil.extractZipSync(archive, { dir: destination }), /Duplicate entry name/);
+            await assert.rejects(tl.extractZip(archive, { dir: destination }), /Duplicate entry name/);
+            assert(!fs.existsSync(destination));
+        });
+    });
+
     it('overwrites existing files by default and keeps them with overwrite: false', async function () {
         await ziputil.createZip(source, archive);
         await ziputil.extractZip(archive, destination);
