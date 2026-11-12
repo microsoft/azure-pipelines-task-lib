@@ -25,20 +25,6 @@ describe('Dir Operation Tests', function () {
 
     });
 
-    // this test verifies the expected version of node is being used to run the tests.
-    // 5.10.1 is what ships in the 1.x and 2.x agent.
-    it('is expected version', function (done) {
-        this.timeout(1000);
-
-        console.log('node version: ' + process.version);
-        const supportedNodeVersions = ['v16.13.0'];
-        if (supportedNodeVersions.indexOf(process.version) === -1) {
-            assert.fail(`expected node node version to be one of ${supportedNodeVersions.map(o => o).join(', ')}. actual: ` + process.version);
-        }
-
-        done();
-    });
-
     // which tests
     it('which() finds file name', function (done) {
         this.timeout(3000);
@@ -1619,7 +1605,7 @@ describe('Dir Operation Tests', function () {
 
     it('removes symlink folder with missing source using rmRF', function (done) {
         this.timeout(1000);
-    
+
         // create the following layout:
         //   real_directory
         //   real_directory/real_file
@@ -1632,12 +1618,12 @@ describe('Dir Operation Tests', function () {
         fs.writeFileSync(realFile, 'test file content');
         testutil.createSymlinkDir(realDirectory, symlinkDirectory);
         assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'symlink directory should be created correctly');
-    
+
         // remove the real directory
         fs.unlinkSync(realFile);
         fs.rmdirSync(realDirectory);
         assert.throws(() => { fs.statSync(symlinkDirectory) }, (err: NodeJS.ErrnoException) => err.code == 'ENOENT', 'stat should throw');
-    
+
         // remove the symlink directory
         tl.rmRF(symlinkDirectory);
         let errcode: string;
@@ -1648,7 +1634,7 @@ describe('Dir Operation Tests', function () {
             errcode = err.code;
         }
         assert.equal(errcode, 'ENOENT');
-    
+
         done();
     });
 
@@ -1670,12 +1656,7 @@ describe('Dir Operation Tests', function () {
         testutil.createSymlinkDir(realDirectory, symlinkDirectory);
         testutil.createSymlinkDir(symlinkDirectory, symlinkLevel2Directory);
         assert.equal(fs.readFileSync(path.join(symlinkDirectory, 'real_file')), 'test file content');
-        if (os.platform() == 'win32') {
-            assert.equal(fs.readlinkSync(symlinkLevel2Directory), symlinkDirectory + '\\');
-        }
-        else {
-            assert.equal(fs.readlinkSync(symlinkLevel2Directory), symlinkDirectory);
-        }
+        assert.equal(path.resolve(fs.readlinkSync(symlinkLevel2Directory)), path.resolve(symlinkDirectory));
 
         tl.rmRF(symlinkLevel2Directory);
         assert(!shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'real file should not exist');

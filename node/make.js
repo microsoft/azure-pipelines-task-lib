@@ -35,18 +35,25 @@ target.build = function() {
     rm('-f', path.join(buildPath, 'index.*'));
 }
 
-target.test = async function() {
+target.testprepare = async function() {
     target.build();
-
-    process.env['SYSTEM_DEBUG'] = 'true';
 
     await buildutils.getExternalsAsync();
     run('tsc -p ./test');
     cp('-Rf', rp('test/scripts'), testPath);
     cp('-Rf', rp('test/fakeTasks'), testPath);
+}
+
+target.testrun = function() {
+    process.env['SYSTEM_DEBUG'] = 'true';
     process.env['TASKLIB_INPROC_UNITS'] = '1'; // export task-lib internals for internal unit testing
     set('+e'); // Don't throw an exception when tests fail
     run('npx mocha ' + testPath);
+}
+
+target.test = async function() {
+    await target.testprepare();
+    target.testrun();
 }
 
 target.loc = function() {
