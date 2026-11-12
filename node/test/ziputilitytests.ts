@@ -69,6 +69,53 @@ describe('ZIP utility tests', function () {
         assertExtracted();
     });
 
+    describe('attribute-based directories', function () {
+        const attributeFormats = [
+            { name: 'Unix S_IFDIR', made: 0x0314, attr: 0o40755 * 0x10000 },
+            { name: 'DOS directory', made: 0x0014, attr: 0x10 }
+        ];
+
+        for (const format of attributeFormats) {
+            for (const folder of ['folder', 'caf\u00e9']) {
+                for (const includeChild of [false, true]) {
+                    it(`extracts ${format.name} ${folder} without a trailing slash${includeChild ? ' followed by a child file' : ' as an empty directory'}`, async function () {
+                        const zip = new AdmZip({ noSort: true });
+                        const directory = zip.addFile(folder, Buffer.alloc(0));
+                        directory.header.made = format.made;
+                        directory.header.attr = format.attr;
+                        if (includeChild) {
+                            zip.addFile(folder + '/file.txt', Buffer.from('child content'));
+                        }
+                        zip.writeZip(archive);
+                        const archivedDirectory = new AdmZip(archive).getEntries()[0];
+                        assert.strictEqual(archivedDirectory.entryName, folder);
+                        assert.strictEqual(archivedDirectory.isDirectory, false);
+                        assert.strictEqual(archivedDirectory.header.attr, format.attr);
+                        assert.strictEqual(archivedDirectory.header.made, format.made);
+
+                        const syncDestination = path.join(workDir, 'sync-output');
+                        // Existing directories must not be rejected by the file-entry preflight.
+                        fs.mkdirSync(path.join(destination, folder), { recursive: true });
+                        assert.strictEqual(ziputil.extractZipSync(archive, { dir: syncDestination }), syncDestination);
+                        assert.strictEqual(await tl.extractZip(archive, { dir: destination }), destination);
+                        for (const output of [syncDestination, destination]) {
+                            const outputFolder = path.join(output, folder);
+                            assert(fs.statSync(outputFolder).isDirectory());
+                            assert.deepStrictEqual(fs.readdirSync(output), [folder]);
+                            assert.deepStrictEqual(fs.readdirSync(outputFolder), includeChild ? ['file.txt'] : []);
+                            if (includeChild) {
+                                assert.strictEqual(fs.readFileSync(path.join(outputFolder, 'file.txt'), 'utf8'), 'child content');
+                            }
+                            if (process.platform !== 'win32' && format.name === 'Unix S_IFDIR') {
+                                assert.strictEqual(fs.statSync(outputFolder).mode & 0o777, 0o755);
+                            }
+                        }
+                    });
+                }
+            }
+        }
+    });
+
     describe('filename decoding', function () {
         // Stored ZIP fixtures with explicit central-directory flags, raw names and Unicode Path fields.
         // Unicode Path fields are central-directory-only, as supported by extract-zip@2.0.1.

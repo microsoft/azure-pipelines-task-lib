@@ -80,6 +80,7 @@ export interface CreateZipOptions {
  * Rejects existing non-file paths for file entries before extracting any entries.
  * Existing files are overwritten unless overwrite is false.
  * Decodes UTF-8 and CP437 names, honoring valid Info-ZIP Unicode Path extra fields.
+ * Recognizes directory entries by trailing separators or Unix/DOS directory attributes.
  */
 export function extractZipSync(file: string, destination: string | ExtractZipOptions): string {
     if (!file) {
@@ -101,7 +102,16 @@ export function extractZipSync(file: string, destination: string | ExtractZipOpt
     const entries = zip.getEntries();
     const names = new Set<string>();
     for (const entry of entries) {
-        const name = decodeZipEntryName(entry);
+        let name = decodeZipEntryName(entry);
+        const unixDirectory = ((entry.header.attr >>> 16) & 0xf000) === 0x4000;
+        const dosDirectory = (entry.header.made >>> 8) === 0 && entry.header.attr === 0x10;
+        if (!entry.isDirectory && (unixDirectory || dosDirectory)) {
+            // The setter updates adm-zip's directory flag. Preserve the raw encoding until the name is mapped.
+            entry.entryName = entry.rawEntryName.toString('latin1') + '/';
+            if (!name.endsWith('/') && !name.endsWith('\\')) {
+                name += '/';
+            }
+        }
         if (names.has(name)) {
             throw new Error(_loc('LIB_OperationFailed', 'extract ZIP', `Duplicate entry name "${name}"`));
         }
