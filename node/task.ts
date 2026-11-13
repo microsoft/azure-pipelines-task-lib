@@ -256,7 +256,7 @@ export function setVariable(name: string, val: string, secret: boolean = false, 
  *
  * @param val value to register
  */
-export function setSecret(val: string): void {
+export function setSecret(val: string | undefined | null): void {
     if (val) {
         if (val.match(/\r|\n/) && `${process.env['SYSTEM_UNSAFEALLOWMULTILINESECRET']}`.toUpperCase() !== 'TRUE') {
             throw new Error(loc('LIB_MultilineSecret'));

@@ -299,6 +299,21 @@ describe('Input Tests', function () {
     })
 
     // setSecret tests
+    it('ignores undefined and null secrets', function (done) {
+        const output = testutil.createStringStream();
+        tl.setStdStream(output);
+
+        try {
+            tl.setSecret(undefined);
+            tl.setSecret(null);
+            assert.strictEqual(output.getContents(), '');
+        }
+        finally {
+            tl.setStdStream(testutil.getNullStream());
+        }
+
+        done();
+    })
     it('does not allow setting a multi-line secret', function (done) {
         this.timeout(1000);
 
