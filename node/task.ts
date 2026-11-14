@@ -997,6 +997,75 @@ export function mkdirP(p: string): void {
 }
 
 /**
+ * Access presets for setAccess. "Owner" is the current user; "others" is everyone else (Unix group and others, Windows Everyone).
+ */
+export enum AccessLevel {
+    /** Owner can read and write (and traverse directories). Nobody else has access. */
+    OwnerOnly = 'ownerOnly',
+    /** Owner can read (and traverse directories). Nobody else has access. */
+    OwnerReadOnly = 'ownerReadOnly',
+    /** Owner can read and write; others can read (and traverse directories). */
+    OwnerFullOthersRead = 'ownerFullOthersRead',
+    /** Owner and others can read (and traverse directories). */
+    OwnerReadOthersRead = 'ownerReadOthersRead'
+}
+
+type Access = 'none' | 'read' | 'full';
+
+const accessLevels: { [level: string]: { owner: Access; others: Access } } = {
+    [AccessLevel.OwnerOnly]: { owner: 'full', others: 'none' },
+    [AccessLevel.OwnerReadOnly]: { owner: 'read', others: 'none' },
+    [AccessLevel.OwnerFullOthersRead]: { owner: 'full', others: 'read' },
+    [AccessLevel.OwnerReadOthersRead]: { owner: 'read', others: 'read' }
+};
+
+const everyoneSid = '*S-1-1-0';
+
+/**
+ * Set access permissions for a file or directory using chmod on Unix and icacls on Windows.
+ * On Windows, inherited permissions are removed, and the current user and Everyone are granted
+ * the preset's access. Directory grants are inherited by child files and folders.
+ * Existing explicit Windows permissions for other accounts and deny entries are preserved.
+ *
+ * @param   {string} targetPath - Path to update
+ * @param   {AccessLevel} level - Access preset. Defaults to AccessLevel.OwnerOnly.
+ * @returns {void}
+ */
+export function setAccess(targetPath: string, level: AccessLevel = AccessLevel.OwnerOnly): void {
+    if (!targetPath) {
+        throw new Error(loc('LIB_ParameterIsRequired', 'targetPath'));
+    }
+
+    const access = accessLevels[level];
+    if (!access) {
+        throw new Error(`Unsupported access level '${level}'.`);
+    }
+
+    const isDirectory = fs.statSync(targetPath).isDirectory();
+
+    if (getPlatform() == Platform.Windows) {
+        const inheritFlags = isDirectory ? '(OI)(CI)' : '';
+        const rights: { [access: string]: string } = { read: isDirectory ? 'RX' : 'R', full: 'F' };
+        const args = [targetPath, '/inheritance:r', '/grant:r', `${os.userInfo().username}:${inheritFlags}${rights[access.owner]}`];
+        args.push(...(access.others == 'none'
+            ? ['/remove:g', everyoneSid]
+            : ['/grant:r', `${everyoneSid}:${inheritFlags}${rights[access.others]}`]));
+
+        const result = childProcess.spawnSync('icacls.exe', args, { windowsHide: true, encoding: 'utf8' });
+        if (result.error || result.status !== 0) {
+            const detail = result.error ? result.error.message : (result.stderr || result.stdout || '').trim();
+            throw new Error(`Failed to set access for '${targetPath}' using icacls. ${detail}`);
+        }
+
+        return;
+    }
+
+    const modes: { [access: string]: number } = { none: 0, read: isDirectory ? 5 : 4, full: isDirectory ? 7 : 6 };
+    const others = modes[access.others];
+    fs.chmodSync(targetPath, (modes[access.owner] << 6) | (others << 3) | others);
+}
+
+/**
  * Resolves a sequence of paths or path segments into an absolute path.
  * Calls node.js path.resolve()
  * Allows L0 testing with consistent path formats on Mac/Linux and Windows in the mock implementation

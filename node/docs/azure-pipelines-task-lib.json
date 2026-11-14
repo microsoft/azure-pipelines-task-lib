@@ -1673,6 +1673,33 @@
             }
           ]
         },
+        "setAccess": {
+          "name": "setAccess",
+          "members": {},
+          "documentation": "Set access permissions for a file or directory using chmod on Unix and icacls on Windows.\nOn Windows, inherited permissions are removed, and the current user and Everyone are granted\nthe preset's access. Directory grants are inherited by child files and folders.\nExisting explicit Windows permissions for other accounts and deny entries are preserved.\n\n@returns {void}",
+          "kind": "function",
+          "signatures": [
+            {
+              "parameters": [
+                {
+                  "name": "targetPath",
+                  "type": "string",
+                  "optional": false,
+                  "documentation": "Path to update"
+                },
+                {
+                  "name": "level",
+                  "type": "AccessLevel",
+                  "optional": true,
+                  "documentation": "Access preset: OwnerOnly (default), OwnerReadOnly, OwnerFullOthersRead or OwnerReadOthersRead."
+                }
+              ],
+              "members": {},
+              "return": "void",
+              "documentation": "Set access permissions for a file or directory using chmod on Unix and icacls on Windows.\nOn Windows, inherited permissions are removed, and the current user and Everyone are granted\nthe preset's access. Directory grants are inherited by child files and folders.\nExisting explicit Windows permissions for other accounts and deny entries are preserved.\n\n@returns {void}"
+            }
+          ]
+        },
         "resolve": {
           "name": "resolve",
           "members": {},

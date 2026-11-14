@@ -83,6 +83,7 @@ import tl = require('azure-pipelines-task-lib/task')
 <a href="#taskcp">cp</a> <br/>
 <a href="#taskmv">mv</a> <br/>
 <a href="#taskmkdirP">mkdirP</a> <br/>
+<a href="#tasksetAccess">setAccess</a> <br/>
 <a href="#taskFindOptions">FindOptions</a> <br/>
 <a href="#taskfind">find</a> <br/>
 <a href="#taskrmRF">rmRF</a> <br/>
@@ -926,6 +927,34 @@ mkdirP(p:string):void
 Param | Type | Description
 --- | --- | ---
 p | string | path to create
+
+<br/>
+<div id="tasksetAccess">
+
+### task.setAccess <a href="#index">(^)</a>
+Set access permissions for a file or directory using chmod on Unix and icacls on Windows.
+On Windows, inherited permissions are removed, and the current user and Everyone are granted
+the preset's access. Directory grants are inherited by child files and folders.
+Existing explicit Windows permissions for other accounts and deny entries are preserved.
+```javascript
+setAccess(targetPath:string, level?:AccessLevel):void
+```
+
+Param | Type | Description
+--- | --- | ---
+targetPath | string | Path to update
+level | AccessLevel | Access preset. Defaults to AccessLevel.OwnerOnly.
+
+AccessLevel | Unix directory / file | Windows (current user / Everyone)
+--- | --- | ---
+OwnerOnly | 0700 / 0600 | Full control / none
+OwnerReadOnly | 0500 / 0400 | Read (and execute for directories) / none
+OwnerFullOthersRead | 0755 / 0644 | Full control / Read (and execute for directories)
+OwnerReadOthersRead | 0555 / 0444 | Read (and execute for directories) / Read (and execute for directories)
+
+```typescript
+tl.setAccess(directoryPath, tl.AccessLevel.OwnerFullOthersRead);
+```
 
 <br/>
 <div id="taskFindOptions">

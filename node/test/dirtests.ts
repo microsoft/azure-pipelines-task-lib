@@ -5,6 +5,7 @@ import assert = require('assert');
 import path = require('path');
 import fs = require('fs');
 import os = require('os');
+import childProcess = require('child_process');
 import * as tl from '../_build/task';
 
 import * as testutil from './testutil';
@@ -32,6 +33,105 @@ describe('Dir Operation Tests', function () {
 
     });
 
+    describe('setAccess()', function () {
+        const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')!;
+        const originalSpawnSync = childProcess.spawnSync;
+        const originalChmodSync = fs.chmodSync;
+
+        afterEach(function () {
+            Object.defineProperty(process, 'platform', originalPlatform);
+            childProcess.spawnSync = originalSpawnSync;
+            fs.chmodSync = originalChmodSync;
+        });
+
+        function withTempEntries(prefix: string, action: (dirPath: string, filePath: string) => void) {
+            const dirPath = fs.mkdtempSync(path.join(testutil.getTestTemp(), prefix));
+            const filePath = path.join(dirPath, 'file with spaces & parentheses ()');
+            fs.writeFileSync(filePath, '');
+            try {
+                action(dirPath, filePath);
+            } finally {
+                fs.chmodSync = originalChmodSync;
+                fs.chmodSync(dirPath, 0o700);
+                fs.chmodSync(filePath, 0o600);
+                fs.unlinkSync(filePath);
+                fs.rmdirSync(dirPath);
+            }
+        }
+
+        function stubSpawnSync(result: Partial<childProcess.SpawnSyncReturns<string>>) {
+            const calls: { command: string; args: readonly string[] }[] = [];
+            childProcess.spawnSync = ((command: string, args: readonly string[], options: childProcess.SpawnSyncOptionsWithStringEncoding) => {
+                calls.push({ command, args });
+                return { pid: 0, output: [], stdout: '', stderr: '', status: 0, signal: null, ...result };
+            }) as typeof childProcess.spawnSync;
+            return calls;
+        }
+
+        it('applies owner-only access by default', function () {
+            withTempEntries('set-access-', (dirPath, filePath) => {
+                tl.setAccess(dirPath);
+                tl.setAccess(filePath);
+
+                if (process.platform != 'win32') {
+                    assert.equal(fs.statSync(dirPath).mode & 0o777, 0o700);
+                    assert.equal(fs.statSync(filePath).mode & 0o777, 0o600);
+                }
+            });
+        });
+
+        it('translates access levels to Unix modes', function () {
+            withTempEntries('set-access-unix-', (dirPath, filePath) => {
+                Object.defineProperty(process, 'platform', { value: 'linux' });
+                const modes: fs.Mode[] = [];
+                fs.chmodSync = (targetPath: fs.PathLike, mode: fs.Mode) => { modes.push(mode); };
+
+                for (const level of [tl.AccessLevel.OwnerOnly, tl.AccessLevel.OwnerReadOnly, tl.AccessLevel.OwnerFullOthersRead, tl.AccessLevel.OwnerReadOthersRead]) {
+                    tl.setAccess(dirPath, level);
+                    tl.setAccess(filePath, level);
+                }
+
+                assert.deepStrictEqual(modes, [0o700, 0o600, 0o500, 0o400, 0o755, 0o644, 0o555, 0o444]);
+            });
+        });
+
+        it('translates access levels to icacls grants', function () {
+            withTempEntries('set-access-win-', (dirPath, filePath) => {
+                Object.defineProperty(process, 'platform', { value: 'win32' });
+                const calls = stubSpawnSync({});
+                const user = os.userInfo().username;
+
+                tl.setAccess(dirPath);
+                tl.setAccess(filePath, tl.AccessLevel.OwnerReadOnly);
+                tl.setAccess(dirPath, tl.AccessLevel.OwnerFullOthersRead);
+                tl.setAccess(filePath, tl.AccessLevel.OwnerReadOthersRead);
+
+                assert.deepStrictEqual(calls.map(c => c.command), ['icacls.exe', 'icacls.exe', 'icacls.exe', 'icacls.exe']);
+                assert.deepStrictEqual(calls.map(c => c.args), [
+                    [dirPath, '/inheritance:r', '/grant:r', `${user}:(OI)(CI)F`, '/remove:g', '*S-1-1-0'],
+                    [filePath, '/inheritance:r', '/grant:r', `${user}:R`, '/remove:g', '*S-1-1-0'],
+                    [dirPath, '/inheritance:r', '/grant:r', `${user}:(OI)(CI)F`, '/grant:r', '*S-1-1-0:(OI)(CI)RX'],
+                    [filePath, '/inheritance:r', '/grant:r', `${user}:R`, '/grant:r', '*S-1-1-0:R']
+                ]);
+            });
+        });
+
+        it('surfaces icacls failures and launch errors', function () {
+            withTempEntries('set-access-errors-', (dirPath) => {
+                Object.defineProperty(process, 'platform', { value: 'win32' });
+                stubSpawnSync({ stderr: 'Access is denied.', status: 5 });
+                assert.throws(() => tl.setAccess(dirPath), /Access is denied/);
+
+                stubSpawnSync({ status: null, error: new Error('icacls could not be started') });
+                assert.throws(() => tl.setAccess(dirPath), /icacls could not be started/);
+            });
+        });
+
+        it('rejects empty paths and unknown access levels', function () {
+            assert.throws(() => tl.setAccess(''), /targetPath/);
+            assert.throws(() => tl.setAccess('path', 'everyone' as any), /Unsupported access level 'everyone'/);
+        });
+    });
     // which tests
     it('which() finds file name', function (done) {
         this.timeout(3000);
