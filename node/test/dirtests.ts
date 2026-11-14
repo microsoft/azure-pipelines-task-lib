@@ -191,7 +191,13 @@ describe('Dir Operation Tests', function () {
 
         it('rejects empty paths and unknown access levels', function () {
             assert.throws(() => tl.setAccess(''), /targetPath/);
-            assert.throws(() => tl.setAccess('path', 'everyone' as any), /Unsupported access level 'everyone'/);
+
+            for (const level of ['everyone', 'constructor', 'toString', '__proto__']) {
+                assert.throws(
+                    () => tl.setAccess('path', level as tl.AccessLevel),
+                    new RegExp(`Unsupported access level '${level}'`)
+                );
+            }
         });
     });
     // which tests

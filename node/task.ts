@@ -1039,10 +1039,10 @@ export function setAccess(targetPath: string, level: AccessLevel = AccessLevel.O
         throw new Error(loc('LIB_ParameterIsRequired', 'targetPath'));
     }
 
-    const access = accessLevels[level];
-    if (!access) {
+    if (!Object.prototype.hasOwnProperty.call(accessLevels, level)) {
         throw new Error(`Unsupported access level '${level}'.`);
     }
+    const access = accessLevels[level];
 
     const isDirectory = fs.statSync(targetPath).isDirectory();
 
