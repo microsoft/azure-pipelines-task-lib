@@ -933,6 +933,8 @@ p | string | path to create
 
 ### task.setAccess <a href="#index">(^)</a>
 Set access permissions for a file or directory using chmod on Unix and icacls on Windows.
+On Unix, the target must be owned by the current process's effective user ID; otherwise the call
+throws rather than applying owner permissions to another user's file.
 On Windows, the target's permissions are reset before inherited permissions are removed.
 This removes existing explicit grants and deny entries on the target. The current user,
 SYSTEM, and Administrators are granted access, and Everyone is granted the preset's access.

@@ -35,15 +35,33 @@ describe('Dir Operation Tests', function () {
 
     describe('setAccess()', function () {
         const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')!;
+        const originalGeteuid = Object.getOwnPropertyDescriptor(process, 'geteuid');
         const originalSpawnSync = childProcess.spawnSync;
         const originalChmodSync = fs.chmodSync;
+        const originalStatSync = fs.statSync;
         const userSid = 'S-1-5-21-11-22-33-1001';
 
         afterEach(function () {
             Object.defineProperty(process, 'platform', originalPlatform);
+            if (originalGeteuid) {
+                Object.defineProperty(process, 'geteuid', originalGeteuid);
+            } else {
+                Reflect.deleteProperty(process, 'geteuid');
+            }
             childProcess.spawnSync = originalSpawnSync;
             fs.chmodSync = originalChmodSync;
+            Object.defineProperty(fs, 'statSync', { configurable: true, value: originalStatSync });
         });
+
+        function stubUnixOwner(ownerUid: number, effectiveUid: number) {
+            Object.defineProperty(process, 'geteuid', { configurable: true, value: () => effectiveUid });
+            const statSync = (targetPath: fs.PathLike) => {
+                const stats = Object.create(originalStatSync(targetPath)) as fs.Stats;
+                Object.defineProperty(stats, 'uid', { value: ownerUid });
+                return stats;
+            };
+            Object.defineProperty(fs, 'statSync', { configurable: true, value: statSync });
+        }
 
         function withTempEntries(prefix: string, action: (dirPath: string, filePath: string) => void) {
             const dirPath = fs.mkdtempSync(path.join(testutil.getTestTemp(), prefix));
@@ -139,6 +157,7 @@ describe('Dir Operation Tests', function () {
                 Object.defineProperty(process, 'platform', { value: 'linux' });
                 const modes: fs.Mode[] = [];
                 const calls = stubSpawnSync({});
+                stubUnixOwner(1234, 1234);
                 fs.chmodSync = (targetPath: fs.PathLike, mode: fs.Mode) => { modes.push(mode); };
 
                 for (const level of [tl.AccessLevel.OwnerOnly, tl.AccessLevel.OwnerReadOnly, tl.AccessLevel.OwnerFullOthersRead, tl.AccessLevel.OwnerReadOthersRead]) {
@@ -148,6 +167,21 @@ describe('Dir Operation Tests', function () {
 
                 assert.deepStrictEqual(modes, [0o700, 0o600, 0o500, 0o400, 0o755, 0o644, 0o555, 0o444]);
                 assert.deepStrictEqual(calls, []);
+            });
+        });
+
+        it('rejects Unix targets owned by a different user', function () {
+            withTempEntries('set-access-unix-owner-', (dirPath, filePath) => {
+                Object.defineProperty(process, 'platform', { value: 'linux' });
+                stubUnixOwner(1235, 1234);
+                const modes: fs.Mode[] = [];
+                fs.chmodSync = (targetPath: fs.PathLike, mode: fs.Mode) => { modes.push(mode); };
+
+                assert.throws(
+                    () => tl.setAccess(filePath),
+                    /target is owned by UID 1235, but the current effective UID is 1234/
+                );
+                assert.deepStrictEqual(modes, []);
             });
         });
 

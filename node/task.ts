@@ -1025,6 +1025,7 @@ const administratorsSid = '*S-1-5-32-544';
 
 /**
  * Set access permissions for a file or directory using chmod on Unix and icacls on Windows.
+ * On Unix, the target must be owned by the current process's effective user ID, or this call throws.
  * On Windows, the target's permissions are reset before inherited permissions are removed.
  * The current user, SYSTEM, and Administrators are granted access, and Everyone is granted the
  * preset's access. Explicit permissions on child files and folders are not changed.
@@ -1043,7 +1044,8 @@ export function setAccess(targetPath: string, level: AccessLevel = AccessLevel.O
     }
     const access = accessLevels[level];
 
-    const isDirectory = fs.statSync(targetPath).isDirectory();
+    const stats = fs.statSync(targetPath);
+    const isDirectory = stats.isDirectory();
 
     if (getPlatform() == Platform.Windows) {
         const userResult = childProcess.spawnSync('whoami.exe', ['/user', '/fo', 'csv', '/nh'], { windowsHide: true, encoding: 'utf8' });
@@ -1095,6 +1097,12 @@ export function setAccess(targetPath: string, level: AccessLevel = AccessLevel.O
         }
 
         return;
+    }
+
+    const effectiveUid = process.geteuid();
+
+    if (stats.uid !== effectiveUid) {
+        throw new Error(`Cannot set access for '${targetPath}': the target is owned by UID ${stats.uid}, but the current effective UID is ${effectiveUid}.`);
     }
 
     const modes: { [access: string]: number } = { none: 0, read: isDirectory ? 5 : 4, full: isDirectory ? 7 : 6 };
