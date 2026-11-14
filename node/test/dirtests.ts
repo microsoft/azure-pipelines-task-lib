@@ -37,6 +37,7 @@ describe('Dir Operation Tests', function () {
         const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')!;
         const originalSpawnSync = childProcess.spawnSync;
         const originalChmodSync = fs.chmodSync;
+        const userSid = 'S-1-5-21-11-22-33-1001';
 
         afterEach(function () {
             Object.defineProperty(process, 'platform', originalPlatform);
@@ -59,11 +60,14 @@ describe('Dir Operation Tests', function () {
             }
         }
 
-        function stubSpawnSync(result: Partial<childProcess.SpawnSyncReturns<string>>) {
+        function stubSpawnSync(result: Partial<childProcess.SpawnSyncReturns<string>>, userResult: Partial<childProcess.SpawnSyncReturns<string>> = {}) {
             const calls: { command: string; args: readonly string[] }[] = [];
             childProcess.spawnSync = ((command: string, args: readonly string[], options: childProcess.SpawnSyncOptionsWithStringEncoding) => {
                 calls.push({ command, args });
-                return { pid: 0, output: [], stdout: '', stderr: '', status: 0, signal: null, ...result };
+                const defaults = { pid: 0, output: [], stdout: '', stderr: '', status: 0, signal: null };
+                return command == 'whoami.exe'
+                    ? { ...defaults, stdout: `"DOMAIN\\agent$","${userSid}"\r\n`, ...userResult }
+                    : { ...defaults, ...result };
             }) as typeof childProcess.spawnSync;
             return calls;
         }
@@ -84,6 +88,7 @@ describe('Dir Operation Tests', function () {
             withTempEntries('set-access-unix-', (dirPath, filePath) => {
                 Object.defineProperty(process, 'platform', { value: 'linux' });
                 const modes: fs.Mode[] = [];
+                const calls = stubSpawnSync({});
                 fs.chmodSync = (targetPath: fs.PathLike, mode: fs.Mode) => { modes.push(mode); };
 
                 for (const level of [tl.AccessLevel.OwnerOnly, tl.AccessLevel.OwnerReadOnly, tl.AccessLevel.OwnerFullOthersRead, tl.AccessLevel.OwnerReadOthersRead]) {
@@ -92,6 +97,7 @@ describe('Dir Operation Tests', function () {
                 }
 
                 assert.deepStrictEqual(modes, [0o700, 0o600, 0o500, 0o400, 0o755, 0o644, 0o555, 0o444]);
+                assert.deepStrictEqual(calls, []);
             });
         });
 
@@ -99,20 +105,60 @@ describe('Dir Operation Tests', function () {
             withTempEntries('set-access-win-', (dirPath, filePath) => {
                 Object.defineProperty(process, 'platform', { value: 'win32' });
                 const calls = stubSpawnSync({});
-                const user = os.userInfo().username;
 
                 tl.setAccess(dirPath);
                 tl.setAccess(filePath, tl.AccessLevel.OwnerReadOnly);
                 tl.setAccess(dirPath, tl.AccessLevel.OwnerFullOthersRead);
                 tl.setAccess(filePath, tl.AccessLevel.OwnerReadOthersRead);
 
-                assert.deepStrictEqual(calls.map(c => c.command), ['icacls.exe', 'icacls.exe', 'icacls.exe', 'icacls.exe']);
-                assert.deepStrictEqual(calls.map(c => c.args), [
-                    [dirPath, '/inheritance:r', '/grant:r', `${user}:(OI)(CI)F`, '/remove:g', '*S-1-1-0'],
-                    [filePath, '/inheritance:r', '/grant:r', `${user}:R`, '/remove:g', '*S-1-1-0'],
-                    [dirPath, '/inheritance:r', '/grant:r', `${user}:(OI)(CI)F`, '/grant:r', '*S-1-1-0:(OI)(CI)RX'],
-                    [filePath, '/inheritance:r', '/grant:r', `${user}:R`, '/grant:r', '*S-1-1-0:R']
+                assert.deepStrictEqual(calls.map(c => c.command), [
+                    'whoami.exe', 'icacls.exe', 'whoami.exe', 'icacls.exe',
+                    'whoami.exe', 'icacls.exe', 'whoami.exe', 'icacls.exe'
                 ]);
+                for (const call of calls.filter(c => c.command == 'whoami.exe')) {
+                    assert.deepStrictEqual(call.args, ['/user', '/fo', 'csv', '/nh']);
+                }
+                assert.deepStrictEqual(calls.filter(c => c.command == 'icacls.exe').map(c => c.args), [
+                    [dirPath, '/inheritance:r', '/grant:r', `*${userSid}:(OI)(CI)F`, '/remove:g', '*S-1-1-0'],
+                    [filePath, '/inheritance:r', '/grant:r', `*${userSid}:R`, '/remove:g', '*S-1-1-0'],
+                    [dirPath, '/inheritance:r', '/grant:r', `*${userSid}:(OI)(CI)F`, '/grant:r', '*S-1-1-0:(OI)(CI)RX'],
+                    [filePath, '/inheritance:r', '/grant:r', `*${userSid}:R`, '/grant:r', '*S-1-1-0:R']
+                ]);
+            });
+        });
+
+        it('uses the SID returned for the current Windows identity', function () {
+            withTempEntries('set-access-identities-', (dirPath, filePath) => {
+                Object.defineProperty(process, 'platform', { value: 'win32' });
+                const identities = [
+                    { name: 'DOMAIN\\agent', sid: 'S-1-5-21-11-22-33-1001' },
+                    { name: 'MACHINE\\agent', sid: 'S-1-5-21-44-55-66-1001' },
+                    { name: 'NT AUTHORITY\\NETWORK SERVICE', sid: 'S-1-5-20' },
+                    { name: 'DOMAIN\\agent$', sid: 'S-1-5-21-11-22-33-1002' }
+                ];
+
+                for (const identity of identities) {
+                    const calls = stubSpawnSync({}, { stdout: `"${identity.name}","${identity.sid}"\r\n` });
+                    tl.setAccess(filePath);
+                    assert.strictEqual(calls[1].args[3], `*${identity.sid}:F`);
+                }
+            });
+        });
+
+        it('does not change access when the Windows user SID cannot be determined', function () {
+            withTempEntries('set-access-user-errors-', (dirPath) => {
+                Object.defineProperty(process, 'platform', { value: 'win32' });
+                let calls = stubSpawnSync({}, { status: 1, stderr: 'whoami failed' });
+                assert.throws(() => tl.setAccess(dirPath), /whoami failed/);
+                assert.deepStrictEqual(calls.map(c => c.command), ['whoami.exe']);
+
+                calls = stubSpawnSync({}, { status: null, error: new Error('whoami could not be started') });
+                assert.throws(() => tl.setAccess(dirPath), /whoami could not be started/);
+                assert.deepStrictEqual(calls.map(c => c.command), ['whoami.exe']);
+
+                calls = stubSpawnSync({}, { stdout: '"DOMAIN\\agent","invalid SID"\r\n' });
+                assert.throws(() => tl.setAccess(dirPath), /Unexpected output/);
+                assert.deepStrictEqual(calls.map(c => c.command), ['whoami.exe']);
             });
         });
 

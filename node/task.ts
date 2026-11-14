@@ -1023,8 +1023,9 @@ const everyoneSid = '*S-1-1-0';
 
 /**
  * Set access permissions for a file or directory using chmod on Unix and icacls on Windows.
- * On Windows, inherited permissions are removed, and the current user and Everyone are granted
- * the preset's access. Directory grants are inherited by child files and folders.
+ * On Windows, whoami.exe identifies the current user by SID. Inherited permissions are removed,
+ * and the current user and Everyone are granted the preset's access. Directory grants are
+ * inherited by child files and folders.
  * Existing explicit Windows permissions for other accounts and deny entries are preserved.
  *
  * @param   {string} targetPath - Path to update
@@ -1044,9 +1045,21 @@ export function setAccess(targetPath: string, level: AccessLevel = AccessLevel.O
     const isDirectory = fs.statSync(targetPath).isDirectory();
 
     if (getPlatform() == Platform.Windows) {
+        const userResult = childProcess.spawnSync('whoami.exe', ['/user', '/fo', 'csv', '/nh'], { windowsHide: true, encoding: 'utf8' });
+        if (userResult.error || userResult.status !== 0) {
+            const detail = userResult.error ? userResult.error.message
+                : (userResult.stderr || userResult.stdout || '').trim() || `exit status ${userResult.status}, signal ${userResult.signal}`;
+            throw new Error(`Failed to determine the current user's SID using whoami. ${detail}`);
+        }
+
+        const userSid = /,"(S-\d+(?:-\d+)+)"\s*$/i.exec(userResult.stdout);
+        if (!userSid) {
+            throw new Error(`Failed to determine the current user's SID using whoami. Unexpected output.`);
+        }
+
         const inheritFlags = isDirectory ? '(OI)(CI)' : '';
         const rights: { [access: string]: string } = { read: isDirectory ? 'RX' : 'R', full: 'F' };
-        const args = [targetPath, '/inheritance:r', '/grant:r', `${os.userInfo().username}:${inheritFlags}${rights[access.owner]}`];
+        const args = [targetPath, '/inheritance:r', '/grant:r', `*${userSid[1]}:${inheritFlags}${rights[access.owner]}`];
         args.push(...(access.others == 'none'
             ? ['/remove:g', everyoneSid]
             : ['/grant:r', `${everyoneSid}:${inheritFlags}${rights[access.others]}`]));
