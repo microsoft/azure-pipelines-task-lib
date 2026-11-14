@@ -1025,10 +1025,9 @@ const administratorsSid = '*S-1-5-32-544';
 
 /**
  * Set access permissions for a file or directory using chmod on Unix and icacls on Windows.
- * On Windows, whoami.exe identifies the current user by SID. Inherited permissions are removed,
- * and the current user, SYSTEM, and Administrators are granted access. Everyone is granted the
- * preset's access. Directory grants are inherited by child files and folders.
- * Existing explicit Windows permissions for other accounts and deny entries are preserved.
+ * On Windows, the target's permissions are reset before inherited permissions are removed.
+ * The current user, SYSTEM, and Administrators are granted access, and Everyone is granted the
+ * preset's access. Explicit permissions on child files and folders are not changed.
  *
  * @param   {string} targetPath - Path to update
  * @param   {AccessLevel} level - Access preset. Defaults to AccessLevel.OwnerOnly.
@@ -1059,6 +1058,13 @@ export function setAccess(targetPath: string, level: AccessLevel = AccessLevel.O
             throw new Error(`Failed to determine the current user's SID using whoami. Unexpected output.`);
         }
 
+        const resetResult = childProcess.spawnSync('icacls.exe', [targetPath, '/reset'], { windowsHide: true, encoding: 'utf8' });
+        if (resetResult.error || resetResult.status !== 0) {
+            const detail = resetResult.error ? resetResult.error.message
+                : (resetResult.stderr || resetResult.stdout || '').trim() || `exit status ${resetResult.status}, signal ${resetResult.signal}`;
+            throw new Error(`Failed to reset access for '${targetPath}' using icacls. ${detail}`);
+        }
+
         const inheritFlags = isDirectory ? '(OI)(CI)' : '';
         const rights: { [access: string]: string } = { read: isDirectory ? 'RX' : 'R', full: 'F' };
         const args = [targetPath, '/inheritance:r', '/grant:r', `*${userSid[1]}:${inheritFlags}${rights[access.owner]}`];
@@ -1070,7 +1076,8 @@ export function setAccess(targetPath: string, level: AccessLevel = AccessLevel.O
 
         const result = childProcess.spawnSync('icacls.exe', args, { windowsHide: true, encoding: 'utf8' });
         if (result.error || result.status !== 0) {
-            const detail = result.error ? result.error.message : (result.stderr || result.stdout || '').trim();
+            const detail = result.error ? result.error.message
+                : (result.stderr || result.stdout || '').trim() || `exit status ${result.status}, signal ${result.signal}`;
             throw new Error(`Failed to set access for '${targetPath}' using icacls. ${detail}`);
         }
 

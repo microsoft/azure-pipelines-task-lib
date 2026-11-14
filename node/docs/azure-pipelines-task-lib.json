@@ -1676,7 +1676,7 @@
         "setAccess": {
           "name": "setAccess",
           "members": {},
-          "documentation": "Set access permissions for a file or directory using chmod on Unix and icacls on Windows.\nOn Windows, whoami.exe identifies the current user by SID. Inherited permissions are removed,\nand the current user, SYSTEM, and Administrators are granted access. Everyone is granted the\npreset's access. Directory grants are inherited by child files and folders.\nExisting explicit Windows permissions for other accounts and deny entries are preserved.\n\n@returns {void}",
+          "documentation": "Set access permissions for a file or directory using chmod on Unix and icacls on Windows.\nOn Windows, the target's permissions are reset before inherited permissions are removed.\nThis removes existing explicit grants and deny entries on the target. The current user,\nSYSTEM, and Administrators are granted access, and Everyone is granted the preset's access.\nExplicit permissions on child files and folders are not reset.\n\n@returns {void}",
           "kind": "function",
           "signatures": [
             {
@@ -1696,7 +1696,7 @@
               ],
               "members": {},
               "return": "void",
-              "documentation": "Set access permissions for a file or directory using chmod on Unix and icacls on Windows.\nOn Windows, whoami.exe identifies the current user by SID. Inherited permissions are removed,\nand the current user, SYSTEM, and Administrators are granted access. Everyone is granted the\npreset's access. Directory grants are inherited by child files and folders.\nExisting explicit Windows permissions for other accounts and deny entries are preserved.\n\n@returns {void}"
+              "documentation": "Set access permissions for a file or directory using chmod on Unix and icacls on Windows.\nOn Windows, the target's permissions are reset before inherited permissions are removed.\nThis removes existing explicit grants and deny entries on the target. The current user,\nSYSTEM, and Administrators are granted access, and Everyone is granted the preset's access.\nExplicit permissions on child files and folders are not reset.\n\n@returns {void}"
             }
           ]
         },

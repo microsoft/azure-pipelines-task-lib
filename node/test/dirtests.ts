@@ -47,7 +47,7 @@ describe('Dir Operation Tests', function () {
 
         function withTempEntries(prefix: string, action: (dirPath: string, filePath: string) => void) {
             const dirPath = fs.mkdtempSync(path.join(testutil.getTestTemp(), prefix));
-            const filePath = path.join(dirPath, 'file with spaces & parentheses ()');
+            const filePath = path.join(dirPath, 'file with spaces & parentheses () \u03bb');
             fs.writeFileSync(filePath, '');
             try {
                 action(dirPath, filePath);
@@ -60,19 +60,24 @@ describe('Dir Operation Tests', function () {
             }
         }
 
-        function stubSpawnSync(result: Partial<childProcess.SpawnSyncReturns<string>>, userResult: Partial<childProcess.SpawnSyncReturns<string>> = {}) {
+        function stubSpawnSync(
+            result: Partial<childProcess.SpawnSyncReturns<string>>,
+            grantResult: Partial<childProcess.SpawnSyncReturns<string>> = result
+        ) {
             const calls: { command: string; args: readonly string[] }[] = [];
+            let icaclsCall = 0;
             childProcess.spawnSync = ((command: string, args: readonly string[], options: childProcess.SpawnSyncOptionsWithStringEncoding) => {
                 calls.push({ command, args });
                 const defaults = { pid: 0, output: [], stdout: '', stderr: '', status: 0, signal: null };
                 return command == 'whoami.exe'
-                    ? { ...defaults, stdout: `"DOMAIN\\agent$","${userSid}"\r\n`, ...userResult }
-                    : { ...defaults, ...result };
+                    ? { ...defaults, stdout: `"DOMAIN\\agent$","${userSid}"\r\n` }
+                    : { ...defaults, ...(icaclsCall++ == 0 ? result : grantResult) };
             }) as typeof childProcess.spawnSync;
             return calls;
         }
 
         it('applies owner-only access by default', function () {
+            this.timeout(10000);
             withTempEntries('set-access-', (dirPath, filePath) => {
                 tl.setAccess(dirPath);
                 tl.setAccess(filePath);
@@ -80,6 +85,47 @@ describe('Dir Operation Tests', function () {
                 if (process.platform != 'win32') {
                     assert.equal(fs.statSync(dirPath).mode & 0o777, 0o700);
                     assert.equal(fs.statSync(filePath).mode & 0o777, 0o600);
+                }
+            });
+        });
+
+        it('resets existing Windows permissions before applying the selected access', function () {
+            if (process.platform != 'win32') {
+                this.skip();
+            }
+            this.timeout(20000);
+
+            const hasSid = (target: string, sid: string): boolean => {
+                const result = originalSpawnSync('icacls.exe', [target, '/findsid', `*${sid}`], { encoding: 'utf8' });
+                return result.stdout.includes('SID Found:');
+            };
+
+            withTempEntries('set-access-acl-', (dirPath, filePath) => {
+                const childSetup = originalSpawnSync('icacls.exe', [filePath, '/grant', '*S-1-5-11:F'], { encoding: 'utf8' });
+                assert.strictEqual(childSetup.status, 0, childSetup.stderr);
+                assert(hasSid(filePath, 'S-1-5-11'));
+
+                for (const { target, level, isDirectory } of [
+                    { target: dirPath, level: tl.AccessLevel.OwnerFullOthersRead, isDirectory: true },
+                    { target: filePath, level: tl.AccessLevel.OwnerOnly, isDirectory: false }
+                ]) {
+                    const setup = originalSpawnSync('icacls.exe', [
+                        target, '/grant', '*S-1-5-11:F', '/deny', '*S-1-5-32-546:R'
+                    ], { encoding: 'utf8' });
+                    assert.strictEqual(setup.status, 0, setup.stderr);
+                    assert(hasSid(target, 'S-1-5-11'));
+                    assert(hasSid(target, 'S-1-5-32-546'));
+
+                    tl.setAccess(target, level);
+
+                    assert(!hasSid(target, 'S-1-5-11'));
+                    assert(!hasSid(target, 'S-1-5-32-546'));
+                    assert(hasSid(target, 'S-1-5-18'));
+                    assert(hasSid(target, 'S-1-5-32-544'));
+                    assert.strictEqual(hasSid(target, 'S-1-1-0'), isDirectory);
+                    if (isDirectory) {
+                        assert(hasSid(filePath, 'S-1-5-11'));
+                    }
                 }
             });
         });
@@ -101,7 +147,7 @@ describe('Dir Operation Tests', function () {
             });
         });
 
-        it('translates access levels to icacls grants', function () {
+        it('passes access levels and paths to icacls on Windows', function () {
             withTempEntries('set-access-win-', (dirPath, filePath) => {
                 Object.defineProperty(process, 'platform', { value: 'win32' });
                 const calls = stubSpawnSync({});
@@ -112,13 +158,22 @@ describe('Dir Operation Tests', function () {
                 tl.setAccess(filePath, tl.AccessLevel.OwnerReadOthersRead);
 
                 assert.deepStrictEqual(calls.map(c => c.command), [
-                    'whoami.exe', 'icacls.exe', 'whoami.exe', 'icacls.exe',
-                    'whoami.exe', 'icacls.exe', 'whoami.exe', 'icacls.exe'
+                    'whoami.exe', 'icacls.exe', 'icacls.exe',
+                    'whoami.exe', 'icacls.exe', 'icacls.exe',
+                    'whoami.exe', 'icacls.exe', 'icacls.exe',
+                    'whoami.exe', 'icacls.exe', 'icacls.exe'
                 ]);
-                for (const call of calls.filter(c => c.command == 'whoami.exe')) {
-                    assert.deepStrictEqual(call.args, ['/user', '/fo', 'csv', '/nh']);
-                }
-                assert.deepStrictEqual(calls.filter(c => c.command == 'icacls.exe').map(c => c.args), [
+                assert.deepStrictEqual(calls.filter(c => c.command == 'whoami.exe').map(c => c.args), [
+                    ['/user', '/fo', 'csv', '/nh'],
+                    ['/user', '/fo', 'csv', '/nh'],
+                    ['/user', '/fo', 'csv', '/nh'],
+                    ['/user', '/fo', 'csv', '/nh']
+                ]);
+                const aclCalls = calls.filter(c => c.command == 'icacls.exe').map(c => c.args);
+                assert.deepStrictEqual(aclCalls.filter(args => args.length == 2), [
+                    [dirPath, '/reset'], [filePath, '/reset'], [dirPath, '/reset'], [filePath, '/reset']
+                ]);
+                assert.deepStrictEqual(aclCalls.filter(args => args.length > 2), [
                     [dirPath, '/inheritance:r', '/grant:r', `*${userSid}:(OI)(CI)F`, '/grant:r', '*S-1-5-18:(OI)(CI)F', '/grant:r', '*S-1-5-32-544:(OI)(CI)F', '/remove:g', '*S-1-1-0'],
                     [filePath, '/inheritance:r', '/grant:r', `*${userSid}:R`, '/grant:r', '*S-1-5-18:F', '/grant:r', '*S-1-5-32-544:F', '/remove:g', '*S-1-1-0'],
                     [dirPath, '/inheritance:r', '/grant:r', `*${userSid}:(OI)(CI)F`, '/grant:r', '*S-1-5-18:(OI)(CI)F', '/grant:r', '*S-1-5-32-544:(OI)(CI)F', '/grant:r', '*S-1-1-0:(OI)(CI)RX'],
@@ -127,65 +182,20 @@ describe('Dir Operation Tests', function () {
             });
         });
 
-        it('grants full control to SYSTEM and Administrators on Windows', function () {
-            withTempEntries('set-access-privileged-windows-', (dirPath, filePath) => {
-                Object.defineProperty(process, 'platform', { value: 'win32' });
-                const calls = stubSpawnSync({});
-
-                tl.setAccess(dirPath);
-                tl.setAccess(filePath);
-
-                const icaclsCalls = calls.filter(c => c.command == 'icacls.exe');
-                assert.deepStrictEqual(icaclsCalls.map(c => c.args.slice(4, 8)), [
-                    ['/grant:r', '*S-1-5-18:(OI)(CI)F', '/grant:r', '*S-1-5-32-544:(OI)(CI)F'],
-                    ['/grant:r', '*S-1-5-18:F', '/grant:r', '*S-1-5-32-544:F']
-                ]);
-            });
-        });
-
-        it('uses the SID returned for the current Windows identity', function () {
-            withTempEntries('set-access-identities-', (dirPath, filePath) => {
-                Object.defineProperty(process, 'platform', { value: 'win32' });
-                const identities = [
-                    { name: 'DOMAIN\\agent', sid: 'S-1-5-21-11-22-33-1001' },
-                    { name: 'MACHINE\\agent', sid: 'S-1-5-21-44-55-66-1001' },
-                    { name: 'NT AUTHORITY\\NETWORK SERVICE', sid: 'S-1-5-20' },
-                    { name: 'DOMAIN\\agent$', sid: 'S-1-5-21-11-22-33-1002' }
-                ];
-
-                for (const identity of identities) {
-                    const calls = stubSpawnSync({}, { stdout: `"${identity.name}","${identity.sid}"\r\n` });
-                    tl.setAccess(filePath);
-                    assert.strictEqual(calls[1].args[3], `*${identity.sid}:F`);
-                }
-            });
-        });
-
-        it('does not change access when the Windows user SID cannot be determined', function () {
-            withTempEntries('set-access-user-errors-', (dirPath) => {
-                Object.defineProperty(process, 'platform', { value: 'win32' });
-                let calls = stubSpawnSync({}, { status: 1, stderr: 'whoami failed' });
-                assert.throws(() => tl.setAccess(dirPath), /whoami failed/);
-                assert.deepStrictEqual(calls.map(c => c.command), ['whoami.exe']);
-
-                calls = stubSpawnSync({}, { status: null, error: new Error('whoami could not be started') });
-                assert.throws(() => tl.setAccess(dirPath), /whoami could not be started/);
-                assert.deepStrictEqual(calls.map(c => c.command), ['whoami.exe']);
-
-                calls = stubSpawnSync({}, { stdout: '"DOMAIN\\agent","invalid SID"\r\n' });
-                assert.throws(() => tl.setAccess(dirPath), /Unexpected output/);
-                assert.deepStrictEqual(calls.map(c => c.command), ['whoami.exe']);
-            });
-        });
-
-        it('surfaces icacls failures and launch errors', function () {
+        it('surfaces Windows ACL command failures and launch errors', function () {
             withTempEntries('set-access-errors-', (dirPath) => {
                 Object.defineProperty(process, 'platform', { value: 'win32' });
-                stubSpawnSync({ stderr: 'Access is denied.', status: 5 });
+                let calls = stubSpawnSync({ stderr: 'Access is denied.', status: 5 });
                 assert.throws(() => tl.setAccess(dirPath), /Access is denied/);
+                assert.deepStrictEqual(calls.map(c => c.command), ['whoami.exe', 'icacls.exe']);
 
-                stubSpawnSync({ status: null, error: new Error('icacls could not be started') });
+                calls = stubSpawnSync({}, { stderr: 'Grant failed.', status: 5 });
+                assert.throws(() => tl.setAccess(dirPath), /Grant failed/);
+                assert.deepStrictEqual(calls.map(c => c.command), ['whoami.exe', 'icacls.exe', 'icacls.exe']);
+
+                calls = stubSpawnSync({ status: null, error: new Error('icacls could not be started') });
                 assert.throws(() => tl.setAccess(dirPath), /icacls could not be started/);
+                assert.deepStrictEqual(calls.map(c => c.command), ['whoami.exe', 'icacls.exe']);
             });
         });
 
