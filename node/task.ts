@@ -1020,12 +1020,14 @@ const accessLevels: { [level: string]: { owner: Access; others: Access } } = {
 };
 
 const everyoneSid = '*S-1-1-0';
+const systemSid = '*S-1-5-18';
+const administratorsSid = '*S-1-5-32-544';
 
 /**
  * Set access permissions for a file or directory using chmod on Unix and icacls on Windows.
  * On Windows, whoami.exe identifies the current user by SID. Inherited permissions are removed,
- * and the current user and Everyone are granted the preset's access. Directory grants are
- * inherited by child files and folders.
+ * and the current user, SYSTEM, and Administrators are granted access. Everyone is granted the
+ * preset's access. Directory grants are inherited by child files and folders.
  * Existing explicit Windows permissions for other accounts and deny entries are preserved.
  *
  * @param   {string} targetPath - Path to update
@@ -1060,6 +1062,8 @@ export function setAccess(targetPath: string, level: AccessLevel = AccessLevel.O
         const inheritFlags = isDirectory ? '(OI)(CI)' : '';
         const rights: { [access: string]: string } = { read: isDirectory ? 'RX' : 'R', full: 'F' };
         const args = [targetPath, '/inheritance:r', '/grant:r', `*${userSid[1]}:${inheritFlags}${rights[access.owner]}`];
+        args.push('/grant:r', `${systemSid}:${inheritFlags}F`);
+        args.push('/grant:r', `${administratorsSid}:${inheritFlags}F`);
         args.push(...(access.others == 'none'
             ? ['/remove:g', everyoneSid]
             : ['/grant:r', `${everyoneSid}:${inheritFlags}${rights[access.others]}`]));

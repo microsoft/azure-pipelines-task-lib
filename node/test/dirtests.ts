@@ -119,10 +119,26 @@ describe('Dir Operation Tests', function () {
                     assert.deepStrictEqual(call.args, ['/user', '/fo', 'csv', '/nh']);
                 }
                 assert.deepStrictEqual(calls.filter(c => c.command == 'icacls.exe').map(c => c.args), [
-                    [dirPath, '/inheritance:r', '/grant:r', `*${userSid}:(OI)(CI)F`, '/remove:g', '*S-1-1-0'],
-                    [filePath, '/inheritance:r', '/grant:r', `*${userSid}:R`, '/remove:g', '*S-1-1-0'],
-                    [dirPath, '/inheritance:r', '/grant:r', `*${userSid}:(OI)(CI)F`, '/grant:r', '*S-1-1-0:(OI)(CI)RX'],
-                    [filePath, '/inheritance:r', '/grant:r', `*${userSid}:R`, '/grant:r', '*S-1-1-0:R']
+                    [dirPath, '/inheritance:r', '/grant:r', `*${userSid}:(OI)(CI)F`, '/grant:r', '*S-1-5-18:(OI)(CI)F', '/grant:r', '*S-1-5-32-544:(OI)(CI)F', '/remove:g', '*S-1-1-0'],
+                    [filePath, '/inheritance:r', '/grant:r', `*${userSid}:R`, '/grant:r', '*S-1-5-18:F', '/grant:r', '*S-1-5-32-544:F', '/remove:g', '*S-1-1-0'],
+                    [dirPath, '/inheritance:r', '/grant:r', `*${userSid}:(OI)(CI)F`, '/grant:r', '*S-1-5-18:(OI)(CI)F', '/grant:r', '*S-1-5-32-544:(OI)(CI)F', '/grant:r', '*S-1-1-0:(OI)(CI)RX'],
+                    [filePath, '/inheritance:r', '/grant:r', `*${userSid}:R`, '/grant:r', '*S-1-5-18:F', '/grant:r', '*S-1-5-32-544:F', '/grant:r', '*S-1-1-0:R']
+                ]);
+            });
+        });
+
+        it('grants full control to SYSTEM and Administrators on Windows', function () {
+            withTempEntries('set-access-privileged-windows-', (dirPath, filePath) => {
+                Object.defineProperty(process, 'platform', { value: 'win32' });
+                const calls = stubSpawnSync({});
+
+                tl.setAccess(dirPath);
+                tl.setAccess(filePath);
+
+                const icaclsCalls = calls.filter(c => c.command == 'icacls.exe');
+                assert.deepStrictEqual(icaclsCalls.map(c => c.args.slice(4, 8)), [
+                    ['/grant:r', '*S-1-5-18:(OI)(CI)F', '/grant:r', '*S-1-5-32-544:(OI)(CI)F'],
+                    ['/grant:r', '*S-1-5-18:F', '/grant:r', '*S-1-5-32-544:F']
                 ]);
             });
         });

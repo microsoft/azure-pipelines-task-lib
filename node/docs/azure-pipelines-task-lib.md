@@ -934,8 +934,8 @@ p | string | path to create
 ### task.setAccess <a href="#index">(^)</a>
 Set access permissions for a file or directory using chmod on Unix and icacls on Windows.
 On Windows, whoami.exe identifies the current user by SID. Inherited permissions are removed,
-and the current user and Everyone are granted the preset's access. Directory grants are
-inherited by child files and folders.
+and the current user, SYSTEM, and Administrators are granted access. Everyone is granted the
+preset's access. Directory grants are inherited by child files and folders.
 Existing explicit Windows permissions for other accounts and deny entries are preserved.
 ```javascript
 setAccess(targetPath:string, level?:AccessLevel):void
@@ -946,7 +946,7 @@ Param | Type | Description
 targetPath | string | Path to update
 level | AccessLevel | Access preset. Defaults to AccessLevel.OwnerOnly.
 
-AccessLevel | Unix directory / file | Windows (current user / Everyone)
+AccessLevel | Unix directory / file | Windows (current user / Everyone; SYSTEM and Administrators always have full control)
 --- | --- | ---
 OwnerOnly | 0700 / 0600 | Full control / none
 OwnerReadOnly | 0500 / 0400 | Read (and execute for directories) / none
