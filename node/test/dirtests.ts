@@ -246,6 +246,32 @@ describe('Dir Operation Tests', function () {
             });
         });
 
+        it('publishes failure telemetry without paths or messages', function () {
+            withTempEntries('set-access-telemetry-', (dirPath) => {
+                Object.defineProperty(process, 'platform', { value: 'win32' });
+                const originalLog = console.log;
+                const logs: string[] = [];
+                console.log = (message: string) => { logs.push(message); };
+                try {
+                    stubSpawnSync({ stderr: 'Access is denied.', status: 5 });
+                    assert.throws(() => tl.setAccess(dirPath));
+                    stubSpawnSync({}, { stderr: 'Grant failed.', status: 5 });
+                    assert.throws(() => tl.setAccess(dirPath, tl.AccessLevel.OwnerReadOnly));
+                    assert.throws(() => tl.setAccess(path.join(dirPath, 'missing')));
+                } finally {
+                    console.log = originalLog;
+                }
+
+                const prefix = '##vso[telemetry.publish area=TaskHub;feature=TaskLibSetAccess]';
+                const events = logs.filter(l => l.startsWith(prefix)).map(l => JSON.parse(l.substring(prefix.length)));
+                assert.deepStrictEqual(events, [
+                    { event: 'SetAccessFailed', platform: 'win32', level: 'ownerOnly', operation: 'icaclsReset', errorCode: 'none' },
+                    { event: 'SetAccessFailed', platform: 'win32', level: 'ownerReadOnly', operation: 'icacls', errorCode: 'none' },
+                    { event: 'SetAccessFailed', platform: 'win32', level: 'ownerOnly', operation: 'stat', errorCode: 'ENOENT' }
+                ]);
+            });
+        });
+
         it('rejects empty paths and unknown access levels', function () {
             assert.throws(() => tl.setAccess(''), /targetPath/);
 

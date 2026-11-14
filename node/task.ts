@@ -1035,79 +1035,91 @@ const administratorsSid = '*S-1-5-32-544';
  * @returns {void}
  */
 export function setAccess(targetPath: string, level: AccessLevel = AccessLevel.OwnerOnly): void {
-    if (!targetPath) {
-        throw new Error(loc('LIB_ParameterIsRequired', 'targetPath'));
-    }
-
-    if (!Object.prototype.hasOwnProperty.call(accessLevels, level)) {
-        throw new Error(`Unsupported access level '${level}'.`);
-    }
-    const access = accessLevels[level];
-
-    const stats = fs.statSync(targetPath);
-    const isDirectory = stats.isDirectory();
-
-    if (getPlatform() == Platform.Windows) {
-        const userResult = childProcess.spawnSync('whoami.exe', ['/user', '/fo', 'csv', '/nh'], { windowsHide: true, encoding: 'utf8' });
-        if (userResult.error || userResult.status !== 0) {
-            const detail = userResult.error ? userResult.error.message
-                : (userResult.stderr || userResult.stdout || '').trim() || `exit status ${userResult.status}, signal ${userResult.signal}`;
-            throw new Error(`Failed to determine the current user's SID using whoami. ${detail}`);
+    let operation = 'validate';
+    try {
+        if (!targetPath) {
+            throw new Error(loc('LIB_ParameterIsRequired', 'targetPath'));
         }
 
-        const userSid = /,"(S-\d+(?:-\d+)+)"\s*$/i.exec(userResult.stdout);
-        if (!userSid) {
-            throw new Error(`Failed to determine the current user's SID using whoami. Unexpected output.`);
+        if (!Object.prototype.hasOwnProperty.call(accessLevels, level)) {
+            throw new Error(`Unsupported access level '${level}'.`);
         }
+        const access = accessLevels[level];
 
-        const resetResult = childProcess.spawnSync('icacls.exe', [targetPath, '/reset'], { windowsHide: true, encoding: 'utf8' });
-        if (resetResult.error || resetResult.status !== 0) {
-            const detail = resetResult.error ? resetResult.error.message
-                : (resetResult.stderr || resetResult.stdout || '').trim() || `exit status ${resetResult.status}, signal ${resetResult.signal}`;
-            throw new Error(`Failed to reset access for '${targetPath}' using icacls. ${detail}`);
-        }
+        operation = 'stat';
+        const stats = fs.statSync(targetPath);
+        const isDirectory = stats.isDirectory();
 
-        const inheritFlags = isDirectory ? '(OI)(CI)' : '';
-        const rights: { [access: string]: string } = { read: isDirectory ? 'RX' : 'R', full: 'F' };
-        const args = [targetPath, '/inheritance:r', '/grant:r', `*${userSid[1]}:${inheritFlags}${rights[access.owner]}`];
-        args.push('/grant:r', `${systemSid}:${inheritFlags}F`);
-        args.push('/grant:r', `${administratorsSid}:${inheritFlags}F`);
-        args.push(...(access.others == 'none'
-            ? ['/remove:g', everyoneSid]
-            : ['/grant:r', `${everyoneSid}:${inheritFlags}${rights[access.others]}`]));
-
-        const result = childProcess.spawnSync('icacls.exe', args, { windowsHide: true, encoding: 'utf8' });
-        if (result.error || result.status !== 0) {
-            const detail = result.error ? result.error.message
-                : (result.stderr || result.stdout || '').trim() || `exit status ${result.status}, signal ${result.signal}`;
-            const fallbackArgs = [
-                targetPath, '/inheritance:r', '/grant:r', `*${userSid[1]}:${inheritFlags}F`,
-                '/grant:r', `${systemSid}:${inheritFlags}F`,
-                '/grant:r', `${administratorsSid}:${inheritFlags}F`,
-                '/remove:g', everyoneSid
-            ];
-            const fallbackResult = childProcess.spawnSync('icacls.exe', fallbackArgs, { windowsHide: true, encoding: 'utf8' });
-            if (fallbackResult.error || fallbackResult.status !== 0) {
-                const fallbackDetail = fallbackResult.error ? fallbackResult.error.message
-                    : (fallbackResult.stderr || fallbackResult.stdout || '').trim() || `exit status ${fallbackResult.status}, signal ${fallbackResult.signal}`;
-                throw new Error(`Failed to set access for '${targetPath}' using icacls. ${detail} Owner-only fallback failed. ${fallbackDetail}`);
+        if (getPlatform() == Platform.Windows) {
+            operation = 'whoami';
+            const userResult = childProcess.spawnSync('whoami.exe', ['/user', '/fo', 'csv', '/nh'], { windowsHide: true, encoding: 'utf8' });
+            if (userResult.error || userResult.status !== 0) {
+                const detail = userResult.error ? userResult.error.message
+                    : (userResult.stderr || userResult.stdout || '').trim() || `exit status ${userResult.status}, signal ${userResult.signal}`;
+                throw new Error(`Failed to determine the current user's SID using whoami. ${detail}`);
             }
 
-            throw new Error(`Failed to set access for '${targetPath}' using icacls. ${detail} Owner-only fallback was applied.`);
+            const userSid = /,"(S-\d+(?:-\d+)+)"\s*$/i.exec(userResult.stdout);
+            if (!userSid) {
+                throw new Error(`Failed to determine the current user's SID using whoami. Unexpected output.`);
+            }
+
+            operation = 'icaclsReset';
+            const resetResult = childProcess.spawnSync('icacls.exe', [targetPath, '/reset'], { windowsHide: true, encoding: 'utf8' });
+            if (resetResult.error || resetResult.status !== 0) {
+                const detail = resetResult.error ? resetResult.error.message
+                    : (resetResult.stderr || resetResult.stdout || '').trim() || `exit status ${resetResult.status}, signal ${resetResult.signal}`;
+                throw new Error(`Failed to reset access for '${targetPath}' using icacls. ${detail}`);
+            }
+
+            const inheritFlags = isDirectory ? '(OI)(CI)' : '';
+            const rights: { [access: string]: string } = { read: isDirectory ? 'RX' : 'R', full: 'F' };
+            const args = [targetPath, '/inheritance:r', '/grant:r', `*${userSid[1]}:${inheritFlags}${rights[access.owner]}`];
+            args.push('/grant:r', `${systemSid}:${inheritFlags}F`);
+            args.push('/grant:r', `${administratorsSid}:${inheritFlags}F`);
+            args.push(...(access.others == 'none'
+                ? ['/remove:g', everyoneSid]
+                : ['/grant:r', `${everyoneSid}:${inheritFlags}${rights[access.others]}`]));
+
+            operation = 'icacls';
+            const result = childProcess.spawnSync('icacls.exe', args, { windowsHide: true, encoding: 'utf8' });
+            if (result.error || result.status !== 0) {
+                const detail = result.error ? result.error.message
+                    : (result.stderr || result.stdout || '').trim() || `exit status ${result.status}, signal ${result.signal}`;
+                const fallbackArgs = [
+                    targetPath, '/inheritance:r', '/grant:r', `*${userSid[1]}:${inheritFlags}F`,
+                    '/grant:r', `${systemSid}:${inheritFlags}F`,
+                    '/grant:r', `${administratorsSid}:${inheritFlags}F`,
+                    '/remove:g', everyoneSid
+                ];
+                const fallbackResult = childProcess.spawnSync('icacls.exe', fallbackArgs, { windowsHide: true, encoding: 'utf8' });
+                if (fallbackResult.error || fallbackResult.status !== 0) {
+                    const fallbackDetail = fallbackResult.error ? fallbackResult.error.message
+                        : (fallbackResult.stderr || fallbackResult.stdout || '').trim() || `exit status ${fallbackResult.status}, signal ${fallbackResult.signal}`;
+                    throw new Error(`Failed to set access for '${targetPath}' using icacls. ${detail} Owner-only fallback failed. ${fallbackDetail}`);
+                }
+
+                throw new Error(`Failed to set access for '${targetPath}' using icacls. ${detail} Owner-only fallback was applied.`);
+            }
+
+            return;
         }
 
-        return;
+        operation = 'ownerCheck';
+        const effectiveUid = process.geteuid();
+
+        if (stats.uid !== effectiveUid) {
+            throw new Error(`Cannot set access for '${targetPath}': the target is owned by UID ${stats.uid}, but the current effective UID is ${effectiveUid}.`);
+        }
+
+        const modes: { [access: string]: number } = { none: 0, read: isDirectory ? 5 : 4, full: isDirectory ? 7 : 6 };
+        const others = modes[access.others];
+        operation = 'chmod';
+        fs.chmodSync(targetPath, (modes[access.owner] << 6) | (others << 3) | others);
+    } catch (err) {
+        _publishSetAccessFailureTelemetry(level, operation, err);
+        throw err;
     }
-
-    const effectiveUid = process.geteuid();
-
-    if (stats.uid !== effectiveUid) {
-        throw new Error(`Cannot set access for '${targetPath}': the target is owned by UID ${stats.uid}, but the current effective UID is ${effectiveUid}.`);
-    }
-
-    const modes: { [access: string]: number } = { none: 0, read: isDirectory ? 5 : 4, full: isDirectory ? 7 : 6 };
-    const others = modes[access.others];
-    fs.chmodSync(targetPath, (modes[access.owner] << 6) | (others << 3) | others);
 }
 
 /**
@@ -1937,6 +1949,23 @@ function _publishRmRFSpecialPathTelemetry(inputPath: string): void {
         console.log(`##vso[telemetry.publish area=TaskHub;feature=TaskLibRmRF]${message}`);
     } catch (err) {
         debug(`Failed to publish rmRF telemetry: ${err.message}`);
+    }
+}
+
+function _publishSetAccessFailureTelemetry(level: AccessLevel, operation: string, err: any): void {
+    try {
+        // Messages can contain paths, account names, or icacls output, so only bounded fields are published.
+        const message = JSON.stringify({
+            event: 'SetAccessFailed',
+            platform: process.platform,
+            level: Object.prototype.hasOwnProperty.call(accessLevels, level) ? level : 'invalid',
+            operation,
+            errorCode: err && typeof err.code === 'string' ? err.code : 'none'
+        });
+
+        console.log(`##vso[telemetry.publish area=TaskHub;feature=TaskLibSetAccess]${message}`);
+    } catch (telemetryErr) {
+        debug(`Failed to publish setAccess telemetry: ${telemetryErr.message}`);
     }
 }
 
