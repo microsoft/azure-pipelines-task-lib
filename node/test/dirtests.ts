@@ -4,11 +4,18 @@
 import assert = require('assert');
 import path = require('path');
 import fs = require('fs');
-import shell = require('shelljs');
 import os = require('os');
 import * as tl from '../_build/task';
 
 import * as testutil from './testutil';
+
+function isDirectory(filePath: string): boolean {
+    return fs.existsSync(filePath) && fs.statSync(filePath).isDirectory();
+}
+
+function isFile(filePath: string): boolean {
+    return fs.existsSync(filePath) && fs.statSync(filePath).isFile();
+}
 
 describe('Dir Operation Tests', function () {
     before(function (done) {
@@ -23,20 +30,6 @@ describe('Dir Operation Tests', function () {
 
     after(function () {
 
-    });
-
-    // this test verifies the expected version of node is being used to run the tests.
-    // 5.10.1 is what ships in the 1.x and 2.x agent.
-    it('is expected version', function (done) {
-        this.timeout(1000);
-
-        console.log('node version: ' + process.version);
-        const supportedNodeVersions = ['v16.13.0'];
-        if (supportedNodeVersions.indexOf(process.version) === -1) {
-            assert.fail(`expected node node version to be one of ${supportedNodeVersions.map(o => o).join(', ')}. actual: ` + process.version);
-        }
-
-        done();
     });
 
     // which tests
@@ -1156,7 +1149,7 @@ describe('Dir Operation Tests', function () {
 
         var testPath = path.join(testutil.getTestTemp(), 'mkdirTest');
         tl.mkdirP(testPath);
-        assert(shell.test('-d', testPath), 'directory created');
+        assert(isDirectory(testPath), 'directory created');
 
         done();
     });
@@ -1166,7 +1159,7 @@ describe('Dir Operation Tests', function () {
 
         var testPath = path.join(testutil.getTestTemp(), 'mkdir1', 'mkdir2');
         tl.mkdirP(testPath);
-        assert(shell.test('-d', testPath), 'directory created');
+        assert(isDirectory(testPath), 'directory created');
 
         done();
     });
@@ -1182,7 +1175,7 @@ describe('Dir Operation Tests', function () {
         }
         catch (err) {
             // asserting failure
-            assert(!shell.test('-d', testPath), 'directory should not be created');
+            assert(!isDirectory(testPath), 'directory should not be created');
         }
 
         assert(!worked, 'mkdirP with illegal chars should have not have worked');
@@ -1224,7 +1217,7 @@ describe('Dir Operation Tests', function () {
         this.timeout(1000);
 
         let testPath = path.join(testutil.getTestTemp(), 'mkdirP_conflicting_file_path');
-        shell.mkdir('-p', testutil.getTestTemp());
+        fs.mkdirSync(testutil.getTestTemp(), { recursive: true });
         fs.writeFileSync(testPath, '');
         let worked: boolean = false;
         try {
@@ -1242,7 +1235,7 @@ describe('Dir Operation Tests', function () {
         this.timeout(1000);
 
         let testPath = path.join(testutil.getTestTemp(), 'mkdirP_conflicting_parent_file_path', 'dir');
-        shell.mkdir('-p', testutil.getTestTemp());
+        fs.mkdirSync(testutil.getTestTemp(), { recursive: true });
         fs.writeFileSync(path.dirname(testPath), '');
         let worked: boolean = false;
         try {
@@ -1260,7 +1253,7 @@ describe('Dir Operation Tests', function () {
         this.timeout(1000);
 
         let testPath = path.join(testutil.getTestTemp(), 'mkdirP_dir_exists');
-        shell.mkdir('-p', testutil.getTestTemp());
+        fs.mkdirSync(testutil.getTestTemp(), { recursive: true });
         fs.mkdirSync(testPath);
 
         tl.mkdirP(testPath); // should not throw
@@ -1279,7 +1272,7 @@ describe('Dir Operation Tests', function () {
         let realDirPath = path.join(rootPath, 'real_dir');
         let realFilePath = path.join(realDirPath, 'file.txt');
         let symlinkDirPath = path.join(rootPath, 'symlink_dir');
-        shell.mkdir('-p', testutil.getTestTemp());
+        fs.mkdirSync(testutil.getTestTemp(), { recursive: true });
         fs.mkdirSync(rootPath);
         fs.mkdirSync(realDirPath);
         fs.writeFileSync(realFilePath, 'test real_dir/file.txt contet');
@@ -1305,7 +1298,7 @@ describe('Dir Operation Tests', function () {
         let realDirPath = path.join(rootPath, 'real_dir');
         let realFilePath = path.join(realDirPath, 'file.txt');
         let symlinkDirPath = path.join(rootPath, 'symlink_dir');
-        shell.mkdir('-p', testutil.getTestTemp());
+        fs.mkdirSync(testutil.getTestTemp(), { recursive: true });
         fs.mkdirSync(rootPath);
         fs.mkdirSync(realDirPath);
         fs.writeFileSync(realFilePath, 'test real_dir/file.txt contet');
@@ -1348,11 +1341,11 @@ describe('Dir Operation Tests', function () {
         var testPath = path.join(testutil.getTestTemp(), 'testFolder');
 
         tl.mkdirP(testPath);
-        assert(shell.test('-d', testPath), 'directory created');
-        assert(shell.test('-e', testPath), 'directory exists');
+        assert(isDirectory(testPath), 'directory created');
+        assert(fs.existsSync(testPath), 'directory exists');
 
         tl.rmRF(testPath);
-        assert(!shell.test('-e', testPath), 'directory removed');
+        assert(!fs.existsSync(testPath), 'directory removed');
 
         done();
     });
@@ -1364,12 +1357,12 @@ describe('Dir Operation Tests', function () {
         var testPath2 = path.join(testPath, 'testDir2');
         tl.mkdirP(testPath2);
 
-        assert(shell.test('-d', testPath), '1 directory created');
-        assert(shell.test('-d', testPath2), '2 directory created');
+        assert(isDirectory(testPath), '1 directory created');
+        assert(isDirectory(testPath2), '2 directory created');
 
         tl.rmRF(testPath);
-        assert(!shell.test('-e', testPath), '1 directory removed');
-        assert(!shell.test('-e', testPath2), '2 directory removed');
+        assert(!fs.existsSync(testPath), '1 directory removed');
+        assert(!fs.existsSync(testPath2), '2 directory removed');
 
         done();
     });
@@ -1379,19 +1372,19 @@ describe('Dir Operation Tests', function () {
 
         var testPath = path.join(testutil.getTestTemp(), 'testFolder');
         tl.mkdirP(testPath);
-        assert(shell.test('-d', testPath), 'directory created');
+        assert(isDirectory(testPath), 'directory created');
 
         // starting from windows-2022,
         // can remove folder with locked file on windows as well,
         // using the command `rd /s /q <path>`
         var filePath = path.join(testPath, 'file.txt');
         fs.appendFileSync(filePath, 'some data');
-        assert(shell.test('-e', filePath), 'file exists');
+        assert(fs.existsSync(filePath), 'file exists');
 
         var fd = fs.openSync(filePath, 'r');
 
         tl.rmRF(testPath);
-        assert(!shell.test('-e', testPath), 'directory removed');
+        assert(!fs.existsSync(testPath), 'directory removed');
 
         fs.closeSync(fd);
 
@@ -1407,14 +1400,14 @@ describe('Dir Operation Tests', function () {
         tl.cd(start);
         assert(process.cwd() == start, 'starting in right directory');
 
-        assert(!shell.test('-d', testPath), 'directory created');
-        assert(!shell.test('-e', testPath), 'directory exists');
+        assert(!isDirectory(testPath), 'directory created');
+        assert(!fs.existsSync(testPath), 'directory exists');
 
         var errStream = testutil.createStringStream();
         tl.setErrStream(errStream);
 
         tl.rmRF(testPath);
-        assert(!shell.test('-e', testPath), 'directory still doesnt exist');
+        assert(!fs.existsSync(testPath), 'directory still doesnt exist');
 
         done();
     });
@@ -1424,9 +1417,9 @@ describe('Dir Operation Tests', function () {
 
         let file: string = path.join(testutil.getTestTemp(), 'rmRF_file');
         fs.writeFileSync(file, 'test file content');
-        assert(shell.test('-f', file), 'file should have been created');
+        assert(isFile(file), 'file should have been created');
         tl.rmRF(file);
-        assert(!shell.test('-e', file), 'file should not exist');
+        assert(!fs.existsSync(file), 'file should not exist');
 
         done();
     });
@@ -1436,9 +1429,9 @@ describe('Dir Operation Tests', function () {
 
         let directory: string = path.join(testutil.getTestTemp(), '.rmRF_directory');
         testutil.createHiddenDirectory(directory);
-        assert(shell.test('-d', directory), 'directory should have been created');
+        assert(isDirectory(directory), 'directory should have been created');
         tl.rmRF(directory);
-        assert(!shell.test('-e', directory), 'directory should not exist');
+        assert(!fs.existsSync(directory), 'directory should not exist');
 
         done();
     });
@@ -1448,9 +1441,9 @@ describe('Dir Operation Tests', function () {
 
         let file: string = path.join(testutil.getTestTemp(), '.rmRF_file');
         fs.writeFileSync(file, 'test file content');
-        assert(shell.test('-f', file), 'file should have been created');
+        assert(isFile(file), 'file should have been created');
         tl.rmRF(file);
-        assert(!shell.test('-e', file), 'file should not exist');
+        assert(!fs.existsSync(file), 'file should not exist');
 
         done();
     });
@@ -1469,12 +1462,12 @@ describe('Dir Operation Tests', function () {
         tl.mkdirP(realDirectory);
         fs.writeFileSync(realFile, 'test file content');
         testutil.createSymlinkDir(realDirectory, symlinkDirectory);
-        assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'symlink directory should be created correctly');
+        assert(isFile(path.join(symlinkDirectory, 'real_file')), 'symlink directory should be created correctly');
 
         tl.rmRF(symlinkDirectory);
-        assert(!shell.test('-d', realDirectory), 'real directory should be deleted');
-        assert(!shell.test('-f', realFile), 'file should be deleted');
-        assert(!shell.test('-e', symlinkDirectory), 'symlink directory should have been deleted');
+        assert(!isDirectory(realDirectory), 'real directory should be deleted');
+        assert(!isFile(realFile), 'file should be deleted');
+        assert(!fs.existsSync(symlinkDirectory), 'symlink directory should have been deleted');
 
         done();
     });
@@ -1496,8 +1489,8 @@ describe('Dir Operation Tests', function () {
             assert.equal(fs.readFileSync(symlinkFile), 'test file content');
 
             tl.rmRF(symlinkFile);
-            assert(shell.test('-f', realFile), 'real file should still exist');
-            assert(!shell.test('-e', symlinkFile), 'symlink file should have been deleted');
+            assert(isFile(realFile), 'real file should still exist');
+            assert(!fs.existsSync(symlinkFile), 'symlink file should have been deleted');
 
             done();
         });
@@ -1551,9 +1544,9 @@ describe('Dir Operation Tests', function () {
             assert.equal(fs.readFileSync(symlinkLevel2File), 'test file content');
 
             tl.rmRF(symlinkLevel2File);
-            assert(shell.test('-f', realFile), 'real file should still exist');
-            assert(shell.test('-e', symlinkFile), 'symlink file should still exist');
-            assert(!shell.test('-e', symlinkLevel2File), 'symlink level 2 file should have been deleted');
+            assert(isFile(realFile), 'real file should still exist');
+            assert(fs.existsSync(symlinkFile), 'symlink file should still exist');
+            assert(!fs.existsSync(symlinkLevel2File), 'symlink level 2 file should have been deleted');
 
             done();
         });
@@ -1578,10 +1571,10 @@ describe('Dir Operation Tests', function () {
             assert.equal(fs.readFileSync(symlinkFile), 'test file content');
 
             tl.rmRF(outerDirectory);
-            assert(shell.test('-d', realDirectory), 'real directory should still exist');
-            assert(shell.test('-f', realFile), 'file should still exist');
-            assert(!shell.test('-e', symlinkFile), 'symlink file should have been deleted');
-            assert(!shell.test('-e', outerDirectory), 'outer directory should have been deleted');
+            assert(isDirectory(realDirectory), 'real directory should still exist');
+            assert(isFile(realFile), 'file should still exist');
+            assert(!fs.existsSync(symlinkFile), 'symlink file should have been deleted');
+            assert(!fs.existsSync(outerDirectory), 'outer directory should have been deleted');
 
             done();
         });
@@ -1608,10 +1601,10 @@ describe('Dir Operation Tests', function () {
             assert.equal(fs.readFileSync(symlinkFile), 'test file content');
 
             tl.rmRF(outerDirectory);
-            assert(shell.test('-d', realDirectory), 'real directory should still exist');
-            assert(shell.test('-f', realFile), 'file should still exist');
-            assert(!shell.test('-e', symlinkFile), 'symlink file should have been deleted');
-            assert(!shell.test('-e', outerDirectory), 'outer directory should have been deleted');
+            assert(isDirectory(realDirectory), 'real directory should still exist');
+            assert(isFile(realFile), 'file should still exist');
+            assert(!fs.existsSync(symlinkFile), 'symlink file should have been deleted');
+            assert(!fs.existsSync(outerDirectory), 'outer directory should have been deleted');
 
             done();
         });
@@ -1619,7 +1612,7 @@ describe('Dir Operation Tests', function () {
 
     it('removes symlink folder with missing source using rmRF', function (done) {
         this.timeout(1000);
-    
+
         // create the following layout:
         //   real_directory
         //   real_directory/real_file
@@ -1631,13 +1624,13 @@ describe('Dir Operation Tests', function () {
         tl.mkdirP(realDirectory);
         fs.writeFileSync(realFile, 'test file content');
         testutil.createSymlinkDir(realDirectory, symlinkDirectory);
-        assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'symlink directory should be created correctly');
-    
+        assert(isFile(path.join(symlinkDirectory, 'real_file')), 'symlink directory should be created correctly');
+
         // remove the real directory
         fs.unlinkSync(realFile);
         fs.rmdirSync(realDirectory);
         assert.throws(() => { fs.statSync(symlinkDirectory) }, (err: NodeJS.ErrnoException) => err.code == 'ENOENT', 'stat should throw');
-    
+
         // remove the symlink directory
         tl.rmRF(symlinkDirectory);
         let errcode: string;
@@ -1648,7 +1641,7 @@ describe('Dir Operation Tests', function () {
             errcode = err.code;
         }
         assert.equal(errcode, 'ENOENT');
-    
+
         done();
     });
 
@@ -1670,16 +1663,11 @@ describe('Dir Operation Tests', function () {
         testutil.createSymlinkDir(realDirectory, symlinkDirectory);
         testutil.createSymlinkDir(symlinkDirectory, symlinkLevel2Directory);
         assert.equal(fs.readFileSync(path.join(symlinkDirectory, 'real_file')), 'test file content');
-        if (os.platform() == 'win32') {
-            assert.equal(fs.readlinkSync(symlinkLevel2Directory), symlinkDirectory + '\\');
-        }
-        else {
-            assert.equal(fs.readlinkSync(symlinkLevel2Directory), symlinkDirectory);
-        }
+        assert.equal(path.resolve(fs.readlinkSync(symlinkLevel2Directory)), path.resolve(symlinkDirectory));
 
         tl.rmRF(symlinkLevel2Directory);
-        assert(!shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'real file should not exist');
-        assert(!shell.test('-e', symlinkLevel2Directory), 'symlink level 2 file should have been deleted');
+        assert(!isFile(path.join(symlinkDirectory, 'real_file')), 'real file should not exist');
+        assert(!fs.existsSync(symlinkLevel2Directory), 'symlink level 2 file should have been deleted');
 
         done();
     });
@@ -1701,13 +1689,13 @@ describe('Dir Operation Tests', function () {
         fs.writeFileSync(realFile, 'test file content');
         tl.mkdirP(outerDirectory);
         testutil.createSymlinkDir(realDirectory, symlinkDirectory);
-        assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'symlink directory should be created correctly');
+        assert(isFile(path.join(symlinkDirectory, 'real_file')), 'symlink directory should be created correctly');
 
         tl.rmRF(outerDirectory);
-        assert(shell.test('-d', realDirectory), 'real directory should still exist');
-        assert(shell.test('-f', realFile), 'file should still exist');
-        assert(!shell.test('-e', symlinkDirectory), 'symlink directory should have been deleted');
-        assert(!shell.test('-e', outerDirectory), 'outer directory should have been deleted');
+        assert(isDirectory(realDirectory), 'real directory should still exist');
+        assert(isFile(realFile), 'file should still exist');
+        assert(!fs.existsSync(symlinkDirectory), 'symlink directory should have been deleted');
+        assert(!fs.existsSync(outerDirectory), 'outer directory should have been deleted');
 
         done();
     });
@@ -1731,13 +1719,13 @@ describe('Dir Operation Tests', function () {
         fs.writeFileSync(realFile, 'test file content');
         tl.mkdirP(nestedDirectory);
         testutil.createSymlinkDir(realDirectory, symlinkDirectory);
-        assert(shell.test('-f', path.join(symlinkDirectory, 'real_file')), 'symlink directory should be created correctly');
+        assert(isFile(path.join(symlinkDirectory, 'real_file')), 'symlink directory should be created correctly');
 
         tl.rmRF(outerDirectory);
-        assert(shell.test('-d', realDirectory), 'real directory should still exist');
-        assert(shell.test('-f', realFile), 'file should still exist');
-        assert(!shell.test('-e', symlinkDirectory), 'symlink directory should have been deleted');
-        assert(!shell.test('-e', outerDirectory), 'outer directory should have been deleted');
+        assert(isDirectory(realDirectory), 'real directory should still exist');
+        assert(isFile(realFile), 'file should still exist');
+        assert(!fs.existsSync(symlinkDirectory), 'symlink directory should have been deleted');
+        assert(!fs.existsSync(outerDirectory), 'outer directory should have been deleted');
 
         done();
     });
@@ -1748,9 +1736,9 @@ describe('Dir Operation Tests', function () {
         let file: string = path.join(testutil.getTestTemp(), '.rmRF_file');
         tl.mkdirP(path.dirname(file));
         testutil.createHiddenFile(file, 'test file content');
-        assert(shell.test('-f', file), 'file should have been created');
+        assert(isFile(file), 'file should have been created');
         tl.rmRF(file);
-        assert(!shell.test('-e', file), 'file should not exist');
+        assert(!fs.existsSync(file), 'file should not exist');
 
         done();
     });
@@ -1767,20 +1755,20 @@ describe('Dir Operation Tests', function () {
         tl.cd(start);
         assert(process.cwd() == start, 'did not start in right directory');
 
-        shell.rm('-f', sourceFile);
-        shell.rm('-f', destFile);
+        fs.rmSync(sourceFile, { force: true });
+        fs.rmSync(destFile, { force: true });
 
-        assert(!shell.test('-e', destFile), 'destination file exists');
+        assert(!fs.existsSync(destFile), 'destination file exists');
 
         fs.writeFileSync(sourceFile, "test move");
-        assert(shell.test('-e', sourceFile), 'source file does not exist');
+        assert(fs.existsSync(sourceFile), 'source file does not exist');
 
         var errStream = testutil.createStringStream();
         tl.setErrStream(errStream);
 
         tl.mv(sourceFile, destFile);
-        assert(!shell.test('-e', sourceFile), 'source file still exist');
-        assert(shell.test('-e', destFile), 'dest file still does not exist');
+        assert(!fs.existsSync(sourceFile), 'source file still exist');
+        assert(fs.existsSync(destFile), 'dest file still does not exist');
 
         done();
     });
@@ -1796,14 +1784,14 @@ describe('Dir Operation Tests', function () {
         tl.cd(start);
         assert(process.cwd() == start, 'did not start in right directory');
 
-        shell.rm('-f', sourceFile);
-        shell.rm('-f', destFile);
+        fs.rmSync(sourceFile, { force: true });
+        fs.rmSync(destFile, { force: true });
 
         fs.writeFileSync(sourceFile, "test move");
         fs.writeFileSync(destFile, "test move destination");
 
-        assert(shell.test('-e', sourceFile), 'source file does not exist');
-        assert(shell.test('-e', destFile), 'destination does not file exists');
+        assert(fs.existsSync(sourceFile), 'source file does not exist');
+        assert(fs.existsSync(destFile), 'destination does not file exists');
 
         var errStream = testutil.createStringStream();
         tl.setErrStream(errStream);
@@ -1815,15 +1803,15 @@ describe('Dir Operation Tests', function () {
         }
         catch (err) {
             // this should fail
-            assert(shell.test('-e', sourceFile), 'source file does not exist');
-            assert(shell.test('-e', destFile), 'dest file does not exist');
+            assert(fs.existsSync(sourceFile), 'source file does not exist');
+            assert(fs.existsSync(destFile), 'dest file does not exist');
         }
 
         assert(!worked, 'mv should have not have worked');
 
         tl.mv(sourceFile, destFile, '-f');
-        assert(!shell.test('-e', sourceFile), 'source file should not exist');
-        assert(shell.test('-e', destFile), 'dest file does not exist after mv -f');
+        assert(!fs.existsSync(sourceFile), 'source file should not exist');
+        assert(fs.existsSync(destFile), 'dest file does not exist after mv -f');
 
         done();
     });

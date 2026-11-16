@@ -1724,7 +1724,7 @@
         "ls": {
           "name": "ls",
           "members": {},
-          "documentation": "Returns array of files in the given path, or in current directory if no path provided.  See shelljs.ls\n@return {string[]}          An array of files in the given path(s).",
+          "documentation": "Returns array of files in the given path, or in current directory if no path provided.\n@return {string[]}          An array of files in the given path(s).",
           "kind": "function",
           "signatures": [
             {
@@ -1744,7 +1744,7 @@
               ],
               "members": {},
               "return": "string[]",
-              "documentation": "Returns array of files in the given path, or in current directory if no path provided.  See shelljs.ls\n@return {string[]}          An array of files in the given path(s)."
+              "documentation": "Returns array of files in the given path, or in current directory if no path provided.\n@return {string[]}          An array of files in the given path(s)."
             }
           ]
         },

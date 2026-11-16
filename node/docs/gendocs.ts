@@ -3,7 +3,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import * as ts2json from './TypeScriptSourceToJson'
-var shell = require('shelljs');
 
 function header(line: string) {
     console.log();
@@ -45,7 +44,7 @@ function anchorName(name) {
     return name.replace(/\./g, '').replace(/ /g, '');
 }
 
-shell.rm('-rf', mdpath);
+fs.writeFileSync(mdpath, '');
 var docsStructure = docs.structure;
 var aliasCache = {} as { string : [ts2json.DocEntry]};
 

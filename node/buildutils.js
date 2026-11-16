@@ -1,5 +1,5 @@
 
-require('shelljs');
+var childProcess = require('child_process');
 var fs = require('fs');
 var os = require('os');
 var path = require('path');
@@ -12,10 +12,14 @@ var testPath = path.join(__dirname, '_test');
 
 var run = function (cl) {
     console.log('> ' + cl);
-    var rc = exec(cl).code;
-    if (rc !== 0) {
-        echo('Exec failed with rc ' + rc);
-        exit(rc);
+    var result = childProcess.spawnSync(cl, { shell: true, stdio: 'inherit' });
+    if (result.error) {
+        throw result.error;
+    }
+    if (result.status !== 0) {
+        var rc = result.status === null ? 1 : result.status;
+        console.error('Exec failed with rc ' + rc);
+        process.exit(rc);
     }
 }
 exports.run = run;
@@ -53,9 +57,9 @@ const getExternalsAsync = async () => {
             ]);
 
             var nodeDirectory = path.join(testPath, 'node');
-            mkdir('-p', nodeDirectory);
-            cp(nodeExePath, path.join(nodeDirectory, 'node.exe'));
-            cp(nodeLibPath, path.join(nodeDirectory, 'node.lib'));
+            fs.mkdirSync(nodeDirectory, { recursive: true });
+            fs.copyFileSync(nodeExePath, path.join(nodeDirectory, 'node.exe'));
+            fs.copyFileSync(nodeLibPath, path.join(nodeDirectory, 'node.lib'));
             addPath(nodeDirectory);
             break;
     }
@@ -77,19 +81,19 @@ var downloadFileAsync = async function (url, fileName) {
     }
     var targetPath = path.join(downloadPath, 'file', fileName);
     var marker = targetPath + '.completed';
-    if (test('-f', marker)) {
+    if (fs.existsSync(marker) && fs.statSync(marker).isFile()) {
         console.log('File already exists: ' + targetPath);
         return targetPath;
     }
 
     console.log('Downloading file: ' + url);
     // delete any previous partial attempt
-    if (test('-f', targetPath)) {
-        rm('-f', targetPath);
+    if (fs.existsSync(targetPath) && fs.statSync(targetPath).isFile()) {
+        fs.rmSync(targetPath, { force: true });
     }
 
     // download the file
-    mkdir('-p', path.join(downloadPath, 'file'));
+    fs.mkdirSync(path.join(downloadPath, 'file'), { recursive: true });
 
     const downloader = new Downloader({
         url: url,
@@ -115,7 +119,7 @@ var downloadArchiveAsync = async function (url, fileName) {
     }
     var targetPath = path.join(downloadPath, 'archive', scrubbedUrl);
     var marker = targetPath + '.completed';
-    if (test('-f', marker)) {
+    if (fs.existsSync(marker) && fs.statSync(marker).isFile()) {
         return targetPath;
     }
 
@@ -124,12 +128,12 @@ var downloadArchiveAsync = async function (url, fileName) {
     console.log('Extracting archive: ' + url);
 
     // delete any previously attempted extraction directory
-    if (test('-d', targetPath)) {
-        rm('-rf', targetPath);
+    if (fs.existsSync(targetPath) && fs.statSync(targetPath).isDirectory()) {
+        fs.rmSync(targetPath, { recursive: true, force: true });
     }
 
     // extract
-    mkdir('-p', targetPath);
+    fs.mkdirSync(targetPath, { recursive: true });
 
     if (targetPath.endsWith('.zip')) {
         var zip = new admZip(archivePath);

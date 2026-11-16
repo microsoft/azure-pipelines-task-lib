@@ -132,8 +132,17 @@ extends:
                 displayName: 'npm run build'
                 workingDirectory: node
 
-              - script: npm test
-                displayName: 'npm test'
+              - script: npm run test:prepare
+                displayName: 'Build and compile tests on Node $(nodeVersion)'
+                workingDirectory: node
+
+              - task: UseNode@1
+                displayName: 'Use Node 22.x for Mocha'
+                inputs:
+                  version: '22.x'
+
+              - script: npm run test:run
+                displayName: 'Run Mocha on Node 22'
                 workingDirectory: node
 
               # Guard: ESRP (and npm) cannot publish a package marked private.

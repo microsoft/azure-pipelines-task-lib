@@ -16,9 +16,18 @@ steps:
   displayName: (task-lib) npm ci
   workingDirectory: node
 
-- script: npm test
+- script: npm run test:prepare
   workingDirectory: node
-  displayName: (task-lib) npm test
+  displayName: (task-lib) build and compile tests on Node $(nodeVersion)
+
+- task: UseNode@1
+  displayName: use node 22.x for Mocha
+  inputs:
+    version: '22.x'
+
+- script: npm run test:run
+  workingDirectory: node
+  displayName: (task-lib) run Mocha on Node 22
 
 # NOTE: npm publishing has been removed from this CI template.
 # This template is now used for PR/CI validation only (build + test).
@@ -29,7 +38,7 @@ steps:
 # pipeline artifact through the base template's templateContext section
 # (see azure-pipelines.yml).
 
-# Only on Windows. Build VstsTaskSdk for powershell 
+# Only on Windows. Build VstsTaskSdk for powershell
 - ${{ if eq(parameters.os, 'Windows_NT') }}:
   # Restore NuGet packages from internal feed (CFS compliant)
   - task: DotNetCoreCLI@2
