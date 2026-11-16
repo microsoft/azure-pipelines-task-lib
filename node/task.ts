@@ -1086,20 +1086,7 @@ export function setAccess(targetPath: string, level: AccessLevel = AccessLevel.O
             if (result.error || result.status !== 0) {
                 const detail = result.error ? result.error.message
                     : (result.stderr || result.stdout || '').trim() || `exit status ${result.status}, signal ${result.signal}`;
-                const fallbackArgs = [
-                    targetPath, '/inheritance:r', '/grant:r', `*${userSid[1]}:${inheritFlags}F`,
-                    '/grant:r', `${systemSid}:${inheritFlags}F`,
-                    '/grant:r', `${administratorsSid}:${inheritFlags}F`,
-                    '/remove:g', everyoneSid
-                ];
-                const fallbackResult = childProcess.spawnSync('icacls.exe', fallbackArgs, { windowsHide: true, encoding: 'utf8' });
-                if (fallbackResult.error || fallbackResult.status !== 0) {
-                    const fallbackDetail = fallbackResult.error ? fallbackResult.error.message
-                        : (fallbackResult.stderr || fallbackResult.stdout || '').trim() || `exit status ${fallbackResult.status}, signal ${fallbackResult.signal}`;
-                    throw new Error(`Failed to set access for '${targetPath}' using icacls. ${detail} Owner-only fallback failed. ${fallbackDetail}`);
-                }
-
-                throw new Error(`Failed to set access for '${targetPath}' using icacls. ${detail} Owner-only fallback was applied.`);
+                throw new Error(`Failed to set access for '${targetPath}' using icacls. ${detail}`);
             }
 
             return;

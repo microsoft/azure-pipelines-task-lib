@@ -80,8 +80,7 @@ describe('Dir Operation Tests', function () {
 
         function stubSpawnSync(
             result: Partial<childProcess.SpawnSyncReturns<string>>,
-            grantResult: Partial<childProcess.SpawnSyncReturns<string>> = result,
-            fallbackResult: Partial<childProcess.SpawnSyncReturns<string>> = result
+            grantResult: Partial<childProcess.SpawnSyncReturns<string>> = result
         ) {
             const calls: { command: string; args: readonly string[] }[] = [];
             let icaclsCall = 0;
@@ -92,7 +91,7 @@ describe('Dir Operation Tests', function () {
                     return { ...defaults, stdout: `"DOMAIN\\agent$","${userSid}"\r\n` };
                 }
                 const callIndex = icaclsCall++;
-                const icaclsResult = callIndex == 0 ? result : callIndex == 1 ? grantResult : fallbackResult;
+                const icaclsResult = callIndex == 0 ? result : grantResult;
                 return { ...defaults, ...icaclsResult };
             }) as typeof childProcess.spawnSync;
             return calls;
@@ -228,17 +227,18 @@ describe('Dir Operation Tests', function () {
                 assert.deepStrictEqual(calls.map(c => c.command), ['whoami.exe', 'icacls.exe']);
 
                 calls = stubSpawnSync({}, { stderr: 'Grant failed.', status: 5 });
-                assert.throws(() => tl.setAccess(dirPath), /Grant failed.*Owner-only fallback was applied/);
-                assert.deepStrictEqual(calls.map(c => c.command), ['whoami.exe', 'icacls.exe', 'icacls.exe', 'icacls.exe']);
-                assert.deepStrictEqual(calls[3].args, [
+                assert.throws(() => tl.setAccess(dirPath), /Grant failed/);
+                assert.deepStrictEqual(calls.map(c => c.command), ['whoami.exe', 'icacls.exe', 'icacls.exe']);
+                assert.deepStrictEqual(calls[2].args, [
                     dirPath, '/inheritance:r', '/grant:r', `*${userSid}:(OI)(CI)F`,
                     '/grant:r', '*S-1-5-18:(OI)(CI)F',
                     '/grant:r', '*S-1-5-32-544:(OI)(CI)F',
                     '/remove:g', '*S-1-1-0'
                 ]);
 
-                calls = stubSpawnSync({}, { stderr: 'Grant failed.', status: 5 }, { stderr: 'Fallback failed.', status: 5 });
-                assert.throws(() => tl.setAccess(dirPath), /Grant failed.*Owner-only fallback failed.*Fallback failed/);
+                calls = stubSpawnSync({}, { stderr: 'Grant failed.', status: 5 });
+                assert.throws(() => tl.setAccess(dirPath, tl.AccessLevel.OwnerReadOnly), /Grant failed/);
+                assert.deepStrictEqual(calls.map(c => c.command), ['whoami.exe', 'icacls.exe', 'icacls.exe']);
 
                 calls = stubSpawnSync({ status: null, error: new Error('icacls could not be started') });
                 assert.throws(() => tl.setAccess(dirPath), /icacls could not be started/);
