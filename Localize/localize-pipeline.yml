@@ -37,20 +37,14 @@ stages:
 
     - powershell: |
         git config --global user.email "$(github_email)"
-        if ($LASTEXITCODE -ne 0) { throw "Failed to set git user.email" }
         git config --global user.name "$(username)"
-        if ($LASTEXITCODE -ne 0) { throw "Failed to set git user.name" }
-        git fetch origin
-        if ($LASTEXITCODE -ne 0) { throw "Failed to fetch from origin" }
         git checkout -b Localization origin/Localization
-        if ($LASTEXITCODE -ne 0) { throw "Failed to check out Localization branch from origin/Localization" }
         git merge origin/master
         if ($LASTEXITCODE -ne 0) {
           git merge --abort
-          throw "Failed to merge origin/master into Localization (see git output above, e.g. unrelated histories or conflicts)"
+          throw "Sync with master failed due to merge conflicts. Resolve them on the Localization branch and re-run."
         }
         git push origin Localization
-        if ($LASTEXITCODE -ne 0) { throw "Failed to push Localization branch to origin" }
       displayName: "Sync with master branch"
       condition: and(succeeded(), in(variables['build.reason'], 'Schedule', 'Manual'))
 
