@@ -1030,6 +1030,7 @@ let cachedWindowsUserSid: string | undefined;
  * On Windows, the target's permissions are reset before inherited permissions are removed.
  * The current user, SYSTEM, and Administrators are granted access, and Everyone is granted the
  * preset's access. Explicit permissions on child files and folders are not changed.
+ * Windows ACLs restrict access by account but do not isolate jobs running under the same account.
  *
  * @param   {string} targetPath - Path to update
  * @param   {AccessLevel} level - Access preset. Defaults to AccessLevel.OwnerOnly.

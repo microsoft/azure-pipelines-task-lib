@@ -939,8 +939,7 @@ On Windows, the target's permissions are reset before inherited permissions are 
 This removes existing explicit grants and deny entries on the target. The current user,
 SYSTEM, and Administrators are granted access, and Everyone is granted the preset's access.
 Explicit permissions on child files and folders are not reset.
-If applying the preset fails after the reset, the library attempts to apply OwnerOnly access
-before reporting the error.
+Windows ACLs restrict access by account but do not isolate jobs running under the same account.
 ```javascript
 setAccess(targetPath:string, level?:AccessLevel):void
 ```
