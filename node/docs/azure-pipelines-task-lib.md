@@ -940,6 +940,8 @@ This removes existing explicit grants and deny entries on the target. The curren
 SYSTEM, and Administrators are granted access, and Everyone is granted the preset's access.
 Explicit permissions on child files and folders are not reset.
 Windows ACLs restrict access by account but do not isolate jobs running under the same account.
+If this call throws on Windows, the target may be left with inherited or partially applied
+permissions; callers should not assume either the original or the requested ACL is in place.
 ```javascript
 setAccess(targetPath:string, level?:AccessLevel):void
 ```
