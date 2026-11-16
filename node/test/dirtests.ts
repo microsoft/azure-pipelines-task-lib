@@ -39,7 +39,14 @@ describe('Dir Operation Tests', function () {
         const originalSpawnSync = childProcess.spawnSync;
         const originalChmodSync = fs.chmodSync;
         const originalStatSync = fs.statSync;
-        const userSid = 'S-1-5-21-11-22-33-1001';
+        const userSid = process.platform == 'win32'
+            ? /,"(S-\d+(?:-\d+)+)"\s*$/i.exec(originalSpawnSync(
+                'whoami.exe',
+                ['/user', '/fo', 'csv', '/nh'],
+                { windowsHide: true, encoding: 'utf8' }
+            ).stdout)?.[1]
+            : 'S-1-5-21-11-22-33-1001';
+        assert(userSid, 'Expected whoami to return the current Windows user SID.');
 
         afterEach(function () {
             Object.defineProperty(process, 'platform', originalPlatform);
@@ -194,19 +201,13 @@ describe('Dir Operation Tests', function () {
                 tl.setAccess(dirPath, tl.AccessLevel.OwnerFullOthersRead);
                 tl.setAccess(filePath, tl.AccessLevel.OwnerReadOthersRead);
 
-                assert.deepStrictEqual(calls.map(c => c.command), [
-                    'whoami.exe', 'icacls.exe', 'icacls.exe',
-                    'whoami.exe', 'icacls.exe', 'icacls.exe',
-                    'whoami.exe', 'icacls.exe', 'icacls.exe',
-                    'whoami.exe', 'icacls.exe', 'icacls.exe'
-                ]);
-                assert.deepStrictEqual(calls.filter(c => c.command == 'whoami.exe').map(c => c.args), [
-                    ['/user', '/fo', 'csv', '/nh'],
-                    ['/user', '/fo', 'csv', '/nh'],
-                    ['/user', '/fo', 'csv', '/nh'],
-                    ['/user', '/fo', 'csv', '/nh']
-                ]);
+                const whoamiCalls = calls.filter(c => c.command == 'whoami.exe');
+                assert(whoamiCalls.length <= 1);
+                if (whoamiCalls.length) {
+                    assert.deepStrictEqual(whoamiCalls[0].args, ['/user', '/fo', 'csv', '/nh']);
+                }
                 const aclCalls = calls.filter(c => c.command == 'icacls.exe').map(c => c.args);
+                assert.strictEqual(aclCalls.length, 8);
                 assert.deepStrictEqual(aclCalls.filter(args => args.length == 2), [
                     [dirPath, '/reset'], [filePath, '/reset'], [dirPath, '/reset'], [filePath, '/reset']
                 ]);
@@ -224,12 +225,13 @@ describe('Dir Operation Tests', function () {
                 Object.defineProperty(process, 'platform', { value: 'win32' });
                 let calls = stubSpawnSync({ stderr: 'Access is denied.', status: 5 });
                 assert.throws(() => tl.setAccess(dirPath), /Access is denied/);
-                assert.deepStrictEqual(calls.map(c => c.command), ['whoami.exe', 'icacls.exe']);
+                assert.strictEqual(calls.filter(c => c.command == 'icacls.exe').length, 1);
 
                 calls = stubSpawnSync({}, { stderr: 'Grant failed.', status: 5 });
                 assert.throws(() => tl.setAccess(dirPath), /Grant failed/);
-                assert.deepStrictEqual(calls.map(c => c.command), ['whoami.exe', 'icacls.exe', 'icacls.exe']);
-                assert.deepStrictEqual(calls[2].args, [
+                const grantCalls = calls.filter(c => c.command == 'icacls.exe');
+                assert.strictEqual(grantCalls.length, 2);
+                assert.deepStrictEqual(grantCalls[1].args, [
                     dirPath, '/inheritance:r', '/grant:r', `*${userSid}:(OI)(CI)F`,
                     '/grant:r', '*S-1-5-18:(OI)(CI)F',
                     '/grant:r', '*S-1-5-32-544:(OI)(CI)F',
@@ -238,11 +240,11 @@ describe('Dir Operation Tests', function () {
 
                 calls = stubSpawnSync({}, { stderr: 'Grant failed.', status: 5 });
                 assert.throws(() => tl.setAccess(dirPath, tl.AccessLevel.OwnerReadOnly), /Grant failed/);
-                assert.deepStrictEqual(calls.map(c => c.command), ['whoami.exe', 'icacls.exe', 'icacls.exe']);
+                assert.strictEqual(calls.filter(c => c.command == 'icacls.exe').length, 2);
 
                 calls = stubSpawnSync({ status: null, error: new Error('icacls could not be started') });
                 assert.throws(() => tl.setAccess(dirPath), /icacls could not be started/);
-                assert.deepStrictEqual(calls.map(c => c.command), ['whoami.exe', 'icacls.exe']);
+                assert.strictEqual(calls.filter(c => c.command == 'icacls.exe').length, 1);
             });
         });
 

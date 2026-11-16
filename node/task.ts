@@ -1022,6 +1022,7 @@ const accessLevels: { [level: string]: { owner: Access; others: Access } } = {
 const everyoneSid = '*S-1-1-0';
 const systemSid = '*S-1-5-18';
 const administratorsSid = '*S-1-5-32-544';
+let cachedWindowsUserSid: string | undefined;
 
 /**
  * Set access permissions for a file or directory using chmod on Unix and icacls on Windows.
@@ -1051,17 +1052,22 @@ export function setAccess(targetPath: string, level: AccessLevel = AccessLevel.O
         const isDirectory = stats.isDirectory();
 
         if (getPlatform() == Platform.Windows) {
-            operation = 'whoami';
-            const userResult = childProcess.spawnSync('whoami.exe', ['/user', '/fo', 'csv', '/nh'], { windowsHide: true, encoding: 'utf8' });
-            if (userResult.error || userResult.status !== 0) {
-                const detail = userResult.error ? userResult.error.message
-                    : (userResult.stderr || userResult.stdout || '').trim() || `exit status ${userResult.status}, signal ${userResult.signal}`;
-                throw new Error(`Failed to determine the current user's SID using whoami. ${detail}`);
-            }
-
-            const userSid = /,"(S-\d+(?:-\d+)+)"\s*$/i.exec(userResult.stdout);
+            let userSid = cachedWindowsUserSid;
             if (!userSid) {
-                throw new Error(`Failed to determine the current user's SID using whoami. Unexpected output.`);
+                operation = 'whoami';
+                const userResult = childProcess.spawnSync('whoami.exe', ['/user', '/fo', 'csv', '/nh'], { windowsHide: true, encoding: 'utf8' });
+                if (userResult.error || userResult.status !== 0) {
+                    const detail = userResult.error ? userResult.error.message
+                        : (userResult.stderr || userResult.stdout || '').trim() || `exit status ${userResult.status}, signal ${userResult.signal}`;
+                    throw new Error(`Failed to determine the current user's SID using whoami. ${detail}`);
+                }
+
+                const userSidMatch = /,"(S-\d+(?:-\d+)+)"\s*$/i.exec(userResult.stdout);
+                if (!userSidMatch) {
+                    throw new Error(`Failed to determine the current user's SID using whoami. Unexpected output.`);
+                }
+                userSid = userSidMatch[1];
+                cachedWindowsUserSid = userSid;
             }
 
             operation = 'icaclsReset';
@@ -1074,7 +1080,7 @@ export function setAccess(targetPath: string, level: AccessLevel = AccessLevel.O
 
             const inheritFlags = isDirectory ? '(OI)(CI)' : '';
             const rights: { [access: string]: string } = { read: isDirectory ? 'RX' : 'R', full: 'F' };
-            const args = [targetPath, '/inheritance:r', '/grant:r', `*${userSid[1]}:${inheritFlags}${rights[access.owner]}`];
+            const args = [targetPath, '/inheritance:r', '/grant:r', `*${userSid}:${inheritFlags}${rights[access.owner]}`];
             args.push('/grant:r', `${systemSid}:${inheritFlags}F`);
             args.push('/grant:r', `${administratorsSid}:${inheritFlags}F`);
             args.push(...(access.others == 'none'
