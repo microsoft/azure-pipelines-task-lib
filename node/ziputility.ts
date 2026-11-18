@@ -245,6 +245,7 @@ export interface ExtractZipOptions {
      * Whether archived Unix permissions are restored. Defaults to true, matching extract-zip@2.0.1.
      * Set to false to use adm-zip's default modes. Restored modes bypass umask, and files without
      * permission metadata fall back to 0o666 in adm-zip@0.6.1. This is not exact mode/umask parity.
+     * Directory modes are restored deepest-first after regular entries and symbolic links are created.
      */
     keepOriginalPermission?: boolean;
     /** Password for encrypted entries. Strings use UTF-8; Buffers supply raw password bytes. */
@@ -330,8 +331,15 @@ export function extractZipSync(file: string, destination: string | ExtractZipOpt
         otherEntries.push({ name, parts: entryPathParts(name) });
     }
     validateSymlinks(symlinks, otherEntries, root);
+    const keepOriginalPermission = options.keepOriginalPermission ?? true;
+    const directoryPermissions: { parts: string[], mode: number }[] = [];
     for (const entry of zip.getEntries()) {
         if (entry.isDirectory) {
+            if (keepOriginalPermission && entry.header.fileAttr) {
+                directoryPermissions.push({ parts: entryPathParts(entry.entryName), mode: entry.header.fileAttr });
+                // A zero mode makes adm-zip skip directory chmod, without changing file permissions.
+                entry.header.attr &= ~(0o777 << 16);
+            }
             continue;
         }
         // Match adm-zip's rooted normalization, including backslashes and traversal segments.
@@ -347,8 +355,15 @@ export function extractZipSync(file: string, destination: string | ExtractZipOpt
     const overwrite = options.overwrite ?? true;
     // adm-zip creates directories only per entry, so an empty archive would otherwise leave dir missing.
     fs.mkdirSync(options.dir, { recursive: true });
-    zip.extractAllTo(options.dir, overwrite, options.keepOriginalPermission ?? true, options.password);
-    createSymlinks(symlinks, root, overwrite);
+    zip.extractAllTo(options.dir, overwrite, keepOriginalPermission, options.password);
+    try {
+        createSymlinks(symlinks, root, overwrite);
+    } finally {
+        directoryPermissions.sort((a, b) => b.parts.length - a.parts.length);
+        for (const directory of directoryPermissions) {
+            fs.chmodSync(path.join(root, ...directory.parts), directory.mode);
+        }
+    }
     return options.dir;
 }
 

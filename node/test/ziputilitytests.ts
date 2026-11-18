@@ -682,6 +682,77 @@ describe('ZIP utility tests', function () {
             return fs.statSync(path.join(destination, file)).mode & 0o777;
         }
 
+        for (const parentMode of [0o555, 0o400]) {
+            it(`restores directory mode ${parentMode.toString(8)} after archived links without elevated privileges`, function () {
+                this.timeout(10000);
+                const script = `
+                    const assert = require('assert');
+                    const fs = require('fs');
+                    const os = require('os');
+                    const path = require('path');
+                    const AdmZip = require(${JSON.stringify(require.resolve('adm-zip'))});
+                    const ziputil = require(${JSON.stringify(require.resolve('../_build/ziputility'))});
+                    assert.notStrictEqual(process.getuid(), 0, 'regression must run as non-root');
+                    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'zip-readonly-'));
+                    const output = path.join(root, 'output');
+                    const folder = path.join(output, 'folder');
+                    const nested = path.join(folder, 'nested');
+                    const probe = path.join(root, 'probe');
+                    (async () => {
+                        try {
+                            fs.mkdirSync(probe, { mode: 0o555 });
+                            assert.throws(() => fs.writeFileSync(path.join(probe, 'file'), ''), { code: 'EACCES' });
+                            const zip = new AdmZip({ noSort: true });
+                            zip.addFile('folder/target.txt', Buffer.from('real content'), '', 0o755);
+                            for (const name of ['folder/link', 'folder/nested/link']) {
+                                const link = zip.addFile(name, Buffer.from(name === 'folder/link' ? 'target.txt' : '../target.txt'));
+                                link.header.made = 0x0314;
+                                link.header.attr = 0o120777 * 0x10000;
+                            }
+                            // Parent first deliberately tests deepest-first restoration.
+                            for (const [name, mode] of [['folder/', ${parentMode}], ['folder/nested/', 0o500]]) {
+                                const dir = zip.addFile(name, Buffer.alloc(0));
+                                dir.header.made = 0x0314;
+                                dir.header.attr = (0o40000 | mode) * 0x10000;
+                            }
+                            const archive = path.join(root, 'input.zip');
+                            zip.writeZip(archive);
+                            for (const extract of [ziputil.extractZipSync, ziputil.extractZip]) {
+                                assert.strictEqual(await extract(archive, output), output);
+                                assert.strictEqual(fs.statSync(folder).mode & 0o777, ${parentMode});
+                                ${parentMode === 0o400 ? 'fs.chmodSync(folder, 0o755);' : ''}
+                                assert.strictEqual(fs.statSync(nested).mode & 0o777, 0o500);
+                                assert.strictEqual(fs.statSync(path.join(folder, 'target.txt')).mode & 0o777, 0o755);
+                                for (const link of [path.join(folder, 'link'), path.join(nested, 'link')]) {
+                                    assert(fs.lstatSync(link).isSymbolicLink());
+                                    assert.strictEqual(fs.readFileSync(link, 'utf8'), 'real content');
+                                }
+                                fs.chmodSync(folder, 0o755);
+                                fs.chmodSync(nested, 0o755);
+                                fs.rmSync(output, { recursive: true });
+                            }
+                            ziputil.extractZipSync(archive, { dir: output, keepOriginalPermission: false });
+                            assert.notStrictEqual(fs.statSync(folder).mode & 0o777, ${parentMode});
+                            assert.strictEqual(fs.statSync(path.join(folder, 'target.txt')).mode & 0o777, 0o666);
+                            assert.strictEqual(fs.readFileSync(path.join(nested, 'link'), 'utf8'), 'real content');
+                        } finally {
+                            if (fs.existsSync(folder)) fs.chmodSync(folder, 0o755);
+                            if (fs.existsSync(nested)) fs.chmodSync(nested, 0o755);
+                            fs.chmodSync(probe, 0o755);
+                            fs.rmSync(root, { recursive: true, force: true });
+                        }
+                    })().catch(error => { console.error(error); process.exitCode = 1; });
+                `;
+                const result = childProcess.spawnSync(process.execPath, ['-e', script], {
+                    encoding: 'utf8',
+                    // Dropping both IDs prevents a root test runner from masking permission failures.
+                    ...(process.getuid() === 0 ? { uid: 65534, gid: 65534 } : {})
+                });
+                assert.ifError(result.error);
+                assert.strictEqual(result.status, 0, result.stderr || result.stdout);
+            });
+        }
+
         it('restores archived modes by default, so an extracted tool runs under a restrictive umask', function () {
             assert.strictEqual(ziputil.extractZipSync(archive, destination), destination);
             assert.strictEqual(modeOf('bin/tool.sh'), 0o755);
