@@ -1038,6 +1038,8 @@ function _getWindowsSystemExecutable(executable: string): string {
  * Set access permissions for a file or directory using chmod on Unix and icacls on Windows.
  * On Unix, the target must be owned by the current process's effective user ID, or this call throws.
  * On Windows, the target's permissions are reset before inherited permissions are removed.
+ * Between these steps, the target can temporarily receive its parent's inherited permissions.
+ * Callers changing an existing restrictive ACL should prevent concurrent access during this call.
  * The current user, SYSTEM, and Administrators are granted access, and Everyone is granted the
  * preset's access. Explicit permissions on child files and folders are not changed.
  * Windows ACLs restrict access by account but do not isolate jobs running under the same account.
