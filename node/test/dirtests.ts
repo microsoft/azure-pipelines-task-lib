@@ -39,9 +39,14 @@ describe('Dir Operation Tests', function () {
         const originalSpawnSync = childProcess.spawnSync;
         const originalChmodSync = fs.chmodSync;
         const originalStatSync = fs.statSync;
+        const originalSystemRoot = process.env.SystemRoot;
+        const windowsSystemRoot = originalSystemRoot || 'C:\\Windows';
+        function windowsSystemExecutable(executable: string): string {
+            return path.win32.join(windowsSystemRoot, 'System32', executable);
+        }
         const userSid = process.platform == 'win32'
             ? /,"(S-\d+(?:-\d+)+)"\s*$/i.exec(originalSpawnSync(
-                'whoami.exe',
+                windowsSystemExecutable('whoami.exe'),
                 ['/user', '/fo', 'csv', '/nh'],
                 { windowsHide: true, encoding: 'utf8' }
             ).stdout)?.[1]
@@ -58,6 +63,11 @@ describe('Dir Operation Tests', function () {
             childProcess.spawnSync = originalSpawnSync;
             fs.chmodSync = originalChmodSync;
             Object.defineProperty(fs, 'statSync', { configurable: true, value: originalStatSync });
+            if (originalSystemRoot === undefined) {
+                delete process.env.SystemRoot;
+            } else {
+                process.env.SystemRoot = originalSystemRoot;
+            }
         });
 
         function stubUnixOwner(ownerUid: number, effectiveUid: number) {
@@ -91,10 +101,11 @@ describe('Dir Operation Tests', function () {
         ) {
             const calls: { command: string; args: readonly string[] }[] = [];
             let icaclsCall = 0;
+            process.env.SystemRoot = windowsSystemRoot;
             childProcess.spawnSync = ((command: string, args: readonly string[], options: childProcess.SpawnSyncOptionsWithStringEncoding) => {
                 calls.push({ command, args });
                 const defaults = { pid: 0, output: [], stdout: '', stderr: '', status: 0, signal: null };
-                if (command == 'whoami.exe') {
+                if (command == windowsSystemExecutable('whoami.exe')) {
                     return { ...defaults, stdout: `"DOMAIN\\agent$","${userSid}"\r\n` };
                 }
                 const callIndex = icaclsCall++;
@@ -124,12 +135,12 @@ describe('Dir Operation Tests', function () {
             this.timeout(20000);
 
             const hasSid = (target: string, sid: string): boolean => {
-                const result = originalSpawnSync('icacls.exe', [target, '/findsid', `*${sid}`], { encoding: 'utf8' });
+                const result = originalSpawnSync(windowsSystemExecutable('icacls.exe'), [target, '/findsid', `*${sid}`], { encoding: 'utf8' });
                 return result.stdout.includes('SID Found:');
             };
 
             withTempEntries('set-access-acl-', (dirPath, filePath) => {
-                const childSetup = originalSpawnSync('icacls.exe', [filePath, '/grant', '*S-1-5-11:F'], { encoding: 'utf8' });
+                const childSetup = originalSpawnSync(windowsSystemExecutable('icacls.exe'), [filePath, '/grant', '*S-1-5-11:F'], { encoding: 'utf8' });
                 assert.strictEqual(childSetup.status, 0, childSetup.stderr);
                 assert(hasSid(filePath, 'S-1-5-11'));
 
@@ -137,7 +148,7 @@ describe('Dir Operation Tests', function () {
                     { target: dirPath, level: tl.AccessLevel.OwnerFullOthersRead, isDirectory: true },
                     { target: filePath, level: tl.AccessLevel.OwnerOnly, isDirectory: false }
                 ]) {
-                    const setup = originalSpawnSync('icacls.exe', [
+                    const setup = originalSpawnSync(windowsSystemExecutable('icacls.exe'), [
                         target, '/grant', '*S-1-5-11:F', '/deny', '*S-1-5-32-546:R'
                     ], { encoding: 'utf8' });
                     assert.strictEqual(setup.status, 0, setup.stderr);
@@ -201,12 +212,13 @@ describe('Dir Operation Tests', function () {
                 tl.setAccess(dirPath, tl.AccessLevel.OwnerFullOthersRead);
                 tl.setAccess(filePath, tl.AccessLevel.OwnerReadOthersRead);
 
-                const whoamiCalls = calls.filter(c => c.command == 'whoami.exe');
+                const whoamiCalls = calls.filter(c => c.command == windowsSystemExecutable('whoami.exe'));
                 assert(whoamiCalls.length <= 1);
                 if (whoamiCalls.length) {
+                    assert.strictEqual(whoamiCalls[0].command, windowsSystemExecutable('whoami.exe'));
                     assert.deepStrictEqual(whoamiCalls[0].args, ['/user', '/fo', 'csv', '/nh']);
                 }
-                const aclCalls = calls.filter(c => c.command == 'icacls.exe').map(c => c.args);
+                const aclCalls = calls.filter(c => c.command == windowsSystemExecutable('icacls.exe')).map(c => c.args);
                 assert.strictEqual(aclCalls.length, 8);
                 assert.deepStrictEqual(aclCalls.filter(args => args.length == 2), [
                     [dirPath, '/reset'], [filePath, '/reset'], [dirPath, '/reset'], [filePath, '/reset']
@@ -225,11 +237,11 @@ describe('Dir Operation Tests', function () {
                 Object.defineProperty(process, 'platform', { value: 'win32' });
                 let calls = stubSpawnSync({ stderr: 'Access is denied.', status: 5 });
                 assert.throws(() => tl.setAccess(dirPath), /Access is denied/);
-                assert.strictEqual(calls.filter(c => c.command == 'icacls.exe').length, 1);
+                assert.strictEqual(calls.filter(c => c.command == windowsSystemExecutable('icacls.exe')).length, 1);
 
                 calls = stubSpawnSync({}, { stderr: 'Grant failed.', status: 5 });
                 assert.throws(() => tl.setAccess(dirPath), /Grant failed/);
-                const grantCalls = calls.filter(c => c.command == 'icacls.exe');
+                const grantCalls = calls.filter(c => c.command == windowsSystemExecutable('icacls.exe'));
                 assert.strictEqual(grantCalls.length, 2);
                 assert.deepStrictEqual(grantCalls[1].args, [
                     dirPath, '/inheritance:r', '/grant:r', `*${userSid}:(OI)(CI)F`,
@@ -240,11 +252,11 @@ describe('Dir Operation Tests', function () {
 
                 calls = stubSpawnSync({}, { stderr: 'Grant failed.', status: 5 });
                 assert.throws(() => tl.setAccess(dirPath, tl.AccessLevel.OwnerReadOnly), /Grant failed/);
-                assert.strictEqual(calls.filter(c => c.command == 'icacls.exe').length, 2);
+                assert.strictEqual(calls.filter(c => c.command == windowsSystemExecutable('icacls.exe')).length, 2);
 
                 calls = stubSpawnSync({ status: null, error: new Error('icacls could not be started') });
                 assert.throws(() => tl.setAccess(dirPath), /icacls could not be started/);
-                assert.strictEqual(calls.filter(c => c.command == 'icacls.exe').length, 1);
+                assert.strictEqual(calls.filter(c => c.command == windowsSystemExecutable('icacls.exe')).length, 1);
             });
         });
 

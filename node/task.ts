@@ -1024,6 +1024,16 @@ const systemSid = '*S-1-5-18';
 const administratorsSid = '*S-1-5-32-544';
 let cachedWindowsUserSid: string | undefined;
 
+function _getWindowsSystemExecutable(executable: string): string {
+    const systemRoot = process.env.SystemRoot;
+
+    if (!systemRoot || !path.win32.isAbsolute(systemRoot)) {
+        throw new Error('Failed to locate the Windows System32 directory from SystemRoot.');
+    }
+
+    return path.win32.join(systemRoot, 'System32', executable);
+}
+
 /**
  * Set access permissions for a file or directory using chmod on Unix and icacls on Windows.
  * On Unix, the target must be owned by the current process's effective user ID, or this call throws.
@@ -1058,7 +1068,7 @@ export function setAccess(targetPath: string, level: AccessLevel = AccessLevel.O
             let userSid = cachedWindowsUserSid;
             if (!userSid) {
                 operation = 'whoami';
-                const userResult = childProcess.spawnSync('whoami.exe', ['/user', '/fo', 'csv', '/nh'], { windowsHide: true, encoding: 'utf8' });
+                const userResult = childProcess.spawnSync(_getWindowsSystemExecutable('whoami.exe'), ['/user', '/fo', 'csv', '/nh'], { windowsHide: true, encoding: 'utf8' });
                 if (userResult.error || userResult.status !== 0) {
                     const detail = userResult.error ? userResult.error.message
                         : (userResult.stderr || userResult.stdout || '').trim() || `exit status ${userResult.status}, signal ${userResult.signal}`;
@@ -1074,7 +1084,7 @@ export function setAccess(targetPath: string, level: AccessLevel = AccessLevel.O
             }
 
             operation = 'icaclsReset';
-            const resetResult = childProcess.spawnSync('icacls.exe', [targetPath, '/reset'], { windowsHide: true, encoding: 'utf8' });
+            const resetResult = childProcess.spawnSync(_getWindowsSystemExecutable('icacls.exe'), [targetPath, '/reset'], { windowsHide: true, encoding: 'utf8' });
             if (resetResult.error || resetResult.status !== 0) {
                 const detail = resetResult.error ? resetResult.error.message
                     : (resetResult.stderr || resetResult.stdout || '').trim() || `exit status ${resetResult.status}, signal ${resetResult.signal}`;
@@ -1091,7 +1101,7 @@ export function setAccess(targetPath: string, level: AccessLevel = AccessLevel.O
                 : ['/grant:r', `${everyoneSid}:${inheritFlags}${rights[access.others]}`]));
 
             operation = 'icacls';
-            const result = childProcess.spawnSync('icacls.exe', args, { windowsHide: true, encoding: 'utf8' });
+            const result = childProcess.spawnSync(_getWindowsSystemExecutable('icacls.exe'), args, { windowsHide: true, encoding: 'utf8' });
             if (result.error || result.status !== 0) {
                 const detail = result.error ? result.error.message
                     : (result.stderr || result.stdout || '').trim() || `exit status ${result.status}, signal ${result.signal}`;
