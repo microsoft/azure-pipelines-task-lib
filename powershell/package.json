@@ -13,7 +13,7 @@
     "@types/node": "^20.0.0",
     "@types/shelljs": "^0.8.17",
     "adm-zip": "^0.6.0",
-    "minimatch": "^10.2.6",
+    "minimatch": "^11.0.1",
     "mocha": "11.8.0",
     "nodejs-file-downloader": "^4.13.0",
     "shelljs": "^0.10.0",
