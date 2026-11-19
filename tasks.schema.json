@@ -84,6 +84,7 @@
         "Test",
         "Package",
         "Deploy",
+        "Tool",
 
         "Azure Repos",
         "Azure Boards",
@@ -117,6 +118,13 @@
             "description": "Allow's you to define a rule which dictates when the group will be visible to a user, for example \"variableName1 != \\\"\\\" && variableName2 = value || variableName3 NotEndsWith value\""
           }
         }
+      }
+    },
+    "satisfies": {
+      "type": "array",
+      "description": "Allows you to define a list of demands that the task will satisfy.",
+      "items": {
+        "type": "string"
       }
     },
     "demands": {
