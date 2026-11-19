@@ -40,6 +40,7 @@
         "toolrunnertests.ts",
         "toolrunnerexternaloutputtests.ts",
         "toolrunnerTestsWithExecAsync.ts",
-        "vaulttests.ts"
+        "vaulttests.ts",
+        "ziputilitytests.ts"
     ]
 }
