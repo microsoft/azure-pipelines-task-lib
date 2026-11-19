@@ -1037,6 +1037,8 @@ function _getWindowsSystemExecutable(executable: string): string {
 /**
  * Set access permissions for a file or directory using chmod on Unix and icacls on Windows.
  * On Unix, the target must be owned by the current process's effective user ID, or this call throws.
+ * The target must also be openable for reading so ownership checks and permission changes use the
+ * same file descriptor.
  * On Windows, the target's permissions are reset before inherited permissions are removed.
  * Between these steps, the target can temporarily receive its parent's inherited permissions.
  * Callers changing an existing restrictive ACL should prevent concurrent access during this call.
@@ -1062,11 +1064,11 @@ export function setAccess(targetPath: string, level: AccessLevel = AccessLevel.O
         }
         const access = accessLevels[level];
 
-        operation = 'stat';
-        const stats = fs.statSync(targetPath);
-        const isDirectory = stats.isDirectory();
-
         if (getPlatform() == Platform.Windows) {
+            operation = 'stat';
+            const stats = fs.statSync(targetPath);
+            const isDirectory = stats.isDirectory();
+
             let userSid = cachedWindowsUserSid;
             if (!userSid) {
                 operation = 'whoami';
@@ -1113,17 +1115,29 @@ export function setAccess(targetPath: string, level: AccessLevel = AccessLevel.O
             return;
         }
 
-        operation = 'ownerCheck';
-        const effectiveUid = process.geteuid();
+        operation = 'open';
+        const fd = fs.openSync(targetPath, fs.constants.O_RDONLY | fs.constants.O_NONBLOCK);
+        try {
+            operation = 'fstat';
+            const stats = fs.fstatSync(fd);
+            const isDirectory = stats.isDirectory();
+            if (!isDirectory && !stats.isFile()) {
+                throw new Error(`Cannot set access for '${targetPath}': the target must be a regular file or directory.`);
+            }
 
-        if (stats.uid !== effectiveUid) {
-            throw new Error(`Cannot set access for '${targetPath}': the target is owned by UID ${stats.uid}, but the current effective UID is ${effectiveUid}.`);
+            operation = 'ownerCheck';
+            const effectiveUid = process.geteuid();
+            if (stats.uid !== effectiveUid) {
+                throw new Error(`Cannot set access for '${targetPath}': the target is owned by UID ${stats.uid}, but the current effective UID is ${effectiveUid}.`);
+            }
+
+            const modes: { [access: string]: number } = { none: 0, read: isDirectory ? 5 : 4, full: isDirectory ? 7 : 6 };
+            const others = modes[access.others];
+            operation = 'chmod';
+            fs.fchmodSync(fd, (modes[access.owner] << 6) | (others << 3) | others);
+        } finally {
+            fs.closeSync(fd);
         }
-
-        const modes: { [access: string]: number } = { none: 0, read: isDirectory ? 5 : 4, full: isDirectory ? 7 : 6 };
-        const others = modes[access.others];
-        operation = 'chmod';
-        fs.chmodSync(targetPath, (modes[access.owner] << 6) | (others << 3) | others);
     } catch (err) {
         _publishSetAccessFailureTelemetry(level, operation, err);
         throw err;

@@ -39,6 +39,9 @@ describe('Dir Operation Tests', function () {
         const originalSpawnSync = childProcess.spawnSync;
         const originalChmodSync = fs.chmodSync;
         const originalStatSync = fs.statSync;
+        const originalFstatSync = fs.fstatSync;
+        const originalFchmodSync = fs.fchmodSync;
+        const originalCloseSync = fs.closeSync;
         const originalSystemRoot = process.env.SystemRoot;
         const windowsSystemRoot = originalSystemRoot || 'C:\\Windows';
         function windowsSystemExecutable(executable: string): string {
@@ -63,6 +66,9 @@ describe('Dir Operation Tests', function () {
             childProcess.spawnSync = originalSpawnSync;
             fs.chmodSync = originalChmodSync;
             Object.defineProperty(fs, 'statSync', { configurable: true, value: originalStatSync });
+            Object.defineProperty(fs, 'fstatSync', { configurable: true, value: originalFstatSync });
+            fs.fchmodSync = originalFchmodSync;
+            fs.closeSync = originalCloseSync;
             if (originalSystemRoot === undefined) {
                 delete process.env.SystemRoot;
             } else {
@@ -72,12 +78,12 @@ describe('Dir Operation Tests', function () {
 
         function stubUnixOwner(ownerUid: number, effectiveUid: number) {
             Object.defineProperty(process, 'geteuid', { configurable: true, value: () => effectiveUid });
-            const statSync = (targetPath: fs.PathLike) => {
-                const stats = Object.create(originalStatSync(targetPath)) as fs.Stats;
+            const fstatSync = (fd: number) => {
+                const stats = Object.create(originalFstatSync(fd)) as fs.Stats;
                 Object.defineProperty(stats, 'uid', { value: ownerUid });
                 return stats;
             };
-            Object.defineProperty(fs, 'statSync', { configurable: true, value: statSync });
+            Object.defineProperty(fs, 'fstatSync', { configurable: true, value: fstatSync });
         }
 
         function withTempEntries(prefix: string, action: (dirPath: string, filePath: string) => void) {
@@ -175,7 +181,7 @@ describe('Dir Operation Tests', function () {
                 const modes: fs.Mode[] = [];
                 const calls = stubSpawnSync({});
                 stubUnixOwner(1234, 1234);
-                fs.chmodSync = (targetPath: fs.PathLike, mode: fs.Mode) => { modes.push(mode); };
+                fs.fchmodSync = (fd: number, mode: fs.Mode) => { modes.push(mode); };
 
                 for (const level of [tl.AccessLevel.OwnerOnly, tl.AccessLevel.OwnerReadOnly, tl.AccessLevel.OwnerFullOthersRead, tl.AccessLevel.OwnerReadOthersRead]) {
                     tl.setAccess(dirPath, level);
@@ -187,12 +193,60 @@ describe('Dir Operation Tests', function () {
             });
         });
 
+        it('checks ownership and changes permissions through the same file descriptor', function () {
+            withTempEntries('set-access-unix-fd-', (_dirPath, filePath) => {
+                Object.defineProperty(process, 'platform', { value: 'linux' });
+                stubUnixOwner(1234, 1234);
+                let checkedFd: number | undefined;
+                let changedFd: number | undefined;
+                let closedFd: number | undefined;
+                const modes: fs.Mode[] = [];
+                const stubbedFstatSync = fs.fstatSync;
+
+                fs.fstatSync = ((fd: number) => {
+                    checkedFd = fd;
+                    return stubbedFstatSync(fd);
+                }) as typeof fs.fstatSync;
+                fs.fchmodSync = (fd: number, mode: fs.Mode) => {
+                    changedFd = fd;
+                    modes.push(mode);
+                };
+                fs.closeSync = (fd: number) => {
+                    closedFd = fd;
+                    originalCloseSync(fd);
+                };
+
+                tl.setAccess(filePath);
+
+                assert.strictEqual(checkedFd, changedFd);
+                assert.strictEqual(checkedFd, closedFd);
+                assert.strictEqual(modes[0], 0o600);
+            });
+        });
+
+        it('rejects Unix targets that are not regular files or directories', function () {
+            withTempEntries('set-access-unix-type-', (_dirPath, filePath) => {
+                Object.defineProperty(process, 'platform', { value: 'linux' });
+                const modes: fs.Mode[] = [];
+                fs.fstatSync = ((fd: number) => {
+                    const stats = Object.create(originalFstatSync(fd)) as fs.Stats;
+                    Object.defineProperty(stats, 'isDirectory', { value: () => false });
+                    Object.defineProperty(stats, 'isFile', { value: () => false });
+                    return stats;
+                }) as typeof fs.fstatSync;
+                fs.fchmodSync = (fd: number, mode: fs.Mode) => { modes.push(mode); };
+
+                assert.throws(() => tl.setAccess(filePath), /target must be a regular file or directory/);
+                assert.deepStrictEqual(modes, []);
+            });
+        });
+
         it('rejects Unix targets owned by a different user', function () {
             withTempEntries('set-access-unix-owner-', (dirPath, filePath) => {
                 Object.defineProperty(process, 'platform', { value: 'linux' });
                 stubUnixOwner(1235, 1234);
                 const modes: fs.Mode[] = [];
-                fs.chmodSync = (targetPath: fs.PathLike, mode: fs.Mode) => { modes.push(mode); };
+                fs.fchmodSync = (fd: number, mode: fs.Mode) => { modes.push(mode); };
 
                 assert.throws(
                     () => tl.setAccess(filePath),

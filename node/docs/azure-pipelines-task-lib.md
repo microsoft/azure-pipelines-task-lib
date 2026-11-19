@@ -935,6 +935,8 @@ p | string | path to create
 Set access permissions for a file or directory using chmod on Unix and icacls on Windows.
 On Unix, the target must be owned by the current process's effective user ID; otherwise the call
 throws rather than applying owner permissions to another user's file.
+The target must also be openable for reading so ownership checks and permission changes use the
+same file descriptor.
 On Windows, the target's permissions are reset before inherited permissions are removed.
 Between these steps, the target can temporarily receive its parent's inherited permissions.
 Callers changing an existing restrictive ACL should prevent concurrent access during this call.
