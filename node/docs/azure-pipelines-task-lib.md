@@ -83,6 +83,7 @@ import tl = require('azure-pipelines-task-lib/task')
 <a href="#taskcp">cp</a> <br/>
 <a href="#taskmv">mv</a> <br/>
 <a href="#taskmkdirP">mkdirP</a> <br/>
+<a href="#tasksetAccess">setAccess</a> <br/>
 <a href="#taskFindOptions">FindOptions</a> <br/>
 <a href="#taskfind">find</a> <br/>
 <a href="#taskrmRF">rmRF</a> <br/>
@@ -926,6 +927,44 @@ mkdirP(p:string):void
 Param | Type | Description
 --- | --- | ---
 p | string | path to create
+
+<br/>
+<div id="tasksetAccess">
+
+### task.setAccess <a href="#index">(^)</a>
+Set access permissions for a file or directory using chmod on Unix and icacls on Windows.
+On Unix, the target must be owned by the current process's effective user ID; otherwise the call
+throws rather than applying owner permissions to another user's file.
+The target must also be openable for reading so ownership checks and permission changes use the
+same file descriptor.
+On Windows, the target's permissions are reset before inherited permissions are removed.
+Between these steps, the target can temporarily receive its parent's inherited permissions.
+Callers changing an existing restrictive ACL should prevent concurrent access during this call.
+This removes existing explicit grants and deny entries on the target. The current user,
+SYSTEM, and Administrators are granted access, and Everyone is granted the preset's access.
+Explicit permissions on child files and folders are not reset.
+Windows ACLs restrict access by account but do not isolate jobs running under the same account.
+If this call throws on Windows, the target may be left with inherited or partially applied
+permissions; callers should not assume either the original or the requested ACL is in place.
+```javascript
+setAccess(targetPath:string, level?:AccessLevel):void
+```
+
+Param | Type | Description
+--- | --- | ---
+targetPath | string | Path to update
+level | AccessLevel | Access preset. Defaults to AccessLevel.OwnerOnly.
+
+AccessLevel | Unix directory / file | Windows (current user / Everyone; SYSTEM and Administrators always have full control)
+--- | --- | ---
+OwnerOnly | 0700 / 0600 | Full control / none
+OwnerReadOnly | 0500 / 0400 | Read (and execute for directories) / none
+OwnerFullOthersRead | 0755 / 0644 | Full control / Read (and execute for directories)
+OwnerReadOthersRead | 0555 / 0444 | Read (and execute for directories) / Read (and execute for directories)
+
+```typescript
+tl.setAccess(directoryPath, tl.AccessLevel.OwnerFullOthersRead);
+```
 
 <br/>
 <div id="taskFindOptions">

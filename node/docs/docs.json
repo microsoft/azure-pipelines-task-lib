@@ -83,6 +83,7 @@
                 "task.cp",
                 "task.mv",
                 "task.mkdirP",
+                "task.setAccess",
                 "task.FindOptions",
                 "task.find",
                 "task.rmRF",

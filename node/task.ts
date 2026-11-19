@@ -997,6 +997,154 @@ export function mkdirP(p: string): void {
 }
 
 /**
+ * Access presets for setAccess. "Owner" is the current user; "others" is everyone else (Unix group and others, Windows Everyone).
+ */
+export enum AccessLevel {
+    /** Owner can read and write (and traverse directories). Nobody else has access. */
+    OwnerOnly = 'ownerOnly',
+    /** Owner can read (and traverse directories). Nobody else has access. */
+    OwnerReadOnly = 'ownerReadOnly',
+    /** Owner can read and write; others can read (and traverse directories). */
+    OwnerFullOthersRead = 'ownerFullOthersRead',
+    /** Owner and others can read (and traverse directories). */
+    OwnerReadOthersRead = 'ownerReadOthersRead'
+}
+
+type Access = 'none' | 'read' | 'full';
+
+const accessLevels: { [level: string]: { owner: Access; others: Access } } = {
+    [AccessLevel.OwnerOnly]: { owner: 'full', others: 'none' },
+    [AccessLevel.OwnerReadOnly]: { owner: 'read', others: 'none' },
+    [AccessLevel.OwnerFullOthersRead]: { owner: 'full', others: 'read' },
+    [AccessLevel.OwnerReadOthersRead]: { owner: 'read', others: 'read' }
+};
+
+const everyoneSid = '*S-1-1-0';
+const systemSid = '*S-1-5-18';
+const administratorsSid = '*S-1-5-32-544';
+let cachedWindowsUserSid: string | undefined;
+
+function _getWindowsSystemExecutable(executable: string): string {
+    const systemRoot = process.env.SystemRoot;
+
+    if (!systemRoot || !path.win32.isAbsolute(systemRoot)) {
+        throw new Error('Failed to locate the Windows System32 directory from SystemRoot.');
+    }
+
+    return path.win32.join(systemRoot, 'System32', executable);
+}
+
+/**
+ * Set access permissions for a file or directory using chmod on Unix and icacls on Windows.
+ * On Unix, the target must be owned by the current process's effective user ID, or this call throws.
+ * The target must also be openable for reading so ownership checks and permission changes use the
+ * same file descriptor.
+ * On Windows, the target's permissions are reset before inherited permissions are removed.
+ * Between these steps, the target can temporarily receive its parent's inherited permissions.
+ * Callers changing an existing restrictive ACL should prevent concurrent access during this call.
+ * The current user, SYSTEM, and Administrators are granted access, and Everyone is granted the
+ * preset's access. Explicit permissions on child files and folders are not changed.
+ * Windows ACLs restrict access by account but do not isolate jobs running under the same account.
+ * If this call throws on Windows, the target may be left with inherited or partially applied
+ * permissions; callers should not assume either the original or the requested ACL is in place.
+ *
+ * @param   {string} targetPath - Path to update
+ * @param   {AccessLevel} level - Access preset. Defaults to AccessLevel.OwnerOnly.
+ * @returns {void}
+ */
+export function setAccess(targetPath: string, level: AccessLevel = AccessLevel.OwnerOnly): void {
+    let operation = 'validate';
+    try {
+        if (!targetPath) {
+            throw new Error(loc('LIB_ParameterIsRequired', 'targetPath'));
+        }
+
+        if (!Object.prototype.hasOwnProperty.call(accessLevels, level)) {
+            throw new Error(`Unsupported access level '${level}'.`);
+        }
+        const access = accessLevels[level];
+
+        if (getPlatform() == Platform.Windows) {
+            operation = 'stat';
+            const stats = fs.statSync(targetPath);
+            const isDirectory = stats.isDirectory();
+
+            let userSid = cachedWindowsUserSid;
+            if (!userSid) {
+                operation = 'whoami';
+                const userResult = childProcess.spawnSync(_getWindowsSystemExecutable('whoami.exe'), ['/user', '/fo', 'csv', '/nh'], { windowsHide: true, encoding: 'utf8' });
+                if (userResult.error || userResult.status !== 0) {
+                    const detail = userResult.error ? userResult.error.message
+                        : (userResult.stderr || userResult.stdout || '').trim() || `exit status ${userResult.status}, signal ${userResult.signal}`;
+                    throw new Error(`Failed to determine the current user's SID using whoami. ${detail}`);
+                }
+
+                const userSidMatch = /,"(S-\d+(?:-\d+)+)"\s*$/i.exec(userResult.stdout);
+                if (!userSidMatch) {
+                    throw new Error(`Failed to determine the current user's SID using whoami. Unexpected output.`);
+                }
+                userSid = userSidMatch[1];
+                cachedWindowsUserSid = userSid;
+            }
+
+            operation = 'icaclsReset';
+            const resetResult = childProcess.spawnSync(_getWindowsSystemExecutable('icacls.exe'), [targetPath, '/reset'], { windowsHide: true, encoding: 'utf8' });
+            if (resetResult.error || resetResult.status !== 0) {
+                const detail = resetResult.error ? resetResult.error.message
+                    : (resetResult.stderr || resetResult.stdout || '').trim() || `exit status ${resetResult.status}, signal ${resetResult.signal}`;
+                throw new Error(`Failed to reset access for '${targetPath}' using icacls. ${detail}`);
+            }
+
+            const inheritFlags = isDirectory ? '(OI)(CI)' : '';
+            const rights: { [access: string]: string } = { read: isDirectory ? 'RX' : 'R', full: 'F' };
+            const args = [targetPath, '/inheritance:r', '/grant:r', `*${userSid}:${inheritFlags}${rights[access.owner]}`];
+            args.push('/grant:r', `${systemSid}:${inheritFlags}F`);
+            args.push('/grant:r', `${administratorsSid}:${inheritFlags}F`);
+            args.push(...(access.others == 'none'
+                ? ['/remove:g', everyoneSid]
+                : ['/grant:r', `${everyoneSid}:${inheritFlags}${rights[access.others]}`]));
+
+            operation = 'icacls';
+            const result = childProcess.spawnSync(_getWindowsSystemExecutable('icacls.exe'), args, { windowsHide: true, encoding: 'utf8' });
+            if (result.error || result.status !== 0) {
+                const detail = result.error ? result.error.message
+                    : (result.stderr || result.stdout || '').trim() || `exit status ${result.status}, signal ${result.signal}`;
+                throw new Error(`Failed to set access for '${targetPath}' using icacls. ${detail}`);
+            }
+
+            return;
+        }
+
+        operation = 'open';
+        const fd = fs.openSync(targetPath, fs.constants.O_RDONLY | fs.constants.O_NONBLOCK);
+        try {
+            operation = 'fstat';
+            const stats = fs.fstatSync(fd);
+            const isDirectory = stats.isDirectory();
+            if (!isDirectory && !stats.isFile()) {
+                throw new Error(`Cannot set access for '${targetPath}': the target must be a regular file or directory.`);
+            }
+
+            operation = 'ownerCheck';
+            const effectiveUid = process.geteuid();
+            if (stats.uid !== effectiveUid) {
+                throw new Error(`Cannot set access for '${targetPath}': the target is owned by UID ${stats.uid}, but the current effective UID is ${effectiveUid}.`);
+            }
+
+            const modes: { [access: string]: number } = { none: 0, read: isDirectory ? 5 : 4, full: isDirectory ? 7 : 6 };
+            const others = modes[access.others];
+            operation = 'chmod';
+            fs.fchmodSync(fd, (modes[access.owner] << 6) | (others << 3) | others);
+        } finally {
+            fs.closeSync(fd);
+        }
+    } catch (err) {
+        _publishSetAccessFailureTelemetry(level, operation, err);
+        throw err;
+    }
+}
+
+/**
  * Resolves a sequence of paths or path segments into an absolute path.
  * Calls node.js path.resolve()
  * Allows L0 testing with consistent path formats on Mac/Linux and Windows in the mock implementation
@@ -1823,6 +1971,23 @@ function _publishRmRFSpecialPathTelemetry(inputPath: string): void {
         console.log(`##vso[telemetry.publish area=TaskHub;feature=TaskLibRmRF]${message}`);
     } catch (err) {
         debug(`Failed to publish rmRF telemetry: ${err.message}`);
+    }
+}
+
+function _publishSetAccessFailureTelemetry(level: AccessLevel, operation: string, err: any): void {
+    try {
+        // Messages can contain paths, account names, or icacls output, so only bounded fields are published.
+        const message = JSON.stringify({
+            event: 'SetAccessFailed',
+            platform: process.platform,
+            level: Object.prototype.hasOwnProperty.call(accessLevels, level) ? level : 'invalid',
+            operation,
+            errorCode: err && typeof err.code === 'string' ? err.code : 'none'
+        });
+
+        console.log(`##vso[telemetry.publish area=TaskHub;feature=TaskLibSetAccess]${message}`);
+    } catch (telemetryErr) {
+        debug(`Failed to publish setAccess telemetry: ${telemetryErr.message}`);
     }
 }
 

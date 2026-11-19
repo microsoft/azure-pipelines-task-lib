@@ -5,6 +5,7 @@ import assert = require('assert');
 import path = require('path');
 import fs = require('fs');
 import os = require('os');
+import childProcess = require('child_process');
 import * as tl from '../_build/task';
 
 import * as testutil from './testutil';
@@ -32,6 +33,324 @@ describe('Dir Operation Tests', function () {
 
     });
 
+    describe('setAccess()', function () {
+        const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')!;
+        const originalGeteuid = Object.getOwnPropertyDescriptor(process, 'geteuid');
+        const originalSpawnSync = childProcess.spawnSync;
+        const originalChmodSync = fs.chmodSync;
+        const originalStatSync = fs.statSync;
+        const originalFstatSync = fs.fstatSync;
+        const originalFchmodSync = fs.fchmodSync;
+        const originalCloseSync = fs.closeSync;
+        const originalSystemRoot = process.env.SystemRoot;
+        const windowsSystemRoot = originalSystemRoot || 'C:\\Windows';
+        function windowsSystemExecutable(executable: string): string {
+            return path.win32.join(windowsSystemRoot, 'System32', executable);
+        }
+        const userSid = process.platform == 'win32'
+            ? /,"(S-\d+(?:-\d+)+)"\s*$/i.exec(originalSpawnSync(
+                windowsSystemExecutable('whoami.exe'),
+                ['/user', '/fo', 'csv', '/nh'],
+                { windowsHide: true, encoding: 'utf8' }
+            ).stdout)?.[1]
+            : 'S-1-5-21-11-22-33-1001';
+        assert(userSid, 'Expected whoami to return the current Windows user SID.');
+
+        afterEach(function () {
+            Object.defineProperty(process, 'platform', originalPlatform);
+            if (originalGeteuid) {
+                Object.defineProperty(process, 'geteuid', originalGeteuid);
+            } else {
+                Reflect.deleteProperty(process, 'geteuid');
+            }
+            childProcess.spawnSync = originalSpawnSync;
+            fs.chmodSync = originalChmodSync;
+            Object.defineProperty(fs, 'statSync', { configurable: true, value: originalStatSync });
+            Object.defineProperty(fs, 'fstatSync', { configurable: true, value: originalFstatSync });
+            fs.fchmodSync = originalFchmodSync;
+            fs.closeSync = originalCloseSync;
+            if (originalSystemRoot === undefined) {
+                delete process.env.SystemRoot;
+            } else {
+                process.env.SystemRoot = originalSystemRoot;
+            }
+        });
+
+        function stubUnixOwner(ownerUid: number, effectiveUid: number) {
+            Object.defineProperty(process, 'geteuid', { configurable: true, value: () => effectiveUid });
+            const fstatSync = (fd: number) => {
+                const stats = Object.create(originalFstatSync(fd)) as fs.Stats;
+                Object.defineProperty(stats, 'uid', { value: ownerUid });
+                return stats;
+            };
+            Object.defineProperty(fs, 'fstatSync', { configurable: true, value: fstatSync });
+        }
+
+        function withTempEntries(prefix: string, action: (dirPath: string, filePath: string) => void) {
+            const dirPath = fs.mkdtempSync(path.join(testutil.getTestTemp(), prefix));
+            const filePath = path.join(dirPath, 'file with spaces & parentheses () \u03bb');
+            fs.writeFileSync(filePath, '');
+            try {
+                action(dirPath, filePath);
+            } finally {
+                fs.chmodSync = originalChmodSync;
+                fs.chmodSync(dirPath, 0o700);
+                fs.chmodSync(filePath, 0o600);
+                fs.unlinkSync(filePath);
+                fs.rmdirSync(dirPath);
+            }
+        }
+
+        function stubSpawnSync(
+            result: Partial<childProcess.SpawnSyncReturns<string>>,
+            grantResult: Partial<childProcess.SpawnSyncReturns<string>> = result
+        ) {
+            const calls: { command: string; args: readonly string[] }[] = [];
+            let icaclsCall = 0;
+            process.env.SystemRoot = windowsSystemRoot;
+            childProcess.spawnSync = ((command: string, args: readonly string[], options: childProcess.SpawnSyncOptionsWithStringEncoding) => {
+                calls.push({ command, args });
+                const defaults = { pid: 0, output: [], stdout: '', stderr: '', status: 0, signal: null };
+                if (command == windowsSystemExecutable('whoami.exe')) {
+                    return { ...defaults, stdout: `"DOMAIN\\agent$","${userSid}"\r\n` };
+                }
+                const callIndex = icaclsCall++;
+                const icaclsResult = callIndex == 0 ? result : grantResult;
+                return { ...defaults, ...icaclsResult };
+            }) as typeof childProcess.spawnSync;
+            return calls;
+        }
+
+        it('applies owner-only access by default', function () {
+            this.timeout(10000);
+            withTempEntries('set-access-', (dirPath, filePath) => {
+                tl.setAccess(dirPath);
+                tl.setAccess(filePath);
+
+                if (process.platform != 'win32') {
+                    assert.equal(fs.statSync(dirPath).mode & 0o777, 0o700);
+                    assert.equal(fs.statSync(filePath).mode & 0o777, 0o600);
+                }
+            });
+        });
+
+        it('resets existing Windows permissions before applying the selected access', function () {
+            if (process.platform != 'win32') {
+                this.skip();
+            }
+            this.timeout(20000);
+
+            const hasSid = (target: string, sid: string): boolean => {
+                const result = originalSpawnSync(windowsSystemExecutable('icacls.exe'), [target, '/findsid', `*${sid}`], { encoding: 'utf8' });
+                return result.stdout.includes('SID Found:');
+            };
+
+            withTempEntries('set-access-acl-', (dirPath, filePath) => {
+                const childSetup = originalSpawnSync(windowsSystemExecutable('icacls.exe'), [filePath, '/grant', '*S-1-5-11:F'], { encoding: 'utf8' });
+                assert.strictEqual(childSetup.status, 0, childSetup.stderr);
+                assert(hasSid(filePath, 'S-1-5-11'));
+
+                for (const { target, level, isDirectory } of [
+                    { target: dirPath, level: tl.AccessLevel.OwnerFullOthersRead, isDirectory: true },
+                    { target: filePath, level: tl.AccessLevel.OwnerOnly, isDirectory: false }
+                ]) {
+                    const setup = originalSpawnSync(windowsSystemExecutable('icacls.exe'), [
+                        target, '/grant', '*S-1-5-11:F', '/deny', '*S-1-5-32-546:R'
+                    ], { encoding: 'utf8' });
+                    assert.strictEqual(setup.status, 0, setup.stderr);
+                    assert(hasSid(target, 'S-1-5-11'));
+                    assert(hasSid(target, 'S-1-5-32-546'));
+
+                    tl.setAccess(target, level);
+
+                    assert(!hasSid(target, 'S-1-5-11'));
+                    assert(!hasSid(target, 'S-1-5-32-546'));
+                    assert(hasSid(target, 'S-1-5-18'));
+                    assert(hasSid(target, 'S-1-5-32-544'));
+                    assert.strictEqual(hasSid(target, 'S-1-1-0'), isDirectory);
+                    if (isDirectory) {
+                        assert(hasSid(filePath, 'S-1-5-11'));
+                    }
+                }
+            });
+        });
+
+        it('translates access levels to Unix modes', function () {
+            withTempEntries('set-access-unix-', (dirPath, filePath) => {
+                Object.defineProperty(process, 'platform', { value: 'linux' });
+                const modes: fs.Mode[] = [];
+                const calls = stubSpawnSync({});
+                stubUnixOwner(1234, 1234);
+                fs.fchmodSync = (fd: number, mode: fs.Mode) => { modes.push(mode); };
+
+                for (const level of [tl.AccessLevel.OwnerOnly, tl.AccessLevel.OwnerReadOnly, tl.AccessLevel.OwnerFullOthersRead, tl.AccessLevel.OwnerReadOthersRead]) {
+                    tl.setAccess(dirPath, level);
+                    tl.setAccess(filePath, level);
+                }
+
+                assert.deepStrictEqual(modes, [0o700, 0o600, 0o500, 0o400, 0o755, 0o644, 0o555, 0o444]);
+                assert.deepStrictEqual(calls, []);
+            });
+        });
+
+        it('checks ownership and changes permissions through the same file descriptor', function () {
+            withTempEntries('set-access-unix-fd-', (_dirPath, filePath) => {
+                Object.defineProperty(process, 'platform', { value: 'linux' });
+                stubUnixOwner(1234, 1234);
+                let checkedFd: number | undefined;
+                let changedFd: number | undefined;
+                let closedFd: number | undefined;
+                const modes: fs.Mode[] = [];
+                const stubbedFstatSync = fs.fstatSync;
+
+                fs.fstatSync = ((fd: number) => {
+                    checkedFd = fd;
+                    return stubbedFstatSync(fd);
+                }) as typeof fs.fstatSync;
+                fs.fchmodSync = (fd: number, mode: fs.Mode) => {
+                    changedFd = fd;
+                    modes.push(mode);
+                };
+                fs.closeSync = (fd: number) => {
+                    closedFd = fd;
+                    originalCloseSync(fd);
+                };
+
+                tl.setAccess(filePath);
+
+                assert.strictEqual(checkedFd, changedFd);
+                assert.strictEqual(checkedFd, closedFd);
+                assert.strictEqual(modes[0], 0o600);
+            });
+        });
+
+        it('rejects Unix targets that are not regular files or directories', function () {
+            withTempEntries('set-access-unix-type-', (_dirPath, filePath) => {
+                Object.defineProperty(process, 'platform', { value: 'linux' });
+                const modes: fs.Mode[] = [];
+                fs.fstatSync = ((fd: number) => {
+                    const stats = Object.create(originalFstatSync(fd)) as fs.Stats;
+                    Object.defineProperty(stats, 'isDirectory', { value: () => false });
+                    Object.defineProperty(stats, 'isFile', { value: () => false });
+                    return stats;
+                }) as typeof fs.fstatSync;
+                fs.fchmodSync = (fd: number, mode: fs.Mode) => { modes.push(mode); };
+
+                assert.throws(() => tl.setAccess(filePath), /target must be a regular file or directory/);
+                assert.deepStrictEqual(modes, []);
+            });
+        });
+
+        it('rejects Unix targets owned by a different user', function () {
+            withTempEntries('set-access-unix-owner-', (dirPath, filePath) => {
+                Object.defineProperty(process, 'platform', { value: 'linux' });
+                stubUnixOwner(1235, 1234);
+                const modes: fs.Mode[] = [];
+                fs.fchmodSync = (fd: number, mode: fs.Mode) => { modes.push(mode); };
+
+                assert.throws(
+                    () => tl.setAccess(filePath),
+                    /target is owned by UID 1235, but the current effective UID is 1234/
+                );
+                assert.deepStrictEqual(modes, []);
+            });
+        });
+
+        it('passes access levels and paths to icacls on Windows', function () {
+            withTempEntries('set-access-win-', (dirPath, filePath) => {
+                Object.defineProperty(process, 'platform', { value: 'win32' });
+                const calls = stubSpawnSync({});
+
+                tl.setAccess(dirPath);
+                tl.setAccess(filePath, tl.AccessLevel.OwnerReadOnly);
+                tl.setAccess(dirPath, tl.AccessLevel.OwnerFullOthersRead);
+                tl.setAccess(filePath, tl.AccessLevel.OwnerReadOthersRead);
+
+                const whoamiCalls = calls.filter(c => c.command == windowsSystemExecutable('whoami.exe'));
+                assert(whoamiCalls.length <= 1);
+                if (whoamiCalls.length) {
+                    assert.strictEqual(whoamiCalls[0].command, windowsSystemExecutable('whoami.exe'));
+                    assert.deepStrictEqual(whoamiCalls[0].args, ['/user', '/fo', 'csv', '/nh']);
+                }
+                const aclCalls = calls.filter(c => c.command == windowsSystemExecutable('icacls.exe')).map(c => c.args);
+                assert.strictEqual(aclCalls.length, 8);
+                assert.deepStrictEqual(aclCalls.filter(args => args.length == 2), [
+                    [dirPath, '/reset'], [filePath, '/reset'], [dirPath, '/reset'], [filePath, '/reset']
+                ]);
+                assert.deepStrictEqual(aclCalls.filter(args => args.length > 2), [
+                    [dirPath, '/inheritance:r', '/grant:r', `*${userSid}:(OI)(CI)F`, '/grant:r', '*S-1-5-18:(OI)(CI)F', '/grant:r', '*S-1-5-32-544:(OI)(CI)F', '/remove:g', '*S-1-1-0'],
+                    [filePath, '/inheritance:r', '/grant:r', `*${userSid}:R`, '/grant:r', '*S-1-5-18:F', '/grant:r', '*S-1-5-32-544:F', '/remove:g', '*S-1-1-0'],
+                    [dirPath, '/inheritance:r', '/grant:r', `*${userSid}:(OI)(CI)F`, '/grant:r', '*S-1-5-18:(OI)(CI)F', '/grant:r', '*S-1-5-32-544:(OI)(CI)F', '/grant:r', '*S-1-1-0:(OI)(CI)RX'],
+                    [filePath, '/inheritance:r', '/grant:r', `*${userSid}:R`, '/grant:r', '*S-1-5-18:F', '/grant:r', '*S-1-5-32-544:F', '/grant:r', '*S-1-1-0:R']
+                ]);
+            });
+        });
+
+        it('surfaces Windows ACL command failures and launch errors', function () {
+            withTempEntries('set-access-errors-', (dirPath) => {
+                Object.defineProperty(process, 'platform', { value: 'win32' });
+                let calls = stubSpawnSync({ stderr: 'Access is denied.', status: 5 });
+                assert.throws(() => tl.setAccess(dirPath), /Access is denied/);
+                assert.strictEqual(calls.filter(c => c.command == windowsSystemExecutable('icacls.exe')).length, 1);
+
+                calls = stubSpawnSync({}, { stderr: 'Grant failed.', status: 5 });
+                assert.throws(() => tl.setAccess(dirPath), /Grant failed/);
+                const grantCalls = calls.filter(c => c.command == windowsSystemExecutable('icacls.exe'));
+                assert.strictEqual(grantCalls.length, 2);
+                assert.deepStrictEqual(grantCalls[1].args, [
+                    dirPath, '/inheritance:r', '/grant:r', `*${userSid}:(OI)(CI)F`,
+                    '/grant:r', '*S-1-5-18:(OI)(CI)F',
+                    '/grant:r', '*S-1-5-32-544:(OI)(CI)F',
+                    '/remove:g', '*S-1-1-0'
+                ]);
+
+                calls = stubSpawnSync({}, { stderr: 'Grant failed.', status: 5 });
+                assert.throws(() => tl.setAccess(dirPath, tl.AccessLevel.OwnerReadOnly), /Grant failed/);
+                assert.strictEqual(calls.filter(c => c.command == windowsSystemExecutable('icacls.exe')).length, 2);
+
+                calls = stubSpawnSync({ status: null, error: new Error('icacls could not be started') });
+                assert.throws(() => tl.setAccess(dirPath), /icacls could not be started/);
+                assert.strictEqual(calls.filter(c => c.command == windowsSystemExecutable('icacls.exe')).length, 1);
+            });
+        });
+
+        it('publishes failure telemetry without paths or messages', function () {
+            withTempEntries('set-access-telemetry-', (dirPath) => {
+                Object.defineProperty(process, 'platform', { value: 'win32' });
+                const originalLog = console.log;
+                const logs: string[] = [];
+                console.log = (message: string) => { logs.push(message); };
+                try {
+                    stubSpawnSync({ stderr: 'Access is denied.', status: 5 });
+                    assert.throws(() => tl.setAccess(dirPath));
+                    stubSpawnSync({}, { stderr: 'Grant failed.', status: 5 });
+                    assert.throws(() => tl.setAccess(dirPath, tl.AccessLevel.OwnerReadOnly));
+                    assert.throws(() => tl.setAccess(path.join(dirPath, 'missing')));
+                } finally {
+                    console.log = originalLog;
+                }
+
+                const prefix = '##vso[telemetry.publish area=TaskHub;feature=TaskLibSetAccess]';
+                const events = logs.filter(l => l.startsWith(prefix)).map(l => JSON.parse(l.substring(prefix.length)));
+                assert.deepStrictEqual(events, [
+                    { event: 'SetAccessFailed', platform: 'win32', level: 'ownerOnly', operation: 'icaclsReset', errorCode: 'none' },
+                    { event: 'SetAccessFailed', platform: 'win32', level: 'ownerReadOnly', operation: 'icacls', errorCode: 'none' },
+                    { event: 'SetAccessFailed', platform: 'win32', level: 'ownerOnly', operation: 'stat', errorCode: 'ENOENT' }
+                ]);
+            });
+        });
+
+        it('rejects empty paths and unknown access levels', function () {
+            assert.throws(() => tl.setAccess(''), /targetPath/);
+
+            for (const level of ['everyone', 'constructor', 'toString', '__proto__']) {
+                assert.throws(
+                    () => tl.setAccess('path', level as tl.AccessLevel),
+                    new RegExp(`Unsupported access level '${level}'`)
+                );
+            }
+        });
+    });
     // which tests
     it('which() finds file name', function (done) {
         this.timeout(3000);

@@ -24,6 +24,7 @@ module.exports.IssueType = task.IssueType;
 module.exports.ArtifactType = task.ArtifactType;
 module.exports.FieldType = task.FieldType;
 module.exports.Platform = task.Platform;
+module.exports.AccessLevel = task.AccessLevel;
 
 //-----------------------------------------------------
 // Results and Exiting
@@ -278,6 +279,10 @@ export function checkPath(p: string, name: string): void {
 //-----------------------------------------------------
 export function mkdirP(p): void {
     module.exports.debug('creating path: ' + p);
+}
+
+export function setAccess(targetPath: string, level: task.AccessLevel = task.AccessLevel.OwnerOnly): void {
+    module.exports.debug(`setting ${level} access: ${targetPath}`);
 }
 
 export function resolve(): string {
