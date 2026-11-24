@@ -82,7 +82,8 @@ export class TaskMockRunner {
         }
         // register mock task lib
         else {
-            var tlm = require('azure-pipelines-task-lib/mock-task');
+            // this was previously require('azure-pipelines-task-lib/mock-task'), which doesn't resolve correctly when azure-pipelines-task-lib is referenced using file: path
+            var tlm = require('./mock-task');
             if (this._answers) {
                 tlm.setAnswers(this._answers);
             }
