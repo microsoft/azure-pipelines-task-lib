@@ -244,7 +244,8 @@ export interface ExtractZipOptions {
     /**
      * Whether archived Unix permissions are restored. Defaults to true, matching extract-zip@2.0.1.
      * Set to false to use adm-zip's default modes. Restored modes bypass umask, and files without
-     * permission metadata fall back to 0o666 in adm-zip@0.6.1. This is not exact mode/umask parity.
+     * permission metadata fall back to 0o666 in adm-zip@0.6.1. Explicit 000 modes with Unix
+     * file-type metadata are preserved. This is not exact mode/umask parity.
      * Directory modes are restored deepest-first after regular entries and symbolic links are created.
      */
     keepOriginalPermission?: boolean;
@@ -332,10 +333,13 @@ export function extractZipSync(file: string, destination: string | ExtractZipOpt
     }
     validateSymlinks(symlinks, otherEntries, root);
     const keepOriginalPermission = options.keepOriginalPermission ?? true;
+    const overwrite = options.overwrite ?? true;
     const directoryPermissions: { parts: string[], mode: number }[] = [];
+    const zeroPermissionFiles: string[] = [];
     for (const entry of zip.getEntries()) {
+        const hasUnixMode = (entry.header.attr >>> 16) !== 0;
         if (entry.isDirectory) {
-            if (keepOriginalPermission && entry.header.fileAttr) {
+            if (keepOriginalPermission && hasUnixMode) {
                 directoryPermissions.push({ parts: entryPathParts(entry.entryName), mode: entry.header.fileAttr });
                 // A zero mode makes adm-zip skip directory chmod, without changing file permissions.
                 entry.header.attr &= ~(0o777 << 16);
@@ -348,15 +352,22 @@ export function extractZipSync(file: string, destination: string | ExtractZipOpt
         if (fs.existsSync(outputPath) && !fs.statSync(outputPath).isFile()) {
             throw new Error(_loc('LIB_PathIsNotAFile', outputPath));
         }
+        // adm-zip treats a zero mode as absent; Unix file-type bits distinguish an explicit 000 mode.
+        if (keepOriginalPermission && hasUnixMode && entry.header.fileAttr === 0 &&
+            (overwrite || !fs.existsSync(outputPath))) {
+            zeroPermissionFiles.push(outputPath);
+        }
         if (Buffer.isBuffer(password) && entry.header.encrypted) {
             entry.getData = entry.getData.bind(entry, password);
         }
     }
-    const overwrite = options.overwrite ?? true;
     // adm-zip creates directories only per entry, so an empty archive would otherwise leave dir missing.
     fs.mkdirSync(options.dir, { recursive: true });
     zip.extractAllTo(options.dir, overwrite, keepOriginalPermission, options.password);
     try {
+        for (const filePath of zeroPermissionFiles) {
+            fs.chmodSync(filePath, 0);
+        }
         createSymlinks(symlinks, root, overwrite);
     } finally {
         directoryPermissions.sort((a, b) => b.parts.length - a.parts.length);

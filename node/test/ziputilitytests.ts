@@ -662,6 +662,87 @@ describe('ZIP utility tests', function () {
         await assert.rejects(ziputil.createZip(source, path.join(archive, 'invalid.zip')));
     });
 
+    describe('archived permission metadata', function () {
+        function writePermissionArchive(): void {
+            const zip = new AdmZip({ noSort: true });
+            for (const [name, mode] of [
+                ['locked/', 0o40000],
+                ['locked/nested/', 0o40000],
+                ['zero.txt', 0o100000],
+                ['missing/', 0],
+                ['missing/data.txt', 0]
+            ] as [string, number][]) {
+                const entry = zip.addFile(name, Buffer.from(name.endsWith('/') ? '' : 'content'));
+                entry.header.made = 0x0314;
+                entry.header.attr = mode * 0x10000;
+            }
+            zip.addFile('locked/nested/child.txt', Buffer.from('child'));
+            zip.writeZip(archive);
+            const entries = new AdmZip(archive).getEntries();
+            assert(entries.filter(entry => entry.entryName !== 'locked/nested/child.txt')
+                .every(entry => entry.header.fileAttr === 0));
+        }
+
+        for (const extract of [ziputil.extractZipSync, ziputil.extractZip]) {
+            for (const keepOriginalPermission of [undefined, true, false]) {
+                it(`${extract.name} distinguishes explicit 000 from missing modes (preserve: ${keepOriginalPermission})`, async function () {
+                    writePermissionArchive();
+                    const chmodSync = fs.chmodSync;
+                    const zeroModes: string[] = [];
+                    fs.chmodSync = (file, mode) => {
+                        if (mode === 0) {
+                            zeroModes.push(path.relative(destination, file.toString()).replace(/\\/g, '/'));
+                        }
+                        chmodSync(file, mode);
+                    };
+                    try {
+                        await extract(archive, { dir: destination, keepOriginalPermission });
+                        assert.deepStrictEqual(zeroModes, keepOriginalPermission === false
+                            ? [] : ['zero.txt', 'locked/nested', 'locked']);
+                        if (process.platform !== 'win32') {
+                            assert.strictEqual(fs.statSync(path.join(destination, 'locked')).mode & 0o777,
+                                keepOriginalPermission === false ? 0o777 & ~process.umask() : 0);
+                            assert.strictEqual(fs.statSync(path.join(destination, 'zero.txt')).mode & 0o777,
+                                keepOriginalPermission === false ? 0o666 : 0);
+                            assert.strictEqual(fs.statSync(path.join(destination, 'missing')).mode & 0o777,
+                                0o777 & ~process.umask());
+                            assert.strictEqual(fs.statSync(path.join(destination, 'missing', 'data.txt')).mode & 0o777, 0o666);
+                        }
+                    } finally {
+                        fs.chmodSync = chmodSync;
+                        for (const name of ['locked', 'locked/nested', 'zero.txt']) {
+                            const output = path.join(destination, name);
+                            if (fs.existsSync(output)) {
+                                fs.chmodSync(output, 0o755);
+                            }
+                        }
+                    }
+                    assert.strictEqual(fs.readFileSync(path.join(destination, 'locked', 'nested', 'child.txt'), 'utf8'), 'child');
+                });
+            }
+        }
+
+        it('does not chmod a zero-mode file skipped by overwrite: false', function () {
+            writePermissionArchive();
+            fs.mkdirSync(destination);
+            const existing = path.join(destination, 'zero.txt');
+            fs.writeFileSync(existing, 'existing');
+            const mode = fs.statSync(existing).mode & 0o777;
+            try {
+                ziputil.extractZipSync(archive, { dir: destination, overwrite: false });
+                assert.strictEqual(fs.statSync(existing).mode & 0o777, mode);
+                assert.strictEqual(fs.readFileSync(existing, 'utf8'), 'existing');
+            } finally {
+                for (const name of ['locked', 'locked/nested']) {
+                    const output = path.join(destination, name);
+                    if (fs.existsSync(output)) {
+                        fs.chmodSync(output, 0o755);
+                    }
+                }
+            }
+        });
+    });
+
     (process.platform === 'win32' ? describe.skip : describe)('Unix permissions', function () {
         let originalUmask: number;
 
@@ -682,7 +763,7 @@ describe('ZIP utility tests', function () {
             return fs.statSync(path.join(destination, file)).mode & 0o777;
         }
 
-        for (const parentMode of [0o555, 0o400]) {
+        for (const parentMode of [0o555, 0o400, 0o000]) {
             it(`restores directory mode ${parentMode.toString(8)} after archived links without elevated privileges`, function () {
                 this.timeout(10000);
                 const script = `
@@ -720,7 +801,7 @@ describe('ZIP utility tests', function () {
                             for (const extract of [ziputil.extractZipSync, ziputil.extractZip]) {
                                 assert.strictEqual(await extract(archive, output), output);
                                 assert.strictEqual(fs.statSync(folder).mode & 0o777, ${parentMode});
-                                ${parentMode === 0o400 ? 'fs.chmodSync(folder, 0o755);' : ''}
+                                ${parentMode === 0o400 || parentMode === 0 ? 'fs.chmodSync(folder, 0o755);' : ''}
                                 assert.strictEqual(fs.statSync(nested).mode & 0o777, 0o500);
                                 assert.strictEqual(fs.statSync(path.join(folder, 'target.txt')).mode & 0o777, 0o755);
                                 for (const link of [path.join(folder, 'link'), path.join(nested, 'link')]) {
