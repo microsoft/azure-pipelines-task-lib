@@ -447,6 +447,100 @@ describe('ZIP utility tests', function () {
         });
     });
 
+    describe('normalized destination paths', function () {
+        function writeArchive(names: string[], symlink?: string): void {
+            const zip = new AdmZip({ noSort: true });
+            for (const [index, name] of names.entries()) {
+                const directory = /[\\/]$/.test(name);
+                const link = name === symlink;
+                const entry = zip.addFile(`entry-${index}`, directory ? Buffer.alloc(0) : Buffer.from(link ? 'target.txt' : 'content:' + name));
+                // addFile normalizes names, so preserve aliases directly in the entry headers.
+                entry.entryName = name;
+                entry.header.made = link ? 0x0314 : 0x0014;
+                entry.header.attr = link ? 0o120777 * 0x10000 : directory ? 0x10 : 0x20;
+            }
+            zip.writeZip(archive);
+            assert.deepStrictEqual(new AdmZip(archive).getEntries().map(entry => entry.entryName), names);
+        }
+
+        const conflicts: { name: string, entries: string[], symlink?: string }[] = [
+            { name: 'dot-segment file aliases', entries: ['folder/../file.txt', 'file.txt'] },
+            { name: 'root-clamped file aliases', entries: ['../file.txt', 'file.txt'] },
+            { name: 'absolute file aliases', entries: ['/file.txt', 'file.txt'] },
+            { name: 'backslash dot-segment aliases', entries: ['folder\\..\\file.txt', 'file.txt'] },
+            { name: 'separator aliases', entries: ['folder\\file.txt', 'folder/file.txt'] },
+            { name: 'repeated-separator aliases', entries: ['folder//file.txt', 'folder/file.txt'] },
+            { name: 'directory aliases', entries: ['folder/./', 'folder/'] },
+            { name: 'a file and a directory at the same path', entries: ['folder/', 'folder'] },
+            { name: 'a file and a normalized directory at the same path', entries: ['folder/../file/', 'file'] },
+            { name: 'a file occupying an implicit parent directory', entries: ['folder', 'folder/child.txt'] },
+            { name: 'a normalized file occupying an implicit parent directory', entries: ['sub/../folder', 'folder/nested/child.txt'] },
+            { name: 'a file occupying a directory entry parent', entries: ['folder', 'folder/nested/'] },
+            { name: 'a file occupying a symbolic link parent', entries: ['folder', 'folder/link'], symlink: 'folder/link' },
+            { name: 'a normalized file occupying a symbolic link parent', entries: ['sub/../folder', 'folder/link'], symlink: 'folder/link' }
+        ];
+
+        for (const conflict of conflicts) {
+            for (const reverse of [false, true]) {
+                for (const existingDestination of [false, true]) {
+                    it(`rejects ${conflict.name} in ${reverse ? 'reverse' : 'forward'} order before changing ${existingDestination ? 'an existing' : 'a missing'} destination`, async function () {
+                        const entries = conflict.entries.slice();
+                        if (reverse) {
+                            entries.reverse();
+                        }
+                        writeArchive(['aaa.txt', ...entries], conflict.symlink);
+                        if (existingDestination) {
+                            fs.mkdirSync(destination);
+                            fs.writeFileSync(path.join(destination, 'kept.txt'), 'existing content');
+                        }
+                        const isConflict = (error: Error): boolean =>
+                            error.message.includes('Conflicting ZIP entry paths') &&
+                            conflict.entries.every(name => error.message.includes(name));
+                        for (const overwrite of [undefined, false, true]) {
+                            const options = { dir: destination, overwrite };
+                            assert.throws(() => ziputil.extractZipSync(archive, options), isConflict);
+                            await assert.rejects(tl.extractZip(archive, options), isConflict);
+                            if (existingDestination) {
+                                assert.deepStrictEqual(fs.readdirSync(destination), ['kept.txt']);
+                                assert.strictEqual(fs.readFileSync(path.join(destination, 'kept.txt'), 'utf8'), 'existing content');
+                            } else {
+                                assert(!fs.existsSync(destination));
+                            }
+                        }
+                    });
+                }
+            }
+        }
+
+        for (const name of ['.', 'folder/..', 'folder\\..']) {
+            it(`rejects a file entry resolving to the destination directory: ${name}`, async function () {
+                writeArchive(['aaa.txt', name]);
+                assert.throws(() => ziputil.extractZipSync(archive, destination), /resolves to the destination directory/);
+                await assert.rejects(tl.extractZip(archive, destination), /resolves to the destination directory/);
+                assert(!fs.existsSync(destination));
+            });
+        }
+
+        for (const reverse of [false, true]) {
+            it(`allows explicit and implicit directories with distinct normalized files in ${reverse ? 'reverse' : 'forward'} order`, async function () {
+                const entries = ['./', 'folder/child.txt', 'folder/', 'prefix', 'prefix-more/child.txt', 'other/../second.txt'];
+                writeArchive(reverse ? entries.reverse() : entries);
+                for (const extract of [ziputil.extractZipSync, tl.extractZip]) {
+                    const output = path.join(workDir, extract.name + '-output');
+                    assert.strictEqual(await extract(archive, output), output);
+                    for (const [file, original] of [
+                        ['folder/child.txt', 'folder/child.txt'],
+                        ['prefix', 'prefix'],
+                        ['prefix-more/child.txt', 'prefix-more/child.txt'],
+                        ['second.txt', 'other/../second.txt']
+                    ]) {
+                        assert.strictEqual(fs.readFileSync(path.join(output, file), 'utf8'), 'content:' + original);
+                    }
+                }
+            });
+        }
+    });
+
     it('overwrites existing files by default and keeps them with overwrite: false', async function () {
         await ziputil.createZip(source, archive);
         await ziputil.extractZip(archive, destination);

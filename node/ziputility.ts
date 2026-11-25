@@ -84,6 +84,30 @@ function foldedKey(parts: string[]): string {
     return parts.join('/').normalize('NFC').toLowerCase();
 }
 
+/** Rejects aliased destinations and files occupying another entry's parent directory. */
+function validateEntryPaths(entries: { name: string, parts: string[], isDirectory: boolean }[]): void {
+    const paths = new Map<string, { name: string, isDirectory: boolean }>();
+    for (const entry of entries) {
+        const key = exactKey(entry.parts);
+        if (!key && !entry.isDirectory) {
+            throw new Error(_loc('LIB_OperationFailed', 'extract ZIP', `File entry "${entry.name}" resolves to the destination directory`));
+        }
+        const previous = paths.get(key);
+        if (previous) {
+            throw new Error(_loc('LIB_OperationFailed', 'extract ZIP', `Conflicting ZIP entry paths "${previous.name}" and "${entry.name}"`));
+        }
+        paths.set(key, entry);
+    }
+    for (const entry of entries) {
+        for (let length = 1; length < entry.parts.length; length++) {
+            const parent = paths.get(exactKey(entry.parts.slice(0, length)));
+            if (parent && !parent.isDirectory) {
+                throw new Error(_loc('LIB_OperationFailed', 'extract ZIP', `Conflicting ZIP entry paths "${parent.name}" and "${entry.name}"`));
+            }
+        }
+    }
+}
+
 function isSymlinkOnDisk(filePath: string): boolean {
     try {
         return fs.lstatSync(filePath).isSymbolicLink();
@@ -262,6 +286,7 @@ export interface CreateZipOptions {
 /**
  * Extracts a ZIP synchronously and returns the destination.
  * Rejects existing non-file paths for file entries before extracting any entries.
+ * Rejects normalized destination collisions and files occupying other entries' parent directories before extraction.
  * Existing files are overwritten unless overwrite is false.
  * Decodes UTF-8 and CP437 names, honoring valid Info-ZIP Unicode Path extra fields.
  * Recognizes directory entries by trailing separators or Unix/DOS directory attributes.
@@ -292,7 +317,7 @@ export function extractZipSync(file: string, destination: string | ExtractZipOpt
     const password = options.password;
     const root = path.resolve(options.dir);
     const symlinks: ArchivedSymlink[] = [];
-    const otherEntries: { name: string, parts: string[] }[] = [];
+    const otherEntries: { name: string, parts: string[], isDirectory: boolean }[] = [];
     for (const entry of entries) {
         let name = decodeZipEntryName(entry);
         const unixFileType = (entry.header.attr >>> 16) & 0xf000;
@@ -329,9 +354,14 @@ export function extractZipSync(file: string, destination: string | ExtractZipOpt
         }
         names.add(name);
         decodedNames.set(entry.rawEntryName, name);
-        otherEntries.push({ name, parts: entryPathParts(name) });
+        otherEntries.push({ name, parts: entryPathParts(name), isDirectory: entry.isDirectory });
     }
     validateSymlinks(symlinks, otherEntries, root);
+    validateEntryPaths(otherEntries.concat(symlinks.map(link => ({
+        name: link.name,
+        parts: link.parts,
+        isDirectory: false
+    }))));
     const keepOriginalPermission = options.keepOriginalPermission ?? true;
     const overwrite = options.overwrite ?? true;
     const directoryPermissions: { parts: string[], mode: number }[] = [];
