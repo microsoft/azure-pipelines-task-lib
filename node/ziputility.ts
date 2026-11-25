@@ -316,7 +316,7 @@ export function extractZipSync(file: string, destination: string | ExtractZipOpt
             continue;
         }
         const unixDirectory = unixFileType === 0x4000;
-        const dosDirectory = (entry.header.made >>> 8) === 0 && entry.header.attr === 0x10;
+        const dosDirectory = (entry.header.made >>> 8) === 0 && (entry.header.attr & 0x10) !== 0;
         if (!entry.isDirectory && (unixDirectory || dosDirectory)) {
             // The setter updates adm-zip's directory flag. Preserve the raw encoding until the name is mapped.
             entry.entryName = entry.rawEntryName.toString('latin1') + '/';

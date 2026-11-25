@@ -295,7 +295,9 @@ describe('ZIP utility tests', function () {
     describe('attribute-based directories', function () {
         const attributeFormats = [
             { name: 'Unix S_IFDIR', made: 0x0314, attr: 0o40755 * 0x10000 },
-            { name: 'DOS directory', made: 0x0014, attr: 0x10 }
+            { name: 'DOS directory', made: 0x0014, attr: 0x10 },
+            { name: 'DOS directory with read-only flag', made: 0x0014, attr: 0x11 },
+            { name: 'DOS directory with archive flag', made: 0x0014, attr: 0x30 }
         ];
 
         for (const format of attributeFormats) {
