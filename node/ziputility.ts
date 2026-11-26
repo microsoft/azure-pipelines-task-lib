@@ -289,7 +289,8 @@ export interface ExtractZipOptions {
     /**
      * Whether archived Unix permissions are restored. Defaults to true, matching extract-zip@2.0.1.
      * Set to false to use adm-zip's default modes. Restored modes bypass umask, and files without
-     * permission metadata fall back to 0o666 in adm-zip@0.6.1. Explicit 000 modes with Unix
+     * permission metadata fall back to 0o666 in adm-zip@0.6.1. Directories without restored modes
+     * use filesystem defaults, including umask and inherited default ACLs. Explicit 000 modes with Unix
      * file-type metadata are preserved. This is not exact mode/umask parity.
      * Directory modes are restored deepest-first after regular entries and symbolic links are created.
      * Existing archived directories temporarily gain owner access so repeated extraction can replace their contents.

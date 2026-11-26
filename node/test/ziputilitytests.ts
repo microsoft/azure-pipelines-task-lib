@@ -816,6 +816,11 @@ describe('ZIP utility tests', function () {
             for (const keepOriginalPermission of [undefined, true, false]) {
                 it(`${extract.name} distinguishes explicit 000 from missing modes (preserve: ${keepOriginalPermission})`, async function () {
                     writePermissionArchive();
+                    fs.mkdirSync(destination);
+                    const defaultDirectory = path.join(destination, 'default-directory');
+                    fs.mkdirSync(defaultDirectory);
+                    // Default ACLs can override umask, so measure normal directory creation on this filesystem.
+                    const defaultDirectoryMode = fs.statSync(defaultDirectory).mode & 0o777;
                     const chmodSync = fs.chmodSync;
                     const zeroModes: string[] = [];
                     fs.chmodSync = (file, mode) => {
@@ -830,11 +835,11 @@ describe('ZIP utility tests', function () {
                             ? [] : ['zero.txt', 'locked/nested', 'locked']);
                         if (process.platform !== 'win32') {
                             assert.strictEqual(fs.statSync(path.join(destination, 'locked')).mode & 0o777,
-                                keepOriginalPermission === false ? 0o777 & ~process.umask() : 0);
+                                keepOriginalPermission === false ? defaultDirectoryMode : 0);
                             assert.strictEqual(fs.statSync(path.join(destination, 'zero.txt')).mode & 0o777,
                                 keepOriginalPermission === false ? 0o666 : 0);
                             assert.strictEqual(fs.statSync(path.join(destination, 'missing')).mode & 0o777,
-                                0o777 & ~process.umask());
+                                defaultDirectoryMode);
                             assert.strictEqual(fs.statSync(path.join(destination, 'missing', 'data.txt')).mode & 0o777, 0o666);
                         }
                     } finally {
