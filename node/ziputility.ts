@@ -109,10 +109,15 @@ function validateEntryPaths(entries: { name: string, parts: string[], isDirector
 }
 
 function isSymlinkOnDisk(filePath: string): boolean {
+    const stats = lstatIfExists(filePath);
+    return !!stats && stats.isSymbolicLink();
+}
+
+function lstatIfExists(filePath: string): fs.Stats | undefined {
     try {
-        return fs.lstatSync(filePath).isSymbolicLink();
+        return fs.lstatSync(filePath);
     } catch {
-        return false;
+        return undefined;
     }
 }
 
@@ -271,6 +276,7 @@ export interface ExtractZipOptions {
      * permission metadata fall back to 0o666 in adm-zip@0.6.1. Explicit 000 modes with Unix
      * file-type metadata are preserved. This is not exact mode/umask parity.
      * Directory modes are restored deepest-first after regular entries and symbolic links are created.
+     * Existing archived directories temporarily gain owner access so repeated extraction can replace their contents.
      */
     keepOriginalPermission?: boolean;
     /** Password for encrypted entries. Strings use UTF-8; Buffers supply raw password bytes. */
@@ -366,43 +372,71 @@ export function extractZipSync(file: string, destination: string | ExtractZipOpt
     const overwrite = options.overwrite ?? true;
     const directoryPermissions: { parts: string[], mode: number }[] = [];
     const zeroPermissionFiles: string[] = [];
+    const fileEntries: AdmZip.IZipEntry[] = [];
     for (const entry of zip.getEntries()) {
-        const hasUnixMode = (entry.header.attr >>> 16) !== 0;
-        if (entry.isDirectory) {
-            if (keepOriginalPermission && hasUnixMode) {
-                directoryPermissions.push({ parts: entryPathParts(entry.entryName), mode: entry.header.fileAttr });
-                // A zero mode makes adm-zip skip directory chmod, without changing file permissions.
-                entry.header.attr &= ~(0o777 << 16);
-            }
-            continue;
-        }
-        // Match adm-zip's rooted normalization, including backslashes and traversal segments.
-        const entryPath = path.posix.normalize('/' + entry.entryName.replace(/\\/g, '/'));
-        const outputPath = path.join(root, entryPath);
-        if (fs.existsSync(outputPath) && !fs.statSync(outputPath).isFile()) {
-            throw new Error(_loc('LIB_PathIsNotAFile', outputPath));
-        }
-        // adm-zip treats a zero mode as absent; Unix file-type bits distinguish an explicit 000 mode.
-        if (keepOriginalPermission && hasUnixMode && entry.header.fileAttr === 0 &&
-            (overwrite || !fs.existsSync(outputPath))) {
-            zeroPermissionFiles.push(outputPath);
-        }
-        if (Buffer.isBuffer(password) && entry.header.encrypted) {
-            entry.getData = entry.getData.bind(entry, password);
+        if (!entry.isDirectory) {
+            fileEntries.push(entry);
+        } else if (keepOriginalPermission && (entry.header.attr >>> 16) !== 0) {
+            directoryPermissions.push({ parts: entryPathParts(entry.entryName), mode: entry.header.fileAttr });
+            // A zero mode makes adm-zip skip directory chmod, without changing file permissions.
+            entry.header.attr &= ~(0o777 << 16);
         }
     }
-    // adm-zip creates directories only per entry, so an empty archive would otherwise leave dir missing.
-    fs.mkdirSync(options.dir, { recursive: true });
-    zip.extractAllTo(options.dir, overwrite, keepOriginalPermission, options.password);
+    // Parents first, so each chmod can traverse its already unlocked ancestors.
+    directoryPermissions.sort((a, b) => a.parts.length - b.parts.length);
+    const unlockedDirectories: { path: string, mode: number }[] = [];
+    let extracting = false;
     try {
+        // A previous extraction may have restored read-only archived modes; regain owner access to replace entries.
+        for (const directory of directoryPermissions) {
+            const directoryPath = path.join(root, ...directory.parts);
+            const stats = lstatIfExists(directoryPath);
+            if (stats && stats.isDirectory() && (stats.mode & 0o700) !== 0o700) {
+                const mode = stats.mode & 0o7777;
+                fs.chmodSync(directoryPath, mode | 0o700);
+                unlockedDirectories.push({ path: directoryPath, mode });
+            }
+        }
+        for (const entry of fileEntries) {
+            const hasUnixMode = (entry.header.attr >>> 16) !== 0;
+            // Match adm-zip's rooted normalization, including backslashes and traversal segments.
+            const entryPath = path.posix.normalize('/' + entry.entryName.replace(/\\/g, '/'));
+            const outputPath = path.join(root, entryPath);
+            if (fs.existsSync(outputPath) && !fs.statSync(outputPath).isFile()) {
+                throw new Error(_loc('LIB_PathIsNotAFile', outputPath));
+            }
+            // adm-zip treats a zero mode as absent; Unix file-type bits distinguish an explicit 000 mode.
+            if (keepOriginalPermission && hasUnixMode && entry.header.fileAttr === 0 &&
+                (overwrite || !fs.existsSync(outputPath))) {
+                zeroPermissionFiles.push(outputPath);
+            }
+            if (Buffer.isBuffer(password) && entry.header.encrypted) {
+                entry.getData = entry.getData.bind(entry, password);
+            }
+        }
+        // adm-zip creates directories only per entry, so an empty archive would otherwise leave dir missing.
+        fs.mkdirSync(options.dir, { recursive: true });
+        extracting = true;
+        zip.extractAllTo(options.dir, overwrite, keepOriginalPermission, options.password);
         for (const filePath of zeroPermissionFiles) {
             fs.chmodSync(filePath, 0);
         }
         createSymlinks(symlinks, root, overwrite);
     } finally {
-        directoryPermissions.sort((a, b) => b.parts.length - a.parts.length);
-        for (const directory of directoryPermissions) {
-            fs.chmodSync(path.join(root, ...directory.parts), directory.mode);
+        if (extracting) {
+            // Deepest first, so restricting a parent does not block restoring its children.
+            for (const directory of directoryPermissions.slice().reverse()) {
+                const directoryPath = path.join(root, ...directory.parts);
+                const stats = lstatIfExists(directoryPath);
+                if (stats && stats.isDirectory()) {
+                    fs.chmodSync(directoryPath, directory.mode);
+                }
+            }
+        } else {
+            // Validation failed before writing, so leave existing directories as they were.
+            for (const directory of unlockedDirectories.reverse()) {
+                fs.chmodSync(directory.path, directory.mode);
+            }
         }
     }
     return options.dir;

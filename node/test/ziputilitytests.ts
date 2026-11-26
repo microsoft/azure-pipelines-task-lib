@@ -860,7 +860,7 @@ describe('ZIP utility tests', function () {
         }
 
         for (const parentMode of [0o555, 0o400, 0o000]) {
-            it(`restores directory mode ${parentMode.toString(8)} after archived links without elevated privileges`, function () {
+            it(`restores directory mode ${parentMode.toString(8)} after archived links on repeated extraction without elevated privileges`, function () {
                 this.timeout(10000);
                 const script = `
                     const assert = require('assert');
@@ -881,6 +881,7 @@ describe('ZIP utility tests', function () {
                             assert.throws(() => fs.writeFileSync(path.join(probe, 'file'), ''), { code: 'EACCES' });
                             const zip = new AdmZip({ noSort: true });
                             zip.addFile('folder/target.txt', Buffer.from('real content'), '', 0o755);
+                            zip.addFile('folder/nested/data.txt', Buffer.from('data'), '', 0o644);
                             for (const name of ['folder/link', 'folder/nested/link']) {
                                 const link = zip.addFile(name, Buffer.from(name === 'folder/link' ? 'target.txt' : '../target.txt'));
                                 link.header.made = 0x0314;
@@ -894,16 +895,60 @@ describe('ZIP utility tests', function () {
                             }
                             const archive = path.join(root, 'input.zip');
                             zip.writeZip(archive);
-                            for (const extract of [ziputil.extractZipSync, ziputil.extractZip]) {
-                                assert.strictEqual(await extract(archive, output), output);
+                            const verify = () => {
                                 assert.strictEqual(fs.statSync(folder).mode & 0o777, ${parentMode});
-                                ${parentMode === 0o400 || parentMode === 0 ? 'fs.chmodSync(folder, 0o755);' : ''}
+                                // Unlock only for inspection; the next extraction starts from archived modes.
+                                fs.chmodSync(folder, 0o755);
                                 assert.strictEqual(fs.statSync(nested).mode & 0o777, 0o500);
                                 assert.strictEqual(fs.statSync(path.join(folder, 'target.txt')).mode & 0o777, 0o755);
+                                assert.strictEqual(fs.readFileSync(path.join(nested, 'data.txt'), 'utf8'), 'data');
                                 for (const link of [path.join(folder, 'link'), path.join(nested, 'link')]) {
                                     assert(fs.lstatSync(link).isSymbolicLink());
                                     assert.strictEqual(fs.readFileSync(link, 'utf8'), 'real content');
                                 }
+                            };
+                            for (const extract of [ziputil.extractZipSync, ziputil.extractZip]) {
+                                for (let attempt = 0; attempt < 2; attempt++) {
+                                    if (attempt > 0) {
+                                        // A missing file must be recreated inside a read-only archived directory.
+                                        fs.chmodSync(nested, 0o755);
+                                        fs.unlinkSync(path.join(nested, 'data.txt'));
+                                        fs.chmodSync(nested, 0o500);
+                                        assert.throws(() => fs.unlinkSync(path.join(nested, 'link')), { code: 'EACCES' });
+                                        fs.chmodSync(folder, ${parentMode});
+                                    }
+                                    assert.strictEqual(await extract(archive, output), output);
+                                    verify();
+                                }
+                                fs.chmodSync(folder, ${parentMode});
+                                assert.strictEqual(await extract(archive, { dir: output, overwrite: false }), output);
+                                verify();
+
+                                fs.chmodSync(folder, ${parentMode});
+                                const symlinkSync = fs.symlinkSync;
+                                const writeError = new Error('symbolic link replacement failed');
+                                fs.symlinkSync = () => { throw writeError; };
+                                try {
+                                    await assert.rejects(async () => extract(archive, output), error => error === writeError);
+                                } finally {
+                                    fs.symlinkSync = symlinkSync;
+                                }
+                                assert.strictEqual(fs.statSync(folder).mode & 0o777, ${parentMode});
+                                fs.chmodSync(folder, 0o755);
+                                assert.strictEqual(fs.statSync(nested).mode & 0o777, 0o500);
+                                assert.strictEqual(await extract(archive, output), output);
+                                verify();
+
+                                // Rejected before writing: unlocked directories return to their prior modes.
+                                fs.chmodSync(nested, 0o755);
+                                fs.unlinkSync(path.join(nested, 'data.txt'));
+                                fs.mkdirSync(path.join(nested, 'data.txt'));
+                                fs.chmodSync(nested, 0o500);
+                                fs.chmodSync(folder, 0o500);
+                                await assert.rejects(async () => extract(archive, output), error => error.code !== 'EACCES');
+                                assert.strictEqual(fs.statSync(folder).mode & 0o777, 0o500);
+                                assert.strictEqual(fs.statSync(nested).mode & 0o777, 0o500);
+
                                 fs.chmodSync(folder, 0o755);
                                 fs.chmodSync(nested, 0o755);
                                 fs.rmSync(output, { recursive: true });
