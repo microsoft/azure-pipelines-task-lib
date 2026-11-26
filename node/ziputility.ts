@@ -3,6 +3,22 @@ import fs = require('fs');
 import path = require('path');
 import { _loc } from './internal';
 
+function zipFileSystem(): typeof fs {
+    return {
+        ...fs,
+        openSync(...args: Parameters<typeof fs.openSync>): number {
+            const descriptor = fs.openSync(...args);
+            // adm-zip@0.6.1 skips both writing and closing descriptor 0 because it tests its truthiness.
+            if (descriptor === 0) {
+                fs.closeSync(descriptor);
+                throw new Error(_loc('LIB_OperationFailed', 'write ZIP output',
+                    `Cannot write "${args[0]}": adm-zip does not support file descriptor 0`));
+            }
+            return descriptor;
+        }
+    };
+}
+
 const cp437HighBytes =
     '\u00c7\u00fc\u00e9\u00e2\u00e4\u00e0\u00e5\u00e7\u00ea\u00eb\u00e8\u00ef\u00ee\u00ec\u00c4\u00c5' +
     '\u00c9\u00e6\u00c6\u00f4\u00f6\u00f2\u00fb\u00f9\u00ff\u00d6\u00dc\u00a2\u00a3\u00a5\u20a7\u0192' +
@@ -313,6 +329,7 @@ export function extractZipSync(file: string, destination: string | ExtractZipOpt
     // Keep byte-distinct names distinct during adm-zip's duplicate check, before entry metadata is available.
     const decodedNames = new WeakMap<Uint8Array, string>();
     const zip = new Zip(file, {
+        fs: zipFileSystem(),
         decoder: {
             encode: name => Buffer.from(name, 'latin1'),
             decode: name => decodedNames.get(name) ?? Buffer.from(name).toString('latin1')
@@ -462,7 +479,7 @@ export function createZipSync(sourceDirectory: string, destinationZip: string, o
         throw new Error(_loc('LIB_PathIsNotAFile', destinationZip));
     }
     const Zip: typeof AdmZip = require('adm-zip');
-    const zip = new Zip();
+    const zip = new Zip({ fs: zipFileSystem() });
     zip.addLocalFolder(sourceDirectory, options && options.zipPath, options && options.filter);
     zip.writeZip(destinationZip, (error) => {
         if (error) {

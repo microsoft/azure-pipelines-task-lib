@@ -69,6 +69,39 @@ describe('ZIP utility tests', function () {
         assertExtracted();
     });
 
+    (process.platform === 'win32' ? describe.skip : describe)('closed stdin writes', function () {
+        for (const helper of ['createZipSync', 'createZip', 'extractZipSync', 'extractZip']) {
+            it(`${helper} reports descriptor 0 instead of succeeding with an empty output`, function () {
+                const zip = new AdmZip();
+                zip.addFile('file.txt', Buffer.from('nonempty content'));
+                fs.writeFileSync(archive, zip.toBuffer());
+                const args = helper.startsWith('create') ? [source, archive] : [archive, destination];
+                const script = `
+                    const assert = require('assert');
+                    const fs = require('fs');
+                    const ziputil = require(${JSON.stringify(require.resolve('../_build/ziputility'))});
+                    (async () => {
+                        fs.closeSync(0);
+                        const probe = fs.openSync('/dev/null', 'r');
+                        assert.strictEqual(probe, 0, 'output must be able to receive descriptor 0');
+                        fs.closeSync(probe);
+                        await assert.rejects(
+                            async () => ziputil[${JSON.stringify(helper)}](...${JSON.stringify(args)}),
+                            /file descriptor 0/
+                        );
+                        assert.throws(() => fs.fstatSync(0), { code: 'EBADF' }, 'descriptor 0 must not leak');
+                    })().catch(error => { console.error(error); process.exitCode = 1; });
+                `;
+                const result = childProcess.spawnSync(process.execPath, ['-e', script], {
+                    encoding: 'utf8',
+                    timeout: 10000
+                });
+                assert.ifError(result.error);
+                assert.strictEqual(result.status, 0, result.stderr || result.stdout);
+            });
+        }
+    });
+
     describe('archived symbolic links', function () {
         // Created on Linux with Info-ZIP Zip 3.0: `zip -X -0 -y -r real.zip target.txt dir nested link dirlink`, where
         // link -> target.txt, dirlink -> dir and nested/up -> ../target.txt are real symbolic links.
