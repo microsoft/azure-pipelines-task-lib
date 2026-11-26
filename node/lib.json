@@ -23,6 +23,7 @@
     "LIB_ParameterIsRequired": "%s not supplied",
     "LIB_PathHasNullByte": "Path cannot contain null bytes",
     "LIB_PathIsNotADirectory": "Path is not a directory: %s",
+    "LIB_PathIsNotAFile": "Path is not a file: %s",
     "LIB_PathNotFound": "Not found %s: %s",
     "LIB_PlatformNotSupported": "Platform not supported: %s",
     "LIB_ProcessError": "There was an error when attempting to execute the process '%s'. This may indicate the process failed to start. Error: %s",
@@ -37,6 +38,8 @@
     "LIB_UnhandledEx": "Unhandled: %s",
     "LIB_UseFirstGlobMatch": "Multiple workspace matches. using first.",
     "LIB_WhichNotFound_Linux": "Unable to locate executable file: '%s'. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also check the file mode to verify the file is executable.",
-    "LIB_WhichNotFound_Win": "Unable to locate executable file: '%s'. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also verify the file has a valid extension for an executable file."
+    "LIB_WhichNotFound_Win": "Unable to locate executable file: '%s'. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also verify the file has a valid extension for an executable file.",
+    "LIB_ZipEntryBeneathSymlink": "ZIP entry '%s' is located beneath the symbolic link entry '%s'.",
+    "LIB_ZipSymlinkNotAllowed": "ZIP symbolic link entry '%s' -> '%s' is not allowed. Link targets must be relative and resolve inside the destination directory."
   }
 }

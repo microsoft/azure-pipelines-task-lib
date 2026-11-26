@@ -1,0 +1,1030 @@
+// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+import assert = require('assert');
+import childProcess = require('child_process');
+import fs = require('fs');
+import path = require('path');
+import AdmZip = require('adm-zip');
+import * as tl from '../_build/task';
+import * as ziputil from '../_build/ziputility';
+import testutil = require('./testutil');
+
+describe('ZIP utility tests', function () {
+    let workDir: string;
+    let source: string;
+    let archive: string;
+    let destination: string;
+
+    // Generated with 7-Zip using ZipCrypto and password "secret"; includes an encrypted empty file.
+    const encryptedArchive = Buffer.from(
+        'UEsDBBQAAQAAALWSXV0AAAAADAAAAAAAAAAJAAAAZW1wdHkudHh0tukUt1GWgq7GNb/jUEsDBBQAAAAAALWSXV0AAAAAAAAAAAAAAAAH' +
+        'AAAAbmVzdGVkL1BLAwQUAAEAAAC1kl1dlS1r9B0AAAARAAAADwAAAG5lc3RlZC9maWxlLnR4dD3GtgwoDqciHmHv5cdSYD/I33hwWhtW' +
+        'l478h8NLUEsBAj8AFAABAAAAtZJdXQAAAAAMAAAAAAAAAAkAJAAAAAAAAAAgAAAAAAAAAGVtcHR5LnR4dAoAIAAAAAAAAQAYAGLU2j2kZ90B' +
+        'AAAAAAAAAAAAAAAAAAAAAFBLAQI/ABQAAAAAALWSXV0AAAAAAAAAAAAAAAAHACQAAAAAAAAAEAAAADMAAABuZXN0ZWQvCgAgAAAAAAABABgA' +
+        'Q3XZPaRn3QEAAAAAAAAAAAAAAAAAAAAAUEsBAj8AFAABAAAAtZJdXZUta/QdAAAAEQAAAA8AJAAAAAAAAAAgAAAAWAAAAG5lc3RlZC9maWxl' +
+        'LnR4dAoAIAAAAAAAAQAYAHyt2j2kZ90BAAAAAAAAAAAAAAAAAAAAAFBLBQYAAAAAAwADABUBAACiAAAAAAA=',
+        'base64'
+    );
+
+    before(function () {
+        testutil.initialize();
+    });
+
+    beforeEach(function () {
+        workDir = fs.mkdtempSync(path.join(testutil.getTestTemp(), 'ziputility-'));
+        source = path.join(workDir, 'source');
+        archive = path.join(workDir, 'archive.zip');
+        destination = path.join(workDir, 'output');
+        fs.mkdirSync(source);
+        fs.mkdirSync(path.join(source, 'nested'));
+        fs.mkdirSync(path.join(source, 'empty'));
+        fs.writeFileSync(path.join(source, 'first.txt'), 'first');
+        fs.writeFileSync(path.join(source, 'nested', 'binary.bin'), Buffer.from([0, 1, 128, 255]));
+        fs.writeFileSync(path.join(source, 'empty.txt'), '');
+    });
+
+    afterEach(function () {
+        tl.rmRF(workDir);
+    });
+
+    function assertExtracted(): void {
+        assert.deepStrictEqual(fs.readdirSync(destination).sort(), ['empty', 'empty.txt', 'first.txt', 'nested']);
+        assert.deepStrictEqual(fs.readdirSync(path.join(destination, 'nested')), ['binary.bin']);
+        assert.strictEqual(fs.readFileSync(path.join(destination, 'first.txt'), 'utf8'), 'first');
+        assert.deepStrictEqual(fs.readFileSync(path.join(destination, 'nested', 'binary.bin')), Buffer.from([0, 1, 128, 255]));
+        assert.strictEqual(fs.readFileSync(path.join(destination, 'empty.txt'), 'utf8'), '');
+        assert.deepStrictEqual(fs.readdirSync(path.join(destination, 'empty')), []);
+    }
+
+    it('round-trips files and empty directories through the exported Promise helpers', async function () {
+        assert.strictEqual(await tl.createZip(source, archive), archive);
+        assert.strictEqual(await tl.extractZip(archive, { dir: destination }), destination);
+        assertExtracted();
+    });
+
+    it('supports synchronous callers and destination strings', function () {
+        assert.strictEqual(ziputil.createZipSync(source, archive), archive);
+        assert.strictEqual(ziputil.extractZipSync(archive, destination), destination);
+        assertExtracted();
+    });
+
+    (process.platform === 'win32' ? describe.skip : describe)('closed stdin writes', function () {
+        for (const helper of ['createZipSync', 'createZip', 'extractZipSync', 'extractZip']) {
+            it(`${helper} reports descriptor 0 instead of succeeding with an empty output`, function () {
+                const zip = new AdmZip();
+                zip.addFile('file.txt', Buffer.from('nonempty content'));
+                fs.writeFileSync(archive, zip.toBuffer());
+                const args = helper.startsWith('create') ? [source, archive] : [archive, destination];
+                const script = `
+                    const assert = require('assert');
+                    const fs = require('fs');
+                    const ziputil = require(${JSON.stringify(require.resolve('../_build/ziputility'))});
+                    (async () => {
+                        fs.closeSync(0);
+                        const probe = fs.openSync('/dev/null', 'r');
+                        assert.strictEqual(probe, 0, 'output must be able to receive descriptor 0');
+                        fs.closeSync(probe);
+                        await assert.rejects(
+                            async () => ziputil[${JSON.stringify(helper)}](...${JSON.stringify(args)}),
+                            /file descriptor 0/
+                        );
+                        assert.throws(() => fs.fstatSync(0), { code: 'EBADF' }, 'descriptor 0 must not leak');
+                    })().catch(error => { console.error(error); process.exitCode = 1; });
+                `;
+                const result = childProcess.spawnSync(process.execPath, ['-e', script], {
+                    encoding: 'utf8',
+                    timeout: 10000
+                });
+                assert.ifError(result.error);
+                assert.strictEqual(result.status, 0, result.stderr || result.stdout);
+            });
+        }
+    });
+
+    describe('archived symbolic links', function () {
+        // Created on Linux with Info-ZIP Zip 3.0: `zip -X -0 -y -r real.zip target.txt dir nested link dirlink`, where
+        // link -> target.txt, dirlink -> dir and nested/up -> ../target.txt are real symbolic links.
+        const infoZipArchive =
+            'UEsDBAoAAAAAAAAAIVD+Ct1ADgAAAA4AAAAKAAAAdGFyZ2V0LnR4dHRhcmdldCBjb250ZW50UEsDBAoAAAAAAAAAIVAAAAAAAAAAAAAAAAAE' +
+            'AAAAZGlyL1BLAwQKAAAAAAAAACFQ+j2XNg0AAAANAAAADQAAAGRpci9pbm5lci50eHRpbm5lciBjb250ZW50UEsDBAoAAAAAAAAAIVAAAAAA' +
+            'AAAAAAAAAAAHAAAAbmVzdGVkL1BLAwQKAAAAAAAAACFQD6CmQQ0AAAANAAAACQAAAG5lc3RlZC91cC4uL3RhcmdldC50eHRQSwMECgAAAAAA' +
+            'AAAhUEm6pAAKAAAACgAAAAQAAABsaW5rdGFyZ2V0LnR4dFBLAwQKAAAAAAAAACFQEHqrugMAAAADAAAABwAAAGRpcmxpbmtkaXJQSwECHgMK' +
+            'AAAAAAAAACFQ/grdQA4AAAAOAAAACgAAAAAAAAAAAAAApIEAAAAAdGFyZ2V0LnR4dFBLAQIeAwoAAAAAAAAAIVAAAAAAAAAAAAAAAAAEAAAA' +
+            'AAAAAAAAEADtQTYAAABkaXIvUEsBAh4DCgAAAAAAAAAhUPo9lzYNAAAADQAAAA0AAAAAAAAAAAAAAKSBWAAAAGRpci9pbm5lci50eHRQSwEC' +
+            'HgMKAAAAAAAAACFQAAAAAAAAAAAAAAAABwAAAAAAAAAAABAA7UGQAAAAbmVzdGVkL1BLAQIeAwoAAAAAAAAAIVAPoKZBDQAAAA0AAAAJAAAA' +
+            'AAAAAAAAAAD/obUAAABuZXN0ZWQvdXBQSwECHgMKAAAAAAAAACFQSbqkAAoAAAAKAAAABAAAAAAAAAAAAAAA/6HpAAAAbGlua1BLAQIeAwoA' +
+            'AAAAAAAAIVAQequ6AwAAAAMAAAAHAAAAAAAAAAAAAAD/oRUBAABkaXJsaW5rUEsFBgAAAAAHAAcAeAEAAD0BAAAAAA==';
+
+        let canCreateSymlinks: boolean;
+
+        before(function () {
+            const probe = fs.mkdtempSync(path.join(testutil.getTestTemp(), 'symlink-probe-'));
+            try {
+                fs.symlinkSync('missing', path.join(probe, 'link'), 'file');
+                canCreateSymlinks = true;
+            } catch {
+                canCreateSymlinks = false;
+            } finally {
+                tl.rmRF(probe);
+            }
+        });
+
+        function requireSymlinks(context: Mocha.Context): void {
+            if (!canCreateSymlinks) {
+                context.skip();
+            }
+        }
+
+        type ArchiveEntry = { name: string, content?: string, link?: string };
+
+        function writeArchive(archiveEntries: ArchiveEntry[]): void {
+            const zip = new AdmZip({ noSort: true });
+            for (const archiveEntry of archiveEntries) {
+                const added = zip.addFile(archiveEntry.name, Buffer.from(archiveEntry.link ?? archiveEntry.content ?? ''));
+                if (archiveEntry.link !== undefined) {
+                    added.header.made = 0x0314;
+                    added.header.attr = 0o120777 * 0x10000;
+                }
+            }
+            zip.writeZip(archive);
+        }
+
+        function readLink(linkPath: string): string {
+            assert(fs.lstatSync(linkPath).isSymbolicLink(), `${linkPath} is not a symbolic link`);
+            return fs.readlinkSync(linkPath).replace(/\\/g, '/');
+        }
+
+        it('restores links from a real Info-ZIP archive through both APIs', async function () {
+            requireSymlinks(this);
+            fs.writeFileSync(archive, Buffer.from(infoZipArchive, 'base64'));
+            const entries = new AdmZip(archive).getEntries();
+            const linkEntries = entries.filter(entry => ((entry.header.attr >>> 16) & 0xf000) === 0xa000);
+            assert.deepStrictEqual(linkEntries.map(entry => entry.entryName).sort(), ['dirlink', 'link', 'nested/up']);
+            assert(entries.every(entry => (entry.header.made >>> 8) === 3));
+
+            const syncDestination = path.join(workDir, 'sync-output');
+            assert.strictEqual(ziputil.extractZipSync(archive, { dir: syncDestination }), syncDestination);
+            assert.strictEqual(await tl.extractZip(archive, { dir: destination }), destination);
+            for (const output of [syncDestination, destination]) {
+                assert.deepStrictEqual(fs.readdirSync(output).sort(), ['dir', 'dirlink', 'link', 'nested', 'target.txt']);
+                assert.strictEqual(readLink(path.join(output, 'link')), 'target.txt');
+                assert.strictEqual(readLink(path.join(output, 'dirlink')), 'dir');
+                assert.strictEqual(readLink(path.join(output, 'nested', 'up')), '../target.txt');
+                assert.strictEqual(fs.readFileSync(path.join(output, 'link'), 'utf8'), 'target content');
+                assert.strictEqual(fs.readFileSync(path.join(output, 'nested', 'up'), 'utf8'), 'target content');
+                assert(fs.statSync(path.join(output, 'dirlink')).isDirectory());
+                assert.strictEqual(fs.readFileSync(path.join(output, 'dirlink', 'inner.txt'), 'utf8'), 'inner content');
+                assert(fs.lstatSync(path.join(output, 'target.txt')).isFile());
+            }
+        });
+
+        it('restores chained, dangling and non-ASCII contained links', async function () {
+            requireSymlinks(this);
+            writeArchive([
+                { name: 'target.txt', content: 'target content' },
+                // POSIX requires sub to exist before resolving the following "..".
+                { name: 'sub/' },
+                { name: 'caf\u00e9', link: 'second' },
+                { name: 'second', link: 'sub/../target.txt' },
+                { name: 'dangling', link: 'missing.txt' }
+            ]);
+            const syncDestination = path.join(workDir, 'sync-output');
+            assert.strictEqual(ziputil.extractZipSync(archive, syncDestination), syncDestination);
+            assert.strictEqual(await tl.extractZip(archive, destination), destination);
+            for (const output of [syncDestination, destination]) {
+                assert(fs.statSync(path.join(output, 'sub')).isDirectory());
+                assert.strictEqual(readLink(path.join(output, 'caf\u00e9')), 'second');
+                assert.strictEqual(readLink(path.join(output, 'second')), 'sub/../target.txt');
+                assert.strictEqual(readLink(path.join(output, 'dangling')), 'missing.txt');
+                assert.strictEqual(fs.readFileSync(path.join(output, 'caf\u00e9'), 'utf8'), 'target content');
+                assert(!fs.existsSync(path.join(output, 'missing.txt')));
+            }
+        });
+
+        const rejected: { name: string, entries: ArchiveEntry[], error: RegExp }[] = [
+            { name: 'a parent-relative escape', entries: [{ name: 'link', link: '../outside.txt' }], error: /'link' -> '..\/outside.txt' is not allowed/ },
+            { name: 'a nested parent-relative escape', entries: [{ name: 'a/link', link: 'b/../../../outside.txt' }], error: /'a\/link' -> .* is not allowed/ },
+            { name: 'a POSIX absolute target', entries: [{ name: 'link', link: '/outside.txt' }], error: /'link' -> '\/outside.txt' is not allowed/ },
+            { name: 'a drive-letter absolute target', entries: [{ name: 'link', link: 'C:/outside.txt' }], error: /is not allowed/ },
+            { name: 'an empty target', entries: [{ name: 'link', link: '' }], error: /'link' -> '' is not allowed/ },
+            {
+                // Lexically a/b/up/../.. is the destination, but a/b/up -> .. resolves to a, so it is the destination's parent.
+                name: 'an escape through another archived link',
+                entries: [{ name: 'a/b/up', link: '..' }, { name: 'esc', link: 'a/b/up/../..' }],
+                error: /'esc' -> 'a\/b\/up\/..\/..' is not allowed/
+            },
+            {
+                // Case-sensitively a/UP is a plain directory, but on case-insensitive filesystems it is the a/up -> .. link.
+                name: 'an escape through a case variant of another archived link',
+                entries: [{ name: 'a/up', link: '..' }, { name: 'esc', link: 'a/UP/../..' }],
+                error: /'esc' -> 'a\/UP\/..\/..' is not allowed/
+            },
+            {
+                // Following d first gives x, but Windows resolves the target's ".." textually to the destination's parent.
+                name: 'an escape under Windows textual parent resolution',
+                entries: [{ name: 'x/y/z/', content: '' }, { name: 'd', link: 'x/y/z' }, { name: 'esc', link: 'd/../..' }],
+                error: /'esc' -> 'd\/..\/..' is not allowed/
+            },
+            { name: 'a link loop', entries: [{ name: 'l1', link: 'l2' }, { name: 'l2', link: 'l1' }], error: /'l1' -> 'l2' is not allowed/ },
+            {
+                name: 'links differing only by case',
+                entries: [{ name: 'link', link: 'target.txt' }, { name: 'LINK', link: 'target.txt' }],
+                error: /'LINK' -> 'target.txt' is not allowed/
+            },
+            {
+                name: 'a file beneath a link',
+                entries: [{ name: 'dir/', content: '' }, { name: 'dirlink', link: 'dir' }, { name: 'dirlink/evil.txt', content: 'evil' }],
+                error: /ZIP entry 'dirlink\/evil.txt' is located beneath the symbolic link entry 'dirlink'/
+            },
+            {
+                name: 'a file beneath a case variant of a link',
+                entries: [{ name: 'dir/', content: '' }, { name: 'dirlink', link: 'dir' }, { name: 'DIRLINK/evil.txt', content: 'evil' }],
+                error: /ZIP entry 'DIRLINK\/evil.txt' is located beneath the symbolic link entry 'dirlink'/
+            },
+            {
+                name: 'a directory at a link path',
+                entries: [{ name: 'link', link: 'target.txt' }, { name: 'link/', content: '' }],
+                error: /ZIP entry 'link\/' is located beneath the symbolic link entry 'link'/
+            },
+            {
+                name: 'a link beneath another link',
+                entries: [{ name: 'dir/', content: '' }, { name: 'dirlink', link: 'dir' }, { name: 'dirlink/inner', link: '../target.txt' }],
+                error: /ZIP entry 'dirlink\/inner' is located beneath the symbolic link entry 'dirlink'/
+            }
+        ];
+
+        for (const rejection of rejected) {
+            for (const existingDestination of [false, true]) {
+                it(`rejects ${rejection.name} before changing ${existingDestination ? 'an existing' : 'a missing'} destination through both APIs`, async function () {
+                    writeArchive([{ name: 'target.txt', content: 'target content' }, ...rejection.entries]);
+                    const outside = path.join(workDir, 'outside.txt');
+                    fs.writeFileSync(outside, 'outside content');
+                    if (existingDestination) {
+                        fs.mkdirSync(destination);
+                        fs.writeFileSync(path.join(destination, 'target.txt'), 'existing target');
+                    }
+                    const options: ziputil.ExtractZipOptions = existingDestination
+                        ? { dir: destination, overwrite: true, keepOriginalPermission: false }
+                        : { dir: destination };
+                    assert.throws(() => ziputil.extractZipSync(archive, options), rejection.error);
+                    await assert.rejects(tl.extractZip(archive, options), rejection.error);
+                    if (existingDestination) {
+                        assert.deepStrictEqual(fs.readdirSync(destination), ['target.txt']);
+                        assert.strictEqual(fs.readFileSync(path.join(destination, 'target.txt'), 'utf8'), 'existing target');
+                    } else {
+                        assert(!fs.existsSync(destination));
+                    }
+                    assert.strictEqual(fs.readFileSync(outside, 'utf8'), 'outside content');
+                });
+            }
+        }
+
+        it('rejects links resolving through a pre-existing destination symlink', async function () {
+            requireSymlinks(this);
+            fs.mkdirSync(destination);
+            fs.symlinkSync(workDir, path.join(destination, 'escape'), 'dir');
+            fs.writeFileSync(path.join(workDir, 'outside.txt'), 'outside content');
+            for (const entries of [
+                [{ name: 'link', link: 'escape/outside.txt' }],
+                [{ name: 'escape/link', link: 'outside.txt' }],
+                // The target itself is harmless; only the link's parent directory is a pre-existing symlink.
+                [{ name: 'escape/link', link: 'target.txt' }],
+                [{ name: 'escape/sub/link', link: '../target.txt' }]
+            ]) {
+                writeArchive([{ name: 'target.txt', content: 'target content' }, ...entries]);
+                assert.throws(() => ziputil.extractZipSync(archive, destination), /is not allowed/);
+                await assert.rejects(tl.extractZip(archive, destination), /is not allowed/);
+                assert.deepStrictEqual(fs.readdirSync(destination), ['escape']);
+                assert.deepStrictEqual(fs.readdirSync(workDir).sort(), ['archive.zip', 'output', 'outside.txt', 'source']);
+            }
+        });
+
+        it('replaces existing files and links at link paths by default and keeps them with overwrite: false', async function () {
+            requireSymlinks(this);
+            writeArchive([{ name: 'target.txt', content: 'target content' }, { name: 'link', link: 'target.txt' }]);
+            fs.mkdirSync(destination);
+            fs.writeFileSync(path.join(destination, 'link'), 'existing link path');
+            await tl.extractZip(archive, { dir: destination, overwrite: false });
+            assert(fs.lstatSync(path.join(destination, 'link')).isFile());
+            assert.strictEqual(fs.readFileSync(path.join(destination, 'link'), 'utf8'), 'existing link path');
+            await tl.extractZip(archive, destination);
+            assert.strictEqual(readLink(path.join(destination, 'link')), 'target.txt');
+            assert.strictEqual(fs.readFileSync(path.join(destination, 'link'), 'utf8'), 'target content');
+            await tl.extractZip(archive, destination);
+            assert.strictEqual(readLink(path.join(destination, 'link')), 'target.txt');
+        });
+
+        it('rejects an existing directory at a link path before extracting', async function () {
+            writeArchive([{ name: 'target.txt', content: 'target content' }, { name: 'link', link: 'target.txt' }]);
+            fs.mkdirSync(path.join(destination, 'link'), { recursive: true });
+            assert.throws(() => ziputil.extractZipSync(archive, destination), /Path is not a file/);
+            await assert.rejects(tl.extractZip(archive, destination), /Path is not a file/);
+            assert.deepStrictEqual(fs.readdirSync(destination), ['link']);
+            assert.deepStrictEqual(fs.readdirSync(path.join(destination, 'link')), []);
+        });
+    });
+
+    describe('attribute-based directories', function () {
+        const attributeFormats = [
+            { name: 'Unix S_IFDIR', made: 0x0314, attr: 0o40755 * 0x10000 },
+            { name: 'DOS directory', made: 0x0014, attr: 0x10 },
+            { name: 'DOS directory with read-only flag', made: 0x0014, attr: 0x11 },
+            { name: 'DOS directory with archive flag', made: 0x0014, attr: 0x30 }
+        ];
+
+        for (const format of attributeFormats) {
+            for (const folder of ['folder', 'caf\u00e9']) {
+                for (const includeChild of [false, true]) {
+                    it(`extracts ${format.name} ${folder} without a trailing slash${includeChild ? ' followed by a child file' : ' as an empty directory'}`, async function () {
+                        const zip = new AdmZip({ noSort: true });
+                        const directory = zip.addFile(folder, Buffer.alloc(0));
+                        directory.header.made = format.made;
+                        directory.header.attr = format.attr;
+                        if (includeChild) {
+                            zip.addFile(folder + '/file.txt', Buffer.from('child content'));
+                        }
+                        zip.writeZip(archive);
+                        const archivedDirectory = new AdmZip(archive).getEntries()[0];
+                        assert.strictEqual(archivedDirectory.entryName, folder);
+                        assert.strictEqual(archivedDirectory.isDirectory, false);
+                        assert.strictEqual(archivedDirectory.header.attr, format.attr);
+                        assert.strictEqual(archivedDirectory.header.made, format.made);
+
+                        const syncDestination = path.join(workDir, 'sync-output');
+                        // Existing directories must not be rejected by the file-entry preflight.
+                        fs.mkdirSync(path.join(destination, folder), { recursive: true });
+                        assert.strictEqual(ziputil.extractZipSync(archive, { dir: syncDestination }), syncDestination);
+                        assert.strictEqual(await tl.extractZip(archive, { dir: destination }), destination);
+                        for (const output of [syncDestination, destination]) {
+                            const outputFolder = path.join(output, folder);
+                            assert(fs.statSync(outputFolder).isDirectory());
+                            assert.deepStrictEqual(fs.readdirSync(output), [folder]);
+                            assert.deepStrictEqual(fs.readdirSync(outputFolder), includeChild ? ['file.txt'] : []);
+                            if (includeChild) {
+                                assert.strictEqual(fs.readFileSync(path.join(outputFolder, 'file.txt'), 'utf8'), 'child content');
+                            }
+                            if (process.platform !== 'win32' && format.name === 'Unix S_IFDIR') {
+                                assert.strictEqual(fs.statSync(outputFolder).mode & 0o777, 0o755);
+                            }
+                        }
+                    });
+                }
+            }
+        }
+    });
+
+    describe('filename decoding', function () {
+        // Stored ZIP fixtures with explicit central-directory flags, raw names and Unicode Path fields.
+        // Unicode Path fields are central-directory-only, as supported by extract-zip@2.0.1.
+        const fixtures = [
+            {
+                name: 'CP437 names, including byte-distinct names that collide under UTF-8 decoding',
+                archive: 'UEsDBBQAAAAAAAAAIQCpMMX+BwAAAAcAAAAOAAAAY2Fmgi9maXJzdC50eHRjb250ZW50UEsDBBQAAAAAAAAAIQCpMMX+' +
+                    'BwAAAAcAAAAIAAAAY2Fmgi50eHRjb250ZW50UEsDBBQAAAAAAAAAIQCpMMX+BwAAAAcAAAAIAAAAY2Fmgy50eHRjb250ZW50' +
+                    'UEsDBBQAAAAAAAAAIQCpMMX+BwAAAAcAAAAIAAAAnrXg/y50eHRjb250ZW50UEsBAhQAFAAAAAAAAAAhAKkwxf4HAAAABwAA' +
+                    'AA4AAAAAAAAAAAAAAAAAAAAAAGNhZoIvZmlyc3QudHh0UEsBAhQAFAAAAAAAAAAhAKkwxf4HAAAABwAAAAgAAAAAAAAAAAAA' +
+                    'AAAAMwAAAGNhZoIudHh0UEsBAhQAFAAAAAAAAAAhAKkwxf4HAAAABwAAAAgAAAAAAAAAAAAAAAAAYAAAAGNhZoMudHh0UEsB' +
+                    'AhQAFAAAAAAAAAAhAKkwxf4HAAAABwAAAAgAAAAAAAAAAAAAAAAAjQAAAJ614P8udHh0UEsFBgAAAAAEAAQA3gAAALoAAAAAAA==',
+                files: ['caf\u00e9/first.txt', 'caf\u00e9.txt', 'caf\u00e2.txt', '\u20a7\u2561\u03b1\u00a0.txt']
+            },
+            {
+                name: 'UTF-8 names when the language encoding flag is set',
+                archive: 'UEsDBBQAAAgAAAAAIQCpMMX+BwAAAAcAAAAQAAAAY2Fmw6kv5pel5pysLnR4dGNvbnRlbnRQSwECFAAUAAAIAAAA' +
+                    'ACEAqTDF/gcAAAAHAAAAEAAAAAAAAAAAAAAAAAAAAAAAY2Fmw6kv5pel5pysLnR4dFBLBQYAAAAAAQABAD4AAAA1AAAAAAA=',
+                files: ['caf\u00e9/\u65e5\u672c.txt']
+            },
+            {
+                name: 'valid Unicode Path extra fields',
+                archive: 'UEsDBBQAAAAAAAAAIQCpMMX+BwAAAAcAAAAKAAAAbGVnYWN5LnR4dGNvbnRlbnRQSwECFAAUAAAAAAAAACEAqTDF/gcA' +
+                    'AAAHAAAACgAZAAAAAAAAAAAAAAAAAAAAbGVnYWN5LnR4dHVwFQABgAdzEGNhZsOpL+aXpeacrC50eHRQSwUGAAAAAAEAAQBRAAAALwAAAAAA',
+                files: ['caf\u00e9/\u65e5\u672c.txt']
+            },
+            {
+                name: 'CP437 fallback for Unicode Path fields with invalid CRC, version or length',
+                archive: 'UEsDBBQAAAAAAAAAIQCpMMX+BwAAAAcAAAANAAAAYmFkLWNyYy2CLnR4dGNvbnRlbnRQSwMEFAAAAAAAAAAhAKkwxf4H' +
+                    'AAAABwAAABEAAABiYWQtdmVyc2lvbi2CLnR4dGNvbnRlbnRQSwMEFAAAAAAAAAAhAKkwxf4HAAAABwAAAAsAAABlbXB0eS2C' +
+                    'LnR4dGNvbnRlbnRQSwECFAAUAAAAAAAAACEAqTDF/gcAAAAHAAAADQASAAAAAAAAAAAAAAAAAAAAYmFkLWNyYy2CLnR4dHVwDgAB' +
+                    'n7LIandyb25nLnR4dFBLAQIUABQAAAAAAAAAIQCpMMX+BwAAAAcAAAARABIAAAAAAAAAAAAAADIAAABiYWQtdmVyc2lvbi2CLnR4' +
+                    'dHVwDgACmXYeq3dyb25nLnR4dFBLAQIUABQAAAAAAAAAIQCpMMX+BwAAAAcAAAALAAkAAAAAAAAAAAAAAGgAAABlbXB0eS2CLnR4' +
+                    'dHVwBQABUWbbHFBLBQYAAAAAAwADAOAAAACYAAAAAAA=',
+                files: ['bad-crc-\u00e9.txt', 'bad-version-\u00e9.txt', 'empty-\u00e9.txt']
+            },
+            {
+                name: 'Unicode Path precedence over UTF-8 header names',
+                archive: 'UEsDBBQAAAgAAAAAIQCpMMX+BwAAAAcAAAAJAAAAY2Fmw6kudHh0Y29udGVudFBLAQIUABQAAAgAAAAAIQCpMMX+' +
+                    'BwAAAAcAAAAJABMAAAAAAAAAAAAAAAAAAABjYWbDqS50eHR1cA8AAZK/ED7ml6XmnKwudHh0UEsFBgAAAAABAAEASgAAAC4AAAAAAA==',
+                files: ['\u65e5\u672c.txt']
+            }
+        ];
+
+        async function assertDecodedFiles(contents: Buffer, expectedFiles: string[]): Promise<void> {
+            fs.writeFileSync(archive, contents);
+            const syncDestination = path.join(workDir, 'sync-output');
+            assert.strictEqual(ziputil.extractZipSync(archive, { dir: syncDestination }), syncDestination);
+            assert.strictEqual(await tl.extractZip(archive, { dir: destination }), destination);
+            for (const output of [syncDestination, destination]) {
+                const actualFiles: string[] = [];
+                function collectFiles(directory: string, prefix: string = ''): void {
+                    for (const name of fs.readdirSync(directory)) {
+                        const relative = prefix + name;
+                        const fullPath = path.join(directory, name);
+                        if (fs.statSync(fullPath).isDirectory()) {
+                            collectFiles(fullPath, relative + '/');
+                        } else {
+                            actualFiles.push(relative);
+                            assert.strictEqual(fs.readFileSync(fullPath, 'utf8'), 'content');
+                        }
+                    }
+                }
+                collectFiles(output);
+                assert.deepStrictEqual(actualFiles.sort(), expectedFiles.slice().sort());
+            }
+        }
+
+        for (const fixture of fixtures) {
+            it(`extracts ${fixture.name} through both APIs`, async function () {
+                await assertDecodedFiles(Buffer.from(fixture.archive, 'base64'), fixture.files);
+            });
+        }
+
+        it('uses CP437 even for valid UTF-8 bytes when the UTF-8 flag is unset', async function () {
+            const contents = Buffer.from(fixtures[1].archive, 'base64');
+            contents.writeUInt16LE(0, 6);
+            const centralOffset = contents.readUInt32LE(contents.length - 6);
+            contents.writeUInt16LE(0, centralOffset + 8);
+            await assertDecodedFiles(contents, ['caf\u251c\u2310/\u00b5\u00f9\u00d1\u00b5\u00a3\u00bc.txt']);
+        });
+
+        it('validates conflicts against decoded Unicode paths before extraction', async function () {
+            fs.writeFileSync(archive, Buffer.from(fixtures[2].archive, 'base64'));
+            const conflictingPath = path.join(destination, 'caf\u00e9', '\u65e5\u672c.txt');
+            fs.mkdirSync(conflictingPath, { recursive: true });
+            assert.throws(() => ziputil.extractZipSync(archive, { dir: destination }), /Path is not a file/);
+            await assert.rejects(tl.extractZip(archive, { dir: destination }), /Path is not a file/);
+            assert.deepStrictEqual(fs.readdirSync(conflictingPath), []);
+            assert.deepStrictEqual(fs.readdirSync(destination), ['caf\u00e9']);
+        });
+
+        it('continues rejecting genuinely duplicate names after Unicode decoding', async function () {
+            fs.writeFileSync(archive, Buffer.from(
+                'UEsDBBQAAAAAAAAAIQCpMMX+BwAAAAcAAAAIAAAAY2Fmgi50eHRjb250ZW50UEsDBBQAAAAAAAAAIQCpMMX+BwAAAAcAAAAJ' +
+                'AAAAb3RoZXIudHh0Y29udGVudFBLAQIUABQAAAAAAAAAIQCpMMX+BwAAAAcAAAAIAAAAAAAAAAAAAAAAAAAAAABjYWaCLnR4' +
+                'dFBLAQIUABQAAAAAAAAAIQCpMMX+BwAAAAcAAAAJABIAAAAAAAAAAAAAAC0AAABvdGhlci50eHR1cA4AAS+0II1jYWbDqS50' +
+                'eHRQSwUGAAAAAAIAAgB/AAAAWwAAAAAA',
+                'base64'
+            ));
+            assert.throws(() => ziputil.extractZipSync(archive, { dir: destination }), /Duplicate entry name/);
+            await assert.rejects(tl.extractZip(archive, { dir: destination }), /Duplicate entry name/);
+            assert(!fs.existsSync(destination));
+        });
+    });
+
+    describe('normalized destination paths', function () {
+        function writeArchive(names: string[], symlink?: string): void {
+            const zip = new AdmZip({ noSort: true });
+            for (const [index, name] of names.entries()) {
+                const directory = /[\\/]$/.test(name);
+                const link = name === symlink;
+                const entry = zip.addFile(`entry-${index}`, directory ? Buffer.alloc(0) : Buffer.from(link ? 'target.txt' : 'content:' + name));
+                // addFile normalizes names, so preserve aliases directly in the entry headers.
+                entry.entryName = name;
+                entry.header.made = link ? 0x0314 : 0x0014;
+                entry.header.attr = link ? 0o120777 * 0x10000 : directory ? 0x10 : 0x20;
+            }
+            zip.writeZip(archive);
+            assert.deepStrictEqual(new AdmZip(archive).getEntries().map(entry => entry.entryName), names);
+        }
+
+        const conflicts: { name: string, entries: string[], symlink?: string }[] = [
+            { name: 'dot-segment file aliases', entries: ['folder/../file.txt', 'file.txt'] },
+            { name: 'root-clamped file aliases', entries: ['../file.txt', 'file.txt'] },
+            { name: 'absolute file aliases', entries: ['/file.txt', 'file.txt'] },
+            { name: 'backslash dot-segment aliases', entries: ['folder\\..\\file.txt', 'file.txt'] },
+            { name: 'separator aliases', entries: ['folder\\file.txt', 'folder/file.txt'] },
+            { name: 'repeated-separator aliases', entries: ['folder//file.txt', 'folder/file.txt'] },
+            { name: 'directory aliases', entries: ['folder/./', 'folder/'] },
+            { name: 'a file and a directory at the same path', entries: ['folder/', 'folder'] },
+            { name: 'a file and a normalized directory at the same path', entries: ['folder/../file/', 'file'] },
+            { name: 'a file occupying an implicit parent directory', entries: ['folder', 'folder/child.txt'] },
+            { name: 'a normalized file occupying an implicit parent directory', entries: ['sub/../folder', 'folder/nested/child.txt'] },
+            { name: 'a file occupying a directory entry parent', entries: ['folder', 'folder/nested/'] },
+            { name: 'a file occupying a symbolic link parent', entries: ['folder', 'folder/link'], symlink: 'folder/link' },
+            { name: 'a normalized file occupying a symbolic link parent', entries: ['sub/../folder', 'folder/link'], symlink: 'folder/link' }
+        ];
+
+        for (const conflict of conflicts) {
+            for (const reverse of [false, true]) {
+                for (const existingDestination of [false, true]) {
+                    it(`rejects ${conflict.name} in ${reverse ? 'reverse' : 'forward'} order before changing ${existingDestination ? 'an existing' : 'a missing'} destination`, async function () {
+                        const entries = conflict.entries.slice();
+                        if (reverse) {
+                            entries.reverse();
+                        }
+                        writeArchive(['aaa.txt', ...entries], conflict.symlink);
+                        if (existingDestination) {
+                            fs.mkdirSync(destination);
+                            fs.writeFileSync(path.join(destination, 'kept.txt'), 'existing content');
+                        }
+                        const isConflict = (error: Error): boolean =>
+                            error.message.includes('Conflicting ZIP entry paths') &&
+                            conflict.entries.every(name => error.message.includes(name));
+                        for (const overwrite of [undefined, false, true]) {
+                            const options = { dir: destination, overwrite };
+                            assert.throws(() => ziputil.extractZipSync(archive, options), isConflict);
+                            await assert.rejects(tl.extractZip(archive, options), isConflict);
+                            if (existingDestination) {
+                                assert.deepStrictEqual(fs.readdirSync(destination), ['kept.txt']);
+                                assert.strictEqual(fs.readFileSync(path.join(destination, 'kept.txt'), 'utf8'), 'existing content');
+                            } else {
+                                assert(!fs.existsSync(destination));
+                            }
+                        }
+                    });
+                }
+            }
+        }
+
+        for (const name of ['.', 'folder/..', 'folder\\..']) {
+            it(`rejects a file entry resolving to the destination directory: ${name}`, async function () {
+                writeArchive(['aaa.txt', name]);
+                assert.throws(() => ziputil.extractZipSync(archive, destination), /resolves to the destination directory/);
+                await assert.rejects(tl.extractZip(archive, destination), /resolves to the destination directory/);
+                assert(!fs.existsSync(destination));
+            });
+        }
+
+        for (const reverse of [false, true]) {
+            it(`allows explicit and implicit directories with distinct normalized files in ${reverse ? 'reverse' : 'forward'} order`, async function () {
+                const entries = ['./', 'folder/child.txt', 'folder/', 'prefix', 'prefix-more/child.txt', 'other/../second.txt'];
+                writeArchive(reverse ? entries.reverse() : entries);
+                for (const extract of [ziputil.extractZipSync, tl.extractZip]) {
+                    const output = path.join(workDir, extract.name + '-output');
+                    assert.strictEqual(await extract(archive, output), output);
+                    for (const [file, original] of [
+                        ['folder/child.txt', 'folder/child.txt'],
+                        ['prefix', 'prefix'],
+                        ['prefix-more/child.txt', 'prefix-more/child.txt'],
+                        ['second.txt', 'other/../second.txt']
+                    ]) {
+                        assert.strictEqual(fs.readFileSync(path.join(output, file), 'utf8'), 'content:' + original);
+                    }
+                }
+            });
+        }
+    });
+
+    it('overwrites existing files by default and keeps them with overwrite: false', async function () {
+        await ziputil.createZip(source, archive);
+        await ziputil.extractZip(archive, destination);
+        fs.writeFileSync(path.join(destination, 'first.txt'), 'existing');
+        await ziputil.extractZip(archive, { dir: destination, overwrite: false });
+        assert.strictEqual(fs.readFileSync(path.join(destination, 'first.txt'), 'utf8'), 'existing');
+        await ziputil.extractZip(archive, { dir: destination });
+        assertExtracted();
+    });
+
+    it('replaces stale file content by default when extracting synchronously', function () {
+        ziputil.createZipSync(source, archive);
+        fs.mkdirSync(destination);
+        fs.writeFileSync(path.join(destination, 'first.txt'), 'stale content from an earlier download');
+        ziputil.extractZipSync(archive, { dir: destination, overwrite: false });
+        assert.strictEqual(fs.readFileSync(path.join(destination, 'first.txt'), 'utf8'), 'stale content from an earlier download');
+        ziputil.extractZipSync(archive, { dir: destination });
+        assertExtracted();
+    });
+
+    it('replaces stale file content by default when extracting asynchronously', async function () {
+        await ziputil.createZip(source, archive);
+        fs.mkdirSync(destination);
+        fs.writeFileSync(path.join(destination, 'first.txt'), 'stale content from an earlier download');
+        await ziputil.extractZip(archive, { dir: destination, overwrite: false });
+        assert.strictEqual(fs.readFileSync(path.join(destination, 'first.txt'), 'utf8'), 'stale content from an earlier download');
+        await ziputil.extractZip(archive, { dir: destination });
+        assertExtracted();
+    });
+
+    for (const password of ['secret', Buffer.from('secret')]) {
+        it(`extracts ZipCrypto archives with a ${typeof password === 'string' ? 'string' : 'Buffer'} password`, async function () {
+            fs.writeFileSync(archive, encryptedArchive);
+            assert(new AdmZip(archive).getEntry('empty.txt').header.encrypted);
+            assert(new AdmZip(archive).getEntry('nested/file.txt').header.encrypted);
+            const syncDestination = path.join(workDir, 'sync-output');
+            assert.strictEqual(ziputil.extractZipSync(archive, { dir: syncDestination, password }), syncDestination);
+            assert.strictEqual(await tl.extractZip(archive, { dir: destination, password }), destination);
+            for (const output of [syncDestination, destination]) {
+                assert.strictEqual(fs.readFileSync(path.join(output, 'nested', 'file.txt'), 'utf8'), 'encrypted content');
+                assert.strictEqual(fs.readFileSync(path.join(output, 'empty.txt')).length, 0);
+            }
+        });
+    }
+
+    it('preserves raw Buffer password bytes and extraction options', async function () {
+        // ZipCrypto password bytes 00 80 ff 01 cannot round-trip through a UTF-8 string.
+        fs.writeFileSync(archive, Buffer.from(
+            'UEsDBBQAAQgIALmSXV1UDhXSJQAAABcAAAAIAAAAZmlsZS50eHQ9auDmkyuTmMaP2K4fFTISOzI17BKAVBgvnqjh+BRnItTeB2yt' +
+            'UEsBAhQKFAABCAgAuZJdXVQOFdIlAAAAFwAAAAgAAAAAAAAAAAAAAKSBAAAAAGZpbGUudHh0UEsFBgAAAAABAAEANgAAAEsAAAAAAA==',
+            'base64'
+        ));
+        const password = Buffer.from([0, 128, 255, 1]);
+        const originalPassword = Buffer.from(password);
+        const options = { dir: destination, password, keepOriginalPermission: true };
+        assert.strictEqual(ziputil.extractZipSync(archive, options), destination);
+        const outputFile = path.join(destination, 'file.txt');
+        assert.strictEqual(fs.readFileSync(outputFile, 'utf8'), 'binary password content');
+        if (process.platform !== 'win32') {
+            assert.strictEqual(fs.statSync(outputFile).mode & 0o777, 0o644);
+        }
+        fs.writeFileSync(outputFile, 'existing content');
+        await ziputil.extractZip(archive, { ...options, overwrite: false });
+        assert.strictEqual(fs.readFileSync(outputFile, 'utf8'), 'existing content');
+        await ziputil.extractZip(archive, options);
+        assert.strictEqual(fs.readFileSync(outputFile, 'utf8'), 'binary password content');
+        assert.deepStrictEqual(password, originalPassword);
+    });
+
+    for (const password of [undefined, 'wrong', Buffer.from('wrong')]) {
+        it(`rejects ZipCrypto archives with a ${password === undefined ? 'missing' : typeof password === 'string' ? 'wrong string' : 'wrong Buffer'} password`, async function () {
+            fs.writeFileSync(archive, encryptedArchive);
+            const expectedError = password === undefined ? /Incompatible password parameter/ : /Wrong Password/;
+            assert.throws(() => ziputil.extractZipSync(archive, { dir: destination, password }), expectedError);
+            await assert.rejects(ziputil.extractZip(archive, { dir: destination, password }), expectedError);
+        });
+    }
+
+    it('prevents ZIP path traversal during extraction', async function () {
+        const maliciousArchive = path.join(workDir, 'malicious.zip');
+        const outsideFile = path.join(workDir, 'outside.txt');
+        const content = Buffer.from('malicious content');
+        const zip = new AdmZip();
+        zip.addFile('outside.txt', content);
+        // addFile normalizes paths, so set the traversal name directly on the entry.
+        zip.getEntries()[0].entryName = '../outside.txt';
+        zip.writeZip(maliciousArchive);
+        assert.strictEqual(new AdmZip(maliciousArchive).getEntries()[0].entryName, '../outside.txt');
+
+        assert.strictEqual(await ziputil.extractZip(maliciousArchive, destination), destination);
+
+        assert.strictEqual(
+            fs.existsSync(outsideFile),
+            false,
+            'ZIP extraction must not write files outside the destination'
+        );
+        assert.deepStrictEqual(fs.readFileSync(path.join(destination, 'outside.txt')), content);
+    });
+
+    for (const overwrite of [undefined, false, true]) {
+        for (const entryName of ['file.txt', 'nested/file.txt', '../file.txt', 'nested\\..\\file.txt']) {
+            it(`rejects a directory at file entry ${entryName} with overwrite=${overwrite}`, async function () {
+                const zip = new AdmZip();
+                zip.addFile('file.txt', Buffer.from('archive content'));
+                // Preserve raw names to exercise adm-zip's extraction path normalization.
+                zip.getEntries()[0].entryName = entryName;
+                zip.addFile('aaa.txt', Buffer.from('must not be extracted'));
+                zip.writeZip(archive);
+                const conflict = path.join(destination, entryName === 'nested/file.txt' ? 'nested' : '', 'file.txt');
+                fs.mkdirSync(conflict, { recursive: true });
+                fs.writeFileSync(path.join(conflict, 'existing.txt'), 'existing content');
+                const options = { dir: path.relative(process.cwd(), destination), overwrite };
+                const isConflictError = (error: Error): boolean =>
+                    error.message.includes('Path is not a file') && error.message.includes(conflict);
+
+                assert.throws(() => ziputil.extractZipSync(archive, options), isConflictError);
+                await assert.rejects(tl.extractZip(archive, options), isConflictError);
+                assert(fs.statSync(conflict).isDirectory());
+                assert.strictEqual(fs.readFileSync(path.join(conflict, 'existing.txt'), 'utf8'), 'existing content');
+                assert(!fs.existsSync(path.join(destination, 'aaa.txt')));
+            });
+        }
+    }
+
+    it('passes archive path prefixes and filters to adm-zip', async function () {
+        await ziputil.createZip(source, archive, {
+            zipPath: path.join('package', 'contents'),
+            filter: (entryPath: string) => !entryPath.endsWith('.bin')
+        });
+        await ziputil.extractZip(archive, destination);
+        assert.strictEqual(fs.readFileSync(path.join(destination, 'package', 'contents', 'first.txt'), 'utf8'), 'first');
+        assert(!fs.existsSync(path.join(destination, 'package', 'contents', 'nested', 'binary.bin')));
+    });
+
+    it('creates a missing destination, including parent directories, for an empty archive', async function () {
+        const emptySource = path.join(workDir, 'empty-source');
+        fs.mkdirSync(emptySource);
+        await ziputil.createZip(emptySource, archive);
+        const nestedDestination = path.join(workDir, 'missing', 'parent', 'output');
+        assert.strictEqual(await ziputil.extractZip(archive, nestedDestination), nestedDestination);
+        assert.deepStrictEqual(fs.readdirSync(nestedDestination), []);
+        const syncDestination = path.join(workDir, 'missing-sync', 'output');
+        assert.strictEqual(ziputil.extractZipSync(archive, { dir: syncDestination }), syncDestination);
+        assert.deepStrictEqual(fs.readdirSync(syncDestination), []);
+    });
+
+    it('rejects directory destinations before processing the source', async function () {
+        fs.mkdirSync(archive);
+        const options: ziputil.CreateZipOptions = {
+            filter: () => {
+                assert.fail('Source must not be processed for a directory destination');
+            }
+        };
+        const isDestinationError = (error: Error): boolean =>
+            error.message.includes('Path is not a file') && error.message.includes(archive);
+
+        assert.throws(() => ziputil.createZipSync(source, archive, options), isDestinationError);
+        await assert.rejects(tl.createZip(source, archive, options), isDestinationError);
+        assert(fs.statSync(archive).isDirectory());
+        assert.deepStrictEqual(fs.readdirSync(archive), []);
+    });
+
+    it('propagates skipped writes if the destination becomes a directory after validation', async function () {
+        const options: ziputil.CreateZipOptions = {
+            filter: () => {
+                if (!fs.existsSync(archive)) {
+                    fs.mkdirSync(archive);
+                }
+                return true;
+            }
+        };
+
+        assert.throws(() => ziputil.createZipSync(source, archive, options), /failed/);
+        fs.rmdirSync(archive);
+        await assert.rejects(ziputil.createZip(source, archive, options), /failed/);
+        assert(fs.statSync(archive).isDirectory());
+        assert.deepStrictEqual(fs.readdirSync(archive), []);
+    });
+
+    it('propagates filesystem write errors unchanged', async function () {
+        const originalWriteSync = fs.writeSync;
+        const writeError = new Error('ZIP write failed');
+        fs.writeSync = () => { throw writeError; };
+        try {
+            assert.throws(() => ziputil.createZipSync(source, archive), error => error === writeError);
+            await assert.rejects(ziputil.createZip(source, archive), error => error === writeError);
+        } finally {
+            fs.writeSync = originalWriteSync;
+        }
+    });
+
+    it('creates missing parent directories and overwrites existing archives', async function () {
+        const nestedArchive = path.join(workDir, 'archives', 'nested', 'archive.zip');
+        assert.strictEqual(ziputil.createZipSync(source, nestedArchive), nestedArchive);
+        assert(fs.statSync(nestedArchive).isFile());
+        fs.writeFileSync(path.join(source, 'first.txt'), 'updated');
+        assert.strictEqual(await ziputil.createZip(source, nestedArchive), nestedArchive);
+        ziputil.extractZipSync(nestedArchive, destination);
+        assert.strictEqual(fs.readFileSync(path.join(destination, 'first.txt'), 'utf8'), 'updated');
+    });
+
+    it('rejects failed operations and throws for synchronous callers', async function () {
+        const missing = path.join(workDir, 'missing');
+        await assert.rejects(ziputil.extractZip('', destination), /file/);
+        await assert.rejects(ziputil.extractZip(archive, { dir: '' }), /dir/);
+        await assert.rejects(ziputil.createZip('', archive), /sourceDirectory/);
+        await assert.rejects(ziputil.createZip(source, ''), /destinationZip/);
+        await assert.rejects(ziputil.extractZip(missing, destination));
+        await assert.rejects(ziputil.createZip(missing, archive));
+        fs.writeFileSync(archive, 'not a zip');
+        await assert.rejects(ziputil.extractZip(archive, destination));
+        assert.throws(() => ziputil.extractZipSync(archive, destination));
+        assert.throws(() => ziputil.createZipSync(missing, archive));
+        fs.writeFileSync(archive, 'existing');
+        await assert.rejects(ziputil.createZip(source, path.join(archive, 'invalid.zip')));
+    });
+
+    describe('archived permission metadata', function () {
+        function writePermissionArchive(): void {
+            const zip = new AdmZip({ noSort: true });
+            for (const [name, mode] of [
+                ['locked/', 0o40000],
+                ['locked/nested/', 0o40000],
+                ['zero.txt', 0o100000],
+                ['missing/', 0],
+                ['missing/data.txt', 0]
+            ] as [string, number][]) {
+                const entry = zip.addFile(name, Buffer.from(name.endsWith('/') ? '' : 'content'));
+                entry.header.made = 0x0314;
+                entry.header.attr = mode * 0x10000;
+            }
+            zip.addFile('locked/nested/child.txt', Buffer.from('child'));
+            zip.writeZip(archive);
+            const entries = new AdmZip(archive).getEntries();
+            assert(entries.filter(entry => entry.entryName !== 'locked/nested/child.txt')
+                .every(entry => entry.header.fileAttr === 0));
+        }
+
+        for (const extract of [ziputil.extractZipSync, ziputil.extractZip]) {
+            for (const keepOriginalPermission of [undefined, true, false]) {
+                it(`${extract.name} distinguishes explicit 000 from missing modes (preserve: ${keepOriginalPermission})`, async function () {
+                    writePermissionArchive();
+                    fs.mkdirSync(destination);
+                    const defaultDirectory = path.join(destination, 'default-directory');
+                    fs.mkdirSync(defaultDirectory);
+                    // Default ACLs can override umask, so measure normal directory creation on this filesystem.
+                    const defaultDirectoryMode = fs.statSync(defaultDirectory).mode & 0o777;
+                    const chmodSync = fs.chmodSync;
+                    const zeroModes: string[] = [];
+                    fs.chmodSync = (file, mode) => {
+                        if (mode === 0) {
+                            zeroModes.push(path.relative(destination, file.toString()).replace(/\\/g, '/'));
+                        }
+                        chmodSync(file, mode);
+                    };
+                    try {
+                        await extract(archive, { dir: destination, keepOriginalPermission });
+                        assert.deepStrictEqual(zeroModes, keepOriginalPermission === false
+                            ? [] : ['zero.txt', 'locked/nested', 'locked']);
+                        if (process.platform !== 'win32') {
+                            assert.strictEqual(fs.statSync(path.join(destination, 'locked')).mode & 0o777,
+                                keepOriginalPermission === false ? defaultDirectoryMode : 0);
+                            assert.strictEqual(fs.statSync(path.join(destination, 'zero.txt')).mode & 0o777,
+                                keepOriginalPermission === false ? 0o666 : 0);
+                            assert.strictEqual(fs.statSync(path.join(destination, 'missing')).mode & 0o777,
+                                defaultDirectoryMode);
+                            assert.strictEqual(fs.statSync(path.join(destination, 'missing', 'data.txt')).mode & 0o777, 0o666);
+                        }
+                    } finally {
+                        fs.chmodSync = chmodSync;
+                        for (const name of ['locked', 'locked/nested', 'zero.txt']) {
+                            const output = path.join(destination, name);
+                            if (fs.existsSync(output)) {
+                                fs.chmodSync(output, 0o755);
+                            }
+                        }
+                    }
+                    assert.strictEqual(fs.readFileSync(path.join(destination, 'locked', 'nested', 'child.txt'), 'utf8'), 'child');
+                });
+            }
+        }
+
+        it('does not chmod a zero-mode file skipped by overwrite: false', function () {
+            writePermissionArchive();
+            fs.mkdirSync(destination);
+            const existing = path.join(destination, 'zero.txt');
+            fs.writeFileSync(existing, 'existing');
+            const mode = fs.statSync(existing).mode & 0o777;
+            try {
+                ziputil.extractZipSync(archive, { dir: destination, overwrite: false });
+                assert.strictEqual(fs.statSync(existing).mode & 0o777, mode);
+                assert.strictEqual(fs.readFileSync(existing, 'utf8'), 'existing');
+            } finally {
+                for (const name of ['locked', 'locked/nested']) {
+                    const output = path.join(destination, name);
+                    if (fs.existsSync(output)) {
+                        fs.chmodSync(output, 0o755);
+                    }
+                }
+            }
+        });
+    });
+
+    (process.platform === 'win32' ? describe.skip : describe)('Unix permissions', function () {
+        let originalUmask: number;
+
+        beforeEach(function () {
+            // A restrictive umask shows whether restored modes are exact or umask-filtered.
+            originalUmask = process.umask(0o077);
+            const zip = new AdmZip();
+            zip.addFile('bin/tool.sh', Buffer.from('#!/bin/sh\necho tool-ok\n'), '', 0o755);
+            zip.addFile('data.txt', Buffer.from('data'), '', 0o644);
+            zip.writeZip(archive);
+        });
+
+        afterEach(function () {
+            process.umask(originalUmask);
+        });
+
+        function modeOf(file: string): number {
+            return fs.statSync(path.join(destination, file)).mode & 0o777;
+        }
+
+        for (const parentMode of [0o555, 0o400, 0o000]) {
+            it(`restores directory mode ${parentMode.toString(8)} after archived links on repeated extraction without elevated privileges`, function () {
+                this.timeout(10000);
+                const script = `
+                    const assert = require('assert');
+                    const fs = require('fs');
+                    const os = require('os');
+                    const path = require('path');
+                    const AdmZip = require(${JSON.stringify(require.resolve('adm-zip'))});
+                    const ziputil = require(${JSON.stringify(require.resolve('../_build/ziputility'))});
+                    assert.notStrictEqual(process.getuid(), 0, 'regression must run as non-root');
+                    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'zip-readonly-'));
+                    const output = path.join(root, 'output');
+                    const folder = path.join(output, 'folder');
+                    const nested = path.join(folder, 'nested');
+                    const probe = path.join(root, 'probe');
+                    (async () => {
+                        try {
+                            fs.mkdirSync(probe, { mode: 0o555 });
+                            assert.throws(() => fs.writeFileSync(path.join(probe, 'file'), ''), { code: 'EACCES' });
+                            const zip = new AdmZip({ noSort: true });
+                            zip.addFile('folder/target.txt', Buffer.from('real content'), '', 0o755);
+                            zip.addFile('folder/nested/data.txt', Buffer.from('data'), '', 0o644);
+                            for (const name of ['folder/link', 'folder/nested/link']) {
+                                const link = zip.addFile(name, Buffer.from(name === 'folder/link' ? 'target.txt' : '../target.txt'));
+                                link.header.made = 0x0314;
+                                link.header.attr = 0o120777 * 0x10000;
+                            }
+                            // Parent first deliberately tests deepest-first restoration.
+                            for (const [name, mode] of [['folder/', ${parentMode}], ['folder/nested/', 0o500]]) {
+                                const dir = zip.addFile(name, Buffer.alloc(0));
+                                dir.header.made = 0x0314;
+                                dir.header.attr = (0o40000 | mode) * 0x10000;
+                            }
+                            const archive = path.join(root, 'input.zip');
+                            zip.writeZip(archive);
+                            const verify = () => {
+                                assert.strictEqual(fs.statSync(folder).mode & 0o777, ${parentMode});
+                                // Unlock only for inspection; the next extraction starts from archived modes.
+                                fs.chmodSync(folder, 0o755);
+                                assert.strictEqual(fs.statSync(nested).mode & 0o777, 0o500);
+                                assert.strictEqual(fs.statSync(path.join(folder, 'target.txt')).mode & 0o777, 0o755);
+                                assert.strictEqual(fs.readFileSync(path.join(nested, 'data.txt'), 'utf8'), 'data');
+                                for (const link of [path.join(folder, 'link'), path.join(nested, 'link')]) {
+                                    assert(fs.lstatSync(link).isSymbolicLink());
+                                    assert.strictEqual(fs.readFileSync(link, 'utf8'), 'real content');
+                                }
+                            };
+                            for (const extract of [ziputil.extractZipSync, ziputil.extractZip]) {
+                                for (let attempt = 0; attempt < 2; attempt++) {
+                                    if (attempt > 0) {
+                                        // A missing file must be recreated inside a read-only archived directory.
+                                        fs.chmodSync(nested, 0o755);
+                                        fs.unlinkSync(path.join(nested, 'data.txt'));
+                                        fs.chmodSync(nested, 0o500);
+                                        assert.throws(() => fs.unlinkSync(path.join(nested, 'link')), { code: 'EACCES' });
+                                        fs.chmodSync(folder, ${parentMode});
+                                    }
+                                    assert.strictEqual(await extract(archive, output), output);
+                                    verify();
+                                }
+                                fs.chmodSync(folder, ${parentMode});
+                                assert.strictEqual(await extract(archive, { dir: output, overwrite: false }), output);
+                                verify();
+
+                                fs.chmodSync(folder, ${parentMode});
+                                const symlinkSync = fs.symlinkSync;
+                                const writeError = new Error('symbolic link replacement failed');
+                                fs.symlinkSync = () => { throw writeError; };
+                                try {
+                                    await assert.rejects(async () => extract(archive, output), error => error === writeError);
+                                } finally {
+                                    fs.symlinkSync = symlinkSync;
+                                }
+                                assert.strictEqual(fs.statSync(folder).mode & 0o777, ${parentMode});
+                                fs.chmodSync(folder, 0o755);
+                                assert.strictEqual(fs.statSync(nested).mode & 0o777, 0o500);
+                                assert.strictEqual(await extract(archive, output), output);
+                                verify();
+
+                                // Rejected before writing: unlocked directories return to their prior modes.
+                                fs.chmodSync(nested, 0o755);
+                                fs.unlinkSync(path.join(nested, 'data.txt'));
+                                fs.mkdirSync(path.join(nested, 'data.txt'));
+                                fs.chmodSync(nested, 0o500);
+                                fs.chmodSync(folder, 0o500);
+                                await assert.rejects(async () => extract(archive, output), error => error.code !== 'EACCES');
+                                assert.strictEqual(fs.statSync(folder).mode & 0o777, 0o500);
+                                assert.strictEqual(fs.statSync(nested).mode & 0o777, 0o500);
+
+                                fs.chmodSync(folder, 0o755);
+                                fs.chmodSync(nested, 0o755);
+                                fs.rmSync(output, { recursive: true });
+                            }
+                            ziputil.extractZipSync(archive, { dir: output, keepOriginalPermission: false });
+                            assert.notStrictEqual(fs.statSync(folder).mode & 0o777, ${parentMode});
+                            assert.strictEqual(fs.statSync(path.join(folder, 'target.txt')).mode & 0o777, 0o666);
+                            assert.strictEqual(fs.readFileSync(path.join(nested, 'link'), 'utf8'), 'real content');
+                        } finally {
+                            if (fs.existsSync(folder)) fs.chmodSync(folder, 0o755);
+                            if (fs.existsSync(nested)) fs.chmodSync(nested, 0o755);
+                            fs.chmodSync(probe, 0o755);
+                            fs.rmSync(root, { recursive: true, force: true });
+                        }
+                    })().catch(error => { console.error(error); process.exitCode = 1; });
+                `;
+                const result = childProcess.spawnSync(process.execPath, ['-e', script], {
+                    encoding: 'utf8',
+                    // Dropping both IDs prevents a root test runner from masking permission failures.
+                    ...(process.getuid() === 0 ? { uid: 65534, gid: 65534 } : {})
+                });
+                assert.ifError(result.error);
+                assert.strictEqual(result.status, 0, result.stderr || result.stdout);
+            });
+        }
+
+        it('restores archived modes by default, so an extracted tool runs under a restrictive umask', function () {
+            assert.strictEqual(ziputil.extractZipSync(archive, destination), destination);
+            assert.strictEqual(modeOf('bin/tool.sh'), 0o755);
+            assert.strictEqual(modeOf('data.txt'), 0o644);
+            assert.strictEqual(childProcess.execFileSync(path.join(destination, 'bin', 'tool.sh')).toString(), 'tool-ok\n');
+        });
+
+        it('keepOriginalPermission: false uses adm-zip default modes, so the tool is not executable', function () {
+            assert.strictEqual(ziputil.extractZipSync(archive, { dir: destination, keepOriginalPermission: false }), destination);
+            assert.strictEqual(modeOf('bin/tool.sh'), 0o666);
+            assert.throws(() => childProcess.execFileSync(path.join(destination, 'bin', 'tool.sh')), /EACCES/);
+        });
+    });
+
+});

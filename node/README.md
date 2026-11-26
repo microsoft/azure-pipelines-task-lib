@@ -74,6 +74,25 @@ Set environment variable TASK_TEST_TRACE=1 to display test output.
 [npm-lib-image]: https://img.shields.io/npm/v/azure-pipelines-task-lib.svg?style=flat
 [npm-lib-url]: https://www.npmjs.com/package/azure-pipelines-task-lib
 
+## ZIP helpers
+
+`tl.extractZip` and `tl.createZip` (Node tasks) wrap `adm-zip`. Migrating from `extract-zip@2.0.1` `extract(file, { dir })`:
+
+* **Overwrite:** existing files are overwritten by default (`overwrite: true`), matching `extract-zip`. Pass `overwrite: false` to keep existing files. A file/directory conflict always throws, regardless of this option.
+* **Conflicting archive paths:** entries that resolve to the same destination after separator and dot-segment normalization are rejected before creating or modifying the destination. A file also cannot occupy a path needed as another entry's parent directory. These checks apply regardless of `overwrite`; explicit directories and their child entries remain supported.
+* **Unix permissions:** archived modes are restored by default (`keepOriginalPermission: true`), so executables stay executable. Explicit `000` modes with Unix file-type metadata are preserved for files and directories; entries without Unix mode metadata retain `adm-zip`'s fallback modes. Directory modes are restored deepest-first after both regular entries and symbolic links are created. On repeated extraction, existing archived directories temporarily gain owner access so files and symbolic links inside them can be replaced; archived modes are restored afterward, including when extraction fails, while directories rejected before writing keep their previous modes. Pass `keepOriginalPermission: false` to use `adm-zip`'s default file mode of `0o666`. Directories without restored modes use filesystem defaults, including umask and inherited default ACLs. Restored modes are applied exactly, not filtered by umask, so check tools that depend on specific modes.
+* **Empty archives:** the destination directory is created, including missing parents.
+* **Write failures:** both helpers throw (or reject their Promise) when an output receives file descriptor `0`, which `adm-zip@0.6.1` would otherwise skip writing and report as success. This can occur on Unix when stdin is closed; keep stdin open when using these helpers. The rejected descriptor is closed, but a zero-byte output may remain after the failed attempt.
+* **Directories:** Unix `S_IFDIR` and the DOS directory bit are recognized even without a trailing slash, including when other DOS flags are set, matching `extract-zip@2.0.1`.
+* **Archived symbolic links:** Unix `S_IFLNK` entries are restored as symbolic links, as with `extract-zip`. Unlike `extract-zip`, targets are containment-checked before any destination path is created or modified: the archive is rejected if a target is empty or absolute, loops, or resolves outside the destination (following other archived links and refusing pre-existing destination symlinks), or if another entry is at or beneath a link. Containment must hold under POSIX `..` resolution with case-sensitive and case-insensitive names and under Windows' textual `..` resolution, so the same archive is accepted or rejected on every agent. Links are created after all other entries, so nothing is written through them; `overwrite: false` keeps an existing path at a link's location. On Windows, creating links requires Developer Mode or `SeCreateSymbolicLinkPrivilege`.
+* **Filenames:** extraction honors the ZIP UTF-8 flag, falls back to CP437 for legacy names, and uses Info-ZIP Unicode Path extra fields (`0x7075`) when their version and filename CRC are valid, matching `extract-zip@2.0.1`.
+
+```ts
+await tl.extractZip(archivePath, { dir: destination });                          // extract-zip parity
+await tl.extractZip(archivePath, { dir: destination, overwrite: false });         // keep existing files
+await tl.extractZip(archivePath, { dir: destination, keepOriginalPermission: false });
+```
+
 ## Powershell
 
 We also maintain a PowerShell library for Windows task development.

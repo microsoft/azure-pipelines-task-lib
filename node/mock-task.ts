@@ -6,6 +6,7 @@ import tcm = require('./taskcommand');
 import trm = require('./mock-toolrunner');
 import eom = require('./externaloutput');
 import ma = require('./mock-answer');
+export { extractZip, extractZipSync, createZip, createZipSync } from './ziputility';
 
 let mock: ma.MockAnswers = new ma.MockAnswers();
 

@@ -513,7 +513,16 @@ describe('Mock Tests', function () {
         await runner.LoadAsync(path.join(__dirname, 'fakeTasks', 'node10task', 'entry.js'));
         const nodePath = runner.nodePath;
         assert(nodePath, 'node path should have been correctly set');
-        const version = ncp.execSync(nodePath + ' -v').toString().trim();
+        const result = ncp.spawnSync(nodePath, ['-v']);
+        const launchError = result.error as NodeJS.ErrnoException | undefined;
+        // Endpoint protection on some Windows machines blocks the end-of-life Node 10 binary from launching.
+        if (process.platform === 'win32' && launchError && (launchError.code === 'EPERM' || launchError.code === 'EACCES')) {
+            console.warn(`Skipping Node 10 version check: Windows denied launching ${nodePath} (${launchError.code}).`);
+            this.skip();
+        }
+        assert.ifError(launchError);
+        assert.strictEqual(result.status, 0, 'node -v failed: ' + result.stderr.toString());
+        const version = result.stdout.toString().trim();
         assert(semver.satisfies(version, '10.x'), 'Downloaded node version should be Node 10 instead of ' + version);
     })
 
